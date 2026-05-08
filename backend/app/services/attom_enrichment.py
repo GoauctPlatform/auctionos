@@ -258,13 +258,12 @@ def enrich_property(db: Session, property_id: str) -> Dict[str, Any]:
     if prop.attom_id:
         cache_key = f"attom:property:{prop.attom_id}"
         query_params = {"attomId": prop.attom_id}
-    elif prop.parcel_id:
-        # Search by APN (parcel_id) which is much more precise
-        cache_key = f"attom:property:apn:{prop.parcel_id}:{prop.state}"
+    elif prop.parcel_id and getattr(prop, 'county_fips', None):
+        # Search by APN (parcel_id) which is much more precise, but ATTOM requires FIPS
+        cache_key = f"attom:property:apn:{prop.parcel_id}:{prop.county_fips}"
         query_params = {
             "apn": prop.parcel_id,
-            "state": prop.state,
-            "county": prop.county
+            "fips": prop.county_fips
         }
     else:
         # Fallback to address search
