@@ -543,7 +543,8 @@ def update_client_list(
     
     # RBAC logic
     if current_user.role in ['manager', 'agent']:
-        if lst.company_id != current_user.company_id:
+        effective_company_id = current_user.active_company_id or current_user.company_id
+        if lst.company_id != effective_company_id:
             raise HTTPException(status_code=403, detail="Not authorized to edit this folder")
     else:
         if lst.user_id != current_user.id and not lst.is_broadcasted:
@@ -605,7 +606,8 @@ def delete_client_list(
         raise HTTPException(status_code=404, detail="List not found")
         
     if current_user.role in ['manager', 'agent']:
-        if lst.company_id != current_user.company_id:
+        effective_company_id = current_user.active_company_id or current_user.company_id
+        if lst.company_id != effective_company_id:
             raise HTTPException(status_code=403, detail="Not authorized to modify this list")
     else:
         if lst.user_id != current_user.id:
@@ -638,7 +640,8 @@ def add_property_to_list(
         raise HTTPException(status_code=404, detail="List or Property not found")
         
     if current_user.role in ['manager', 'agent']:
-        if lst.company_id != current_user.company_id:
+        effective_company_id = current_user.active_company_id or current_user.company_id
+        if lst.company_id != effective_company_id:
             raise HTTPException(status_code=403, detail="Not authorized to modify this list")
     else:
         if lst.user_id != current_user.id:
@@ -738,7 +741,8 @@ def get_list_properties(
         raise HTTPException(status_code=404, detail="List not found")
         
     if current_user.role in ['manager', 'agent']:
-        if lst.company_id != current_user.company_id:
+        effective_company_id = current_user.active_company_id or current_user.company_id
+        if lst.company_id != effective_company_id:
             raise HTTPException(status_code=403, detail="Not authorized to view this list")
     else:
         if lst.user_id != current_user.id and not lst.is_broadcasted:
@@ -870,7 +874,8 @@ def remove_property_from_list(
         raise HTTPException(status_code=404, detail="List or Property not found")
         
     if current_user.role in ['manager', 'agent']:
-        if lst.company_id != current_user.company_id:
+        effective_company_id = current_user.active_company_id or current_user.company_id
+        if lst.company_id != effective_company_id:
             raise HTTPException(status_code=403, detail="Not authorized to modify this list")
     else:
         if lst.user_id != current_user.id:
