@@ -64,7 +64,7 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
             </div>
 
             {/* Critical Attributes Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-y-6 gap-x-4 mb-8">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-6 gap-x-4 mb-6">
                 <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">County / State</label>
                     <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
@@ -97,10 +97,50 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                 </div>
                 <div>
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Structure</label>
-                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate">
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate" title={property.property_type || property.details?.property_type || 'Unknown'}>
                         {property.property_type || property.details?.property_type || 'Unknown'}
                     </p>
                 </div>
+                <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Building SqFt</label>
+                    <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
+                        {property.details?.building_area_sqft || property.sqft ? `${(property.details?.building_area_sqft || property.sqft).toLocaleString()} sqft` : '-'}
+                    </p>
+                </div>
+                <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Stories / Units</label>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                        {property.details?.num_stories || property.stories || '-'} / {property.details?.num_units || property.num_units || '-'}
+                    </p>
+                </div>
+                <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Subdivision</label>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate" title={property.details?.subdivision || '-'}>
+                        {property.details?.subdivision || '-'}
+                    </p>
+                </div>
+                <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Last Sale</label>
+                    <p className="text-sm font-bold text-emerald-600 dark:text-emerald-400">
+                        {property.last_sale_price ? `$${property.last_sale_price.toLocaleString()}` : '-'} 
+                        {property.last_sale_date ? <span className="text-[10px] text-slate-400 ml-1">({new Date(property.last_sale_date).getFullYear()})</span> : ''}
+                    </p>
+                </div>
+                <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Annual Tax</label>
+                    <p className="text-sm font-bold text-rose-600 dark:text-rose-400">
+                        {property.tax_amount ? `$${property.tax_amount.toLocaleString()}` : '-'} 
+                        {property.tax_year ? <span className="text-[10px] text-slate-400 ml-1">({property.tax_year})</span> : ''}
+                    </p>
+                </div>
+            </div>
+
+            {/* Legal Description (Full Width) */}
+            <div className="mb-8 p-3 bg-slate-50 dark:bg-slate-900/30 rounded-lg border border-slate-100 dark:border-slate-800">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Legal Description</label>
+                <p className="text-xs font-mono font-medium text-slate-600 dark:text-slate-400 break-words leading-relaxed">
+                    {property.details?.legal_description || property.legal_description || 'No legal description available.'}
+                </p>
             </div>
 
             {/* Metadata Footer Action */}
