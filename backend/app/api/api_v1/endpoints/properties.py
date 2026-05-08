@@ -947,13 +947,24 @@ def get_property(
     # Fetch Notes and Attachments only if we have a valid int ID and user
     if prop_id_int and current_user:
         try:
-            # Fetch Notes (Latest/Single per user)
-            notes_query = text("""
-                SELECT note_text FROM client_notes 
-                WHERE user_id = :user_id AND property_id = :prop_id 
-                ORDER BY created_at DESC LIMIT 1
-            """)
-            note_row = db.execute(notes_query, {"user_id": current_user.id, "prop_id": prop_id_int}).fetchone()
+            # Fetch Notes (Shared by Company or Single per user)
+            company_id = current_user.active_company_id or current_user.company_id
+            if company_id:
+                notes_query = text("""
+                    SELECT note_text FROM client_notes 
+                    WHERE property_id = :prop_id 
+                    AND user_id IN (SELECT id FROM users WHERE active_company_id = :company_id OR company_id = :company_id)
+                    ORDER BY id DESC LIMIT 1
+                """)
+                note_row = db.execute(notes_query, {"prop_id": prop_id_int, "company_id": company_id}).fetchone()
+            else:
+                notes_query = text("""
+                    SELECT note_text FROM client_notes 
+                    WHERE user_id = :user_id AND property_id = :prop_id 
+                    ORDER BY id DESC LIMIT 1
+                """)
+                note_row = db.execute(notes_query, {"user_id": current_user.id, "prop_id": prop_id_int}).fetchone()
+                
             if note_row:
                 data["notes"] = note_row[0]
             
@@ -1068,6 +1079,61 @@ def get_property(
             print(f"Override merge error (non-fatal): {e}")
 
     return data
+
+from pydantic import BaseModel
+class NotePayload(BaseModel):
+    notes: str
+
+@router.post("/{parcel_id}/notes")
+def update_property_notes(
+    parcel_id: str,
+    payload: NotePayload,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """
+    Updates or creates a note for a property. 
+    Notes are shared across the company.
+    """
+    prop = db.execute(
+        text("SELECT id FROM property_details WHERE parcel_id = :parcel_id OR id::text = :parcel_id"),
+        {"parcel_id": parcel_id}
+    ).fetchone()
+    
+    if not prop:
+        raise HTTPException(status_code=404, detail="Property not found")
+        
+    prop_id = prop[0]
+    company_id = current_user.active_company_id or current_user.company_id
+    
+    if company_id:
+        # Check if a note already exists for this company
+        existing_note = db.execute(text("""
+            SELECT id FROM client_notes 
+            WHERE property_id = :prop_id 
+            AND user_id IN (SELECT id FROM users WHERE active_company_id = :company_id OR company_id = :company_id)
+            ORDER BY id DESC LIMIT 1
+        """), {"prop_id": prop_id, "company_id": company_id}).fetchone()
+    else:
+        existing_note = db.execute(text("""
+            SELECT id FROM client_notes 
+            WHERE property_id = :prop_id AND user_id = :user_id
+            ORDER BY id DESC LIMIT 1
+        """), {"prop_id": prop_id, "user_id": current_user.id}).fetchone()
+
+    if existing_note:
+        db.execute(
+            text("UPDATE client_notes SET note_text = :note_text WHERE id = :id"),
+            {"note_text": payload.notes, "id": existing_note[0]}
+        )
+    else:
+        db.execute(
+            text("INSERT INTO client_notes (user_id, property_id, note_text) VALUES (:user_id, :prop_id, :note_text)"),
+            {"user_id": current_user.id, "prop_id": prop_id, "note_text": payload.notes}
+        )
+        
+    db.commit()
+    return {"status": "success", "message": "Notes updated successfully"}
 
 @router.get("/{parcel_id}/redirect/auction")
 def get_auction_redirect(

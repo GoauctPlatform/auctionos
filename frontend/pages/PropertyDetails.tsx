@@ -223,7 +223,15 @@ const PropertyDetails: React.FC = () => {
                 <div className="space-y-6">
                     <PropertyOwnerCard property={property} />
                     <PropertyResearchLinks property={property} />
-                    <PropertyUserActions property={property} onAddToList={handleAddToStandardList} />
+                    <PropertyUserActions 
+                        property={property} 
+                        onAddToList={handleAddToStandardList} 
+                        onUpdateNotes={async (notes) => {
+                            if (property.parcel_id) {
+                                await PropertyService.updatePropertyNotes(property.parcel_id, notes);
+                            }
+                        }}
+                    />
 
                     {/* Admin Actions */}
                     <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">

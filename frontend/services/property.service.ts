@@ -144,6 +144,21 @@ export const PropertyService = {
         }
     },
 
+    updatePropertyNotes: async (parcelId: string, notes: string): Promise<any> => {
+        try {
+            const response = await fetch(`${API_URL}/properties/${parcelId}/notes`, {
+                method: 'POST',
+                headers: getHeaders(),
+                body: JSON.stringify({ notes })
+            });
+            if (!response.ok) throw new Error('Failed to update property notes');
+            return await response.json();
+        } catch (error) {
+            console.error('Error updating property notes:', error);
+            throw error;
+        }
+    },
+
     deleteProperty: async (id: string): Promise<void> => {
         const response = await fetch(`${API_URL}/properties/${id}`, {
             method: 'DELETE',
