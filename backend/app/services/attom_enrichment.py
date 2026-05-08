@@ -202,6 +202,10 @@ def fetch_attom_data_sync(params: Dict[str, Any]) -> Dict[str, Any]:
     if response.status_code == 429:
         logger.warning("ATTOM API Rate Limit Exceeded (429).")
         raise CircuitBreakerException("Rate limit exceeded")
+        
+    if response.status_code in (400, 404):
+        logger.info(f"ATTOM API returned {response.status_code} (Not Found / Bad Request). params: {params}, response: {response.text}")
+        return {}
     
     response.raise_for_status()
     
