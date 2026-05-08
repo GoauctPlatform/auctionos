@@ -271,20 +271,30 @@ def enrich_property(db: Session, property_id: str) -> Dict[str, Any]:
         }
     else:
         # Fallback to address search
+        import re
         addr = prop.address or ""
         # Check if address is suspiciously short (like just a state code 'AL')
         if len(addr.strip()) <= 3:
             logger.warning(f"Endereço '{addr}' parece inválido para busca. Abortando enriquecimento por endereço.")
             return {"status": "skipped", "message": "Invalid address for search", "property_id": property_id}
             
-        city_state = f"{prop.county or ''} {prop.state or ''}" 
-        full_address = f"{addr} {city_state}".strip().lower()
-        
+        # Parse the address to extract state and zip from the end, leaving Street + City in address1
+        match = re.search(r'^(.*?)\s+([A-Za-z]{2})(?:\s+(\d{5}(?:-\d{4})?))?$', addr.strip())
+        if match:
+            addr1 = match.group(1).strip()
+            state_code = match.group(2).upper()
+            zip_code = match.group(3) or ""
+            addr2 = f"{state_code} {zip_code}".strip()
+        else:
+            addr1 = addr
+            addr2 = f"{prop.county or ''} {prop.state or ''}".strip()
+            
+        full_address = f"{addr1} {addr2}".strip().lower()
         addr_hash = hashlib.md5(full_address.encode('utf-8')).hexdigest()
         cache_key = f"attom:property:addr:{addr_hash}"
         query_params = {
-            "address1": prop.address,
-            "address2": city_state
+            "address1": addr1,
+            "address2": addr2
         }
     
     attom_data = None
@@ -307,7 +317,10 @@ def enrich_property(db: Session, property_id: str) -> Dict[str, Any]:
             
             # Salva no Redis
             if redis_client and attom_data:
-                redis_client.setex(cache_key, CACHE_TTL_SECONDS, json.dumps(attom_data))
+                try:
+                    redis_client.setex(cache_key, CACHE_TTL_SECONDS, json.dumps(attom_data))
+                except Exception as e:
+                    logger.error(f"Erro ao gravar no Redis: {e}")
                 
         except requests.exceptions.RequestException as e:
             logger.error(f"ATTOM API erro de requisição: {e}")
