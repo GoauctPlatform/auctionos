@@ -190,3 +190,18 @@ def check_watchlists_task():
     except Exception as e:
         logger.error(f"Watchlist check failed: {e}")
         return {"status": "error", "message": str(e)}
+
+@celery_app.task(acks_late=True, name="app.tasks.perform_database_backup_task")
+def perform_database_backup_task(job_id: int):
+    """
+    Background task to execute a database backup.
+    """
+    logger.info(f"Starting database backup task for job: {job_id}")
+    from app.services.backup_service import run_backup
+    try:
+        with SessionLocal() as db:
+            run_async(run_backup(job_id, db))
+        return {"status": "success", "job_id": job_id}
+    except Exception as e:
+        logger.error(f"Backup task failed: {e}")
+        return {"status": "error", "message": str(e)}

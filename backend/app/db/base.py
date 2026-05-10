@@ -31,3 +31,4 @@ from app.models.realtor_task import (
 from app.models.realtor_economy import RealtorWallet, WithdrawalRequest, PropertyMediaPurchase
 from app.models.monetization import UserSubscription, StorageUsage
 from app.models.property_user_override import PropertyUserOverride  # noqa — JSONB Override/Merge pattern
+from app.models.backup_job import BackupJob
