@@ -21,6 +21,15 @@ interface AuctionFiltersProps {
 
 import { useSearchParams } from 'react-router-dom';
 
+const AUCTION_TYPES = [
+    { label: 'Tax Deed', value: 'deed' },
+    { label: 'Tax Lien', value: 'lien' },
+    { label: 'Foreclosure', value: 'foreclosure' },
+    { label: 'Quit Claim', value: 'quit claim' },
+    { label: 'Sheriff Sale', value: 'sheriff' },
+    { label: 'Federal', value: 'federal' }
+];
+
 const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -115,17 +124,17 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
                     >
                         All Types
                     </button>
-                    {['Tax Deed', 'Tax Lien', 'Foreclosure', 'Sheriff Sale', 'HOA Lien', 'Federal'].map(type => (
+                    {AUCTION_TYPES.map(type => (
                         <button
-                            key={type}
-                            onClick={() => handleChange('tax_status', type)}
+                            key={type.value}
+                            onClick={() => handleChange('tax_status', type.value)}
                             className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                                filters.tax_status === type
+                                filters.tax_status === type.value
                                     ? 'bg-primary text-white shadow-sm'
                                     : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-700'
                             }`}
                         >
-                            {type}
+                            {type.label}
                         </button>
                     ))}
                 </div>
