@@ -24,6 +24,7 @@ export const Login: React.FC = () => {
       const queryString = hash.split('?')[1] || '';
       const params = new URLSearchParams(queryString);
       const token = params.get('token');
+      const isNew = params.get('is_new');
       if (!token) return;
 
       // Clean up the URL so the token doesn't persist on refresh
@@ -34,13 +35,18 @@ export const Login: React.FC = () => {
         localStorage.setItem('token', token);
         const user = await AuthService.getMe();
         localStorage.setItem('user', JSON.stringify(user));
-        // routeAfterLogin is defined below — call inline to avoid hoisting issues
-        if (user.role === 'realtor') {
-          navigate('/realtor');
-        } else if (['client', 'manager', 'agent'].includes(user.role)) {
-          navigate('/client');
+        
+        if (isNew === 'true') {
+          navigate('/onboarding');
         } else {
-          navigate('/dashboard');
+          // routeAfterLogin is defined below — call inline to avoid hoisting issues
+          if (user.role === 'realtor') {
+            navigate('/realtor');
+          } else if (['client', 'manager', 'agent'].includes(user.role)) {
+            navigate('/client');
+          } else {
+            navigate('/dashboard');
+          }
         }
       } catch {
         setError('Falha ao autenticar com Google. Tente novamente.');

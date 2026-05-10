@@ -9,7 +9,13 @@ class AgentDueDiligenceProfile(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
     coverage_area = Column(String(255), nullable=True)
-    vehicle_type = Column(String(50), nullable=True)
+    coverage_radius_miles = Column(Integer, default=50)
+    vehicle_type = Column(String(100), nullable=True)
+    
+    # New Onboarding Fields
+    social_security = Column(String(100), nullable=True)
+    payment_account = Column(String(255), nullable=True) # Bank, PayPal, etc.
+
     is_verified = Column(Boolean, default=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

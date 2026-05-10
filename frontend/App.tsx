@@ -45,8 +45,8 @@ import CancelSubscriptionPage from './pages/client/CancelSubscriptionPage';
 import ActivityLogsPage from './pages/client/ActivityLogsPage';
 import BillingPage from './pages/client/BillingPage';
 import { CompanyProvider } from './context/CompanyContext';
-import ConsultantLayout from './pages/realtor/ConsultantLayout';
-import ConsultantDashboard from './pages/realtor/ConsultantDashboard';
+import RealtorLayout from './pages/realtor/RealtorLayout';
+import RealtorDashboard from './pages/realtor/RealtorDashboard';
 import PropertyListings from './pages/realtor/PropertyListings';
 import AvailableTasks from './pages/realtor/AvailableTasks';
 import Commissions from './pages/realtor/Commissions';
@@ -159,10 +159,10 @@ const App: React.FC = () => {
           {/* Realtor Portal Routes */}
           <Route path="/realtor" element={
             <ProtectedRoute allowedRoles={['realtor']}>
-              <ConsultantLayout />
+              <RealtorLayout />
             </ProtectedRoute>
           }>
-            <Route index element={<ConsultantDashboard />} />
+            <Route index element={<RealtorDashboard />} />
             <Route path="listings" element={<PropertyListings />} />
             <Route path="tasks" element={<AvailableTasks />} />
             <Route path="commissions" element={<Commissions />} />

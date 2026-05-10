@@ -56,6 +56,9 @@ def create_task(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Investor creates a due-diligence task for a property."""
+    from app.services.permission_service import PermissionService
+    PermissionService.check_feature_access(db, current_user, "tasks")
+
     # Validate photo count
     if payload.min_photos < MIN_PHOTOS:
         raise HTTPException(status_code=400, detail=f"Minimum photos must be at least {MIN_PHOTOS}.")

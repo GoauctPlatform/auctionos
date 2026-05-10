@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { RealtorService } from '../../services/company.service';
 import { AuthService } from '../../services/auth.service';
 import { API_URL, getHeaders } from '../../services/httpClient';
@@ -30,6 +30,8 @@ const StatCard: React.FC<{ icon: string; label: string; value: string | number; 
 
 const ConsultantDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showWelcomeModal, setShowWelcomeModal] = useState(searchParams.get('welcome') === 'true');
   const [profile, setProfile] = useState<any>(null);
   const [recentExports, setRecentExports] = useState<ExportedProperty[]>([]);
   const [openTasksCount, setOpenTasksCount] = useState(0);
@@ -59,7 +61,31 @@ const ConsultantDashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-8 relative">
+
+      {/* Welcome Modal overlay */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center border border-slate-100 dark:border-slate-700 animate-in fade-in zoom-in duration-300">
+            <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="material-symbols-outlined text-4xl text-emerald-600 dark:text-emerald-400">handshake</span>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Welcome to GoAuct!</h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-8">
+              Your Realtor Partner account is active. You can now claim due diligence tasks from investors, manage your portfolio, and track your commissions!
+            </p>
+            <button 
+              onClick={() => {
+                setShowWelcomeModal(false);
+                setSearchParams({});
+              }} 
+              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98]"
+            >
+              Go to Dashboard
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Welcome */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

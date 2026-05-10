@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AuctionService } from '../../services/auction.service';
 import { PropertyService, ClientDataService } from '../../services/property.service';
 import { AuctionEvent, Property } from '../../types';
@@ -522,6 +522,8 @@ const SystemAnnouncements: React.FC = () => (
 
 const ClientDashboard: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [showWelcomeModal, setShowWelcomeModal] = useState(searchParams.get('welcome') === 'true');
   const user = AuthService.getCurrentUser();
   const { activeCompany } = useCompany();
   const formatName = (str?: string) => {
@@ -710,7 +712,31 @@ const ClientDashboard: React.FC = () => {
   }, [selectedState, dbTopDeals]);
 
   return (
-    <div className="p-4 sm:p-6 w-full space-y-8 px-4 sm:px-8 lg:px-12">
+    <div className="p-4 sm:p-6 w-full space-y-8 px-4 sm:px-8 lg:px-12 relative">
+      
+      {/* Welcome Modal overlay */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center border border-slate-100 dark:border-slate-700 animate-in fade-in zoom-in duration-300">
+            <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="material-symbols-outlined text-4xl text-blue-600 dark:text-blue-400">celebration</span>
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Welcome to GoAuct!</h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-8">
+              Your investor account is ready. You're currently on the Trial plan. You can explore upcoming auctions, search for properties, and build your lists. Let's get started!
+            </p>
+            <button 
+              onClick={() => {
+                setShowWelcomeModal(false);
+                setSearchParams({});
+              }} 
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
+            >
+              Start Exploring
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Welcome Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">

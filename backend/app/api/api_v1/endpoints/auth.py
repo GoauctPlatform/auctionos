@@ -77,6 +77,56 @@ def register_user(
 
     return user
 
+@router.post("/onboard")
+def onboard_user(
+    payload: dict,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """
+    Saves onboarding details (role, SSN, MLS, etc) and updates user role.
+    """
+    role = payload.get("role")
+    if role not in ["client", "realtor", "agent_due_diligence"]:
+        raise HTTPException(status_code=400, detail="Invalid role selection.")
+    
+    # Update User Role
+    if current_user.role == "pending":
+        current_user.role = role
+    
+    # If Realtor, create/update Realtor Profile
+    if role == "realtor":
+        from app.models.realtor import Realtor
+        profile = db.query(Realtor).filter(Realtor.user_id == current_user.id).first()
+        if not profile:
+            profile = Realtor(user_id=current_user.id, name=current_user.full_name or "Realtor", email=current_user.email)
+            db.add(profile)
+        profile.social_security = payload.get("social_security")
+        profile.license_number = payload.get("license_number")
+        profile.mls_id = payload.get("mls_id")
+        profile.payment_account = payload.get("payment_account")
+        
+    # If Agent, create/update Agent Profile
+    elif role == "agent_due_diligence":
+        from app.models.agent_due_diligence import AgentDueDiligenceProfile
+        profile = db.query(AgentDueDiligenceProfile).filter(AgentDueDiligenceProfile.user_id == current_user.id).first()
+        if not profile:
+            profile = AgentDueDiligenceProfile(user_id=current_user.id)
+            db.add(profile)
+        profile.social_security = payload.get("social_security")
+        profile.coverage_area = payload.get("coverage_area")
+        profile.vehicle_type = payload.get("vehicle_type")
+        profile.payment_account = payload.get("payment_account")
+        
+    # Mark onboarding as complete
+    from app.models.user_onboarding import UserOnboarding
+    onboarding = db.query(UserOnboarding).filter(UserOnboarding.user_id == current_user.id).first()
+    if onboarding:
+        onboarding.onboarding_step = "done"
+        
+    db.commit()
+    return {"status": "success", "role": role}
+
 @router.get("/reset-admin-prod")
 def reset_admin_production(secret: str, db: Session = Depends(deps.get_db)):
     if secret != "ResetAdmin2026Secure!":
