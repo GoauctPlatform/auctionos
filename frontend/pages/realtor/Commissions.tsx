@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { CircularProgress, Dialog, TextField, Button } from '@mui/material';
-import { ConsultantTaskService, CommissionsResponse } from '../../services/consultant_task.service';
+import { RealtorTaskService, CommissionsResponse } from '../../services/realtor_task.service';
 import { getHeaders, API_URL } from '../../services/httpClient';
 
 const STATUS_STYLES: Record<string, string> = {
@@ -19,7 +19,7 @@ const Commissions: React.FC = () => {
 
   const loadData = () => {
     setLoading(true);
-    ConsultantTaskService.getCommissions()
+    RealtorTaskService.getCommissions()
       .then(setData)
       .catch(() => setData(null))
       .finally(() => setLoading(false));
@@ -32,7 +32,7 @@ const Commissions: React.FC = () => {
   const handleWithdraw = async () => {
     try {
       setSubmitting(true);
-      const res = await fetch(`${API_URL}/consultant-economy/withdraw`, {
+      const res = await fetch(`${API_URL}/realtor-economy/withdraw`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({

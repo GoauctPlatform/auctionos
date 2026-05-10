@@ -3,8 +3,8 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.base_class import Base
 
-class Consultant(Base):
-    __tablename__ = "consultants"
+class Realtor(Base):
+    __tablename__ = "realtors"
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
@@ -16,4 +16,4 @@ class Consultant(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # We can link specifically to a user login account if required
-    user = relationship("User", back_populates="consultant_profile")
+    user = relationship("User", back_populates="realtor_profile")

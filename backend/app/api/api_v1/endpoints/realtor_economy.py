@@ -18,22 +18,22 @@ def get_wallet_balance(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """Returns the consultant's wallet balance."""
+    """Returns the realtor's wallet balance."""
     # First ensure the wallet exists
-    row = db.execute(text("SELECT * FROM consultant_wallets WHERE user_id = :uid"), {"uid": current_user.id}).fetchone()
+    row = db.execute(text("SELECT * FROM realtor_wallets WHERE user_id = :uid"), {"uid": current_user.id}).fetchone()
     if not row:
         db.execute(text("""
-            INSERT INTO consultant_wallets (user_id, balance, total_earned, total_withdrawn)
+            INSERT INTO realtor_wallets (user_id, balance, total_earned, total_withdrawn)
             VALUES (:uid, 0, 0, 0)
         """), {"uid": current_user.id})
         db.commit()
-        row = db.execute(text("SELECT * FROM consultant_wallets WHERE user_id = :uid"), {"uid": current_user.id}).fetchone()
+        row = db.execute(text("SELECT * FROM realtor_wallets WHERE user_id = :uid"), {"uid": current_user.id}).fetchone()
 
     # Get available commissions (points) from the ledger to sync the wallet balance
     # Note: A real system might use a trigger or event bus to update the wallet on commission insert.
     commissions = db.execute(text("""
-        SELECT SUM(points) as total_earned FROM consultant_commissions
-        WHERE consultant_user_id = :uid AND type = 'earned' AND status = 'available'
+        SELECT SUM(points) as total_earned FROM realtor_commissions
+        WHERE realtor_user_id = :uid AND type = 'earned' AND status = 'available'
     """), {"uid": current_user.id}).fetchone()
     
     total_earned_pts = commissions.total_earned or 0
@@ -49,7 +49,7 @@ def get_wallet_balance(
 
     # Update wallet table
     db.execute(text("""
-        UPDATE consultant_wallets 
+        UPDATE realtor_wallets 
         SET balance = :balance, total_earned = :earned, total_withdrawn = :withdrawn
         WHERE user_id = :uid
     """), {
@@ -95,8 +95,8 @@ def request_withdrawal(
     
     # Also log a commission entry for the withdrawal
     db.execute(text("""
-        INSERT INTO consultant_commissions
-            (consultant_user_id, points, usd_value, type, status, description)
+        INSERT INTO realtor_commissions
+            (realtor_user_id, points, usd_value, type, status, description)
         VALUES
             (:uid, :pts, :usd, 'withdrawn', 'pending', 'Withdrawal Request')
     """), {
@@ -124,7 +124,7 @@ def admin_list_withdrawals(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_superuser),
 ) -> Any:
-    """CRM Admin endpoint to view all consultant withdrawal requests."""
+    """CRM Admin endpoint to view all realtor withdrawal requests."""
     rows = db.execute(text("""
         SELECT w.*, u.full_name, u.email 
         FROM withdrawal_requests w

@@ -43,11 +43,11 @@ def register_user(
     db: Session = Depends(deps.get_db),
     user_in: UserCreate,
 ) -> Any:
-    # Only allow public signup for client and consultant roles
-    allowed_roles = {"client", "consultant"}
-    requested_role = (user_in.role or "client").strip().lower()
+    # Allow public signup for client, realtor, agent_due_diligence roles
+    allowed_roles = {"client", "realtor", "agent_due_diligence", "pending"}
+    requested_role = (user_in.role or "pending").strip().lower()
     if requested_role not in allowed_roles:
-        requested_role = "client"   # Silently default — no escalation via public API
+        requested_role = "pending"   # Silently default to pending for onboarding choice
 
     email = user_in.email.strip().lower()
     existing = db.query(User).filter(User.email == email).first()
@@ -64,6 +64,17 @@ def register_user(
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    # Initialize onboarding record
+    from app.models.user_onboarding import UserOnboarding
+    onboarding = UserOnboarding(
+        user_id=user.id,
+        has_completed_tour=False,
+        onboarding_step="role_selection" if requested_role == "pending" else "profile_setup"
+    )
+    db.add(onboarding)
+    db.commit()
+
     return user
 
 @router.get("/reset-admin-prod")
@@ -96,7 +107,7 @@ def reset_admin_production(secret: str, db: Session = Depends(deps.get_db)):
 async def login_oauth(request: Request, provider: str, role: str = "investor"):
     """
     Redirect the user to the given provider (google or facebook).
-    `role` param: 'investor' or 'consultant' — passed as state so callback can enforce role separation.
+    `role` param: 'investor' or 'realtor' — passed as state so callback can enforce role separation.
     """
     client = getattr(oauth, provider, None)
     if not client:
@@ -157,7 +168,8 @@ async def auth_callback(request: Request, provider: str, db: Session = Depends(d
     intended_role_raw = request.query_params.get('state', '') or ''
     # Clean up in case state has extra encoding
     intended_role_raw = intended_role_raw.strip().lower()
-    intended_role = 'consultant' if intended_role_raw == 'consultant' else 'client'
+    allowed_roles = {"client", "realtor", "agent_due_diligence"}
+    intended_role = intended_role_raw if intended_role_raw in allowed_roles else "pending"
     
     def get_frontend_url(req: Request) -> str:
         base = str(req.base_url)
@@ -168,11 +180,13 @@ async def auth_callback(request: Request, provider: str, db: Session = Depends(d
     # Check if user exists
     user = db.query(User).filter(User.email == email).first()
     
+    is_new_user = False
     if user:
         if not user.is_active:
             raise HTTPException(status_code=400, detail="Inactive user")
         # Anti-crossover removed: unified login handles routing.
     else:
+        is_new_user = True
         # Create new user with the intended role
         random_password = secrets.token_urlsafe(32)
         user = User(
@@ -187,6 +201,16 @@ async def auth_callback(request: Request, provider: str, db: Session = Depends(d
         db.commit()
         db.refresh(user)
         
+        # Initialize onboarding record
+        from app.models.user_onboarding import UserOnboarding
+        onboarding = UserOnboarding(
+            user_id=user.id,
+            has_completed_tour=False,
+            onboarding_step="role_selection" if intended_role == "pending" else "profile_setup"
+        )
+        db.add(onboarding)
+        db.commit()
+        
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
         user.id, expires_delta=access_token_expires
@@ -195,7 +219,8 @@ async def auth_callback(request: Request, provider: str, db: Session = Depends(d
     frontend_url = get_frontend_url(request)
 
     # Unified login routing - we pass token, frontend routing will check role and redirect
-    redirect_url = f"{frontend_url}/#/login?token={access_token}"
+    is_new_flag = "&is_new=true" if is_new_user else ""
+    redirect_url = f"{frontend_url}/#/login?token={access_token}{is_new_flag}"
     
     print(f">>> OAuth success: user={email} role={user.role} redirect={redirect_url[:80]}...")
     return RedirectResponse(url=redirect_url)

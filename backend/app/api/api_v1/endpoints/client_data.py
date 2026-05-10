@@ -315,6 +315,31 @@ def create_custom_property(
                     (ClientList.user_id == current_user.id) | (ClientList.company_id == current_user.active_company_id)
                 ).first()
             
+            if not lst and property_in.state:
+                raw_state = property_in.state
+                normalized_state = raw_state.strip().upper()
+                list_name = STATE_MAPPING.get(normalized_state, raw_state.strip().title())
+                
+                lst = db.query(ClientList).filter(
+                    ClientList.name == list_name,
+                    ClientList.tags.like("STANDARD%"),
+                    (ClientList.company_id == current_user.active_company_id) if current_user.active_company_id else (ClientList.user_id == current_user.id)
+                ).first()
+
+                if not lst:
+                    lst = ClientList(
+                        name=list_name,
+                        user_id=current_user.id,
+                        company_id=current_user.active_company_id,
+                        is_favorite_list=False,
+                        is_broadcasted=False,
+                        tags="STANDARD",
+                        notes="Auto-managed standard folder"
+                    )
+                    db.add(lst)
+                    db.commit()
+                    db.refresh(lst)
+
             if not lst:
                 lst = db.query(ClientList).filter(
                     ClientList.name == "Custom Folder",
@@ -394,6 +419,31 @@ def create_custom_property(
             (ClientList.user_id == current_user.id) | (ClientList.company_id == current_user.active_company_id)
         ).first()
     
+    if not lst and property_in.state:
+        raw_state = property_in.state
+        normalized_state = raw_state.strip().upper()
+        list_name = STATE_MAPPING.get(normalized_state, raw_state.strip().title())
+        
+        lst = db.query(ClientList).filter(
+            ClientList.name == list_name,
+            ClientList.tags.like("STANDARD%"),
+            (ClientList.company_id == current_user.active_company_id) if current_user.active_company_id else (ClientList.user_id == current_user.id)
+        ).first()
+
+        if not lst:
+            lst = ClientList(
+                name=list_name,
+                user_id=current_user.id,
+                company_id=current_user.active_company_id,
+                is_favorite_list=False,
+                is_broadcasted=False,
+                tags="STANDARD",
+                notes="Auto-managed standard folder"
+            )
+            db.add(lst)
+            db.commit()
+            db.refresh(lst)
+
     if not lst:
         # Create or find default "Custom Folder" for the company
         lst = db.query(ClientList).filter(

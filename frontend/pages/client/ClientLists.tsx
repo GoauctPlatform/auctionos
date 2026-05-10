@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { SwipeActionItem } from '../../components/SwipeActionItem';
 import { PropertyPreviewDrawer } from '../../components/PropertyPreviewDrawer';
 import { useCompany } from '../../context/CompanyContext';
-import { InvestorTaskService } from '../../services/consultant_task.service';
+import { InvestorTaskService } from '../../services/realtor_task.service';
 import { AuthService } from '../../services/auth.service';
 import { API_URL, getHeaders } from '../../services/httpClient';
 import { StreetViewThumbnail } from '../../components/StreetViewThumbnail';
@@ -91,7 +91,7 @@ const InvestorMyTasksView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             await InvestorTaskService.reviewSubmission(taskId, approved, reviewNotes || undefined);
             setReviewing(null);
             await load();
-            alert(approved ? '✅ Task approved! Consultant earned their commission.' : '❌ Task rejected. Consultant will be notified to resubmit.');
+            alert(approved ? '✅ Task approved! Realtor earned their commission.' : '❌ Task rejected. Realtor will be notified to resubmit.');
         } catch (e: any) { alert(e.message); }
     };
 
@@ -112,8 +112,8 @@ const InvestorMyTasksView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             const res = await InvestorTaskService.updateTask(editingTask.id, editForm);
             setEditingTask(null);
             await load();
-            if (res.consultant_notified) {
-                alert('✅ Task updated! The consultant who had claimed it was notified and must re-accept.');
+            if (res.realtor_notified) {
+                alert('✅ Task updated! The realtor who had claimed it was notified and must re-accept.');
             } else {
                 alert('✅ Task updated successfully.');
             }
@@ -124,7 +124,7 @@ const InvestorMyTasksView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
         const locked = ['submitted', 'approved'].includes(task.status);
         if (locked) { alert('⚠️ Cannot delete: task has submissions. Review and reject first.'); return; }
         const confirmMsg = task.status === 'claimed'
-            ? `This task is claimed by ${task.consultant_name || 'a consultant'}. They will be notified. Delete anyway?`
+            ? `This task is claimed by ${task.realtor_name || 'a realtor'}. They will be notified. Delete anyway?`
             : 'Delete this task? This action cannot be undone.';
         if (!window.confirm(confirmMsg)) return;
         try {
@@ -194,9 +194,9 @@ const InvestorMyTasksView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                                     <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-lg">
                                         📷 {task.min_photos}–{task.max_photos} photos
                                     </span>
-                                    {task.consultant_name && (
+                                    {task.realtor_name && (
                                         <span className="text-[10px] font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg">
-                                            👤 {task.consultant_name}
+                                            👤 {task.realtor_name}
                                         </span>
                                     )}
                                 </div>
@@ -277,7 +277,7 @@ const InvestorMyTasksView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
                                     {s.notes && (
                                         <div className="mb-5">
-                                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">Consultant Notes</p>
+                                            <p className="text-[10px] uppercase font-bold text-slate-400 mb-2">Realtor Notes</p>
                                             <div className="bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700 italic text-sm text-slate-600 dark:text-slate-300">
                                                 "{s.notes}"
                                             </div>
@@ -316,7 +316,7 @@ const InvestorMyTasksView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
                         <p className="text-[10px] uppercase font-black text-slate-400 mb-3 tracking-widest text-center">Investor Decision</p>
                         <TextField
-                            placeholder="Add internal notes or feedback for the consultant..."
+                            placeholder="Add internal notes or feedback for the realtor..."
                             fullWidth multiline rows={3}
                             variant="outlined"
                             value={reviewNotes}
@@ -379,7 +379,7 @@ const InvestorMyTasksView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                     {editingTask?.status === 'claimed' && (
                         <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl">
                             <p className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase leading-tight">
-                                ⚠️ Task is currently claimed. Saving changes will notify the consultant and they must re-accept the task.
+                                ⚠️ Task is currently claimed. Saving changes will notify the realtor and they must re-accept the task.
                             </p>
                         </div>
                     )}
@@ -432,7 +432,7 @@ const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => 
     };
 
     const handleCancelExport = async (exp: any) => {
-        if (!window.confirm('Are you sure you want to cancel this export? It will no longer be visible to consultants.')) return;
+        if (!window.confirm('Are you sure you want to cancel this export? It will no longer be visible to realtors.')) return;
         try {
             await InvestorTaskService.cancelExport(exp.id);
             await load();
@@ -462,7 +462,7 @@ const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => 
                     <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                         <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">upload</span>
                         <p className="text-sm font-medium">No properties exported yet.</p>
-                        <p className="text-xs mt-1 text-slate-400">Export properties to consultants from your folders using the Export action.</p>
+                        <p className="text-xs mt-1 text-slate-400">Export properties to realtors from your folders using the Export action.</p>
                     </div>
                 ) : (
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -528,7 +528,7 @@ const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => 
                     <TextField label="Contact Phone" fullWidth value={editForm.contact_phone} onChange={e => setEditForm({ ...editForm, contact_phone: e.target.value })} />
                     <TextField label="Contact Email" fullWidth value={editForm.contact_email} onChange={e => setEditForm({ ...editForm, contact_email: e.target.value })} />
                     <TextField label="Requested Sale Price" type="number" fullWidth value={editForm.requested_sale_price} onChange={e => setEditForm({ ...editForm, requested_sale_price: e.target.value })} />
-                    <TextField label="Notes for Consultants" fullWidth multiline rows={3} value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} />
+                    <TextField label="Notes for Realtors" fullWidth multiline rows={3} value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} />
                 </div>
                 <div className="p-5 bg-slate-50 dark:bg-slate-900/50 flex gap-3">
                     <Button onClick={() => setEditingExport(null)} fullWidth>Cancel</Button>
@@ -1778,7 +1778,7 @@ const ClientLists: React.FC = () => {
                                                         className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800 transition-colors"
                                                     >
                                                         <span className="material-symbols-outlined text-[14px]">upload</span>
-                                                        Export to Consultants
+                                                        Export to Realtors
                                                     </button>
                                                 </div>
                                             )}
@@ -1958,7 +1958,7 @@ const ClientLists: React.FC = () => {
                 <Typography variant="body2" className="text-slate-500 mb-4 text-xs">{taskProperty?.address || taskProperty?.parcel_id}</Typography>
                 <div className="space-y-3">
                     <TextField label="Task Title" size="small" fullWidth value={taskForm.title} onChange={e => setTaskForm(p => ({...p, title: e.target.value}))} />
-                    <TextField label="Description (what the consultant needs to do)" size="small" fullWidth multiline rows={2} value={taskForm.description} onChange={e => setTaskForm(p => ({...p, description: e.target.value}))} />
+                    <TextField label="Description (what the realtor needs to do)" size="small" fullWidth multiline rows={2} value={taskForm.description} onChange={e => setTaskForm(p => ({...p, description: e.target.value}))} />
                     <div className="flex gap-3">
                         <TextField label="Min Photos" type="number" size="small" fullWidth value={taskForm.min_photos} onChange={e => setTaskForm(p => ({...p, min_photos: Math.max(3, Math.min(10, parseInt(e.target.value)||3))}))} inputProps={{min:3,max:10}} />
                         <TextField label="Max Photos" type="number" size="small" fullWidth value={taskForm.max_photos} onChange={e => setTaskForm(p => ({...p, max_photos: Math.max(taskForm.min_photos, Math.min(10, parseInt(e.target.value)||10))}))} inputProps={{min:3,max:10}} />
@@ -1979,7 +1979,7 @@ const ClientLists: React.FC = () => {
                                 const calculatedRewardPoints = Math.round((taskForm.reward_usd * 0.70) * 100);
                                 await InvestorTaskService.createTask({ property_id: taskProperty.id, ...taskForm, reward_points: calculatedRewardPoints });
                                 setTaskProperty(null);
-                                alert('✅ Task created! Consultants can now claim it.');
+                                alert('✅ Task created! Realtors can now claim it.');
                             } catch(e:any) { alert(e.message); }
                             finally { setTaskSubmitting(false); }
                         }}
@@ -1991,13 +1991,13 @@ const ClientLists: React.FC = () => {
 
             {/* Export Property Dialog */}
             <Dialog open={!!exportProperty} onClose={() => setExportProperty(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-                <Typography variant="h6" className="font-bold mb-1 text-slate-800 dark:text-white">Export to Consultants</Typography>
+                <Typography variant="h6" className="font-bold mb-1 text-slate-800 dark:text-white">Export to Realtors</Typography>
                 <Typography variant="body2" className="text-slate-500 mb-4 text-xs">{exportProperty?.address || exportProperty?.parcel_id}</Typography>
                 <div className="space-y-3">
                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-xs text-emerald-700 dark:text-emerald-300">
-                        📤 Consultants will see this property in their listings and can contact you for commission negotiations.
+                        📤 Realtors will see this property in their listings and can contact you for commission negotiations.
                     </div>
-                    <TextField label="Your Name (visible to consultants)" size="small" fullWidth value={exportForm.contact_name} onChange={e => setExportForm(p => ({...p, contact_name: e.target.value}))} />
+                    <TextField label="Your Name (visible to realtors)" size="small" fullWidth value={exportForm.contact_name} onChange={e => setExportForm(p => ({...p, contact_name: e.target.value}))} />
                     <TextField label="Contact Phone" size="small" fullWidth value={exportForm.contact_phone} onChange={e => setExportForm(p => ({...p, contact_phone: e.target.value}))} />
                     <TextField label="Contact Email" size="small" fullWidth value={exportForm.contact_email} onChange={e => setExportForm(p => ({...p, contact_email: e.target.value}))} />
                     <TextField label="Requested Sale Price (Target)" type="number" size="small" fullWidth value={exportForm.requested_sale_price} onChange={e => setExportForm(p => ({...p, requested_sale_price: e.target.value}))} />
@@ -2018,7 +2018,7 @@ const ClientLists: React.FC = () => {
                                 };
                                 await InvestorTaskService.exportProperty(payload);
                                 setExportProperty(null);
-                                alert('✅ Property exported! Consultants can now see it in their listings.');
+                                alert('✅ Property exported! Realtors can now see it in their listings.');
                             } catch(e:any) { alert(e.message); }
                             finally { setExportSubmitting(false); }
                         }}

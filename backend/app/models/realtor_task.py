@@ -22,14 +22,14 @@ class PropertyExport(Base):
     exported_at = Column(DateTime(timezone=True), server_default=func.now())
 
 
-class ConsultantTask(Base):
+class RealtorTask(Base):
     """Task de due diligence criada por um investidor, executável por um consultor."""
-    __tablename__ = "consultant_tasks"
+    __tablename__ = "realtor_tasks"
 
     id = Column(Integer, primary_key=True, index=True)
     property_id = Column(Integer, ForeignKey("property_details.id", ondelete="CASCADE"), nullable=False, index=True)
     investor_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
-    consultant_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    realtor_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
 
     # Task details
     task_type = Column(String(50), default="photo_verification")  # 'photo_verification', etc.
@@ -51,7 +51,7 @@ class ConsultantTask(Base):
     status = Column(String(50), default="open", index=True)
 
     # Timestamps
-    deadline = Column(DateTime(timezone=True), nullable=True)   # set by consultant when claiming
+    deadline = Column(DateTime(timezone=True), nullable=True)   # set by realtor when claiming
     claimed_at = Column(DateTime(timezone=True), nullable=True)
     submitted_at = Column(DateTime(timezone=True), nullable=True)
     approved_at = Column(DateTime(timezone=True), nullable=True)
@@ -63,8 +63,8 @@ class TaskSubmission(Base):
     __tablename__ = "task_submissions"
 
     id = Column(Integer, primary_key=True, index=True)
-    task_id = Column(Integer, ForeignKey("consultant_tasks.id", ondelete="CASCADE"), nullable=False, index=True)
-    consultant_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    task_id = Column(Integer, ForeignKey("realtor_tasks.id", ondelete="CASCADE"), nullable=False, index=True)
+    realtor_user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
 
     # Geolocation validation
     submission_lat = Column(Float, nullable=True)
@@ -86,13 +86,13 @@ class TaskSubmission(Base):
     reviewed_at = Column(DateTime(timezone=True), nullable=True)
 
 
-class ConsultantCommission(Base):
+class RealtorCommission(Base):
     """Registro de pontos/comissões ganhos ou sacados pelo consultor."""
-    __tablename__ = "consultant_commissions"
+    __tablename__ = "realtor_commissions"
 
     id = Column(Integer, primary_key=True, index=True)
-    consultant_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
-    task_id = Column(Integer, ForeignKey("consultant_tasks.id", ondelete="SET NULL"), nullable=True)
+    realtor_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    task_id = Column(Integer, ForeignKey("realtor_tasks.id", ondelete="SET NULL"), nullable=True)
 
     points = Column(Integer, nullable=False)           # positive = earned, negative = withdrawn
     usd_value = Column(Float, nullable=True)           # points / 100
@@ -109,7 +109,7 @@ class SupportTicket(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
-    task_id = Column(Integer, ForeignKey("consultant_tasks.id", ondelete="SET NULL"), nullable=True)
+    task_id = Column(Integer, ForeignKey("realtor_tasks.id", ondelete="SET NULL"), nullable=True)
 
     subject = Column(String(255), nullable=False)
     message = Column(Text, nullable=False)

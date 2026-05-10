@@ -8,7 +8,7 @@ import { API_URL } from '../services/httpClient';
 export const Signup: React.FC = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const defaultRole = (searchParams.get('role') === 'consultant' ? 'consultant' : 'client');
+    const defaultRole = (searchParams.get('role') === 'realtor' ? 'realtor' : searchParams.get('role') === 'agent' ? 'agent_due_diligence' : 'client');
 
     const [selectedRole, setSelectedRole] = useState(defaultRole);
     const [formData, setFormData] = useState({
@@ -58,11 +58,8 @@ export const Signup: React.FC = () => {
             const user = await AuthService.getMe();
             localStorage.setItem('user', JSON.stringify(user));
 
-            if (selectedRole === 'consultant') {
-                navigate('/consultant');
-            } else {
-                navigate('/client');
-            }
+            // Redirect all new users to the onboarding flow
+            navigate('/onboarding');
         } catch (err: any) {
             setError(err.message || 'Registration failed. Please try again.');
         } finally {
@@ -70,19 +67,27 @@ export const Signup: React.FC = () => {
         }
     };
 
-    const isConsultant = selectedRole === 'consultant';
-    const gradientClass = isConsultant
+    const isRealtor = selectedRole === 'realtor';
+    const isAgent = selectedRole === 'agent_due_diligence';
+    const isPartner = isRealtor || isAgent;
+    
+    const gradientClass = isRealtor
         ? 'from-emerald-500 to-teal-600'
+        : isAgent 
+        ? 'from-orange-500 to-red-600'
         : 'from-blue-600 to-indigo-600';
-    const btnClass = isConsultant
+        
+    const btnClass = isRealtor
         ? 'bg-emerald-600 hover:bg-emerald-700'
+        : isAgent
+        ? 'bg-orange-600 hover:bg-orange-700'
         : 'bg-primary hover:bg-blue-700';
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 bg-slate-50 dark:bg-[#070d1a] relative overflow-hidden">
             {/* Background */}
             <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className={`absolute top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full blur-3xl opacity-25 ${isConsultant ? 'bg-emerald-200 dark:bg-emerald-900' : 'bg-blue-100 dark:bg-blue-900/20'}`} />
+                <div className={`absolute top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full blur-3xl opacity-25 ${isRealtor ? 'bg-emerald-200 dark:bg-emerald-900' : isAgent ? 'bg-orange-200 dark:bg-orange-900' : 'bg-blue-100 dark:bg-blue-900/20'}`} />
                 <div className="absolute bottom-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-slate-200 dark:bg-slate-800/30 blur-3xl opacity-40" />
             </div>
 
@@ -101,7 +106,7 @@ export const Signup: React.FC = () => {
                             Create Your Account
                         </h1>
                         <p className="text-white/70 text-xs mt-1">
-                            Join the GoAuct ecosystem as an investor or consultant
+                            Join the GoAuct ecosystem as an investor or realtor
                         </p>
                     </div>
 
@@ -116,7 +121,7 @@ export const Signup: React.FC = () => {
                             {/* Role Selection */}
                             <div className="flex flex-col gap-1.5 mb-2">
                                 <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">I want to join as a:</span>
-                                <div className="flex gap-4">
+                                <div className="flex flex-col sm:flex-row gap-4">
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
                                             type="radio" 
@@ -132,12 +137,23 @@ export const Signup: React.FC = () => {
                                         <input 
                                             type="radio" 
                                             name="role" 
-                                            value="consultant" 
-                                            checked={selectedRole === 'consultant'} 
-                                            onChange={() => setSelectedRole('consultant')}
+                                            value="realtor" 
+                                            checked={selectedRole === 'realtor'} 
+                                            onChange={() => setSelectedRole('realtor')}
                                             className="text-emerald-600 focus:ring-emerald-600"
                                         />
-                                        <span className="text-sm text-slate-700 dark:text-slate-300">Consultant Partner</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">Realtor Partner</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input 
+                                            type="radio" 
+                                            name="role" 
+                                            value="agent_due_diligence" 
+                                            checked={selectedRole === 'agent_due_diligence'} 
+                                            onChange={() => setSelectedRole('agent_due_diligence')}
+                                            className="text-orange-600 focus:ring-orange-600"
+                                        />
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">Field Agent</span>
                                     </label>
                                 </div>
                             </div>
@@ -151,7 +167,7 @@ export const Signup: React.FC = () => {
                                     name="fullName"
                                     value={formData.fullName}
                                     onChange={handleChange}
-                                    placeholder={isConsultant ? 'Your full name' : 'John Doe'}
+                                    placeholder={isPartner ? 'Your full name' : 'John Doe'}
                                     required
                                 />
                             </label>
@@ -165,7 +181,7 @@ export const Signup: React.FC = () => {
                                     name="email"
                                     value={formData.email}
                                     onChange={handleChange}
-                                    placeholder={isConsultant ? 'partner@email.com' : 'john@example.com'}
+                                    placeholder={isPartner ? 'partner@email.com' : 'john@example.com'}
                                     required
                                 />
                             </label>
@@ -200,12 +216,21 @@ export const Signup: React.FC = () => {
                                 />
                             </label>
 
-                            {/* Consultant Info Banner */}
-                            {isConsultant && (
+                            {/* Realtor Info Banner */}
+                            {isRealtor && (
                                 <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 flex gap-2">
                                     <span className="material-symbols-outlined text-emerald-600 text-[18px] mt-0.5 shrink-0">info</span>
                                     <p className="text-xs text-emerald-800 dark:text-emerald-300">
-                                        Your account will be created with <strong>Consultant role</strong>. After registration, your profile will be reviewed and you'll be verified as a GoAuct Partner.
+                                        Your account will be created with <strong>Realtor role</strong>. After registration, your profile will be reviewed and you'll be verified as a GoAuct Partner.
+                                    </p>
+                                </div>
+                            )}
+                            
+                            {isAgent && (
+                                <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3 flex gap-2">
+                                    <span className="material-symbols-outlined text-orange-600 text-[18px] mt-0.5 shrink-0">info</span>
+                                    <p className="text-xs text-orange-800 dark:text-orange-300">
+                                        Your account will be created with <strong>Field Agent role</strong>. You will be able to claim field tasks after completing your profile verification.
                                     </p>
                                 </div>
                             )}
@@ -222,7 +247,7 @@ export const Signup: React.FC = () => {
                                     </>
                                 ) : (
                                     <>
-                                        {isConsultant ? 'Register as Consultant' : 'Create Investor Account'}
+                                        {isRealtor ? 'Register as Realtor' : isAgent ? 'Register as Agent' : 'Create Investor Account'}
                                         <span className="material-symbols-outlined text-[18px]">person_add</span>
                                     </>
                                 )}
@@ -232,7 +257,7 @@ export const Signup: React.FC = () => {
                                 <span className="text-slate-500 dark:text-slate-400 text-sm">Already have an account? </span>
                                 <Link
                                     to="/login"
-                                    className={`text-sm font-bold hover:underline ${isConsultant ? 'text-emerald-600 dark:text-emerald-400' : 'text-primary'}`}
+                                    className={`text-sm font-bold hover:underline ${isRealtor ? 'text-emerald-600 dark:text-emerald-400' : isAgent ? 'text-orange-600 dark:text-orange-400' : 'text-primary'}`}
                                 >
                                     Sign in
                                 </Link>

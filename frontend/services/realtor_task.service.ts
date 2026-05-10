@@ -21,7 +21,7 @@ export interface Task {
   state?: string;
   county?: string;
   investor_name?: string;
-  consultant_name?: string;
+  realtor_name?: string;
   created_at?: string;
 }
 
@@ -46,25 +46,25 @@ export interface CommissionsResponse {
   available_usd: number;
 }
 
-export const ConsultantTaskService = {
+export const RealtorTaskService = {
   getAvailableTasks: async (state?: string, taskType?: string): Promise<Task[]> => {
     const qs = new URLSearchParams();
     if (state) qs.set('state', state);
     if (taskType) qs.set('task_type', taskType);
-    const res = await fetch(`${API_URL}/consultant-tasks/available?${qs}`, { headers: getHeaders() });
+    const res = await fetch(`${API_URL}/realtor-tasks/available?${qs}`, { headers: getHeaders() });
     if (!res.ok) throw new Error('Failed to fetch available tasks');
     return res.json();
   },
 
   getMyTasks: async (status?: string): Promise<Task[]> => {
     const qs = status ? `?status=${status}` : '';
-    const res = await fetch(`${API_URL}/consultant-tasks/my${qs}`, { headers: getHeaders() });
+    const res = await fetch(`${API_URL}/realtor-tasks/my${qs}`, { headers: getHeaders() });
     if (!res.ok) throw new Error('Failed to fetch my tasks');
     return res.json();
   },
 
   claimTask: async (taskId: number, deadlineHours: number = 48): Promise<any> => {
-    const res = await fetch(`${API_URL}/consultant-tasks/${taskId}/claim`, {
+    const res = await fetch(`${API_URL}/realtor-tasks/${taskId}/claim`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ deadline_hours: deadlineHours }),
@@ -86,7 +86,7 @@ export const ConsultantTaskService = {
     if (lng !== undefined) form.append('submission_lng', lng.toString());
     if (notes) form.append('notes', notes);
 
-    const res = await fetch(`${API_URL}/consultant-tasks/${taskId}/submit`, {
+    const res = await fetch(`${API_URL}/realtor-tasks/${taskId}/submit`, {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }, // no Content-Type for multipart
       body: form,
@@ -96,7 +96,7 @@ export const ConsultantTaskService = {
   },
 
   getCommissions: async (): Promise<CommissionsResponse> => {
-    const res = await fetch(`${API_URL}/consultant-tasks/commissions`, { headers: getHeaders() });
+    const res = await fetch(`${API_URL}/realtor-tasks/commissions`, { headers: getHeaders() });
     if (!res.ok) throw new Error('Failed to fetch commissions');
     return res.json();
   },

@@ -66,33 +66,33 @@ export const CompanyService = {
     },
 };
 
-export const ConsultantService = {
+export const RealtorService = {
     register: async (payload: { name: string; email: string; phone?: string }): Promise<any> => {
-        const res = await fetch(`${API_URL}/consultants/register`, {
+        const res = await fetch(`${API_URL}/realtors/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
         });
         if (!res.ok) {
             const err = await res.json().catch(() => ({}));
-            throw new Error(err.detail || 'Failed to register consultant');
+            throw new Error(err.detail || 'Failed to register realtor');
         }
         return res.json();
     },
 
     getMe: async (): Promise<any> => {
-        const res = await fetch(`${API_URL}/consultants/me`, { headers: getHeaders() });
-        if (!res.ok) throw new Error('No consultant profile found');
+        const res = await fetch(`${API_URL}/realtors/me`, { headers: getHeaders() });
+        if (!res.ok) throw new Error('No realtor profile found');
         return res.json();
     },
 
     updateMe: async (payload: { name?: string; phone?: string; commission_model?: string }): Promise<any> => {
-        const res = await fetch(`${API_URL}/consultants/me`, {
+        const res = await fetch(`${API_URL}/realtors/me`, {
             method: 'PUT',
             headers: getHeaders(),
             body: JSON.stringify(payload),
         });
-        if (!res.ok) throw new Error('Failed to update consultant profile');
+        if (!res.ok) throw new Error('Failed to update realtor profile');
         return res.json();
     },
 
@@ -100,7 +100,7 @@ export const ConsultantService = {
         const q = new URLSearchParams();
         if (params?.state) q.append('state', params.state);
         if (params?.limit) q.append('limit', String(params.limit));
-        const res = await fetch(`${API_URL}/consultants/listings?${q}`, { headers: getHeaders() });
+        const res = await fetch(`${API_URL}/realtors/listings?${q}`, { headers: getHeaders() });
         if (!res.ok) throw new Error('Failed to fetch listings');
         return res.json();
     },

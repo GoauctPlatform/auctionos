@@ -158,10 +158,10 @@ const PropertyDetails: React.FC = () => {
                     </div>
 
                     {/* Media Paywall Section */}
-                    {property.has_consultant_media && !property.media_unlocked && (
+                    {property.has_realtor_media && !property.media_unlocked && (
                         <div className="bg-slate-900 rounded-xl p-8 shadow-sm flex flex-col items-center text-center text-white">
                             <span className="material-symbols-outlined text-4xl mb-3 text-slate-400">lock</span>
-                            <h3 className="text-lg font-bold mb-1">Exclusive Consultant Media Available</h3>
+                            <h3 className="text-lg font-bold mb-1">Exclusive Realtor Media Available</h3>
                             <p className="text-sm text-slate-400 mb-6">Unlock high-quality photos, drone footage, and on-site reports for $100.</p>
                             <button
                                 onClick={async () => {
@@ -190,7 +190,7 @@ const PropertyDetails: React.FC = () => {
 
                     {property.media_unlocked && (
                         <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Unlocked Consultant Media</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Unlocked Realtor Media</h3>
                             {property.media_files && property.media_files.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {property.media_files.map((file: any, idx: number) => (

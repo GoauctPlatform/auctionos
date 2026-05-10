@@ -7,6 +7,7 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
 import { Landing } from './pages/Landing';
 import { Signup } from './pages/Signup';
+import { Onboarding } from './pages/Onboarding';
 import { AuctionList } from './pages/AuctionList';
 import { AuthService } from './services/auth.service';
 import PropertyManualEntry from './pages/PropertyManualEntry';
@@ -44,12 +45,18 @@ import CancelSubscriptionPage from './pages/client/CancelSubscriptionPage';
 import ActivityLogsPage from './pages/client/ActivityLogsPage';
 import BillingPage from './pages/client/BillingPage';
 import { CompanyProvider } from './context/CompanyContext';
-import ConsultantLayout from './pages/consultant/ConsultantLayout';
-import ConsultantDashboard from './pages/consultant/ConsultantDashboard';
-import PropertyListings from './pages/consultant/PropertyListings';
-import AvailableTasks from './pages/consultant/AvailableTasks';
-import Commissions from './pages/consultant/Commissions';
-import ConsultantProfile from './pages/consultant/ConsultantProfile';
+import ConsultantLayout from './pages/realtor/ConsultantLayout';
+import ConsultantDashboard from './pages/realtor/ConsultantDashboard';
+import PropertyListings from './pages/realtor/PropertyListings';
+import AvailableTasks from './pages/realtor/AvailableTasks';
+import Commissions from './pages/realtor/Commissions';
+import RealtorProfile from './pages/realtor/RealtorProfile';
+
+// Agent Due Diligence Portal Pages
+import AgentLayout from './pages/agent_due_diligence/AgentLayout';
+import AgentDashboard from './pages/agent_due_diligence/AgentDashboard';
+import AgentTasks from './pages/agent_due_diligence/AgentTasks';
+import AgentWithdraw from './pages/agent_due_diligence/AgentWithdraw';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: string[] }> = ({ children, allowedRoles }) => {
   const user = AuthService.getCurrentUser();
@@ -59,8 +66,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: strin
 
   if (allowedRoles && !allowedRoles.includes(user.role)) {
     // Redirect each role to its own home
-    if (['client', 'manager', 'agent'].includes(user.role)) return <Navigate to="/client" replace />;
-    if (user.role === 'consultant') return <Navigate to="/consultant" replace />;
+    if (['client', 'manager'].includes(user.role)) return <Navigate to="/client" replace />;
+    if (user.role === 'realtor') return <Navigate to="/realtor" replace />;
+    if (user.role === 'agent_due_diligence') return <Navigate to="/agent" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -70,8 +78,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: strin
 const RootRoute: React.FC = () => {
   const user = AuthService.getCurrentUser();
   if (!user) return <Landing />;
-  if (['client', 'manager', 'agent'].includes(user.role)) return <Navigate to="/client" replace />;
-  if (user.role === 'consultant') return <Navigate to="/consultant" replace />;
+  if (['client', 'manager'].includes(user.role)) return <Navigate to="/client" replace />;
+  if (user.role === 'realtor') return <Navigate to="/realtor" replace />;
+  if (user.role === 'agent_due_diligence') return <Navigate to="/agent" replace />;
   return <Navigate to="/dashboard" replace />;
 };
 
@@ -84,6 +93,7 @@ const App: React.FC = () => {
           <Route path="/" element={<RootRoute />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/contact" element={<SupportPage />} />
@@ -119,7 +129,7 @@ const App: React.FC = () => {
 
           {/* Client Portal Routes */}
           <Route path="/client" element={
-            <ProtectedRoute allowedRoles={['client', 'manager', 'agent']}>
+            <ProtectedRoute allowedRoles={['client', 'manager']}>
               <CompanyProvider>
                 <ClientLayout />
               </CompanyProvider>
@@ -146,9 +156,9 @@ const App: React.FC = () => {
             <Route path="billing" element={<BillingPage />} />
           </Route>
 
-          {/* Consultant Portal Routes */}
-          <Route path="/consultant" element={
-            <ProtectedRoute allowedRoles={['consultant']}>
+          {/* Realtor Portal Routes */}
+          <Route path="/realtor" element={
+            <ProtectedRoute allowedRoles={['realtor']}>
               <ConsultantLayout />
             </ProtectedRoute>
           }>
@@ -156,7 +166,18 @@ const App: React.FC = () => {
             <Route path="listings" element={<PropertyListings />} />
             <Route path="tasks" element={<AvailableTasks />} />
             <Route path="commissions" element={<Commissions />} />
-            <Route path="profile" element={<ConsultantProfile />} />
+            <Route path="profile" element={<RealtorProfile />} />
+          </Route>
+
+          {/* Agent Due Diligence Portal Routes */}
+          <Route path="/agent" element={
+            <ProtectedRoute allowedRoles={['agent_due_diligence']}>
+              <AgentLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<AgentDashboard />} />
+            <Route path="tasks" element={<AgentTasks />} />
+            <Route path="withdraw" element={<AgentWithdraw />} />
           </Route>
         </Routes>
       </HashRouter>

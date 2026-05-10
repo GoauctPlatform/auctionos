@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ConsultantService } from '../../services/company.service';
+import { RealtorService } from '../../services/company.service';
 import { AuthService } from '../../services/auth.service';
 import { API_URL, getHeaders } from '../../services/httpClient';
 
@@ -36,23 +36,23 @@ const ConsultantDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [profileLoading, setProfileLoading] = useState(true);
   const user = AuthService.getCurrentUser();
-  const displayName = user?.full_name || user?.email?.split('@')[0] || 'Consultant';
+  const displayName = user?.full_name || user?.email?.split('@')[0] || 'Realtor';
 
   useEffect(() => {
-    ConsultantService.getMe()
+    RealtorService.getMe()
       .then(data => setProfile(data))
       .catch(() => setProfile(null))
       .finally(() => setProfileLoading(false));
 
-    // Load recent exported properties (visible to consultant)
-    fetch(`${API_URL}/consultant-tasks/exports?limit=6`, { headers: getHeaders() })
+    // Load recent exported properties (visible to realtor)
+    fetch(`${API_URL}/realtor-tasks/exports?limit=6`, { headers: getHeaders() })
       .then(r => r.ok ? r.json() : { items: [] })
       .then(data => setRecentExports(data.items || []))
       .catch(() => setRecentExports([]))
       .finally(() => setLoading(false));
 
     // Load open tasks count
-    fetch(`${API_URL}/consultant-tasks/available?limit=1`, { headers: getHeaders() })
+    fetch(`${API_URL}/realtor-tasks/available?limit=1`, { headers: getHeaders() })
       .then(r => r.ok ? r.json() : [])
       .then(data => setOpenTasksCount(Array.isArray(data) ? data.length : 0))
       .catch(() => setOpenTasksCount(0));
@@ -68,7 +68,7 @@ const ConsultantDashboard: React.FC = () => {
             Welcome, <span className="text-emerald-600">{displayName}</span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Your consultant partner dashboard.
+            Your realtor partner dashboard.
             {profile && profile.verification_status === 'pending' && (
               <span className="ml-2 px-2 py-0.5 text-[10px] font-bold rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 uppercase">
                 Verification Pending
@@ -107,7 +107,7 @@ const ConsultantDashboard: React.FC = () => {
             {profile?.phone && <p className="text-sm text-slate-500 dark:text-slate-400">{profile.phone}</p>}
           </div>
           <button
-            onClick={() => navigate('/consultant/profile')}
+            onClick={() => navigate('/realtor/profile')}
             className="px-4 py-2 text-sm font-bold border border-emerald-400 text-emerald-600 dark:text-emerald-400 rounded-xl hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors"
           >
             Edit Profile
@@ -126,7 +126,7 @@ const ConsultantDashboard: React.FC = () => {
             <p className="text-xs text-slate-500 mt-0.5">Properties investors have shared with you for outreach and partnership</p>
           </div>
           <button
-            onClick={() => navigate('/consultant/listings')}
+            onClick={() => navigate('/realtor/listings')}
             className="text-[10px] font-bold text-emerald-600 hover:underline uppercase tracking-widest"
           >
             View All →
@@ -149,7 +149,7 @@ const ConsultantDashboard: React.FC = () => {
             {recentExports.map(p => (
               <div
                 key={p.export_id}
-                onClick={() => navigate('/consultant/listings')}
+                onClick={() => navigate('/realtor/listings')}
                 className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 hover:border-emerald-400/50 hover:shadow-md transition-all cursor-pointer"
               >
                 <p className="text-sm font-bold text-slate-800 dark:text-white truncate">{p.address || p.parcel_id}</p>
@@ -190,7 +190,7 @@ const ConsultantDashboard: React.FC = () => {
           Complete field tasks assigned by investors and earn compensation. Tasks include property visits, photo verification, and due diligence reports.
         </p>
         <button
-          onClick={() => navigate('/consultant/tasks')}
+          onClick={() => navigate('/realtor/tasks')}
           className="px-4 py-2 text-sm font-bold bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
         >
           View Available Tasks →

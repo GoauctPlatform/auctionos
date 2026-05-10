@@ -14,18 +14,20 @@ from app.models.activity_log import ActivityLog
 from app.models.lead import Lead
 
 from app.models.company import Company
-from app.models.consultant import Consultant
+from app.models.realtor import Realtor
 from app.models.user_property import UserProperty
+from app.models.agent_due_diligence import AgentDueDiligenceProfile
+from app.models.user_onboarding import UserOnboarding
 
-# Consultant Task Ecosystem
-from app.models.consultant_task import (
+# Realtor Task Ecosystem
+from app.models.realtor_task import (
     PropertyExport,
-    ConsultantTask,
+    RealtorTask,
     TaskSubmission,
-    ConsultantCommission,
+    RealtorCommission,
     SupportTicket,
 )
 
-from app.models.consultant_economy import ConsultantWallet, WithdrawalRequest, PropertyMediaPurchase
+from app.models.realtor_economy import RealtorWallet, WithdrawalRequest, PropertyMediaPurchase
 from app.models.monetization import UserSubscription, StorageUsage
 from app.models.property_user_override import PropertyUserOverride  # noqa — JSONB Override/Merge pattern

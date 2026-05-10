@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from app.api.api_v1.endpoints import (
     auth, users, properties, dashboard, auctions, gis, admin, counties, announcements,
-    client_data, states, scores, marketing, companies, consultants, user_properties,
-    consultant_tasks, investor_tasks, consultant_economy, billing
+    client_data, states, scores, marketing, companies, realtors, user_properties,
+    realtor_tasks, investor_tasks, realtor_economy, billing, agent_tasks
 )
 
 api_router = APIRouter()
@@ -21,8 +21,9 @@ api_router.include_router(scores.router, prefix="/scores", tags=["scores"])
 api_router.include_router(user_properties.router, prefix="/user-properties", tags=["user_properties"])
 api_router.include_router(marketing.router, prefix="/leads", tags=["marketing"])
 api_router.include_router(companies.router, prefix="/companies", tags=["companies"])
-api_router.include_router(consultants.router, prefix="/consultants", tags=["consultants"])
-api_router.include_router(consultant_tasks.router, prefix="/consultant-tasks", tags=["consultant_tasks"])
+api_router.include_router(realtors.router, prefix="/realtors", tags=["realtors"])
+api_router.include_router(realtor_tasks.router, prefix="/realtor-tasks", tags=["realtor_tasks"])
 api_router.include_router(investor_tasks.router, prefix="/investor", tags=["investor_tasks"])
-api_router.include_router(consultant_economy.router, prefix="/consultant-economy", tags=["consultant_economy"])
+api_router.include_router(realtor_economy.router, prefix="/realtor-economy", tags=["realtor_economy"])
 api_router.include_router(billing.router, prefix="/billing", tags=["billing"])
+api_router.include_router(agent_tasks.router, prefix="/agent", tags=["agent"])

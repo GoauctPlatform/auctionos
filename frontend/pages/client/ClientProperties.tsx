@@ -4,6 +4,7 @@ import PropertyList from '../../components/admin/PropertyList';
 import PropertyFilters, { PropertyFilterParams } from '../../components/admin/PropertyFilters';
 import { Typography, Button, Dialog, TextField } from '@mui/material';
 import { ClientDataService } from '../../services/property.service';
+import CountySelector from '../../components/CountySelector';
 
 const ClientProperties: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -19,6 +20,7 @@ const ClientProperties: React.FC = () => {
     });
 
     const [isCreateModalOpen, setCreateModalOpen] = useState(false);
+    const [isCountySelectorOpen, setCountySelectorOpen] = useState(false);
     const [createForm, setCreateForm] = useState({ 
         parcel_id: '', 
         owner_name: '', 
@@ -147,25 +149,24 @@ const ClientProperties: React.FC = () => {
                             onChange={e => setCreateForm(p => ({...p, city: e.target.value}))} 
                         />
                         <TextField 
-                            label="State" 
-                            fullWidth size="small" 
-                            value={createForm.state} 
-                            onChange={e => setCreateForm(p => ({...p, state: e.target.value}))} 
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <TextField 
-                            label="County" 
-                            fullWidth size="small" 
-                            value={createForm.county} 
-                            onChange={e => setCreateForm(p => ({...p, county: e.target.value}))} 
-                        />
-                        <TextField 
                             label="ZIP Code" 
                             fullWidth size="small" 
                             value={createForm.zip_code} 
                             onChange={e => setCreateForm(p => ({...p, zip_code: e.target.value}))} 
                         />
+                    </div>
+                    <div>
+                        <Button 
+                            variant="outlined" 
+                            fullWidth 
+                            color={createForm.state && createForm.county ? "success" : "inherit"}
+                            onClick={() => setCountySelectorOpen(true)}
+                            className={`h-[40px] ${createForm.state && createForm.county ? 'border-emerald-500 text-emerald-700 bg-emerald-50' : 'border-slate-300'}`}
+                        >
+                            {createForm.state && createForm.county 
+                                ? `Location: ${createForm.county}, ${createForm.state}`
+                                : "Select State & County *"}
+                        </Button>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <TextField 
@@ -236,7 +237,7 @@ const ClientProperties: React.FC = () => {
                     <Button 
                         variant="contained" 
                         color="primary" 
-                        disabled={isSubmitting || !createForm.address}
+                        disabled={isSubmitting || !createForm.address || !createForm.state || !createForm.county}
                         className="bg-blue-600 rounded-lg shadow-none"
                         onClick={async () => {
                             setIsSubmitting(true);
@@ -293,6 +294,15 @@ const ClientProperties: React.FC = () => {
                     </Button>
                 </div>
             </Dialog>
+            {isCountySelectorOpen && (
+                <CountySelector 
+                    mode="select" 
+                    onClose={() => setCountySelectorOpen(false)} 
+                    onSelect={(state, county) => {
+                        setCreateForm(prev => ({ ...prev, state, county }));
+                    }}
+                />
+            )}
         </div>
     );
 };

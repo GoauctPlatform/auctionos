@@ -11,7 +11,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
-    role = Column(String(50), default="client")   # 'admin', 'client', 'consultant', 'superuser'
+    role = Column(String(50), default="client")   # 'admin', 'client', 'realtor', 'superuser'
     full_name = Column(String(255), nullable=True)
 
     # ── Billing & Usage ──────────────────────────────────────────────────────
@@ -42,7 +42,7 @@ class User(Base):
     # ── Relacionamentos ──────────────────────────────────────────────────────
     # Usa backref nos modelos secundários → NÃO define back_populates aqui
     # para evitar conflito com os backref definidos naquelas classes.
-    # Exceção: Company e Consultant usam back_populates explícito de ambos os lados.
+    # Exceção: Company e Realtor usam back_populates explícito de ambos os lados.
 
     companies = relationship(
         "Company",
@@ -64,8 +64,22 @@ class User(Base):
         lazy="select",
     )
 
-    consultant_profile = relationship(
-        "Consultant",
+    realtor_profile = relationship(
+        "Realtor",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    agent_profile = relationship(
+        "AgentDueDiligenceProfile",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    onboarding = relationship(
+        "UserOnboarding",
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",

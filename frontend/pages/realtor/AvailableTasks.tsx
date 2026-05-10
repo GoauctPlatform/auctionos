@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { CircularProgress, Dialog, Button } from '@mui/material';
-import { ConsultantTaskService, Task } from '../../services/consultant_task.service';
-import { InvestorTaskService } from '../../services/consultant_task.service';
+import { RealtorTaskService, Task } from '../../services/realtor_task.service';
+import { InvestorTaskService } from '../../services/realtor_task.service';
 
 const STATUS_COLORS: Record<string, string> = {
   open: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
@@ -102,8 +102,8 @@ const AvailableTasks: React.FC = () => {
   const loadData = async () => {
     setLoading(true);
     const [avail, mine] = await Promise.all([
-      ConsultantTaskService.getAvailableTasks().catch(() => []),
-      ConsultantTaskService.getMyTasks().catch(() => []),
+      RealtorTaskService.getAvailableTasks().catch(() => []),
+      RealtorTaskService.getMyTasks().catch(() => []),
     ]);
     setAvailableTasks(avail);
     setMyTasks(mine);
@@ -130,7 +130,7 @@ const AvailableTasks: React.FC = () => {
     if (!claimTask) return;
     setClaiming(true);
     try {
-      await ConsultantTaskService.claimTask(claimTask.id, deadlineHours);
+      await RealtorTaskService.claimTask(claimTask.id, deadlineHours);
       setClaimTask(null);
       await loadData();
     } catch (e: any) {
@@ -147,7 +147,7 @@ const AvailableTasks: React.FC = () => {
     }
     setSubmitting(true);
     try {
-      const result = await ConsultantTaskService.submitEvidence(
+      const result = await RealtorTaskService.submitEvidence(
         submitTask.id, photos, gpsCoords?.lat, gpsCoords?.lng, notes
       );
       alert(result.auto_approved
@@ -248,7 +248,7 @@ const AvailableTasks: React.FC = () => {
             </select>
           </div>
           <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300 font-medium">
-            ⚠️ Once claimed, no other consultant can take this task. If you miss the deadline, the task returns to the pool.
+            ⚠️ Once claimed, no other realtor can take this task. If you miss the deadline, the task returns to the pool.
           </div>
         </div>
         <div className="flex gap-2 mt-4">

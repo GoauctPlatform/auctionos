@@ -224,7 +224,7 @@ const PropertyListings: React.FC = () => {
     setLoading(true);
     try {
       const qs = stateFilter ? `?state=${encodeURIComponent(stateFilter)}` : '';
-      const res = await fetch(`${API_URL}/consultant-tasks/exports${qs}`, { headers: getHeaders() });
+      const res = await fetch(`${API_URL}/realtor-tasks/exports${qs}`, { headers: getHeaders() });
       if (res.ok) {
         const data = await res.json();
         setExports(data.items || []);

@@ -19,7 +19,7 @@ class ConsultantRegister(BaseModel):
     user_id: Optional[int] = None
 
 
-class ConsultantProfileUpdate(BaseModel):
+class RealtorProfileUpdate(BaseModel):
     name: Optional[str] = None
     phone: Optional[str] = None
     commission_model: Optional[str] = None  # e.g. "5%", "negotiable"
@@ -41,23 +41,23 @@ class ConsultantOut(BaseModel):
 # ─── Public Registration ──────────────────────────────────────────────────────
 
 @router.post("/register", response_model=ConsultantOut, status_code=status.HTTP_201_CREATED)
-def register_consultant(payload: ConsultantRegister, db: Session = Depends(deps.get_db)) -> Any:
+def register_realtor(payload: ConsultantRegister, db: Session = Depends(deps.get_db)) -> Any:
     """
     Public endpoint — no authentication required.
-    Partners/consultants fill this form on the Landing Page.
-    Creates a consultant record with 'pending' verification status.
+    Partners/realtors fill this form on the Landing Page.
+    Creates a realtor record with 'pending' verification status.
     """
     # Check if email already registered
     existing = db.execute(
-        text("SELECT id FROM consultants WHERE email = :email"),
+        text("SELECT id FROM realtors WHERE email = :email"),
         {"email": payload.email}
     ).fetchone()
     if existing:
-        raise HTTPException(status_code=409, detail="A consultant with this email already exists.")
+        raise HTTPException(status_code=409, detail="A realtor with this email already exists.")
 
     row = db.execute(
         text("""
-            INSERT INTO consultants (user_id, name, email, phone, verification_status, commission_model)
+            INSERT INTO realtors (user_id, name, email, phone, verification_status, commission_model)
             VALUES (:uid, :name, :email, :phone, 'pending', 'negotiable')
             RETURNING id, user_id, name, email, phone, verification_status, commission_model
         """),
@@ -72,30 +72,30 @@ def register_consultant(payload: ConsultantRegister, db: Session = Depends(deps.
     return dict(row._mapping)
 
 
-# ─── Authenticated Consultant Endpoints ──────────────────────────────────────
+# ─── Authenticated Realtor Endpoints ──────────────────────────────────────
 
 @router.get("/me", response_model=ConsultantOut)
-def get_my_consultant_profile(
+def get_my_realtor_profile(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """Returns the consultant profile linked to the current user."""
+    """Returns the realtor profile linked to the current user."""
     row = db.execute(
-        text("SELECT * FROM consultants WHERE user_id = :uid"),
+        text("SELECT * FROM realtors WHERE user_id = :uid"),
         {"uid": current_user.id}
     ).fetchone()
     if not row:
-        raise HTTPException(status_code=404, detail="No consultant profile found for this user.")
+        raise HTTPException(status_code=404, detail="No realtor profile found for this user.")
     return dict(row._mapping)
 
 
 @router.put("/me", response_model=ConsultantOut)
-def update_my_consultant_profile(
-    payload: ConsultantProfileUpdate,
+def update_my_realtor_profile(
+    payload: RealtorProfileUpdate,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """Updates the consultant profile of the current user."""
+    """Updates the realtor profile of the current user."""
     updates = {k: v for k, v in payload.dict().items() if v is not None}
     if not updates:
         raise HTTPException(status_code=400, detail="No fields provided.")
@@ -103,20 +103,20 @@ def update_my_consultant_profile(
     set_clause = ", ".join([f"{k} = :{k}" for k in updates.keys()])
     updates["uid"] = current_user.id
     db.execute(
-        text(f"UPDATE consultants SET {set_clause} WHERE user_id = :uid"),
+        text(f"UPDATE realtors SET {set_clause} WHERE user_id = :uid"),
         updates
     )
     db.commit()
 
     row = db.execute(
-        text("SELECT * FROM consultants WHERE user_id = :uid"),
+        text("SELECT * FROM realtors WHERE user_id = :uid"),
         {"uid": current_user.id}
     ).fetchone()
     return dict(row._mapping)
 
 
 @router.get("/listings")
-def get_consultant_listings(
+def get_realtor_listings(
     state: Optional[str] = None,
     limit: int = 20,
     skip: int = 0,
@@ -124,7 +124,7 @@ def get_consultant_listings(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Returns available properties visible to consultants.
+    Returns available properties visible to realtors.
     These are properties available for strategic partnerships and referrals.
     """
     state_clause = "AND LOWER(p.state) = LOWER(:state)" if state else ""

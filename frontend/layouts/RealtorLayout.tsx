@@ -7,7 +7,7 @@ const ConsultantLayout: React.FC = () => {
     const navigate = useNavigate();
     const [mobileOpen, setMobileOpen] = useState(false);
     const user = AuthService.getCurrentUser();
-    const displayName = user?.full_name || user?.email?.split('@')[0] || 'Consultant';
+    const displayName = user?.full_name || user?.email?.split('@')[0] || 'Realtor';
 
     const handleLogout = () => {
         AuthService.logout();
@@ -15,11 +15,11 @@ const ConsultantLayout: React.FC = () => {
     };
 
     const navItems = [
-        { icon: 'dashboard', label: 'Dashboard', path: '/consultant' },
-        { icon: 'home_work', label: 'Property Listings', path: '/consultant/listings' },
-        { icon: 'task_alt', label: 'Available Tasks', path: '/consultant/tasks' },
-        { icon: 'payments', label: 'Commissions', path: '/consultant/commissions' },
-        { icon: 'person', label: 'My Profile', path: '/consultant/profile' },
+        { icon: 'dashboard', label: 'Dashboard', path: '/realtor' },
+        { icon: 'home_work', label: 'Property Listings', path: '/realtor/listings' },
+        { icon: 'task_alt', label: 'Available Tasks', path: '/realtor/tasks' },
+        { icon: 'payments', label: 'Commissions', path: '/realtor/commissions' },
+        { icon: 'person', label: 'My Profile', path: '/realtor/profile' },
     ];
 
     return (
@@ -29,13 +29,13 @@ const ConsultantLayout: React.FC = () => {
                     <div className="flex justify-between h-16">
                         <div className="flex items-center gap-6">
                             {/* Brand */}
-                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/consultant')}>
+                            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/realtor')}>
                                 <div className="size-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-sm">
                                     <span className="material-symbols-outlined text-white text-[18px]">handshake</span>
                                 </div>
                                 <div>
                                     <span className="text-sm font-black text-slate-800 dark:text-white">GoAuct</span>
-                                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block leading-none">Consultant Portal</span>
+                                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 block leading-none">Realtor Portal</span>
                                 </div>
                             </div>
                             {/* Nav */}
@@ -44,7 +44,7 @@ const ConsultantLayout: React.FC = () => {
                                     <NavLink
                                         key={item.path}
                                         to={item.path}
-                                        end={item.path === '/consultant'}
+                                        end={item.path === '/realtor'}
                                         className={({ isActive }) =>
                                             `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                                                 isActive
@@ -63,7 +63,7 @@ const ConsultantLayout: React.FC = () => {
                         <div className="flex items-center gap-3">
                             <div className="hidden md:flex flex-col items-end">
                                 <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{displayName}</span>
-                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Consultant Partner</span>
+                                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Realtor Partner</span>
                             </div>
                             <div className="size-9 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center text-white font-black text-sm">
                                 {displayName.charAt(0).toUpperCase()}
@@ -90,7 +90,7 @@ const ConsultantLayout: React.FC = () => {
                             <NavLink
                                 key={item.path}
                                 to={item.path}
-                                end={item.path === '/consultant'}
+                                end={item.path === '/realtor'}
                                 className={({ isActive }) =>
                                     `flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                                         isActive

@@ -3,7 +3,7 @@ import { UserService } from '../../services/user.service';
 import { CircularProgress } from '@mui/material';
 import { API_URL, getHeaders } from '../../services/httpClient';
 
-type UserRole = 'client' | 'admin' | 'superuser' | 'agent' | 'consultant';
+type UserRole = 'client' | 'admin' | 'superuser' | 'agent' | 'realtor';
 
 interface AdminUser {
     id: number;
@@ -34,7 +34,7 @@ interface ConsultantApplication {
     user_email?: string;
 }
 
-const ROLE_OPTIONS: UserRole[] = ['client', 'consultant', 'agent', 'admin', 'superuser'];
+const ROLE_OPTIONS: UserRole[] = ['client', 'realtor', 'agent', 'admin', 'superuser'];
 
 const roleBadge = (role: string) => {
     const map: Record<string, string> = {
@@ -167,9 +167,9 @@ const UserEditModal: React.FC<{
 const AdminUsers: React.FC = () => {
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [logs, setLogs] = useState<ActivityLog[]>([]);
-    const [consultants, setConsultants] = useState<ConsultantApplication[]>([]);
+    const [realtors, setConsultants] = useState<ConsultantApplication[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'users' | 'logs' | 'consultants'>('users');
+    const [tab, setTab] = useState<'users' | 'logs' | 'realtors'>('users');
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -187,8 +187,8 @@ const AdminUsers: React.FC = () => {
             } else if (tab === 'logs') {
                 const data = await UserService.getAllLogs();
                 setLogs(data);
-            } else if (tab === 'consultants') {
-                const res = await fetch(`${API_URL}/admin/consultants?status=${consultantFilter}&limit=100`, { headers: getHeaders() });
+            } else if (tab === 'realtors') {
+                const res = await fetch(`${API_URL}/admin/realtors?status=${consultantFilter}&limit=100`, { headers: getHeaders() });
                 if (res.ok) {
                     const data = await res.json();
                     setConsultants(data.items || []);
@@ -204,7 +204,7 @@ const AdminUsers: React.FC = () => {
     const handleVerify = async (id: number, status: 'verified' | 'rejected') => {
         setActionLoading(id);
         try {
-            await fetch(`${API_URL}/admin/consultants/${id}/verify`, {
+            await fetch(`${API_URL}/admin/realtors/${id}/verify`, {
                 method: 'PUT',
                 headers: getHeaders(),
                 body: JSON.stringify({ status }),
@@ -218,7 +218,7 @@ const AdminUsers: React.FC = () => {
         if (!window.confirm('Delete this application?')) return;
         setActionLoading(id);
         try {
-            await fetch(`${API_URL}/admin/consultants/${id}`, { method: 'DELETE', headers: getHeaders() });
+            await fetch(`${API_URL}/admin/realtors/${id}`, { method: 'DELETE', headers: getHeaders() });
             loadData();
         } catch {}
         finally { setActionLoading(null); }
@@ -293,7 +293,7 @@ const AdminUsers: React.FC = () => {
             <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit flex-wrap">
                 {[
                     { key: 'users', icon: 'manage_accounts', label: 'Users & Roles' },
-                    { key: 'consultants', icon: 'handshake', label: 'Consultant Apps', badge: consultants.filter(c => c.verification_status === 'pending').length },
+                    { key: 'realtors', icon: 'handshake', label: 'Realtor Apps', badge: realtors.filter(c => c.verification_status === 'pending').length },
                     { key: 'logs', icon: 'history', label: 'Activity Logs' },
                 ].map(t => (
                     <button
@@ -318,9 +318,9 @@ const AdminUsers: React.FC = () => {
                 <div className="flex justify-center py-20">
                     <CircularProgress size={32} />
                 </div>
-            ) : tab === 'consultants' ? (
+            ) : tab === 'realtors' ? (
                 <>
-                    {/* Consultant Filter */}
+                    {/* Realtor Filter */}
                     <div className="flex gap-2 flex-wrap">
                         {['pending', 'verified', 'rejected', ''].map(s => (
                             <button
@@ -351,7 +351,7 @@ const AdminUsers: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                                    {consultants.map(c => (
+                                    {realtors.map(c => (
                                         <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                                             <td className="px-5 py-3">
                                                 <div className="text-sm font-bold text-slate-800 dark:text-white">{c.name}</div>
@@ -402,11 +402,11 @@ const AdminUsers: React.FC = () => {
                                             </td>
                                         </tr>
                                     ))}
-                                    {consultants.length === 0 && (
+                                    {realtors.length === 0 && (
                                         <tr>
                                             <td colSpan={6} className="py-16 text-center text-slate-400">
                                                 <span className="material-symbols-outlined text-3xl mb-2 block opacity-50">handshake</span>
-                                                No consultant applications found.
+                                                No realtor applications found.
                                             </td>
                                         </tr>
                                     )}

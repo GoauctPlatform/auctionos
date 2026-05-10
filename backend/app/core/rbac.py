@@ -19,5 +19,5 @@ class RoleChecker:
 allow_admin_only = RoleChecker(["admin", "superuser"])
 allow_managers = RoleChecker(["admin", "superuser", "client", "manager"])
 allow_agents = RoleChecker(["admin", "superuser", "client", "manager", "agent"])
-allow_consultants = RoleChecker(["consultant"])
+allow_realtors = RoleChecker(["realtor"])
 allow_all_internal = RoleChecker(["admin", "superuser", "client", "manager", "agent"])

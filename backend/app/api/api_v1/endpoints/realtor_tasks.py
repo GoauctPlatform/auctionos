@@ -1,5 +1,5 @@
 """
-Endpoints for Consultant Task Ecosystem.
+Endpoints for Realtor Task Ecosystem.
 Handles: available tasks, claiming, submitting evidence (photo+GPS), commissions.
 """
 import math
@@ -29,7 +29,7 @@ def haversine_meters(lat1: float, lon1: float, lat2: float, lon2: float) -> floa
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
 class ClaimTaskPayload(BaseModel):
-    deadline_hours: int = 48   # how many hours the consultant commits to
+    deadline_hours: int = 48   # how many hours the realtor commits to
 
 class SubmitEvidencePayload(BaseModel):
     submission_lat: Optional[float] = None
@@ -42,7 +42,7 @@ class ReviewSubmissionPayload(BaseModel):
     review_notes: Optional[str] = None
 
 
-# ── Consultant: Available Tasks ───────────────────────────────────────────────
+# ── Realtor: Available Tasks ───────────────────────────────────────────────
 
 @router.get("/available")
 def get_available_tasks(
@@ -53,7 +53,7 @@ def get_available_tasks(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """Returns all open tasks not yet claimed by any consultant."""
+    """Returns all open tasks not yet claimed by any realtor."""
     state_clause = "AND LOWER(p.state) = LOWER(:state)" if state else ""
     type_clause = "AND t.task_type = :task_type" if task_type else ""
 
@@ -71,7 +71,7 @@ def get_available_tasks(
             t.created_at,
             p.parcel_id, p.state, p.county, p.property_type,
             u.full_name AS investor_name
-        FROM consultant_tasks t
+        FROM realtor_tasks t
         JOIN property_details p ON p.id = t.property_id
         LEFT JOIN users u ON u.id = t.investor_user_id
         WHERE t.status = 'open'
@@ -90,7 +90,7 @@ def get_my_tasks(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """Returns tasks claimed or submitted by the current consultant."""
+    """Returns tasks claimed or submitted by the current realtor."""
     status_clause = "AND t.status = :status" if status else ""
     params = {"uid": current_user.id}
     if status:
@@ -104,10 +104,10 @@ def get_my_tasks(
             t.created_at, t.deadline, t.claimed_at, t.submitted_at, t.approved_at,
             p.parcel_id, p.state, p.county,
             u.full_name AS investor_name
-        FROM consultant_tasks t
+        FROM realtor_tasks t
         JOIN property_details p ON p.id = t.property_id
         LEFT JOIN users u ON u.id = t.investor_user_id
-        WHERE t.consultant_user_id = :uid
+        WHERE t.realtor_user_id = :uid
           {status_clause}
         ORDER BY t.created_at DESC
     """), params).fetchall()
@@ -122,21 +122,21 @@ def claim_task(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """Consultant claims an open task, blocking other consultants for deadline_hours."""
-    task = db.execute(text("SELECT * FROM consultant_tasks WHERE id = :id"), {"id": task_id}).fetchone()
+    """Realtor claims an open task, blocking other realtors for deadline_hours."""
+    task = db.execute(text("SELECT * FROM realtor_tasks WHERE id = :id"), {"id": task_id}).fetchone()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     if task.status != "open":
         raise HTTPException(status_code=409, detail=f"Task is already '{task.status}' — cannot be claimed.")
-    if task.consultant_user_id == current_user.id:
+    if task.realtor_user_id == current_user.id:
         raise HTTPException(status_code=400, detail="You already claimed this task.")
 
     deadline = datetime.now(timezone.utc) + timedelta(hours=payload.deadline_hours)
 
     db.execute(text("""
-        UPDATE consultant_tasks
+        UPDATE realtor_tasks
         SET status = 'claimed',
-            consultant_user_id = :uid,
+            realtor_user_id = :uid,
             claimed_at = NOW(),
             deadline = :deadline
         WHERE id = :id
@@ -155,13 +155,13 @@ async def submit_task_evidence(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """Consultant submits photo evidence + GPS for a claimed task."""
+    """Realtor submits photo evidence + GPS for a claimed task."""
     import os, uuid, shutil
 
-    task = db.execute(text("SELECT * FROM consultant_tasks WHERE id = :id"), {"id": task_id}).fetchone()
+    task = db.execute(text("SELECT * FROM realtor_tasks WHERE id = :id"), {"id": task_id}).fetchone()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    if task.consultant_user_id != current_user.id:
+    if task.realtor_user_id != current_user.id:
         raise HTTPException(status_code=403, detail="You did not claim this task.")
     if task.status not in ("claimed",):
         raise HTTPException(status_code=409, detail=f"Task cannot be submitted in status '{task.status}'.")
@@ -194,7 +194,7 @@ async def submit_task_evidence(
     # Insert submission record
     db.execute(text("""
         INSERT INTO task_submissions
-            (task_id, consultant_user_id, submission_lat, submission_lng,
+            (task_id, realtor_user_id, submission_lat, submission_lng,
              distance_meters, geo_validated, file_path, file_type, photo_count, notes,
              review_status)
         VALUES
@@ -216,7 +216,7 @@ async def submit_task_evidence(
     # Update task status
     new_status = "submitted"
     db.execute(text("""
-        UPDATE consultant_tasks
+        UPDATE realtor_tasks
         SET status = :status, submitted_at = NOW()
         WHERE id = :id
     """), {"status": new_status, "id": task_id})
@@ -271,24 +271,24 @@ def _copy_task_photos_to_attachments(task_id: int, property_id: int, investor_id
             })
 
 
-def _approve_task(task_id: int, reward_points: int, consultant_user_id: int, db: Session):
+def _approve_task(task_id: int, reward_points: int, realtor_user_id: int, db: Session):
     """Internal helper: marks task approved and credits commission points."""
     db.execute(text("""
-        UPDATE consultant_tasks SET status = 'approved', approved_at = NOW()
+        UPDATE realtor_tasks SET status = 'approved', approved_at = NOW()
         WHERE id = :id
     """), {"id": task_id})
 
-    consultant_points = int(reward_points * 0.7)
-    usd_value = consultant_points / 100.0
+    realtor_points = int(reward_points * 0.7)
+    usd_value = realtor_points / 100.0
     db.execute(text("""
-        INSERT INTO consultant_commissions
-            (consultant_user_id, task_id, points, usd_value, type, status, description)
+        INSERT INTO realtor_commissions
+            (realtor_user_id, task_id, points, usd_value, type, status, description)
         VALUES
             (:uid, :task_id, :points, :usd, 'earned', 'available', :desc)
     """), {
-        "uid": consultant_user_id,
+        "uid": realtor_user_id,
         "task_id": task_id,
-        "points": consultant_points,
+        "points": realtor_points,
         "usd": usd_value,
         "desc": f"Task #{task_id} approved — photo verification (70% cut of {reward_points} pts)",
     })
@@ -303,7 +303,7 @@ def get_exported_properties(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Returns all active property exports visible to consultants.
+    Returns all active property exports visible to realtors.
     Includes full property details and investor contact info.
     """
     state_clause = "AND LOWER(p.state) = LOWER(:state)" if state else ""
@@ -361,12 +361,12 @@ def get_my_commissions(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """Returns full commission history and balance for the consultant."""
+    """Returns full commission history and balance for the realtor."""
     rows = db.execute(text("""
         SELECT c.*, t.title AS task_title, t.task_type
-        FROM consultant_commissions c
-        LEFT JOIN consultant_tasks t ON t.id = c.task_id
-        WHERE c.consultant_user_id = :uid
+        FROM realtor_commissions c
+        LEFT JOIN realtor_tasks t ON t.id = c.task_id
+        WHERE c.realtor_user_id = :uid
         ORDER BY c.created_at DESC
     """), {"uid": current_user.id}).fetchall()
 

@@ -81,7 +81,7 @@ def create_task(
         raise HTTPException(status_code=404, detail="Property not found.")
 
     row = db.execute(text("""
-        INSERT INTO consultant_tasks
+        INSERT INTO realtor_tasks
             (property_id, investor_user_id, task_type, title, description,
              address, latitude, longitude, geo_radius_meters,
              min_photos, max_photos, reward_points, status)
@@ -117,10 +117,10 @@ def get_my_created_tasks(
         SELECT
             t.*,
             p.parcel_id, p.state, p.county,
-            u.full_name AS consultant_name
-        FROM consultant_tasks t
+            u.full_name AS realtor_name
+        FROM realtor_tasks t
         JOIN property_details p ON p.id = t.property_id
-        LEFT JOIN users u ON u.id = t.consultant_user_id
+        LEFT JOIN users u ON u.id = t.realtor_user_id
         WHERE t.investor_user_id = :uid
         ORDER BY t.created_at DESC
     """), {"uid": current_user.id}).fetchall()
@@ -135,7 +135,7 @@ def get_task_submissions(
 ) -> Any:
     """Investor views all submissions for one of their tasks."""
     task = db.execute(
-        text("SELECT investor_user_id FROM consultant_tasks WHERE id = :id"),
+        text("SELECT investor_user_id FROM realtor_tasks WHERE id = :id"),
         {"id": task_id}
     ).fetchone()
     if not task:
@@ -144,9 +144,9 @@ def get_task_submissions(
         raise HTTPException(status_code=403, detail="Not your task.")
 
     rows = db.execute(text("""
-        SELECT s.*, u.full_name AS consultant_name
+        SELECT s.*, u.full_name AS realtor_name
         FROM task_submissions s
-        LEFT JOIN users u ON u.id = s.consultant_user_id
+        LEFT JOIN users u ON u.id = s.realtor_user_id
         WHERE s.task_id = :task_id
         ORDER BY s.submitted_at DESC
     """), {"task_id": task_id}).fetchall()
@@ -162,7 +162,7 @@ def review_task_submission(
 ) -> Any:
     """Investor approves or rejects the latest submission for a task."""
     task = db.execute(
-        text("SELECT * FROM consultant_tasks WHERE id = :id"),
+        text("SELECT * FROM realtor_tasks WHERE id = :id"),
         {"id": task_id}
     ).fetchone()
     if not task:
@@ -184,34 +184,34 @@ def review_task_submission(
     """), {"status": review_status, "notes": payload.review_notes, "task_id": task_id})
 
     if payload.approved:
-        # Mark task approved and credit consultant
+        # Mark task approved and credit realtor
         db.execute(text("""
-            UPDATE consultant_tasks
+            UPDATE realtor_tasks
             SET status = 'approved', approved_at = NOW()
             WHERE id = :id
         """), {"id": task_id})
-        if task.consultant_user_id:
-            consultant_points = int(task.reward_points * 0.7)
-            usd = consultant_points / 100.0
+        if task.realtor_user_id:
+            realtor_points = int(task.reward_points * 0.7)
+            usd = realtor_points / 100.0
             db.execute(text("""
-                INSERT INTO consultant_commissions
-                    (consultant_user_id, task_id, points, usd_value, type, status, description)
+                INSERT INTO realtor_commissions
+                    (realtor_user_id, task_id, points, usd_value, type, status, description)
                 VALUES (:uid, :task_id, :pts, :usd, 'earned', 'available', :desc)
             """), {
-                "uid": task.consultant_user_id,
+                "uid": task.realtor_user_id,
                 "task_id": task_id,
-                "pts": consultant_points,
+                "pts": realtor_points,
                 "usd": usd,
                 "desc": f"Task #{task_id} approved by investor (70% cut of {task.reward_points} pts)",
             })
             
         # Push photos to public attachments
-        from app.api.api_v1.endpoints.consultant_tasks import _copy_task_photos_to_attachments
+        from app.api.api_v1.endpoints.realtor_tasks import _copy_task_photos_to_attachments
         _copy_task_photos_to_attachments(task_id, task.property_id, task.investor_user_id, db)
     else:
-        # Reject: task goes back to 'claimed' so consultant can resubmit
+        # Reject: task goes back to 'claimed' so realtor can resubmit
         db.execute(text("""
-            UPDATE consultant_tasks SET status = 'claimed' WHERE id = :id
+            UPDATE realtor_tasks SET status = 'claimed' WHERE id = :id
         """), {"id": task_id})
 
     db.commit()
@@ -238,10 +238,10 @@ def update_task(
     """
     Investor edits a task they created.
     - open  → free to edit/delete
-    - claimed → allowed; consultant loses claim + receives notification + must re-accept
+    - claimed → allowed; realtor loses claim + receives notification + must re-accept
     - submitted / approved → blocked
     """
-    task = db.execute(text("SELECT * FROM consultant_tasks WHERE id = :id"), {"id": task_id}).fetchone()
+    task = db.execute(text("SELECT * FROM realtor_tasks WHERE id = :id"), {"id": task_id}).fetchone()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     if task.investor_user_id != current_user.id:
@@ -272,33 +272,33 @@ def update_task(
     if payload.max_photos is not None:   updates["max_photos"] = payload.max_photos
     if payload.reward_points is not None: updates["reward_points"] = payload.reward_points
 
-    notify_consultant = False
-    consultant_user_id = task.consultant_user_id
+    notify_realtor = False
+    realtor_user_id = task.realtor_user_id
 
-    if task.status == "claimed" and consultant_user_id:
+    if task.status == "claimed" and realtor_user_id:
         updates["status"] = "open"
-        updates["consultant_user_id"] = None
+        updates["realtor_user_id"] = None
         updates["claimed_at"] = None
         updates["deadline"] = None
-        notify_consultant = True
+        notify_realtor = True
 
     if updates:
         set_clause = ", ".join(f"{k} = :{k}" for k in updates)
         updates["task_id"] = task_id
-        db.execute(text(f"UPDATE consultant_tasks SET {set_clause} WHERE id = :task_id"), updates)
+        db.execute(text(f"UPDATE realtor_tasks SET {set_clause} WHERE id = :task_id"), updates)
 
-    if notify_consultant and consultant_user_id:
+    if notify_realtor and realtor_user_id:
         task_title = payload.title or task.title
         db.execute(text("""
             INSERT INTO notifications (user_id, type, message, is_read)
             VALUES (:uid, 'task_updated', :msg, FALSE)
         """), {
-            "uid": consultant_user_id,
+            "uid": realtor_user_id,
             "msg": f'The task "{task_title}" was updated by the investor and is now available again. Please review the new details and re-accept if you are still interested.',
         })
 
     db.commit()
-    return {"ok": True, "reverted_to_open": notify_consultant, "consultant_notified": notify_consultant}
+    return {"ok": True, "reverted_to_open": notify_realtor, "realtor_notified": notify_realtor}
 
 
 @router.delete("/tasks/{task_id}")
@@ -309,9 +309,9 @@ def delete_task(
 ) -> Any:
     """
     Investor deletes a task. Blocked if submissions exist.
-    If claimed, notifies the consultant before deleting.
+    If claimed, notifies the realtor before deleting.
     """
-    task = db.execute(text("SELECT * FROM consultant_tasks WHERE id = :id"), {"id": task_id}).fetchone()
+    task = db.execute(text("SELECT * FROM realtor_tasks WHERE id = :id"), {"id": task_id}).fetchone()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     if task.investor_user_id != current_user.id:
@@ -322,16 +322,16 @@ def delete_task(
             detail="Cannot delete a task with submissions. Review and reject it first."
         )
 
-    if task.status == "claimed" and task.consultant_user_id:
+    if task.status == "claimed" and task.realtor_user_id:
         db.execute(text("""
             INSERT INTO notifications (user_id, type, message, is_read)
             VALUES (:uid, 'task_deleted', :msg, FALSE)
         """), {
-            "uid": task.consultant_user_id,
+            "uid": task.realtor_user_id,
             "msg": f'The task "{task.title}" was removed by the investor. This task is no longer available.',
         })
 
-    db.execute(text("DELETE FROM consultant_tasks WHERE id = :id"), {"id": task_id})
+    db.execute(text("DELETE FROM realtor_tasks WHERE id = :id"), {"id": task_id})
     db.commit()
     return {"ok": True}
 
@@ -380,7 +380,7 @@ def export_property(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """Investor exports a property so consultants can see it in their listings."""
+    """Investor exports a property so realtors can see it in their listings."""
     existing = db.execute(
         text("SELECT id FROM property_exports WHERE property_id = :pid AND investor_user_id = :uid AND is_active = TRUE"),
         {"pid": payload.property_id, "uid": current_user.id}
@@ -452,7 +452,7 @@ def create_support_ticket(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
-    """Any user (investor or consultant) creates a support ticket."""
+    """Any user (investor or realtor) creates a support ticket."""
     row = db.execute(text("""
         INSERT INTO support_tickets (user_id, task_id, subject, message, ticket_type, status)
         VALUES (:uid, :task_id, :subject, :message, :type, 'open')

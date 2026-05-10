@@ -3,11 +3,11 @@ import { useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { AuthService } from '../../services/auth.service';
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', path: '/consultant', icon: 'dashboard', exact: true },
-  { label: 'Property Listings', path: '/consultant/listings', icon: 'home_work' },
-  { label: 'Available Tasks', path: '/consultant/tasks', icon: 'task_alt' },
-  { label: 'Commissions', path: '/consultant/commissions', icon: 'payments' },
-  { label: 'My Profile', path: '/consultant/profile', icon: 'manage_accounts' },
+  { label: 'Dashboard', path: '/realtor', icon: 'dashboard', exact: true },
+  { label: 'Property Listings', path: '/realtor/listings', icon: 'home_work' },
+  { label: 'Available Tasks', path: '/realtor/tasks', icon: 'task_alt' },
+  { label: 'Commissions', path: '/realtor/commissions', icon: 'payments' },
+  { label: 'My Profile', path: '/realtor/profile', icon: 'manage_accounts' },
 ];
 
 const ConsultantLayout: React.FC = () => {
@@ -15,7 +15,7 @@ const ConsultantLayout: React.FC = () => {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const user = AuthService.getCurrentUser();
-  const displayName = user?.full_name || user?.email?.split('@')[0] || 'Consultant';
+  const displayName = user?.full_name || user?.email?.split('@')[0] || 'Realtor';
 
   const isActive = (path: string, exact?: boolean) =>
     exact ? location.pathname === path : location.pathname.startsWith(path);
@@ -23,7 +23,7 @@ const ConsultantLayout: React.FC = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/login?mode=consultant');
+    navigate('/login?mode=realtor');
   };
 
   return (

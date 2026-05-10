@@ -9,7 +9,7 @@ const AdminWithdrawals: React.FC = () => {
   const fetchWithdrawals = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/consultant-economy/admin/withdrawals`, {
+      const res = await fetch(`${API_URL}/realtor-economy/admin/withdrawals`, {
         headers: getHeaders()
       });
       if (res.ok) {
@@ -28,7 +28,7 @@ const AdminWithdrawals: React.FC = () => {
 
   const handleUpdate = async (id: number, status: string) => {
     try {
-      const res = await fetch(`${API_URL}/consultant-economy/admin/withdrawals/${id}`, {
+      const res = await fetch(`${API_URL}/realtor-economy/admin/withdrawals/${id}`, {
         method: 'PUT',
         headers: getHeaders(),
         body: JSON.stringify({ status })
@@ -49,7 +49,7 @@ const AdminWithdrawals: React.FC = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Withdrawal Requests</h1>
-          <p className="text-sm text-slate-500 mt-1">Review and approve payouts for consultants.</p>
+          <p className="text-sm text-slate-500 mt-1">Review and approve payouts for realtors.</p>
         </div>
         <Button onClick={fetchWithdrawals} variant="outlined" size="small">Refresh</Button>
       </div>
@@ -64,7 +64,7 @@ const AdminWithdrawals: React.FC = () => {
             {withdrawals.map(w => (
               <div key={w.id} className="p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-bold text-slate-800 dark:text-white">{w.consultant_name} ({w.consultant_email})</p>
+                  <p className="text-sm font-bold text-slate-800 dark:text-white">{w.realtor_name} ({w.realtor_email})</p>
                   <p className="text-xs text-slate-500 mt-1">Amount: <strong className="text-slate-700 dark:text-slate-300">${w.amount_usd.toFixed(2)}</strong> ({w.points} pts)</p>
                   <div className="mt-2 bg-slate-50 dark:bg-slate-900/50 p-2 rounded text-xs text-slate-600 font-mono">
                     {w.payment_details}

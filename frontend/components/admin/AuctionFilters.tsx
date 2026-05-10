@@ -36,6 +36,7 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
         if (searchParams.get('endDate')) initial.endDate = searchParams.get('endDate');
         if (searchParams.get('minParcels')) initial.minParcels = Number(searchParams.get('minParcels'));
         if (searchParams.get('maxParcels')) initial.maxParcels = Number(searchParams.get('maxParcels'));
+        if (searchParams.get('tax_status')) initial.tax_status = searchParams.get('tax_status');
         return initial;
     });
 
@@ -71,6 +72,8 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
             
             const maxP = searchParams.get('maxParcels');
             checkAndSet('maxParcels', maxP ? Number(maxP) : undefined);
+            
+            checkAndSet('tax_status', searchParams.get('tax_status') || undefined);
 
             return changed ? next : prev;
         });
@@ -99,9 +102,37 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
     return (
         <div className="flex flex-col gap-4 mb-6 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
             {/* Quick Filters */}
-            <div className="flex flex-wrap gap-4 items-center">
-                <TextField
-                    label="Search Anywhere"
+            <div className="flex flex-col gap-4">
+                {/* Auction Types Chip Selector */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
+                    <button
+                        onClick={() => handleChange('tax_status', undefined)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                            !filters.tax_status
+                                ? 'bg-primary text-white shadow-sm'
+                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-700'
+                        }`}
+                    >
+                        All Types
+                    </button>
+                    {['Tax Deed', 'Tax Lien', 'Foreclosure', 'Sheriff Sale', 'HOA Lien', 'Federal'].map(type => (
+                        <button
+                            key={type}
+                            onClick={() => handleChange('tax_status', type)}
+                            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                                filters.tax_status === type
+                                    ? 'bg-primary text-white shadow-sm'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-700'
+                            }`}
+                        >
+                            {type}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flex flex-wrap gap-4 items-center">
+                    <TextField
+                        label="Search Anywhere"
                     variant="outlined"
                     size="small"
                     value={filters.q || ''}

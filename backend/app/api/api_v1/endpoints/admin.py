@@ -103,16 +103,16 @@ async def trigger_auto_transition(
     return result
 
 
-# ─── Consultant Applications Management ──────────────────────────────────────
+# ─── Realtor Applications Management ──────────────────────────────────────
 
-@router.get("/consultants")
-def list_consultant_applications(
+@router.get("/realtors")
+def list_realtor_applications(
     status: str = None,     # e.g. 'pending', 'verified', 'rejected'
     limit: int = 50,
     skip: int = 0,
     current_user: User = Depends(get_current_active_user),
 ) -> Any:
-    """Admin: list all consultant applications."""
+    """Admin: list all realtor applications."""
     from app.db.session import SessionLocal
     from sqlalchemy import text
 
@@ -129,7 +129,7 @@ def list_consultant_applications(
         rows = db.execute(
             text(f"""
                 SELECT c.*, u.email AS user_email, u.role AS user_role
-                FROM consultants c
+                FROM realtors c
                 LEFT JOIN users u ON c.user_id = u.id
                 {where}
                 ORDER BY c.created_at DESC
@@ -146,13 +146,13 @@ def list_consultant_applications(
         db.close()
 
 
-@router.put("/consultants/{consultant_id}/verify")
-def verify_consultant(
-    consultant_id: int,
+@router.put("/realtors/{realtor_id}/verify")
+def verify_realtor(
+    realtor_id: int,
     body: dict,
     current_user: User = Depends(get_current_active_user),
 ) -> Any:
-    """Admin: approve or reject a consultant application."""
+    """Admin: approve or reject a realtor application."""
     from app.db.session import SessionLocal
     from sqlalchemy import text
 
@@ -166,18 +166,18 @@ def verify_consultant(
     db = SessionLocal()
     try:
         result = db.execute(
-            text("UPDATE consultants SET verification_status = :s WHERE id = :id RETURNING id, name, email, verification_status"),
-            {"s": new_status, "id": consultant_id}
+            text("UPDATE realtors SET verification_status = :s WHERE id = :id RETURNING id, name, email, verification_status"),
+            {"s": new_status, "id": realtor_id}
         ).fetchone()
 
         if not result:
-            raise HTTPException(status_code=404, detail="Consultant not found")
+            raise HTTPException(status_code=404, detail="Realtor not found")
 
-        # If approved: also update the linked user's role to 'consultant'
+        # If approved: also update the linked user's role to 'realtor'
         if new_status == "verified":
-            row = db.execute(text("SELECT user_id FROM consultants WHERE id = :id"), {"id": consultant_id}).fetchone()
+            row = db.execute(text("SELECT user_id FROM realtors WHERE id = :id"), {"id": realtor_id}).fetchone()
             if row and row[0]:
-                db.execute(text("UPDATE users SET role = 'consultant' WHERE id = :uid"), {"uid": row[0]})
+                db.execute(text("UPDATE users SET role = 'realtor' WHERE id = :uid"), {"uid": row[0]})
 
         db.commit()
         return dict(result._mapping)
@@ -185,12 +185,12 @@ def verify_consultant(
         db.close()
 
 
-@router.delete("/consultants/{consultant_id}")
-def delete_consultant_application(
-    consultant_id: int,
+@router.delete("/realtors/{realtor_id}")
+def delete_realtor_application(
+    realtor_id: int,
     current_user: User = Depends(get_current_active_user),
 ) -> Any:
-    """Admin: delete a consultant application."""
+    """Admin: delete a realtor application."""
     from app.db.session import SessionLocal
     from sqlalchemy import text
 
@@ -200,13 +200,13 @@ def delete_consultant_application(
     db = SessionLocal()
     try:
         result = db.execute(
-            text("DELETE FROM consultants WHERE id = :id RETURNING id"),
-            {"id": consultant_id}
+            text("DELETE FROM realtors WHERE id = :id RETURNING id"),
+            {"id": realtor_id}
         ).fetchone()
         if not result:
-            raise HTTPException(status_code=404, detail="Consultant not found")
+            raise HTTPException(status_code=404, detail="Realtor not found")
         db.commit()
-        return {"deleted": consultant_id}
+        return {"deleted": realtor_id}
     finally:
         db.close()
 

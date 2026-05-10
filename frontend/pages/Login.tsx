@@ -16,8 +16,8 @@ export const Login: React.FC = () => {
   // ── Handle OAuth Token returned from backend callback ──────────────────────
   useEffect(() => {
     const handleOAuth = async () => {
-      // HashRouter: window.location.hash = '#/login?token=XYZ&mode=consultant'
-      const hash = window.location.hash; // e.g. '#/login?token=abc123&mode=consultant'
+      // HashRouter: window.location.hash = '#/login?token=XYZ&mode=realtor'
+      const hash = window.location.hash; // e.g. '#/login?token=abc123&mode=realtor'
       if (!hash.includes('?')) return;
 
       // Parse query params from the hash fragment
@@ -35,8 +35,8 @@ export const Login: React.FC = () => {
         const user = await AuthService.getMe();
         localStorage.setItem('user', JSON.stringify(user));
         // routeAfterLogin is defined below — call inline to avoid hoisting issues
-        if (user.role === 'consultant') {
-          navigate('/consultant');
+        if (user.role === 'realtor') {
+          navigate('/realtor');
         } else if (['client', 'manager', 'agent'].includes(user.role)) {
           navigate('/client');
         } else {
@@ -53,8 +53,8 @@ export const Login: React.FC = () => {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const routeAfterLogin = (user: any) => {
-    if (user.role === 'consultant') {
-      navigate('/consultant');
+    if (user.role === 'realtor') {
+      navigate('/realtor');
     } else if (['client', 'manager', 'agent'].includes(user.role)) {
       navigate('/client');
     } else {

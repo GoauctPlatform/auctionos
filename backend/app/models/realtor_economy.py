@@ -3,11 +3,11 @@ from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.base_class import Base
 
-class ConsultantWallet(Base):
-    __tablename__ = "consultant_wallet"
+class RealtorWallet(Base):
+    __tablename__ = "realtor_wallet"
 
     id = Column(Integer, primary_key=True, index=True)
-    consultant_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
+    realtor_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True, index=True)
     balance = Column(Float, default=0.0)
     total_earned = Column(Float, default=0.0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -17,7 +17,7 @@ class WithdrawalRequest(Base):
     __tablename__ = "withdrawal_requests"
 
     id = Column(Integer, primary_key=True, index=True)
-    consultant_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    realtor_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     amount = Column(Float, nullable=False)
     status = Column(String(50), default="pending") # pending, approved, rejected, completed
     created_at = Column(DateTime(timezone=True), server_default=func.now(), index=True)

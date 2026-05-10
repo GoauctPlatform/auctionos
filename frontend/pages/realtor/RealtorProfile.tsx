@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { CircularProgress } from '@mui/material';
-import { ConsultantService } from '../../services/company.service';
+import { RealtorService } from '../../services/company.service';
 import { AuthService } from '../../services/auth.service';
 
-const ConsultantProfile: React.FC = () => {
+const RealtorProfile: React.FC = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -12,7 +12,7 @@ const ConsultantProfile: React.FC = () => {
   const user = AuthService.getCurrentUser();
 
   useEffect(() => {
-    ConsultantService.getMe()
+    RealtorService.getMe()
       .then(p => { setProfile(p); setForm({ name: p.name || '', phone: p.phone || '', commission_model: p.commission_model || '' }); })
       .catch(() => setProfile(null))
       .finally(() => setLoading(false));
@@ -21,7 +21,7 @@ const ConsultantProfile: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const updated = await ConsultantService.updateMe(form);
+      const updated = await RealtorService.updateMe(form);
       setProfile(updated);
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -38,7 +38,7 @@ const ConsultantProfile: React.FC = () => {
     <div className="p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">My Profile</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage your consultant account information.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage your realtor account information.</p>
       </div>
 
       {/* Avatar */}
@@ -100,7 +100,7 @@ const ConsultantProfile: React.FC = () => {
         <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Account</h2>
         {[
           { label: 'Email', value: user?.email },
-          { label: 'Role', value: 'Consultant Partner' },
+          { label: 'Role', value: 'Realtor Partner' },
           { label: 'Member ID', value: `#${profile?.id || '—'}` },
         ].map(row => (
           <div key={row.label} className="flex items-center justify-between py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0">
@@ -113,4 +113,4 @@ const ConsultantProfile: React.FC = () => {
   );
 };
 
-export default ConsultantProfile;
+export default RealtorProfile;

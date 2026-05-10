@@ -754,7 +754,7 @@ def purchase_property_media(
         
     # 3. Check if there are monetizable tasks for this property
     task = db.execute(text("""
-        SELECT reward_points FROM consultant_tasks 
+        SELECT reward_points FROM realtor_tasks 
         WHERE property_id = :prop_id AND status = 'approved'
         ORDER BY created_at DESC LIMIT 1
     """), {"prop_id": prop_int_id}).fetchone()
@@ -985,14 +985,14 @@ def get_property(
                 else:
                     # Check if user is the one who created the task
                     task = db.execute(text("""
-                        SELECT 1 FROM consultant_tasks 
+                        SELECT 1 FROM realtor_tasks 
                         WHERE property_id = :prop_id AND investor_user_id = :uid AND status = 'approved'
                     """), {"prop_id": prop_id_int, "uid": current_user.id}).fetchone()
                     if task:
                         has_access = True
 
             if has_access:
-                # Fetch Attachments (Consultant submissions or client uploads)
+                # Fetch Attachments (Realtor submissions or client uploads)
                 att_query = text("""
                     SELECT filename, file_path FROM client_attachments 
                     WHERE property_id = :prop_id

@@ -54,6 +54,7 @@ def get_auction_calendar(
     start_date: Optional[date] = Query(None, description="Data inicial"),
     end_date: Optional[date] = Query(None, description="Data final"),
     q: Optional[str] = Query(None, description="Busca textual genérica avançada"),
+    tax_status: Optional[str] = Query(None, description="Filtro por status de impostos/leilão"),
 ) -> Any:
     return auction_repo.get_calendar_events(
         db,
@@ -63,7 +64,8 @@ def get_auction_calendar(
         is_presential=is_presential,
         start_date=start_date,
         end_date=end_date,
-        q=q
+        q=q,
+        tax_status=tax_status
     )
 
 @router.post("/", response_model=AuctionEventSchema)
