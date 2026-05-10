@@ -181,6 +181,7 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
                     </Button>
                 </div>
             </div>
+        </div>
 
             {/* Advanced Filters */}
             {showAdvanced && (
