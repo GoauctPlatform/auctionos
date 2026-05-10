@@ -13,6 +13,7 @@ class UserSubscription(Base):
     end_date = Column(DateTime(timezone=True), nullable=True) # Trial normally 7 days
     
     # Usage tracking
+    property_views_used = Column(Integer, default=0)
     property_searches_used = Column(Integer, default=0)
     properties_created = Column(Integer, default=0)
 
