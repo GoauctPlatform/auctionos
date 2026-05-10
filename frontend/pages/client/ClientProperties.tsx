@@ -4,7 +4,9 @@ import PropertyList from '../../components/admin/PropertyList';
 import PropertyFilters, { PropertyFilterParams } from '../../components/admin/PropertyFilters';
 import { Typography, Button, Dialog, TextField } from '@mui/material';
 import { ClientDataService } from '../../services/property.service';
-import CountySelector from '../../components/CountySelector';
+import { countyService } from '../../services/county.service';
+import { StatesService, StateContact } from '../../services/states.service';
+import { Autocomplete } from '@mui/material';
 
 const ClientProperties: React.FC = () => {
     const [searchParams] = useSearchParams();
@@ -20,7 +22,12 @@ const ClientProperties: React.FC = () => {
     });
 
     const [isCreateModalOpen, setCreateModalOpen] = useState(false);
-    const [isCountySelectorOpen, setCountySelectorOpen] = useState(false);
+    
+    // State/County Dropdown Logic
+    const [stateContacts, setStateContacts] = useState<StateContact[]>([]);
+    const [availableCounties, setAvailableCounties] = useState<string[]>([]);
+    const [selectedState, setSelectedState] = useState<StateContact | null>(null);
+    const [selectedCounty, setSelectedCounty] = useState<string | null>(null);
     const [createForm, setCreateForm] = useState({ 
         parcel_id: '', 
         owner_name: '', 
@@ -47,6 +54,21 @@ const ClientProperties: React.FC = () => {
         visibility: 'private' 
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Load available states
+    useEffect(() => {
+        StatesService.getContacts().then(setStateContacts).catch(() => {});
+    }, []);
+
+    // Load counties when state changes
+    useEffect(() => {
+        if (selectedState) {
+            countyService.getCounties(selectedState.state).then(setAvailableCounties).catch(() => setAvailableCounties([]));
+        } else {
+            setAvailableCounties([]);
+            setSelectedCounty(null);
+        }
+    }, [selectedState]);
 
     // Save to sessionStorage whenever filters change
     useEffect(() => {
@@ -155,18 +177,30 @@ const ClientProperties: React.FC = () => {
                             onChange={e => setCreateForm(p => ({...p, zip_code: e.target.value}))} 
                         />
                     </div>
-                    <div>
-                        <Button 
-                            variant="outlined" 
-                            fullWidth 
-                            color={createForm.state && createForm.county ? "success" : "inherit"}
-                            onClick={() => setCountySelectorOpen(true)}
-                            className={`h-[40px] ${createForm.state && createForm.county ? 'border-emerald-500 text-emerald-700 bg-emerald-50' : 'border-slate-300'}`}
-                        >
-                            {createForm.state && createForm.county 
-                                ? `Location: ${createForm.county}, ${createForm.state}`
-                                : "Select State & County *"}
-                        </Button>
+                    <div className="flex flex-col gap-3 mb-4 mt-2">
+                        <Autocomplete
+                            options={stateContacts}
+                            getOptionLabel={(option) => option.state}
+                            value={selectedState}
+                            onChange={(_, newValue) => setSelectedState(newValue)}
+                            renderInput={(params) => (
+                                <TextField {...params} variant="outlined" size="small" label="Select State *" className="bg-white dark:bg-slate-800 rounded-lg" />
+                            )}
+                            fullWidth
+                            disablePortal
+                        />
+                        <Autocomplete
+                            options={availableCounties}
+                            getOptionLabel={(option) => option}
+                            value={selectedCounty}
+                            onChange={(_, newValue) => setSelectedCounty(newValue)}
+                            disabled={!selectedState}
+                            renderInput={(params) => (
+                                <TextField {...params} variant="outlined" size="small" label="Select County *" className="bg-white dark:bg-slate-800 rounded-lg" />
+                            )}
+                            fullWidth
+                            disablePortal
+                        />
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <TextField 
@@ -237,13 +271,15 @@ const ClientProperties: React.FC = () => {
                     <Button 
                         variant="contained" 
                         color="primary" 
-                        disabled={isSubmitting || !createForm.address || !createForm.state || !createForm.county}
+                        disabled={isSubmitting || !createForm.address || !selectedState || !selectedCounty}
                         className="bg-blue-600 rounded-lg shadow-none"
                         onClick={async () => {
                             setIsSubmitting(true);
                             try {
                                 const payload = {
                                     ...createForm,
+                                    state: selectedState?.state || '',
+                                    county: selectedCounty || '',
                                     year_built: createForm.year_built ? parseInt(createForm.year_built) : null,
                                     sqft: createForm.sqft ? parseInt(createForm.sqft) : null,
                                     bedrooms: createForm.bedrooms ? parseInt(createForm.bedrooms) : null,
@@ -282,6 +318,8 @@ const ClientProperties: React.FC = () => {
                                     legal_description: '',
                                     visibility: 'private' 
                                 });
+                                setSelectedState(null);
+                                setSelectedCounty(null);
                                 alert(`✅ Custom property created and saved as ${createForm.visibility}.`);
                             } catch (e: any) {
                                 alert(e.message);
@@ -294,15 +332,6 @@ const ClientProperties: React.FC = () => {
                     </Button>
                 </div>
             </Dialog>
-            {isCountySelectorOpen && (
-                <CountySelector 
-                    mode="select" 
-                    onClose={() => setCountySelectorOpen(false)} 
-                    onSelect={(state, county) => {
-                        setCreateForm(prev => ({ ...prev, state, county }));
-                    }}
-                />
-            )}
         </div>
     );
 };
