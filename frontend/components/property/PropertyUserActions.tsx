@@ -12,6 +12,8 @@ interface Props {
     onUploadAttachment?: (file: File) => void;
 }
 
+import api from '../../services/api';
+
 export const PropertyUserActions: React.FC<Props> = ({ 
     property,
     isFavorite,
@@ -22,6 +24,7 @@ export const PropertyUserActions: React.FC<Props> = ({
 }) => {
     const [isSaving, setIsSaving] = useState(false);
     const [isAddingToList, setIsAddingToList] = useState(false);
+    const [isBuyingPhotos, setIsBuyingPhotos] = useState(false);
 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full">
@@ -68,6 +71,35 @@ export const PropertyUserActions: React.FC<Props> = ({
                     )}
                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-700">
                         {isAddingToList ? 'Adding...' : 'Add to List'}
+                    </span>
+                </button>
+            </div>
+            
+            <div className="px-6 mb-6">
+                <button
+                    onClick={async () => {
+                        setIsBuyingPhotos(true);
+                        try {
+                            const checkoutRes = await api.post('/billing/checkout-photos', { property_id: property.id });
+                            alert(checkoutRes.data.message + "\n\n(Mock Mode: Simulating successful payment...)");
+                            await api.post('/billing/mock-webhook-action', { action_type: 'photos', property_id: property.id });
+                            alert("✅ Success! Your updated photos request has been submitted. We will notify you once they are uploaded to the Secured Files vault.");
+                        } catch(e:any) {
+                            alert(e.response?.data?.detail || e.message || "Failed to process photo checkout.");
+                        } finally {
+                            setIsBuyingPhotos(false);
+                        }
+                    }}
+                    disabled={isBuyingPhotos}
+                    className="w-full p-3 border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 rounded-xl transition-all duration-300 group flex items-center justify-center gap-2 hover:shadow-md active:scale-95 disabled:opacity-50"
+                >
+                    {isBuyingPhotos ? (
+                        <CircularProgress size={16} className="text-emerald-500" />
+                    ) : (
+                        <span className="material-symbols-outlined text-[18px] text-emerald-600 dark:text-emerald-400">add_a_photo</span>
+                    )}
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700 dark:text-emerald-300">
+                        {isBuyingPhotos ? 'Processing...' : 'Buy Updated Photos'}
                     </span>
                 </button>
             </div>

@@ -119,6 +119,7 @@ const BillingPage: React.FC = () => {
             <ul className="space-y-3 mb-6 text-sm">
               <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> 5,000 Property Views</li>
               <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> 5 Companies, 2 Managers, 10 Agents</li>
+              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> 100 Custom Properties</li>
               <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Community Access</li>
               <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Data Exports & Tasks</li>
             </ul>
@@ -140,6 +141,7 @@ const BillingPage: React.FC = () => {
             <ul className="space-y-3 mb-6 text-sm">
               <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Unlimited Property Views</li>
               <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Unlimited Team Members</li>
+              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Unlimited Custom Properties</li>
               <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Priority Exclusive Support</li>
             </ul>
             <button 

@@ -11,6 +11,7 @@ import { PropertyPreviewDrawer } from '../../components/PropertyPreviewDrawer';
 import { useCompany } from '../../context/CompanyContext';
 import { InvestorTaskService } from '../../services/realtor_task.service';
 import { AuthService } from '../../services/auth.service';
+import api from '../../services/api';
 import { API_URL, getHeaders } from '../../services/httpClient';
 import { StreetViewThumbnail } from '../../components/StreetViewThumbnail';
 
@@ -1976,15 +1977,27 @@ const ClientLists: React.FC = () => {
                         onClick={async () => {
                             setTaskSubmitting(true);
                             try {
+                                // 1. Initiate Checkout
+                                const checkoutRes = await api.post('/billing/checkout-task', { amount_usd: taskForm.reward_usd, property_id: taskProperty.id });
+                                alert(checkoutRes.data.message + "\n\n(Mock Mode: Simulating successful payment...)");
+                                
+                                // 2. Simulate Webhook Success
+                                await api.post('/billing/mock-webhook-action', { action_type: 'task', property_id: taskProperty.id });
+
+                                // 3. Create the Task
                                 const calculatedRewardPoints = Math.round((taskForm.reward_usd * 0.70) * 100);
                                 await InvestorTaskService.createTask({ property_id: taskProperty.id, ...taskForm, reward_points: calculatedRewardPoints });
+                                
                                 setTaskProperty(null);
-                                alert('✅ Task created! Realtors can now claim it.');
-                            } catch(e:any) { alert(e.message); }
+                                alert('✅ Task created and payment successful! Realtors can now claim it.');
+                            } catch(e:any) { 
+                                // Catch specific permission errors from the interceptor/API
+                                alert(e.response?.data?.detail || e.message || "Failed to process task checkout."); 
+                            }
                             finally { setTaskSubmitting(false); }
                         }}
                     >
-                        {taskSubmitting ? 'Creating…' : 'Create Task'}
+                        {taskSubmitting ? 'Processing Payment…' : 'Pay & Create Task'}
                     </Button>
                 </div>
             </Dialog>

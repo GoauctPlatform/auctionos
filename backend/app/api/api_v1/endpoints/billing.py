@@ -99,3 +99,60 @@ def mock_stripe_webhook_success(
     db.commit()
 
     return {"status": "success", "message": f"Successfully upgraded to {plan.upper()}!"}
+
+@router.post("/checkout-task")
+def create_task_checkout(
+    amount_usd: float = Body(..., embed=True),
+    property_id: str = Body(..., embed=True),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """
+    MOCK STRIPE ENDPOINT
+    Returns a mocked checkout URL to pay for a task.
+    """
+    # In a real app, create a Stripe Checkout Session for the amount_usd
+    mock_checkout_url = f"https://mock-stripe.com/checkout?type=task&amount={amount_usd}&user={current_user.id}&property={property_id}"
+    
+    return {
+        "checkout_url": mock_checkout_url,
+        "message": "Redirecting to secure payment portal..."
+    }
+
+@router.post("/checkout-photos")
+def create_photos_checkout(
+    property_id: str = Body(..., embed=True),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """
+    MOCK STRIPE ENDPOINT
+    Returns a mocked checkout URL to buy updated photos for a property.
+    """
+    # Fixed price for updated photos (e.g. $15.00)
+    mock_checkout_url = f"https://mock-stripe.com/checkout?type=photos&amount=15.0&user={current_user.id}&property={property_id}"
+    
+    return {
+        "checkout_url": mock_checkout_url,
+        "message": "Redirecting to secure payment portal for Updated Photos..."
+    }
+
+@router.post("/mock-webhook-action")
+def mock_webhook_action(
+    action_type: str = Body(..., embed=True),
+    property_id: str = Body(..., embed=True),
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """
+    MOCK STRIPE ENDPOINT
+    Simulates a successful payment webhook for a task or photos.
+    """
+    if action_type == "task":
+        # Usually here we would update the task status to "paid" or "open"
+        return {"status": "success", "message": "Payment for task confirmed!"}
+    elif action_type == "photos":
+        # Usually here we would flag the property to have photos updated or dispatch a job
+        return {"status": "success", "message": "Payment for updated photos confirmed! We will update the photos shortly."}
+    
+    raise HTTPException(status_code=400, detail="Invalid action type.")

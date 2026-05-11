@@ -24,6 +24,11 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/#/';
+    } else if (error.response?.status === 402) {
+      console.warn('Payment required or trial expired.');
+      // Don't log them out, just alert and redirect to billing
+      alert(error.response?.data?.detail || "Your plan has expired or limits reached. Please upgrade.");
+      window.location.href = '/#/client/billing';
     }
     return Promise.reject(error);
   }
