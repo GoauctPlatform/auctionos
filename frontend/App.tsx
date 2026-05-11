@@ -64,9 +64,9 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: strin
     return <Navigate to="/login" replace />;
   }
 
-  if (allowedRoles && !allowedRoles.includes(user.role)) {
-    // Redirect each role to its own home
-    if (['client', 'manager'].includes(user.role)) return <Navigate to="/client" replace />;
+    if (allowedRoles && !allowedRoles.includes(user.role)) {
+      // Redirect each role to its own home
+      if (['client', 'manager', 'agent'].includes(user.role)) return <Navigate to="/client" replace />;
     if (user.role === 'realtor') return <Navigate to="/realtor" replace />;
     if (user.role === 'agent_due_diligence') return <Navigate to="/agent" replace />;
     return <Navigate to="/dashboard" replace />;
@@ -78,7 +78,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: strin
 const RootRoute: React.FC = () => {
   const user = AuthService.getCurrentUser();
   if (!user) return <Landing />;
-  if (['client', 'manager'].includes(user.role)) return <Navigate to="/client" replace />;
+  if (['client', 'manager', 'agent'].includes(user.role)) return <Navigate to="/client" replace />;
   if (user.role === 'realtor') return <Navigate to="/realtor" replace />;
   if (user.role === 'agent_due_diligence') return <Navigate to="/agent" replace />;
   return <Navigate to="/dashboard" replace />;
@@ -129,7 +129,7 @@ const App: React.FC = () => {
 
           {/* Client Portal Routes */}
           <Route path="/client" element={
-            <ProtectedRoute allowedRoles={['client', 'manager']}>
+            <ProtectedRoute allowedRoles={['client', 'manager', 'agent']}>
               <CompanyProvider>
                 <ClientLayout />
               </CompanyProvider>
