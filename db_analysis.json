@@ -1,1 +1,0 @@
-{"error": "(psycopg2.OperationalError) could not translate host name \"postgres.railway.internal\" to address: Name or service not known\n\n(Background on this error at: https://sqlalche.me/e/20/e3q8)"}

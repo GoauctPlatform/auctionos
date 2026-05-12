@@ -12,7 +12,7 @@ import { PropertyUserActions } from '../components/property/PropertyUserActions'
 import { PropertyFinancialsModal } from '../components/property/PropertyFinancialsModal';
 import { PropertyMetadataModal } from '../components/property/PropertyMetadataModal';
 import { PropertyOverridePanel } from '../components/property/PropertyOverridePanel';
-import PropertyMap from '../components/PropertyMap';
+import { PropertyMap } from '../components/property/PropertyMap';
 import { PropertyExtendedTabs } from '../components/property/PropertyExtendedTabs';
 import { PropertyOwnerCard } from '../components/property/PropertyOwnerCard';
 
@@ -215,7 +215,7 @@ const PropertyDetails: React.FC = () => {
                     <PropertyExtendedTabs property={property} />
 
                     <div className="bg-white dark:bg-slate-800 rounded-xl p-1 shadow-sm border border-slate-200 dark:border-slate-700 h-[400px] overflow-hidden mt-6">
-                        <PropertyMap parcelId={property.parcel_id || null} />
+                        <PropertyMap property={property} />
                     </div>
                 </div>
 

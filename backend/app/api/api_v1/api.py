@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.api.api_v1.endpoints import (
-    auth, users, properties, dashboard, auctions, gis, admin, counties, announcements,
+    auth, users, properties, dashboard, auctions, admin, counties, announcements,
     client_data, states, scores, marketing, companies, realtors, user_properties,
     realtor_tasks, investor_tasks, realtor_economy, billing, agent_tasks, backup
 )
@@ -11,7 +11,6 @@ api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(auctions.router, prefix="/auctions", tags=["auctions"])
 api_router.include_router(properties.router, prefix="/properties", tags=["properties"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
-api_router.include_router(gis.router, prefix="/gis", tags=["gis"])
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
 api_router.include_router(counties.router, prefix="/counties", tags=["counties"])
 api_router.include_router(announcements.router, prefix="/admin/announcements", tags=["announcements"])

@@ -64,6 +64,7 @@ const ClientLayout: React.FC = () => {
     { icon: 'campaign', label: 'Live Auctions', path: '/client/auctions' },
     { icon: 'location_on', label: 'Property Search', path: '/client/properties' },
     { icon: 'list_alt', label: 'My Lists', path: '/client/lists' },
+    { icon: 'real_estate_agent', label: 'My Properties', path: '/client/my-properties' },
   ];
 
   if (role === 'manager' || role === 'client') {
@@ -92,7 +93,6 @@ const ClientLayout: React.FC = () => {
 
   if (role === 'client') {
     accountDropdown.unshift({ label: 'Billing & Plans', path: '/client/billing' });
-    accountDropdown.push({ label: 'Cancel Subscription', path: '/client/cancel-subscription' });
   }
 
   navItems.push({

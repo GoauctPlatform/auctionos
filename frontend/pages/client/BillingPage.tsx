@@ -154,6 +154,32 @@ const BillingPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Cancel Subscription Section */}
+      <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-900 p-6">
+        <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
+          <span className="material-symbols-outlined text-red-500 text-[20px]">cancel</span>
+          Manage Subscription
+        </h2>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
+          Want to cancel your subscription? Please read the information below before proceeding.
+        </p>
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg mb-4 text-sm text-red-700 dark:text-red-300">
+          <p className="font-semibold mb-1">Before you cancel:</p>
+          <ul className="list-disc pl-4 space-y-1">
+            <li>You will lose access to all premium features at the end of your billing period</li>
+            <li>Your saved lists and watchlists will be retained for 30 days</li>
+            <li>Cancellation takes effect at the end of your current billing period</li>
+          </ul>
+        </div>
+        <a
+          href="/client/contact-support"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+        >
+          <span className="material-symbols-outlined text-[18px]">contact_support</span>
+          Contact Support to Cancel
+        </a>
+      </div>
     </div>
   );
 };

@@ -12,7 +12,7 @@ import { PropertyResearchLinks } from './property/PropertyResearchLinks';
 import { PropertyUserActions } from './property/PropertyUserActions';
 import { PropertyFinancialsModal } from './property/PropertyFinancialsModal';
 import { PropertyMetadataModal } from './property/PropertyMetadataModal';
-import PropertyMap from './PropertyMap';
+import { PropertyMap } from './property/PropertyMap';
 
 interface Props {
     property: Property | null;
@@ -146,7 +146,7 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
                         </div>
 
                         <div className="bg-slate-100 dark:bg-slate-800 rounded-xl h-[300px] overflow-hidden border border-slate-200 dark:border-slate-700">
-                            <PropertyMap parcelId={property.parcel_id || null} />
+                            <PropertyMap property={property} />
                         </div>
                     </div>
 

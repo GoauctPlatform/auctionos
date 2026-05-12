@@ -20,13 +20,12 @@ import DisclaimerPage from './pages/DisclaimerPage';
 import { TaxSystemsLandingPage } from './pages/connect/TaxSystemsLandingPage';
 import { TrainingLandingPage } from './pages/connect/TrainingLandingPage';
 
-import { Profile } from './pages/Profile';
 import { Settings } from './pages/Settings';
 import AdminAuctions from './pages/admin/AdminAuctions';
 import PropertyDetailPage from './pages/admin/PropertyDetailPage';
 import AdminLists from './pages/admin/AdminLists';
-import AdminResearch from './pages/admin/AdminResearch';
 import AdminUsers from './pages/admin/AdminUsers';
+
 import AdminImportProperties from './pages/admin/AdminImportProperties';
 import AdminImportAuctions from './pages/admin/AdminImportAuctions';
 import AdminBroadcasts from './pages/admin/AdminBroadcasts';
@@ -36,12 +35,12 @@ import AdminWithdrawals from './pages/admin/AdminWithdrawals';
 import ClientLayout from './layouts/ClientLayout';
 import ClientDashboard from './pages/client/ClientDashboard';
 import ClientAuctions from './pages/client/ClientAuctions';
+import { ClientUserProperties } from './pages/client/ClientUserProperties';
 import ClientProperties from './pages/client/ClientProperties';
 import ClientLists from './pages/client/ClientLists';
 import ClientSupportPage from './pages/client/SupportPage';
 import { TrainingPage, CommunityPage, GroupsPage, TaxSystemsPage } from './pages/client/EcosystemPages';
 import ChangePasswordPage from './pages/client/ChangePasswordPage';
-import CancelSubscriptionPage from './pages/client/CancelSubscriptionPage';
 import ActivityLogsPage from './pages/client/ActivityLogsPage';
 import BillingPage from './pages/client/BillingPage';
 import { CompanyProvider } from './context/CompanyContext';
@@ -115,7 +114,6 @@ const App: React.FC = () => {
             <Route path="/admin/properties/:id" element={<PropertyDetailPage />} />
             <Route path="/admin/properties/:id/edit" element={<PropertyManualEntry />} />
             <Route path="/admin/lists" element={<AdminLists />} />
-            <Route path="/admin/research" element={<AdminResearch />} />
             <Route path="/admin/import/properties" element={<AdminImportProperties />} />
             <Route path="/admin/import/auctions" element={<AdminImportAuctions />} />
             <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
@@ -124,7 +122,6 @@ const App: React.FC = () => {
             <Route path="/settings" element={<Settings />} />
             <Route path="/properties/new" element={<PropertyManualEntry />} />
             <Route path="/properties/:id" element={<PropertyDetails />} />
-            <Route path="/profile" element={<Profile />} />
           </Route>
 
           {/* Client Portal Routes */}
@@ -137,6 +134,7 @@ const App: React.FC = () => {
           }>
             <Route index element={<ClientDashboard />} />
             <Route path="auctions" element={<ClientAuctions />} />
+            <Route path="my-properties" element={<ClientUserProperties />} />
             <Route path="properties" element={<ClientProperties />} />
             <Route path="lists" element={<ClientLists />} />
             {/* Target same detail page internally handling client view restrictions */}
@@ -151,7 +149,6 @@ const App: React.FC = () => {
             <Route path="contact-support" element={<ClientSupportPage />} />
             <Route path="about" element={<AboutPage standalone={false} />} />
             <Route path="support" element={<SupportPage standalone={false} />} />
-            <Route path="cancel-subscription" element={<CancelSubscriptionPage />} />
             <Route path="team" element={<ActivityLogsPage />} />
             <Route path="billing" element={<BillingPage />} />
           </Route>

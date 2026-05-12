@@ -4,16 +4,43 @@ import { AdminService } from '../services/admin.service';
 import { useAuth } from '../context/AuthContext';
 import { useCompany } from '../context/CompanyContext';
 import { UserManagement } from './Settings/UserManagement';
+import { API_URL, getHeaders } from '../services/httpClient';
 
-type Tab = 'general' | 'users' | 'companies';
+type Tab = 'profile' | 'general' | 'users' | 'companies';
 
 export const Settings: React.FC = () => {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState<Tab>('general');
-    const [theme, setTheme] = useState('system');
+    const [activeTab, setActiveTab] = useState<Tab>('profile');
+    const [theme, setTheme] = useState(() => localStorage.getItem('goauct_theme') || 'system');
+    const [displayName, setDisplayName] = useState(user?.full_name || '');
+    const [savingProfile, setSavingProfile] = useState(false);
+    const [profileSaved, setProfileSaved] = useState(false);
     const [notifications, setNotifications] = useState(true);
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleThemeChange = (t: string) => {
+        setTheme(t);
+        localStorage.setItem('goauct_theme', t);
+        if (t === 'dark') document.documentElement.classList.add('dark');
+        else if (t === 'light') document.documentElement.classList.remove('dark');
+        else {
+            if (window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
+            else document.documentElement.classList.remove('dark');
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        setSavingProfile(true);
+        try {
+            const res = await fetch(`${API_URL}/users/me`, {
+                method: 'PUT',
+                headers: getHeaders(),
+                body: JSON.stringify({ full_name: displayName })
+            });
+            if (res.ok) { setProfileSaved(true); setTimeout(() => setProfileSaved(false), 3000); }
+        } catch { } finally { setSavingProfile(false); }
+    };
 
     const handleImportClick = () => {
         fileInputRef.current?.click();
@@ -55,6 +82,15 @@ export const Settings: React.FC = () => {
             {/* Tabs */}
             <div className="flex border-b border-slate-200 dark:border-slate-700">
                 <button
+                    onClick={() => setActiveTab('profile')}
+                    className={`px-4 py-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'profile'
+                        ? 'border-blue-600 text-blue-600 dark:text-blue-400'
+                        : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
+                        }`}
+                >
+                    Profile
+                </button>
+                <button
                     onClick={() => setActiveTab('general')}
                     className={`px-4 py-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'general'
                         ? 'border-blue-600 text-blue-600 dark:text-blue-400'
@@ -85,7 +121,76 @@ export const Settings: React.FC = () => {
                 </button>
             </div>
 
-            {/* Tab Content */}
+            {/* Profile Tab */}
+            {activeTab === 'profile' && (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">My Profile</h3>
+
+                        {/* Avatar */}
+                        <div className="flex items-center gap-5 mb-8 pb-6 border-b border-slate-200 dark:border-slate-700">
+                            <div className="size-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-3xl font-bold shadow-lg">
+                                {(displayName || user?.email || 'U').charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                                <p className="text-base font-bold text-slate-900 dark:text-white">{displayName || user?.email}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 capitalize">{user?.role} • {user?.subscription_tier || 'Trial'}</p>
+                                <p className="text-xs text-slate-400 mt-0.5">{user?.email}</p>
+                            </div>
+                        </div>
+
+                        {/* Display Name */}
+                        <div className="space-y-4 max-w-md">
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Display Name</label>
+                                <input
+                                    type="text"
+                                    value={displayName}
+                                    onChange={e => setDisplayName(e.target.value)}
+                                    placeholder="How you want to appear in the platform"
+                                    className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
+                                />
+                            </div>
+
+                            {/* Theme */}
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Theme</label>
+                                <div className="flex gap-2">
+                                    {['light', 'dark', 'system'].map((t) => (
+                                        <button
+                                            key={t}
+                                            onClick={() => handleThemeChange(t)}
+                                            className={`px-4 py-2 rounded-lg border capitalize text-sm font-medium transition-colors ${
+                                                theme === t
+                                                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
+                                                    : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                                            }`}
+                                        >
+                                            <span className="mr-1">{t === 'light' ? '☀️' : t === 'dark' ? '🌙' : '💻'}</span>{t}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-3 pt-2">
+                                <button
+                                    onClick={handleSaveProfile}
+                                    disabled={savingProfile}
+                                    className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
+                                >
+                                    {savingProfile
+                                        ? <><span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> Saving...</>
+                                        : <><span className="material-symbols-outlined text-[16px]">save</span> Save Profile</>
+                                    }
+                                </button>
+                                {profileSaved && <span className="text-sm text-emerald-600 font-semibold flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">check_circle</span> Saved!</span>}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* General Tab */}
             {activeTab === 'general' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     {/* Preferences Card */}

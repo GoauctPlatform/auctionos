@@ -9,6 +9,7 @@ import { recommendProperties, rankAuctions } from '../../intelligence/rankingEng
 import { calculateDealScore } from '../../intelligence/scoringEngine';
 import { getTopScoredProperties, getStateStats, StateStat } from '../../services/scores.service';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
+import { API_URL } from '../../services/httpClient';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -556,6 +557,21 @@ const ClientDashboard: React.FC = () => {
   const [isPersonalized, setIsPersonalized] = useState(false);
   const isFetchingBus = useRef(false);
 
+  // ─── Announcements ────────────────────────────────────────────────────────
+  const [announcements, setAnnouncements] = useState<{id:number;title:string;message:string;type:string}[]>([]);
+  const [annIndex, setAnnIndex] = useState(0);
+  useEffect(() => {
+    fetch(`${API_URL}/admin/announcements/`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setAnnouncements(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+  useEffect(() => {
+    if (announcements.length < 2) return;
+    const t = setInterval(() => setAnnIndex(i => (i + 1) % announcements.length), 5000);
+    return () => clearInterval(t);
+  }, [announcements.length]);
+
   // ─── Reactive Data Pipeline ────────────────────────────────────────────────
   
   const marketInventory = useMemo(() => {
@@ -753,6 +769,36 @@ const ClientDashboard: React.FC = () => {
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
         </div>
       </div>
+
+      {/* System Announcements Rotator */}
+      {announcements.length > 0 && (() => {
+        const ann = announcements[annIndex];
+        const typeMap: Record<string, {bg: string; icon: string; color: string}> = {
+          info:    { bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',       icon: 'info',         color: 'text-blue-600 dark:text-blue-400' },
+          warning: { bg: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800',   icon: 'warning',      color: 'text-amber-600 dark:text-amber-400' },
+          success: { bg: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800', icon: 'check_circle', color: 'text-emerald-600 dark:text-emerald-400' },
+          update:  { bg: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800', icon: 'new_releases', color: 'text-purple-600 dark:text-purple-400' },
+        };
+        const cfg = typeMap[ann.type] || typeMap.info;
+        return (
+          <div className={`flex items-start gap-3 px-4 py-3 border rounded-xl transition-all duration-500 ${cfg.bg}`}>
+            <span className={`material-symbols-outlined text-[20px] mt-0.5 shrink-0 ${cfg.color}`}>{cfg.icon}</span>
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm font-bold ${cfg.color}`}>{ann.title}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2">{ann.message}</p>
+            </div>
+            {announcements.length > 1 && (
+              <div className="shrink-0 flex items-center gap-1.5 mt-1">
+                {announcements.map((_, i) => (
+                  <button key={i} onClick={() => setAnnIndex(i)}
+                    className={`h-1.5 rounded-full transition-all ${i === annIndex ? 'w-4 bg-current' : 'w-1.5 bg-slate-300 dark:bg-slate-600'}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Personalization Banner — shown when Home is filtered by My Lists */}
       {isPersonalized && myListsPreferences && (
