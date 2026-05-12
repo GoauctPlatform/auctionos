@@ -675,6 +675,56 @@ def delete_client_list(
     log_activity(db, current_user.id, "delete_folder", "ClientList", list_id, {"name": name}, company_id=getattr(current_user, 'active_company_id', current_user.company_id))
     return {"ok": True}
 
+@router.delete("/lists/{list_id}/county/{county_name}")
+def delete_client_list_county(
+    *,
+    db: Session = Depends(deps.get_db),
+    list_id: int,
+    county_name: str,
+    current_user = Depends(deps.get_current_active_user)
+) -> Any:
+    """Delete a county subfolder from a client list, removing all its properties."""
+    lst = db.query(ClientList).filter(ClientList.id == list_id).first()
+    if not lst:
+        raise HTTPException(status_code=404, detail="List not found")
+        
+    if current_user.role in ['manager', 'agent']:
+        effective_company_id = current_user.active_company_id or current_user.company_id
+        if lst.company_id != effective_company_id:
+            raise HTTPException(status_code=403, detail="Not authorized to modify this list")
+    else:
+        if lst.user_id != current_user.id:
+            co = db.execute(text("SELECT id FROM companies WHERE id = :cid AND user_id = :uid"), {"cid": lst.company_id, "uid": current_user.id}).fetchone()
+            if not co:
+                raise HTTPException(status_code=403, detail="Not authorized to modify this list")
+
+    # Remove all properties in this county from the list
+    db.execute(text("""
+        DELETE FROM client_list_property
+        WHERE list_id = :list_id
+        AND property_id IN (
+            SELECT id FROM property_details WHERE county ILIKE :county_name
+        )
+    """), {"list_id": list_id, "county_name": county_name})
+    
+    # Also remove from tags if it's a STANDARD list pinned county
+    if lst.tags and lst.tags.startswith("STANDARD:"):
+        parts = lst.tags.split(":")
+        if len(parts) > 1:
+            counties = [c.strip() for c in parts[1].split(",")]
+            # Filter out the county case-insensitively
+            counties = [c for c in counties if c.lower() != county_name.lower()]
+            if counties:
+                lst.tags = f"STANDARD:{','.join(counties)}"
+            else:
+                lst.tags = "STANDARD"
+            db.add(lst)
+    
+    db.commit()
+    
+    log_activity(db, current_user.id, "delete_subfolder", "ClientList", list_id, {"county": county_name}, company_id=getattr(current_user, 'active_company_id', current_user.company_id))
+    return {"ok": True}
+
 @router.post("/lists/{list_id}/properties/{property_id}")
 def add_property_to_list(
     *,

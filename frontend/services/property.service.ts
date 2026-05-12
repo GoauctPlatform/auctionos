@@ -316,6 +316,14 @@ export const ClientDataService = {
         if (!response.ok) throw new Error('Failed to delete list');
     },
 
+    deleteSubfolder: async (listId: number, countyName: string): Promise<void> => {
+        const response = await fetch(`${API_URL}/client-data/lists/${listId}/county/${encodeURIComponent(countyName)}`, {
+            method: 'DELETE',
+            headers: getHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to delete county folder');
+    },
+
     addPropertyToList: async (listId: number, propertyId: number): Promise<void> => {
         const response = await fetch(`${API_URL}/client-data/lists/${listId}/properties/${propertyId}`, {
             method: 'POST',

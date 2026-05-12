@@ -956,8 +956,28 @@ const ClientLists: React.FC = () => {
         if (!window.confirm("Are you sure you want to delete this folder?")) return;
         try {
             await ClientDataService.deleteList(id);
+            if (selectedListId === id) {
+                setSelectedListId(null);
+                setSelectedStateName(null);
+                setSelectedCountyName(null);
+            }
             loadLists();
-            if (selectedListId === id) setSelectedListId(null);
+        } catch (err: any) {
+            alert(err.message);
+        }
+    };
+
+    const handleDeleteSubfolder = async (listId: number, countyName: string) => {
+        if (!window.confirm(`Are you sure you want to delete the county "${countyName}"? This will remove all properties in this county from the folder.`)) return;
+        try {
+            await ClientDataService.deleteSubfolder(listId, countyName);
+            if (selectedListId === listId && selectedCountyName === countyName) {
+                setSelectedCountyName(null);
+            }
+            loadLists();
+            if (selectedListId === listId) {
+                loadListProperties(listId);
+            }
         } catch (err: any) {
             alert(err.message);
         }
@@ -1221,6 +1241,17 @@ const ClientLists: React.FC = () => {
                                                                                 <span className="material-symbols-outlined text-[10px]">gavel</span>
                                                                             </div>
                                                                         )}
+                                                                        
+                                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                            <IconButton
+                                                                                size="small"
+                                                                                className="p-0.5"
+                                                                                onClick={(e) => { e.stopPropagation(); handleDeleteSubfolder(list.id, county); }}
+                                                                            >
+                                                                                <Trash2Icon size={12} className={selectedCountyName === county ? 'text-white' : 'text-slate-400 hover:text-red-500'} />
+                                                                            </IconButton>
+                                                                        </div>
+
                                                                         <span className={`text-xs ${selectedCountyName === county ? 'text-emerald-100' : 'text-slate-400'}`}>{count}</span>
                                                                     </div>
                                                                 );
