@@ -40,7 +40,7 @@ export const Layout: React.FC = () => {
   return (
     <div className="min-h-screen w-full bg-background-light dark:bg-background-dark font-display flex flex-col">
       {/* Header Navigation */}
-      <header className="bg-white dark:bg-[#1a2634] border-b border-[#e7ecf3] dark:border-slate-700 sticky top-0 z-50">
+      <header className="bg-white/70 dark:bg-[#1a2634]/70 backdrop-blur-md border-b border-[#e7ecf3] dark:border-slate-700/50 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
