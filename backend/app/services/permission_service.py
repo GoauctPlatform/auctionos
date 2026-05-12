@@ -59,13 +59,24 @@ class PermissionService:
                 raise HTTPException(status_code=403, detail="Active company not found.")
             sub = db.query(UserSubscription).filter(UserSubscription.user_id == company.user_id).first()
 
+        owner_id = user.id if user.role == 'client' else company.user_id
+        owner_user = db.query(User).filter(User.id == owner_id).first()
+
         if not sub:
-            # Create default trial subscription
+            # Create default subscription based on owner's tier
             sub = UserSubscription(
-                user_id=user.id if user.role == 'client' else company.user_id,
-                plan_type='trial',
+                user_id=owner_id,
+                plan_type=owner_user.subscription_tier if owner_user else 'trial',
                 status='active'
             )
+            db.add(sub)
+            db.commit()
+            db.refresh(sub)
+        elif owner_user and owner_user.subscription_tier != sub.plan_type:
+            # Auto-sync: If User table says one thing and Subscription table another,
+            # we favor the User table as it's often the target of manual admin updates.
+            sub.plan_type = owner_user.subscription_tier
+            sub.status = 'active'
             db.add(sub)
             db.commit()
             db.refresh(sub)

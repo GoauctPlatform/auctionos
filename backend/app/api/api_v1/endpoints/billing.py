@@ -93,6 +93,11 @@ def mock_stripe_webhook_success(
     sub.start_date = datetime.now(timezone.utc)
     # Pro/Enterprise plans usually don't expire in a week, they bill monthly. We remove the end_date.
     sub.end_date = None 
+    
+    # Sync the User table as well
+    current_user.subscription_tier = plan
+    db.add(current_user)
+    
     # Reset usage counters upon upgrade
     sub.property_views_used = 0 
     
