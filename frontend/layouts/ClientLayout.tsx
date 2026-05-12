@@ -33,6 +33,10 @@ const ClientLayout: React.FC = () => {
     navigate('/login');
   };
 
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ current: '', new: '', confirm: '' });
+
   const handleChangePassword = async () => {
     if (passwordForm.new !== passwordForm.confirm) return alert("Passwords do not match");
     setChangingPassword(true);
@@ -82,7 +86,6 @@ const ClientLayout: React.FC = () => {
 
   let accountDropdown: DropdownItem[] = [
     { label: 'Settings & Profile', path: '/client/settings' },
-    { label: 'Security & Password', path: '/client/change-password' },
     { label: 'About GoAuct', path: '/client/about' },
   ];
 
@@ -96,7 +99,7 @@ const ClientLayout: React.FC = () => {
 
   navItems.push({
     icon: 'manage_accounts',
-    label: 'Account Support',
+    label: 'Account Settings',
     dropdown: accountDropdown,
   });
 

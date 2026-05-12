@@ -14,6 +14,7 @@ import { AuthService } from '../../services/auth.service';
 import api from '../../services/api';
 import { API_URL, getHeaders } from '../../services/httpClient';
 import { StreetViewThumbnail } from '../../components/StreetViewThumbnail';
+import { ClientUserProperties } from './ClientUserProperties';
 
 // Helper to map state names to codes for the SVG silhouette
 const STATE_CODE_MAP: Record<string, string> = {
@@ -585,7 +586,7 @@ const ClientLists: React.FC = () => {
     const [geocodedProperties, setGeocodedProperties] = useState<Record<number, { lat: number, lng: number }>>({});
     const [folderNotes, setFolderNotes] = useState<string>('');
     const [savingNotes, setSavingNotes] = useState(false);
-    const [viewMode, setViewMode] = useState<'folders' | 'my_tasks' | 'my_exports'>('folders');
+    const [viewMode, setViewMode] = useState<'folders' | 'my_tasks' | 'my_exports' | 'my_properties'>('folders');
     const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 1024);
     const [movingPropertyId, setMovingPropertyId] = useState<number | null>(null);
     const [moveTargetListId, setMoveTargetListId] = useState<number | string>('');
@@ -1214,7 +1215,7 @@ const ClientLists: React.FC = () => {
                                                             {sortedCounties.map(([county, count]) => {
                                                                 // Check if any property in this county has an upcoming auction
                                                                 const hasAuction = stateProperties.some(p =>
-                                                                    p.county === county &&
+                                                                    (p.county || '').trim().toLowerCase() === (county || '').trim().toLowerCase() &&
                                                                     (p.auction_status === "started" || (p.auction_date && new Date(p.auction_date).getTime() < Date.now() + 7 * 24 * 60 * 60 * 1000))
                                                                 );
 
@@ -1380,10 +1381,11 @@ const ClientLists: React.FC = () => {
                                     <span className="flex-1 text-sm font-medium truncate">My Exports</span>
                                 </div>
                                 <div
-                                    onClick={() => navigate('/client/my-properties')}
-                                    className="group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50"
+                                    onClick={() => { setViewMode('my_properties'); setSelectedListId(null); setSelectedStateName(null); setSelectedCountyName(null); }}
+                                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 
+                                        ${viewMode === 'my_properties' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
                                 >
-                                    <span className="material-symbols-outlined text-[18px] text-emerald-500">real_estate_agent</span>
+                                    <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_properties' ? 'text-white' : 'text-emerald-500'}`}>real_estate_agent</span>
                                     <span className="flex-1 text-sm font-medium truncate">My Properties</span>
                                 </div>
                             </div>
@@ -1406,6 +1408,8 @@ const ClientLists: React.FC = () => {
                     <InvestorMyTasksView onBack={() => setViewMode('folders')} />
                 ) : viewMode === 'my_exports' ? (
                     <InvestorMyExportsView onBack={() => setViewMode('folders')} />
+                ) : viewMode === 'my_properties' ? (
+                    <ClientUserProperties onBack={() => setViewMode('folders')} />
                 ) : (
                     <div className="flex-1 flex flex-col h-full">
                         <div className="p-4 md:p-6 border-b border-slate-100 dark:border-slate-900 flex flex-col gap-4">
@@ -1428,7 +1432,7 @@ const ClientLists: React.FC = () => {
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                                                 {selectedStateName && selectedCountyName
-                                                    ? selectedListProperties.filter(p => p.county === selectedCountyName).length
+                                                    ? selectedListProperties.filter(p => (p.county || '').trim().toLowerCase() === selectedCountyName.trim().toLowerCase()).length
                                                     : selectedListProperties.length} Properties
                                             </span>
                                         </div>
@@ -1626,7 +1630,7 @@ const ClientLists: React.FC = () => {
                     ) : (() => {
                         // Filter by county if a subfolder is selected
                         const displayProperties = [...(selectedStateName && selectedCountyName
-                            ? selectedListProperties.filter(p => p.county === selectedCountyName)
+                            ? selectedListProperties.filter(p => (p.county || '').trim().toLowerCase() === selectedCountyName.trim().toLowerCase())
                             : selectedListProperties)]
                             .sort((a, b) => {
                                 const isAFav = favoritesSet.has(a.id);
