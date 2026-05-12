@@ -30,13 +30,13 @@ def get_admin_stats(
     try:
         rows = db.execute(text("""
             SELECT
-                (SELECT COUNT(*) FROM properties) AS total_properties,
-                (SELECT COUNT(*) FROM properties WHERE LOWER(availability_status) = 'available') AS available_properties,
+                (SELECT COUNT(*) FROM property_details) AS total_properties,
+                (SELECT COUNT(*) FROM property_details WHERE LOWER(availability_status) = 'available') AS available_properties,
                 (SELECT COUNT(*) FROM auction_events) AS total_auctions,
-                (SELECT COUNT(*) FROM auction_events WHERE status = 'active') AS active_auctions,
-                (SELECT COUNT(*) FROM auction_events WHERE LOWER(auction_type) LIKE '%deed%') AS deed_count,
-                (SELECT COUNT(*) FROM auction_events WHERE LOWER(auction_type) LIKE '%foreclosure%') AS foreclosure_count,
-                (SELECT COUNT(*) FROM auction_events WHERE LOWER(auction_type) LIKE '%lien%') AS lien_count,
+                (SELECT COUNT(*) FROM auction_events WHERE auction_date >= CURRENT_DATE) AS active_auctions,
+                (SELECT COUNT(*) FROM auction_events WHERE LOWER(tax_status) LIKE '%%deed%%' OR LOWER(name) LIKE '%%deed%%') AS deed_count,
+                (SELECT COUNT(*) FROM auction_events WHERE LOWER(tax_status) LIKE '%%foreclosure%%' OR LOWER(name) LIKE '%%foreclosure%%') AS foreclosure_count,
+                (SELECT COUNT(*) FROM auction_events WHERE LOWER(tax_status) LIKE '%%lien%%' OR LOWER(name) LIKE '%%lien%%') AS lien_count,
                 (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'trial' AND is_active = TRUE) AS trial_users,
                 (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'pro' AND is_active = TRUE) AS pro_users,
                 (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'enterprise' AND is_active = TRUE) AS enterprise_users,

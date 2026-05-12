@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import AuctionCalendar from '../../components/admin/AuctionCalendar';
 import AuctionList from '../../components/admin/AuctionList';
 import AuctionFilters, { AuctionFilterParams } from '../../components/admin/AuctionFilters';
-import CsvUpload from '../../components/admin/CsvUpload';
 import PropertyForm from '../../components/admin/PropertyForm';
 import PropertyList from '../../components/admin/PropertyList';
 import PropertyFilters, { PropertyFilterParams } from '../../components/admin/PropertyFilters';
@@ -14,11 +13,11 @@ import { useSearchParams } from 'react-router-dom';
 import { PropertyService } from '../../services/property.service';
 
 interface AdminAuctionsProps {
-    defaultTab?: 'auctions' | 'properties' | 'import_props' | 'import_auctions' | 'broadcasts' | 'users';
+    defaultTab?: 'auctions' | 'properties' | 'broadcasts' | 'users';
 }
 
-const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auctions' }) => {
-    const [activeTab, setActiveTab] = useState<'auctions' | 'properties' | 'import_props' | 'import_auctions' | 'broadcasts' | 'users'>(defaultTab as any);
+export const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auctions' }) => {
+    const [activeTab, setActiveTab] = useState<'auctions' | 'properties' | 'broadcasts' | 'users'>(defaultTab as any);
     const [filters, setFilters] = useState<AuctionFilterParams>({});
     const [propertyFilters, setPropertyFilters] = useState<PropertyFilterParams>(() => {
         try {
@@ -82,8 +81,6 @@ const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auctions' }
             <div className="flex flex-wrap gap-2 mb-6 border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
                 <TabButton active={activeTab === 'auctions'} onClick={() => setActiveTab('auctions')} label="Auctions Dashboard" />
                 <TabButton active={activeTab === 'properties'} onClick={() => setActiveTab('properties')} label="Property Manager" />
-                <TabButton active={activeTab === 'import_props'} onClick={() => setActiveTab('import_props')} label="Import Properties (CSV)" />
-                <TabButton active={activeTab === 'import_auctions'} onClick={() => setActiveTab('import_auctions')} label="Import Auctions (CSV)" />
                 <TabButton active={activeTab === 'broadcasts'} onClick={() => setActiveTab('broadcasts')} label="System Broadcasts" />
                 <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} label="User Management" />
             </div>
@@ -126,20 +123,6 @@ const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auctions' }
 
             {activeTab === 'users' && (
                 <UserList />
-            )}
-
-            {activeTab === 'import_props' && (
-                <div className="max-w-2xl">
-                    <h2 className="text-xl font-semibold mb-4 text-slate-700 dark:text-slate-200">Import Properties CSV</h2>
-                    <CsvUpload type="properties" onSuccess={() => setActiveTab('properties')} />
-                </div>
-            )}
-
-            {activeTab === 'import_auctions' && (
-                <div className="max-w-2xl">
-                    <h2 className="text-xl font-semibold mb-4 text-slate-700 dark:text-slate-200">Import Auctions CSV</h2>
-                    <CsvUpload type="auctions" onSuccess={() => setActiveTab('auctions')} />
-                </div>
             )}
         </div>
     );
