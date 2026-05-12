@@ -12,6 +12,42 @@ redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
 import redis
 redis_client = redis.Redis.from_url(redis_url)
 
+
+# ─── Platform Stats ─────────────────────────────────────────────────────────
+
+@router.get("/stats")
+def get_admin_stats(
+    current_user: User = Depends(get_current_active_user),
+) -> Any:
+    """Return live platform KPIs for the admin dashboard."""
+    if current_user.role not in ("admin", "superuser"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+
+    db = SessionLocal()
+    try:
+        rows = db.execute(text("""
+            SELECT
+                (SELECT COUNT(*) FROM properties) AS total_properties,
+                (SELECT COUNT(*) FROM properties WHERE LOWER(availability_status) = 'available') AS available_properties,
+                (SELECT COUNT(*) FROM auction_events) AS total_auctions,
+                (SELECT COUNT(*) FROM auction_events WHERE status = 'active') AS active_auctions,
+                (SELECT COUNT(*) FROM auction_events WHERE LOWER(auction_type) LIKE '%deed%') AS deed_count,
+                (SELECT COUNT(*) FROM auction_events WHERE LOWER(auction_type) LIKE '%foreclosure%') AS foreclosure_count,
+                (SELECT COUNT(*) FROM auction_events WHERE LOWER(auction_type) LIKE '%lien%') AS lien_count,
+                (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'trial' AND is_active = TRUE) AS trial_users,
+                (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'pro' AND is_active = TRUE) AS pro_users,
+                (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'enterprise' AND is_active = TRUE) AS enterprise_users,
+                (SELECT COUNT(*) FROM users WHERE is_active = TRUE AND role NOT IN ('admin', 'superuser')) AS total_active_users
+        """)).fetchone()
+
+        return dict(rows._mapping) if rows else {}
+    finally:
+        db.close()
+
+
 @router.post("/import/properties")
 async def import_properties(
     file: UploadFile = File(...),

@@ -74,6 +74,11 @@ export const Settings: React.FC = () => {
     };
 
     const isAdmin = user?.role === 'admin' || user?.is_superuser;
+    const isManagerOrAdmin = isAdmin || user?.role === 'manager';
+    const roleLabel: Record<string, string> = {
+        admin: 'Platform Admin', superuser: 'Superuser', manager: 'Manager', client: 'Investor', realtor: 'Realtor', agent: 'Field Agent', agent_due_diligence: 'Due Diligence Agent'
+    };
+    const userRoleLabel = roleLabel[user?.role || ''] || user?.role || 'User';
 
     return (
         <div className="max-w-7xl mx-auto space-y-6">
@@ -99,7 +104,7 @@ export const Settings: React.FC = () => {
                 >
                     General
                 </button>
-                {isAdmin && (
+                {isManagerOrAdmin && (
                     <button
                         onClick={() => setActiveTab('users')}
                         className={`px-4 py-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'users'
@@ -134,8 +139,16 @@ export const Settings: React.FC = () => {
                             </div>
                             <div>
                                 <p className="text-base font-bold text-slate-900 dark:text-white">{displayName || user?.email}</p>
-                                <p className="text-sm text-slate-500 dark:text-slate-400 capitalize">{user?.role} • {user?.subscription_tier || 'Trial'}</p>
+                                <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    {userRoleLabel}
+                                    {activeCompany ? <> · <span className="font-semibold text-emerald-600 dark:text-emerald-400">{activeCompany.name}</span></> : ' · No active company'}
+                                </p>
                                 <p className="text-xs text-slate-400 mt-0.5">{user?.email}</p>
+                                {user?.subscription_tier && (
+                                    <span className="inline-block mt-1 text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                                        {user.subscription_tier}
+                                    </span>
+                                )}
                             </div>
                         </div>
 
@@ -242,7 +255,7 @@ export const Settings: React.FC = () => {
                 </div>
             )}
 
-            {activeTab === 'users' && isAdmin && (
+            {activeTab === 'users' && isManagerOrAdmin && (
                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <UserManagement />
                 </div>

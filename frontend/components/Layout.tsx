@@ -18,18 +18,14 @@ export const Layout: React.FC = () => {
   const navItems = [
     { icon: 'home', label: 'Home', path: '/dashboard' },
     {
-      icon: 'gavel',
-      label: 'Auctions',
+      icon: 'build',
+      label: 'Tools',
       dropdown: [
         { label: 'Auctions Dashboard', path: '/admin/auctions' },
         { label: 'Property Manager', path: '/admin/properties' },
-        { label: 'Import Properties (CSV)', path: '/admin/import/properties' },
-        { label: 'Import Auctions (CSV)', path: '/admin/import/auctions' },
         { label: 'System Broadcasts', path: '/admin/broadcasts' },
       ],
     },
-    { icon: 'list_alt', label: 'My Lists', path: '/admin/lists' },
-    { icon: 'map', label: 'Research', path: '/admin/research' },
     {
       icon: 'admin_panel_settings',
       label: 'Admin & CRM',

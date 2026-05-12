@@ -1,24 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, Button, IconButton, Dialog, TextField, CircularProgress } from '@mui/material';
 import { UserPropertyService, CustomPropertyPayload } from '../../services/user_property.service';
-import { PlusIcon, Edit2Icon, Trash2Icon, ArrowLeftIcon, FolderInputIcon } from 'lucide-react';
+import { PlusIcon, Edit2Icon, Trash2Icon, ArrowLeftIcon } from 'lucide-react';
 import { useCompany } from '../../context/CompanyContext';
 import { ClientDataService } from '../../services/property.service';
+import { AuthService } from '../../services/auth.service';
 
 interface Props {
     onBack?: () => void;
 }
 
+const EMPTY_FORM: CustomPropertyPayload = {
+    address: '', city: '', state: '', zip_code: '', property_type: '', assessed_value: 0, visibility: 'private',
+    parcel_id: '', county: '', bedrooms: 0, bathrooms: 0, sqft: 0, year_built: 0, amount_due: 0,
+    owner_name: '', lot_size: 0, occupancy: '', description: '', tax_amount: 0, tax_year: 0,
+    legal_description: '', zoning: '', num_units: 0
+};
+
 export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
     const { activeCompany } = useCompany();
+    const user = AuthService.getCurrentUser();
     const [lists, setLists] = useState<any[]>([]);
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [deleting, setDeleting] = useState<string | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
-
-    const [formData, setFormData] = useState<CustomPropertyPayload>({
-        address: '', city: '', state: '', zip_code: '', property_type: '', assessed_value: 0, visibility: 'private'
-    });
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [formData, setFormData] = useState<CustomPropertyPayload>(EMPTY_FORM);
 
     const loadProperties = async () => {
         setLoading(true);
@@ -26,7 +35,7 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
             const data = await UserPropertyService.getAll();
             setProperties(data);
         } catch (err) {
-            console.error("Failed to load user properties", err);
+            console.error('Failed to load user properties', err);
         } finally {
             setLoading(false);
         }
@@ -38,7 +47,7 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
             const fetchedLists = await ClientDataService.getLists(activeCompany.id);
             setLists(fetchedLists);
         } catch (e) {
-            console.error("Failed to load lists", e);
+            console.error('Failed to load lists', e);
         }
     };
 
@@ -48,83 +57,150 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
     }, [activeCompany?.id]);
 
     const handleSave = async () => {
+        setSaving(true);
         try {
-            await UserPropertyService.create(formData);
+            if (editingId) {
+                await UserPropertyService.update(editingId, formData);
+            } else {
+                await UserPropertyService.create(formData);
+            }
             setModalOpen(false);
-            loadProperties();
-            alert("Property Created Successfully! It is now available in your folders.");
-        } catch (err) {
-            alert("Error saving property");
+            setEditingId(null);
+            setFormData(EMPTY_FORM);
+            await loadProperties();
+        } catch (err: any) {
+            alert(err.message || 'Error saving property');
+        } finally {
+            setSaving(false);
         }
     };
 
-    const handleDelete = async (id: string) => {
-        // Disabled for now since they are part of unified properties
-        alert("To delete unified properties, remove them from your lists or contact support.");
+    const handleDelete = async (id: string, address: string) => {
+        if (!window.confirm(`Delete "${address || 'this property'}"? This action cannot be undone.`)) return;
+        setDeleting(id);
+        try {
+            await UserPropertyService.delete(id);
+            await loadProperties();
+        } catch (err: any) {
+            alert(err.message || 'Error deleting property');
+        } finally {
+            setDeleting(null);
+        }
     };
 
     const openCreate = () => {
-        setFormData({ 
-            address: '', city: '', state: '', zip_code: '', 
-            property_type: '', assessed_value: 0, parcel_id: '', county: '',
-            bedrooms: 0, bathrooms: 0, sqft: 0, year_built: 0, amount_due: 0,
-            owner_name: '', lot_size: 0, occupancy: '', description: '',
-            tax_amount: 0, tax_year: 0, legal_description: '', zoning: '', num_units: 0,
-            visibility: 'private'
-        });
+        setEditingId(null);
+        setFormData(EMPTY_FORM);
         setModalOpen(true);
     };
 
     const openEdit = (p: any) => {
-        alert("Editing unified properties directly from here is currently disabled. Use the details drawer.");
+        setEditingId(p.id);
+        setFormData({
+            address: p.address || '', city: p.city || '', state: p.state || '', zip_code: p.zip_code || '',
+            property_type: p.property_type || '', assessed_value: p.assessed_value || 0, visibility: p.visibility || 'private',
+            parcel_id: p.parcel_id || '', county: p.county || '', bedrooms: p.bedrooms || 0,
+            bathrooms: p.bathrooms || 0, sqft: p.sqft || 0, year_built: p.year_built || 0,
+            amount_due: p.amount_due || 0, owner_name: p.owner_name || '', lot_size: p.lot_size || 0,
+            occupancy: p.occupancy || '', description: p.description || '', tax_amount: p.tax_amount || 0,
+            tax_year: p.tax_year || 0, legal_description: p.legal_description || '', zoning: p.zoning || '',
+            num_units: p.num_units || 0
+        });
+        setModalOpen(true);
+    };
+
+    const f = (field: keyof CustomPropertyPayload) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const v = e.target.type === 'number' ? (parseFloat(e.target.value) || 0) : e.target.value;
+        setFormData(prev => ({ ...prev, [field]: v }));
     };
 
     return (
         <div className="flex-1 flex flex-col p-6 h-full overflow-y-auto">
+            {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-3">
                     {onBack && (
-                        <IconButton onClick={onBack} size="small" className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700">
+                        <IconButton onClick={onBack} size="small" className="bg-slate-100 hover:bg-slate-200 dark:bg-slate-800">
                             <ArrowLeftIcon size={18} className="text-slate-600 dark:text-slate-300" />
                         </IconButton>
                     )}
-                    <Typography variant="h5" className="font-bold text-slate-800 dark:text-white">Custom Properties</Typography>
+                    <div>
+                        <Typography variant="h5" className="font-bold text-slate-800 dark:text-white">My Properties</Typography>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                            Custom properties created by you • {user?.email?.split('@')[0]} · {activeCompany?.name || 'No company'}
+                        </p>
+                    </div>
                 </div>
-                <Button variant="contained" color="primary" startIcon={<PlusIcon size={18} />} onClick={openCreate} sx={{ textTransform: 'none', borderRadius: 2 }}>
+                <Button
+                    variant="contained" color="primary"
+                    startIcon={<PlusIcon size={18} />}
+                    onClick={openCreate}
+                    sx={{ textTransform: 'none', borderRadius: 2 }}
+                >
                     Add Property
                 </Button>
             </div>
 
+            {/* Properties Grid */}
             {loading ? (
                 <div className="flex justify-center p-10"><CircularProgress /></div>
             ) : properties.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-20 text-slate-400">
-                    <span className="material-symbols-outlined text-[48px] mb-4 opacity-50">real_estate_agent</span>
-                    <Typography>No custom properties yet.</Typography>
+                    <span className="material-symbols-outlined text-[56px] mb-4 opacity-40">real_estate_agent</span>
+                    <Typography className="font-semibold">No custom properties yet.</Typography>
+                    <p className="text-sm mt-1">Create a custom property to track investments not in the main database.</p>
+                    <button onClick={openCreate} className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-colors">
+                        <span className="material-symbols-outlined text-[18px]">add</span> Add First Property
+                    </button>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {properties.map(p => (
-                        <div key={p.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm flex flex-col">
+                        <div key={p.id} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-4 shadow-sm flex flex-col group hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
                             <div className="flex justify-between items-start mb-2">
-                                <div className="flex flex-col">
-                                    <Typography variant="subtitle1" className="font-bold text-slate-800 dark:text-white truncate">{p.address || 'Untitled Property'}</Typography>
-                                    {p.parcel_id && <Typography variant="caption" className="text-blue-500 font-bold uppercase text-[10px]">PID: {p.parcel_id}</Typography>}
+                                <div className="flex flex-col flex-1 min-w-0">
+                                    <Typography variant="subtitle1" className="font-bold text-slate-800 dark:text-white truncate">
+                                        {p.address || 'Untitled Property'}
+                                    </Typography>
+                                    {p.parcel_id && (
+                                        <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">PID: {p.parcel_id}</span>
+                                    )}
                                 </div>
-                                <div className="flex gap-1">
-                                    <IconButton size="small" onClick={() => p.id && handleDelete(p.id)}><Trash2Icon size={14} className="text-red-500" /></IconButton>
+                                <div className="flex gap-1 shrink-0 ml-2">
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => openEdit(p)}
+                                        className="text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                                    >
+                                        <Edit2Icon size={14} />
+                                    </IconButton>
+                                    <IconButton
+                                        size="small"
+                                        onClick={() => p.id && handleDelete(p.id, p.address)}
+                                        disabled={deleting === p.id}
+                                        className="text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                    >
+                                        {deleting === p.id
+                                            ? <span className="material-symbols-outlined animate-spin text-[14px]">progress_activity</span>
+                                            : <Trash2Icon size={14} />
+                                        }
+                                    </IconButton>
                                 </div>
                             </div>
-                            <Typography variant="body2" className="text-slate-500 mb-1">
-                                {p.city ? `${p.city}, ` : ''}{p.state}
+
+                            <Typography variant="body2" className="text-slate-500 mb-2">
+                                {[p.city, p.county, p.state].filter(Boolean).join(', ')}
                             </Typography>
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                <Typography variant="caption" className="text-slate-400 font-medium bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded w-fit">{p.property_type || 'Unknown Type'}</Typography>
-                                {p.bedrooms > 0 && <Typography variant="caption" className="text-slate-400 font-medium bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded w-fit">{p.bedrooms} Beds</Typography>}
-                                {p.bathrooms > 0 && <Typography variant="caption" className="text-slate-400 font-medium bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded w-fit">{p.bathrooms} Baths</Typography>}
-                                {p.sqft > 0 && <Typography variant="caption" className="text-slate-400 font-medium bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded w-fit">{p.sqft} sqft</Typography>}
+
+                            <div className="flex flex-wrap gap-1.5 mb-3">
+                                {p.property_type && (
+                                    <span className="text-[10px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">{p.property_type}</span>
+                                )}
+                                {p.bedrooms > 0 && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">{p.bedrooms}bd</span>}
+                                {p.bathrooms > 0 && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">{p.bathrooms}ba</span>}
+                                {p.sqft > 0 && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">{p.sqft?.toLocaleString()} sqft</span>}
                             </div>
-                            
+
                             <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-700 grid grid-cols-2 gap-2">
                                 <div className="flex flex-col">
                                     <span className="text-[10px] uppercase text-slate-400 font-bold">Assessed Value</span>
@@ -140,90 +216,77 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                 </div>
             )}
 
-            <Dialog open={modalOpen} onClose={() => setModalOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-                <Typography variant="h6" className="font-bold mb-4">New Custom Property</Typography>
+            {/* Create / Edit Dialog */}
+            <Dialog open={modalOpen} onClose={() => { setModalOpen(false); setEditingId(null); }} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
+                <Typography variant="h6" className="font-bold mb-4">
+                    {editingId ? 'Edit Property' : 'New Custom Property'}
+                </Typography>
                 <div className="flex flex-col gap-3">
                     <div className="flex gap-3">
-                        <TextField label="Parcel ID" size="small" value={formData.parcel_id || ''} onChange={e => setFormData({...formData, parcel_id: e.target.value})} fullWidth />
-                        <TextField label="County" size="small" value={formData.county || ''} onChange={e => setFormData({...formData, county: e.target.value})} fullWidth />
+                        <TextField label="Parcel ID" size="small" value={formData.parcel_id || ''} onChange={f('parcel_id')} fullWidth />
+                        <TextField label="County" size="small" value={formData.county || ''} onChange={f('county')} fullWidth />
                     </div>
-                    <TextField label="Address" size="small" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} fullWidth />
+                    <TextField label="Address" size="small" value={formData.address || ''} onChange={f('address')} fullWidth />
                     <div className="flex gap-3">
-                        <TextField label="City" size="small" value={formData.city} onChange={e => setFormData({...formData, city: e.target.value})} fullWidth />
-                        <TextField label="State" size="small" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} sx={{ width: 100 }} />
-                        <TextField label="Zip" size="small" value={formData.zip_code} onChange={e => setFormData({...formData, zip_code: e.target.value})} sx={{ width: 120 }} />
+                        <TextField label="City" size="small" value={formData.city || ''} onChange={f('city')} fullWidth />
+                        <TextField label="State" size="small" value={formData.state || ''} onChange={f('state')} sx={{ width: 100 }} />
+                        <TextField label="Zip" size="small" value={formData.zip_code || ''} onChange={f('zip_code')} sx={{ width: 120 }} />
                     </div>
-                    <TextField label="Description" size="small" multiline rows={2} value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} fullWidth />
-                    
+                    <TextField label="Description" size="small" multiline rows={2} value={formData.description || ''} onChange={f('description')} fullWidth />
                     <div className="flex gap-3">
-                        <TextField label="Property Type (e.g. Single Family)" size="small" value={formData.property_type || ''} onChange={e => setFormData({...formData, property_type: e.target.value})} fullWidth />
-                        <TextField label="Occupancy" size="small" value={formData.occupancy || ''} onChange={e => setFormData({...formData, occupancy: e.target.value})} fullWidth />
+                        <TextField label="Property Type" size="small" value={formData.property_type || ''} onChange={f('property_type')} fullWidth />
+                        <TextField label="Occupancy" size="small" value={formData.occupancy || ''} onChange={f('occupancy')} fullWidth />
                     </div>
-                    
                     <div className="flex gap-3">
-                        <TextField label="Beds" type="number" size="small" value={formData.bedrooms || ''} onChange={e => setFormData({...formData, bedrooms: parseInt(e.target.value) || 0})} fullWidth />
-                        <TextField label="Baths" type="number" size="small" value={formData.bathrooms || ''} onChange={e => setFormData({...formData, bathrooms: parseFloat(e.target.value) || 0})} fullWidth />
-                        <TextField label="Year Built" type="number" size="small" value={formData.year_built || ''} onChange={e => setFormData({...formData, year_built: parseInt(e.target.value) || 0})} fullWidth />
+                        <TextField label="Beds" type="number" size="small" value={formData.bedrooms || ''} onChange={f('bedrooms')} fullWidth />
+                        <TextField label="Baths" type="number" size="small" value={formData.bathrooms || ''} onChange={f('bathrooms')} fullWidth />
+                        <TextField label="Year Built" type="number" size="small" value={formData.year_built || ''} onChange={f('year_built')} fullWidth />
                     </div>
-                    
                     <div className="flex gap-3">
-                        <TextField label="SqFt" type="number" size="small" value={formData.sqft || ''} onChange={e => setFormData({...formData, sqft: parseInt(e.target.value) || 0})} fullWidth />
-                        <TextField label="Lot Size (Acres/Sqft)" type="number" size="small" value={formData.lot_size || ''} onChange={e => setFormData({...formData, lot_size: parseFloat(e.target.value) || 0})} fullWidth />
+                        <TextField label="SqFt" type="number" size="small" value={formData.sqft || ''} onChange={f('sqft')} fullWidth />
+                        <TextField label="Lot Size" type="number" size="small" value={formData.lot_size || ''} onChange={f('lot_size')} fullWidth />
                     </div>
-                    
                     <div className="flex gap-3">
-                        <TextField label="Assessed Value ($)" type="number" size="small" value={formData.assessed_value || ''} onChange={e => setFormData({...formData, assessed_value: parseFloat(e.target.value) || 0})} fullWidth />
-                        <TextField label="Amount Due ($)" type="number" size="small" value={formData.amount_due || ''} onChange={e => setFormData({...formData, amount_due: parseFloat(e.target.value) || 0})} fullWidth />
+                        <TextField label="Assessed Value ($)" type="number" size="small" value={formData.assessed_value || ''} onChange={f('assessed_value')} fullWidth />
+                        <TextField label="Amount Due ($)" type="number" size="small" value={formData.amount_due || ''} onChange={f('amount_due')} fullWidth />
                     </div>
-                    
                     <div className="flex gap-3">
-                        <TextField label="Owner Name" size="small" value={formData.owner_name || ''} onChange={e => setFormData({...formData, owner_name: e.target.value})} fullWidth />
-                        <TextField label="Zoning" size="small" value={formData.zoning || ''} onChange={e => setFormData({...formData, zoning: e.target.value})} fullWidth />
+                        <TextField label="Owner Name" size="small" value={formData.owner_name || ''} onChange={f('owner_name')} fullWidth />
+                        <TextField label="Zoning" size="small" value={formData.zoning || ''} onChange={f('zoning')} fullWidth />
                     </div>
-                    
                     <div className="flex gap-3">
-                        <TextField label="# Units" type="number" size="small" value={formData.num_units || ''} onChange={e => setFormData({...formData, num_units: parseInt(e.target.value) || 0})} fullWidth />
-                        <TextField label="Tax Amount ($)" type="number" size="small" value={formData.tax_amount || ''} onChange={e => setFormData({...formData, tax_amount: parseFloat(e.target.value) || 0})} fullWidth />
-                        <TextField label="Tax Year" type="number" size="small" value={formData.tax_year || ''} onChange={e => setFormData({...formData, tax_year: parseInt(e.target.value) || 0})} fullWidth />
+                        <TextField label="# Units" type="number" size="small" value={formData.num_units || ''} onChange={f('num_units')} fullWidth />
+                        <TextField label="Tax Amount ($)" type="number" size="small" value={formData.tax_amount || ''} onChange={f('tax_amount')} fullWidth />
+                        <TextField label="Tax Year" type="number" size="small" value={formData.tax_year || ''} onChange={f('tax_year')} fullWidth />
                     </div>
-                    
-                    <TextField label="Legal Description" size="small" multiline rows={2} value={formData.legal_description || ''} onChange={e => setFormData({...formData, legal_description: e.target.value})} fullWidth />
-                    
-                    <div className="mt-2">
-                        <TextField
-                            select
-                            SelectProps={{ native: true }}
-                            label="Target Folder"
-                            size="small"
-                            fullWidth
-                            value={formData.target_list_id || ''}
-                            onChange={e => setFormData({...formData, target_list_id: e.target.value ? parseInt(e.target.value) : undefined})}
-                        >
-                            <option value="">-- Default (Custom Folder) --</option>
-                            {lists.map(list => (
-                                <option key={list.id} value={list.id}>{list.name}</option>
-                            ))}
-                        </TextField>
-                    </div>
-
-                    <div className="mt-2">
-                        <TextField
-                            select
-                            SelectProps={{ native: true }}
-                            label="Visibility"
-                            size="small"
-                            fullWidth
+                    <TextField label="Legal Description" size="small" multiline rows={2} value={formData.legal_description || ''} onChange={f('legal_description')} fullWidth />
+                    {!editingId && (
+                        <div className="mt-1">
+                            <TextField select SelectProps={{ native: true }} label="Target Folder" size="small" fullWidth
+                                value={formData.target_list_id || ''}
+                                onChange={e => setFormData({ ...formData, target_list_id: e.target.value ? parseInt(e.target.value) : undefined })}
+                            >
+                                <option value="">-- Default (Custom Folder) --</option>
+                                {lists.map(list => (
+                                    <option key={list.id} value={list.id}>{list.name}</option>
+                                ))}
+                            </TextField>
+                        </div>
+                    )}
+                    <div className="mt-1">
+                        <TextField select SelectProps={{ native: true }} label="Visibility" size="small" fullWidth
                             value={formData.visibility || 'private'}
-                            onChange={e => setFormData({...formData, visibility: e.target.value})}
+                            onChange={e => setFormData({ ...formData, visibility: e.target.value })}
                         >
                             <option value="private">Private (Only my company)</option>
                             <option value="public">Public (Share with network)</option>
                         </TextField>
                     </div>
-                    
                     <div className="flex justify-end gap-2 mt-4">
-                        <Button onClick={() => setModalOpen(false)} color="inherit">Cancel</Button>
-                        <Button onClick={handleSave} variant="contained" color="primary">Save Property</Button>
+                        <Button onClick={() => { setModalOpen(false); setEditingId(null); }} color="inherit">Cancel</Button>
+                        <Button onClick={handleSave} variant="contained" color="primary" disabled={saving}>
+                            {saving ? 'Saving...' : (editingId ? 'Save Changes' : 'Create Property')}
+                        </Button>
                     </div>
                 </div>
             </Dialog>

@@ -1,145 +1,203 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DashboardService } from '../services/dashboard.service';
-import { Typography, Grid, Paper, Box, CircularProgress, Divider, Button, Card, CardContent, CardActions } from '@mui/material';
-import SystemAnnouncementForm from '../components/admin/SystemAnnouncementForm';
+import { API_URL, getHeaders } from '../services/httpClient';
+import { AuthService } from '../services/auth.service';
+
+interface AdminStats {
+  total_properties: number;
+  available_properties: number;
+  total_auctions: number;
+  active_auctions: number;
+  deed_count: number;
+  foreclosure_count: number;
+  lien_count: number;
+  trial_users: number;
+  pro_users: number;
+  enterprise_users: number;
+  total_active_users: number;
+}
+
+const StatCard: React.FC<{
+  label: string;
+  value: number | string;
+  icon: string;
+  color: string;
+  bg: string;
+  sub?: string;
+}> = ({ label, value, icon, color, bg, sub }) => (
+  <div className={`relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col gap-2 group hover:shadow-md transition-all`}>
+    <div className={`absolute -right-4 -top-4 size-20 rounded-full opacity-20 group-hover:opacity-30 transition-opacity ${bg}`} />
+    <div className={`flex items-center gap-2 ${color}`}>
+      <span className="material-symbols-outlined text-[22px]">{icon}</span>
+      <span className="text-xs font-black uppercase tracking-widest">{label}</span>
+    </div>
+    <div className="text-4xl font-extrabold text-slate-900 dark:text-white tabular-nums">
+      {typeof value === 'number' ? value.toLocaleString() : value}
+    </div>
+    {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+  </div>
+);
+
+const QuickAction: React.FC<{ icon: string; label: string; desc: string; path: string; color: string }> = ({ icon, label, desc, path, color }) => {
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => navigate(path)}
+      className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all text-left group w-full"
+    >
+      <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
+        <span className="material-symbols-outlined text-[20px]">{icon}</span>
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{label}</p>
+        <p className="text-xs text-slate-400 truncate">{desc}</p>
+      </div>
+      <span className="material-symbols-outlined text-slate-300 group-hover:text-blue-500 transition-colors">chevron_right</span>
+    </button>
+  );
+};
 
 export const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const user = AuthService.getCurrentUser();
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
+  const [stats, setStats] = useState<AdminStats | null>(null);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const loadData = async () => {
+    const load = async () => {
       try {
-        setLoading(true);
-        const dashboardData = await DashboardService.getInitData({});
-        setData(dashboardData);
-      } catch (e) {
-        console.error("Failed to load dashboard data", e);
+        const res = await fetch(`${API_URL}/admin/stats`, { headers: getHeaders() });
+        if (!res.ok) throw new Error('Failed to load stats');
+        const data = await res.json();
+        setStats(data);
+      } catch (e: any) {
+        setError(e.message);
       } finally {
         setLoading(false);
       }
     };
-    loadData();
+    load();
+    const interval = setInterval(load, 60000); // refresh every 60s
+    return () => clearInterval(interval);
   }, []);
 
-  const totalValue = data?.quick_stats?.total_value || 0;
-  const totalValueTrend = data?.quick_stats?.total_value_trend || '0%';
-  const activeAuctions = data?.quick_stats?.active_count || 0;
-  const activeAuctionsTrend = data?.quick_stats?.active_count_trend || '0';
-  const pendingCount = data?.quick_stats?.pending_count || 0;
-  const pendingCountTrend = data?.quick_stats?.pending_count_trend || '0';
-
-  const QuickLinkAction = ({ icon, label, path, colorClass }: any) => (
-    <Button
-      variant="outlined"
-      startIcon={<span className="material-symbols-outlined">{icon}</span>}
-      onClick={() => navigate(path)}
-      className={`justify-start px-4 py-3 border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-left normal-case w-full rounded-xl shadow-sm hover:shadow-md transition-all ${colorClass}`}
-    >
-      <Box className="flex flex-col">
-        <span className="font-semibold text-slate-800 dark:text-slate-100">{label}</span>
-      </Box>
-    </Button>
-  );
+  const firstName = (() => {
+    // @ts-ignore
+    const name = user?.full_name?.trim().split(' ')[0] || user?.email?.split('@')[0] || 'Admin';
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  })();
 
   return (
-    <div className="max-w-7xl mx-auto flex flex-col gap-8 py-10 px-4">
-      {/* Page Heading */}
-      <div className="flex flex-col gap-2 mb-2">
-        <Typography variant="h4" className="text-slate-900 dark:text-white font-black leading-tight tracking-[-0.033em]">
-          Admin Overview
-        </Typography>
-        <Typography variant="body1" className="text-slate-500 dark:text-slate-400 font-medium max-w-2xl">
-          Complete operational visibility. Monitor system performance, manage daily operations, and broadcast communications to your clients.
-        </Typography>
+    <div className="max-w-7xl mx-auto flex flex-col gap-8 py-8 px-4 sm:px-6">
+
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
+            Welcome, <span className="text-blue-600">{firstName}</span>
+          </h1>
+          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
+            Platform overview — live data updated every minute.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+          <span className="material-symbols-outlined text-[16px]">schedule</span>
+          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+        </div>
       </div>
 
       {loading ? (
-        <Box display="flex" justifyContent="center" p={8}>
-          <CircularProgress />
-        </Box>
-      ) : (
-        <Grid container spacing={4}>
-          {/* Top Row: KPI Cards */}
-          <Grid item xs={12}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} sm={4}>
-                <Paper className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 h-full flex flex-col justify-center relative overflow-hidden group">
-                  <div className="absolute -right-6 -top-6 size-24 bg-emerald-100 dark:bg-emerald-900/20 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
-                  <Typography variant="overline" className="text-slate-500 tracking-wider font-semibold z-10">Total System Value</Typography>
-                  <Box display="flex" alignItems="baseline" gap={2} className="z-10 mt-2">
-                    <Typography variant="h3" className="font-bold text-slate-900 dark:text-white">${totalValue.toLocaleString()}</Typography>
-                    <Typography variant="body2" className={`font-semibold ${totalValueTrend.startsWith('+') ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {totalValueTrend}
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Grid>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 animate-pulse">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="h-32 bg-slate-100 dark:bg-slate-800 rounded-2xl" />
+          ))}
+        </div>
+      ) : error ? (
+        <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
+          <span className="material-symbols-outlined text-[20px]">error</span>
+          {error}
+        </div>
+      ) : stats && (
+        <>
+          {/* Properties Section */}
+          <div>
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px] text-blue-500">home_work</span>
+              Properties
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard label="Total Properties" value={stats.total_properties} icon="real_estate_agent" color="text-blue-600 dark:text-blue-400" bg="bg-blue-500"
+                sub="All properties in database" />
+              <StatCard label="Available" value={stats.available_properties} icon="check_circle" color="text-emerald-600 dark:text-emerald-400" bg="bg-emerald-500"
+                sub="Active listings" />
+              <StatCard
+                label="Unavailable"
+                value={stats.total_properties - stats.available_properties}
+                icon="lock" color="text-slate-500 dark:text-slate-400" bg="bg-slate-400"
+                sub="Past auction / inactive"
+              />
+              <StatCard
+                label="Availability Rate"
+                value={stats.total_properties > 0 ? `${Math.round((stats.available_properties / stats.total_properties) * 100)}%` : '—'}
+                icon="analytics" color="text-purple-600 dark:text-purple-400" bg="bg-purple-500"
+                sub="Available vs total"
+              />
+            </div>
+          </div>
 
-              <Grid item xs={12} sm={4}>
-                <Paper className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 h-full flex flex-col justify-center relative overflow-hidden group">
-                  <div className="absolute -right-6 -top-6 size-24 bg-blue-100 dark:bg-blue-900/20 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
-                  <Typography variant="overline" className="text-slate-500 tracking-wider font-semibold z-10">Active Auctions</Typography>
-                  <Box display="flex" alignItems="baseline" gap={2} className="z-10 mt-2">
-                    <Typography variant="h3" className="font-bold text-slate-900 dark:text-white">{activeAuctions}</Typography>
-                    <Typography variant="body2" className={`font-semibold ${activeAuctionsTrend.startsWith('+') ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {activeAuctionsTrend} this week
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Grid>
+          {/* Auctions Section */}
+          <div>
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px] text-amber-500">gavel</span>
+              Auctions
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <StatCard label="Total Auctions" value={stats.total_auctions} icon="gavel" color="text-amber-600 dark:text-amber-400" bg="bg-amber-500"
+                sub="All-time in system" />
+              <StatCard label="Active Now" value={stats.active_auctions} icon="bolt" color="text-orange-600 dark:text-orange-400" bg="bg-orange-500"
+                sub="Currently live" />
+              <StatCard label="Tax Deed" value={stats.deed_count} icon="description" color="text-blue-600 dark:text-blue-400" bg="bg-blue-500"
+                sub="Deed auction events" />
+              <StatCard label="Foreclosure" value={stats.foreclosure_count} icon="home" color="text-red-600 dark:text-red-400" bg="bg-red-500"
+                sub="Foreclosure events" />
+              <StatCard label="Tax Lien" value={stats.lien_count} icon="receipt_long" color="text-purple-600 dark:text-purple-400" bg="bg-purple-500"
+                sub="Lien auction events" />
+            </div>
+          </div>
 
-              <Grid item xs={12} sm={4}>
-                <Paper className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 h-full flex flex-col justify-center relative overflow-hidden group">
-                  <div className="absolute -right-6 -top-6 size-24 bg-amber-100 dark:bg-amber-900/20 rounded-full opacity-50 group-hover:scale-110 transition-transform"></div>
-                  <Typography variant="overline" className="text-slate-500 tracking-wider font-semibold z-10">Pending Parcels</Typography>
-                  <Box display="flex" alignItems="baseline" gap={2} className="z-10 mt-2">
-                    <Typography variant="h3" className="font-bold text-slate-900 dark:text-white">{pendingCount}</Typography>
-                    <Typography variant="body2" className={`font-semibold text-slate-500`}>
-                      {pendingCountTrend} since yesterday
-                    </Typography>
-                  </Box>
-                </Paper>
-              </Grid>
-            </Grid>
-          </Grid>
+          {/* Users Section */}
+          <div>
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px] text-emerald-500">group</span>
+              Active Users (Paying)
+            </h2>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <StatCard label="Total Active" value={stats.total_active_users} icon="people" color="text-slate-600 dark:text-slate-300" bg="bg-slate-400"
+                sub="All roles, active accounts" />
+              <StatCard label="Trial" value={stats.trial_users} icon="hourglass_top" color="text-amber-600 dark:text-amber-400" bg="bg-amber-500"
+                sub="Free trial accounts" />
+              <StatCard label="Pro" value={stats.pro_users} icon="workspace_premium" color="text-blue-600 dark:text-blue-400" bg="bg-blue-500"
+                sub="$130/mo subscribers" />
+              <StatCard label="Enterprise" value={stats.enterprise_users} icon="diamond" color="text-purple-600 dark:text-purple-400" bg="bg-purple-500"
+                sub="$350/mo subscribers" />
+            </div>
+          </div>
 
-          {/* Bottom Row */}
-          <Grid item xs={12} md={4}>
-            <Paper className="p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 h-full flex flex-col gap-4">
-              <Typography variant="h6" className="font-bold text-slate-800 dark:text-slate-200 mb-2">
-                Quick Actions
-              </Typography>
-              <Box display="flex" flexDirection="column" gap={3}>
-                <QuickLinkAction icon="add_business" label="Add New Property" path="/properties/new" colorClass="" />
-                <QuickLinkAction icon="gavel" label="Manage Auctions" path="/admin/auctions" colorClass="" />
-                <QuickLinkAction icon="group" label="User Management" path="/settings" colorClass="" />
-                <QuickLinkAction icon="settings" label="System Settings" path="/settings" colorClass="" />
-              </Box>
-            </Paper>
-          </Grid>
-
-          <Grid item xs={12} md={8}>
-            <Paper className="p-0 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 h-full flex flex-col overflow-hidden">
-              <Box className="bg-slate-50 dark:bg-slate-800/50 px-6 py-5 border-b border-slate-200 dark:border-slate-700">
-                <Box display="flex" alignItems="center" gap={1.5}>
-                  <span className="material-symbols-outlined text-primary">campaign</span>
-                  <Typography variant="h6" className="font-bold text-slate-800 dark:text-slate-200">
-                    System Broadcasts
-                  </Typography>
-                </Box>
-                <Typography variant="body2" className="text-slate-500 mt-1">
-                  Create high-priority announcements that will immediately appear on all active Client Portal dashboards.
-                </Typography>
-              </Box>
-              <Box p={6} className="flex-1 bg-white dark:bg-slate-900">
-                <SystemAnnouncementForm />
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
+          {/* Quick Actions */}
+          <div>
+            <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
+              <span className="material-symbols-outlined text-[16px] text-slate-400">bolt</span>
+              Quick Actions
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              <QuickAction icon="gavel" label="Auctions Dashboard" desc="Monitor live auction events" path="/admin/auctions" color="bg-amber-100 dark:bg-amber-900/30 text-amber-600" />
+              <QuickAction icon="real_estate_agent" label="Property Manager" desc="Browse and manage properties" path="/admin/properties" color="bg-blue-100 dark:bg-blue-900/30 text-blue-600" />
+              <QuickAction icon="group" label="User Management" desc="Manage platform accounts" path="/admin/users" color="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600" />
+              <QuickAction icon="campaign" label="System Broadcasts" desc="Send announcements to clients" path="/admin/broadcasts" color="bg-purple-100 dark:bg-purple-900/30 text-purple-600" />
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

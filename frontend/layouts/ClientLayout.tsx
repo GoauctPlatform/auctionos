@@ -64,7 +64,6 @@ const ClientLayout: React.FC = () => {
     { icon: 'campaign', label: 'Live Auctions', path: '/client/auctions' },
     { icon: 'location_on', label: 'Property Search', path: '/client/properties' },
     { icon: 'list_alt', label: 'My Lists', path: '/client/lists' },
-    { icon: 'real_estate_agent', label: 'My Properties', path: '/client/my-properties' },
   ];
 
   if (role === 'manager' || role === 'client') {
@@ -82,17 +81,17 @@ const ClientLayout: React.FC = () => {
   }
 
   let accountDropdown: DropdownItem[] = [
+    { label: 'Settings & Profile', path: '/client/settings' },
     { label: 'Security & Password', path: '/client/change-password' },
-    { label: 'Contact Support', path: '/client/contact-support' },
     { label: 'About GoAuct', path: '/client/about' },
   ];
 
   if (role === 'manager' || role === 'client') {
-    accountDropdown.unshift({ label: 'Team & Logs', path: '/client/team' });
+    accountDropdown.splice(1, 0, { label: 'Team & Logs', path: '/client/team' });
   }
 
   if (role === 'client') {
-    accountDropdown.unshift({ label: 'Billing & Plans', path: '/client/billing' });
+    accountDropdown.splice(2, 0, { label: 'Billing & Plans', path: '/client/billing' });
   }
 
   navItems.push({

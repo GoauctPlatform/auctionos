@@ -81,30 +81,10 @@ const ClientSupportPage: React.FC = () => {
 
   return (
     <div className="p-6 max-w-2xl mx-auto w-full">
-      <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-6">Account Support & Security</h1>
-
-      <div className="flex border-b border-slate-200 dark:border-slate-700 gap-1 mb-6">
-        <button 
-          onClick={() => setActiveTab('support')} 
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 transition-colors ${activeTab === 'support' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-        >
-          <span className="material-symbols-outlined text-[18px]">support_agent</span> Contact Support
-        </button>
-        <button 
-          onClick={() => setActiveTab('security')} 
-          className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 transition-colors ${activeTab === 'security' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-        >
-          <span className="material-symbols-outlined text-[18px]">lock</span> Security
-        </button>
-        {isClient && (
-            <button 
-              onClick={() => setActiveTab('billing')} 
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 transition-colors ${activeTab === 'billing' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
-            >
-              <span className="material-symbols-outlined text-[18px]">credit_card</span> Billing & Quotas
-            </button>
-        )}
-      </div>
+      <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Contact Support</h1>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+        Send us a message and our team will get back to you within 1–2 business days.
+      </p>
 
       {activeTab === 'support' ? (
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">

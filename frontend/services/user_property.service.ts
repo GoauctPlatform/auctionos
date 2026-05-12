@@ -24,11 +24,12 @@ export interface CustomPropertyPayload {
   zoning?: string;
   num_units?: number;
   target_list_id?: number;
+  visibility?: string;
 }
 
 export const UserPropertyService = {
   getAll: async (skip = 0, limit = 100): Promise<any[]> => {
-    const response = await fetch(`${API_URL}/client-data/custom-properties`, {
+    const response = await fetch(`${API_URL}/user-properties/?skip=${skip}&limit=${limit}`, {
       headers: getHeaders()
     });
     if (!response.ok) throw new Error('Failed to fetch properties');
@@ -36,7 +37,7 @@ export const UserPropertyService = {
   },
 
   create: async (data: CustomPropertyPayload): Promise<any> => {
-    const response = await fetch(`${API_URL}/client-data/custom-properties`, {
+    const response = await fetch(`${API_URL}/user-properties/`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify(data)
@@ -45,12 +46,21 @@ export const UserPropertyService = {
     return response.json();
   },
 
-  // Legacy placeholders
-  update: async (id: string, data: any): Promise<any> => {
-    throw new Error('Not implemented for unified properties yet');
+  update: async (id: string, data: Partial<CustomPropertyPayload>): Promise<any> => {
+    const response = await fetch(`${API_URL}/user-properties/${id}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data)
+    });
+    if (!response.ok) throw new Error('Failed to update property');
+    return response.json();
   },
 
   delete: async (id: string): Promise<void> => {
-    throw new Error('Not implemented for unified properties yet');
+    const response = await fetch(`${API_URL}/user-properties/${id}`, {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
+    if (!response.ok) throw new Error('Failed to delete property');
   }
 };

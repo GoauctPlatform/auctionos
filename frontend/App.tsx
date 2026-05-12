@@ -151,6 +151,7 @@ const App: React.FC = () => {
             <Route path="support" element={<SupportPage standalone={false} />} />
             <Route path="team" element={<ActivityLogsPage />} />
             <Route path="billing" element={<BillingPage />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
 
           {/* Realtor Portal Routes */}
@@ -164,6 +165,7 @@ const App: React.FC = () => {
             <Route path="tasks" element={<AvailableTasks />} />
             <Route path="commissions" element={<Commissions />} />
             <Route path="profile" element={<RealtorProfile />} />
+            <Route path="settings" element={<Settings />} />
           </Route>
 
           {/* Agent Due Diligence Portal Routes */}
