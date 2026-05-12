@@ -5,7 +5,6 @@ import asyncio
 import logging
 
 # 1. Environment Handling (MUST happen before app imports)
-# This allows overriding the DATABASE_URL even if it's already in .env or settings
 if "DATABASE_URL" in os.environ:
     print(f"Using DATABASE_URL from environment.")
 elif len(sys.argv) > 2 and sys.argv[2].startswith("postgresql"):
@@ -36,6 +35,17 @@ async def run_import(file_path: str, import_type: str = "properties"):
     print(f"Job ID: {job_id}")
     print(f"Target DB: {os.environ.get('DATABASE_URL', 'Default from config')}")
     
+    # 2. Simple connectivity check
+    try:
+        from app.db.session import engine
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        print("Connected to database successfully.")
+    except Exception as e:
+        print(f"Error connecting to database: {e}")
+        sys.exit(1)
+    
     try:
         if import_type == "auctions":
             with open(file_path, "rb") as f:
@@ -51,7 +61,6 @@ async def run_import(file_path: str, import_type: str = "properties"):
             print("Processing as PROPERTIES...")
             await import_service.process_properties_csv_file(file_path, job_id)
         print("\nRemote import process completed successfully.")
-        print("Check the Production UI to see the results.")
     except Exception as e:
         print(f"Failed to run remote import: {e}")
         sys.exit(1)

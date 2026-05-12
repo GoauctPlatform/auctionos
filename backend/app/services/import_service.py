@@ -26,7 +26,14 @@ def get_redis_url():
         return f"redis://:{pwd}@{host}:{port}/0"
     return os.getenv("REDIS_URL", "redis://redis:6379/0")
 
-redis = Redis.from_url(get_redis_url())
+
+try:
+    redis = Redis.from_url(get_redis_url(), socket_connect_timeout=2)
+    # Test connection
+    redis.ping()
+except:
+    logger.warning("Redis not available. Progress tracking will be limited to console output.")
+    redis = None
 
 class ImportService:
     @staticmethod
@@ -49,7 +56,7 @@ class ImportService:
     async def process_properties_csv_file(file_path: str, job_id: str):
         try:
             # Using chunksize to keep memory footprint low
-            chunk_size = 100
+            chunk_size = 500
             total_rows = 0
             success_count = 0
             errors = []
@@ -267,7 +274,7 @@ class ImportService:
                                 conn.execute(query_h, history_batch)
                         
                         success_count += len(details_batch)
-                        logger.info(f"Job {job_id}: Processed {total_rows} rows...")
+                        print(f"Job {job_id}: Progress: {total_rows} rows read... ({success_count} successfully saved to DB)")
                         break # Break loop on successful insert
 
                     except OperationalError as oe:
@@ -285,17 +292,21 @@ class ImportService:
                         break # Not a connection error, break retry loop
 
             # Final Status Update
-            if errors:
-                status_msg = f"Completed with errors. Success: {success_count}/{total_rows}. Errors: {len(errors[:100])}..."
-                redis.set(f"import_errors:{job_id}", str(errors[:500]), ex=3600)
-            else:
-                status_msg = f"Success: {success_count} properties processed"
-                
-            redis.set(f"import_status:{job_id}", status_msg, ex=3600)
+            if redis:
+                if errors:
+                    status_msg = f"Completed with errors. Success: {success_count}/{total_rows}. Errors: {len(errors[:100])}..."
+                    redis.set(f"import_errors:{job_id}", str(errors[:500]), ex=3600)
+                else:
+                    status_msg = f"Success: {success_count} properties processed"
+                    
+                redis.set(f"import_status:{job_id}", status_msg, ex=3600)
             
             # TRIGGER EVENT: Link imported properties to their auctions automatically
-            from app.tasks import resolve_property_auction_links_task
-            resolve_property_auction_links_task.delay(job_id)
+            try:
+                from app.tasks import resolve_property_auction_links_task
+                resolve_property_auction_links_task.delay(job_id)
+            except Exception as te:
+                logger.warning(f"Could not trigger auction resolution task: {te}")
             
             # Cleanup temp file
             if os.path.exists(file_path) and "temp_imports" in file_path:
