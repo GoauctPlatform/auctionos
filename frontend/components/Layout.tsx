@@ -104,13 +104,16 @@ export const Layout: React.FC = () => {
               {/* User Menu */}
               <div className="hidden md:flex items-center gap-3">
                 <div className="flex flex-col items-end mr-2">
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{user?.email || 'User'}</span>
+                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
+                    {user?.full_name || user?.email?.split('@')[0] || 'Admin'}
+                  </span>
                   <span className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role || 'Agent'}</span>
                 </div>
                 <div
-                  className="size-9 rounded-full bg-cover bg-center border border-slate-200 cursor-pointer"
-                  style={{ backgroundImage: `url('${user?.avatar || '/placeholder.png'}')` }}
-                ></div>
+                  className="size-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-bold shadow-sm"
+                >
+                  {(user?.full_name || user?.email || 'A').charAt(0).toUpperCase()}
+                </div>
                 <button
                   onClick={handleLogout}
                   className="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"

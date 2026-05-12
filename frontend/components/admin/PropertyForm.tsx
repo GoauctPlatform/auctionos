@@ -242,7 +242,7 @@ const PropertyForm: React.FC<{ onSuccess?: () => void, initialData?: any }> = ({
                 </div>
 
                 <div>
-                    <label className="label">Amount Due (Opening Bid)</label>
+                    <label className="label">Opening Bid</label>
                     <input name="amount_due" type="number" step="0.01" className="input" value={formData.amount_due} onChange={handleChange} />
                 </div>
                 <div>

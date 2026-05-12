@@ -12,12 +12,24 @@ export const Settings: React.FC = () => {
     const { user } = useAuth();
     const [activeTab, setActiveTab] = useState<Tab>('profile');
     const [theme, setTheme] = useState(() => localStorage.getItem('goauct_theme') || 'system');
-    const [displayName, setDisplayName] = useState(user?.full_name || '');
+    // displayName: prefer backend value, fallback to locally persisted value
+    const [displayName, setDisplayName] = useState(
+        user?.full_name || localStorage.getItem('goauct_display_name') || ''
+    );
     const [savingProfile, setSavingProfile] = useState(false);
     const [profileSaved, setProfileSaved] = useState(false);
-    const [notifications, setNotifications] = useState(true);
+    const [notifications, setNotifications] = useState(
+        () => localStorage.getItem('goauct_notifications') !== 'false'
+    );
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Sync state when user context loads (fixes Admin render issue)
+    React.useEffect(() => {
+        if (user) {
+            setDisplayName(user.full_name || localStorage.getItem('goauct_display_name') || '');
+        }
+    }, [user]);
 
     const handleThemeChange = (t: string) => {
         setTheme(t);
@@ -38,7 +50,21 @@ export const Settings: React.FC = () => {
                 headers: getHeaders(),
                 body: JSON.stringify({ full_name: displayName })
             });
-            if (res.ok) { setProfileSaved(true); setTimeout(() => setProfileSaved(false), 3000); }
+            if (res.ok) {
+                // Persist locally so it survives logout/login before next JWT refresh
+                localStorage.setItem('goauct_display_name', displayName);
+                // Update the stored user object so the nav reflects the new name immediately
+                const stored = localStorage.getItem('user');
+                if (stored) {
+                    try {
+                        const parsed = JSON.parse(stored);
+                        parsed.full_name = displayName;
+                        localStorage.setItem('user', JSON.stringify(parsed));
+                    } catch {}
+                }
+                setProfileSaved(true);
+                setTimeout(() => setProfileSaved(false), 3000);
+            }
         } catch { } finally { setSavingProfile(false); }
     };
 
@@ -217,7 +243,7 @@ export const Settings: React.FC = () => {
                                 {['light', 'dark', 'system'].map((t) => (
                                     <button
                                         key={t}
-                                        onClick={() => setTheme(t)}
+                                        onClick={() => handleThemeChange(t)}
                                         className={`px-4 py-2 rounded-lg border capitalize ${theme === t
                                             ? 'border-primary bg-primary/5 text-primary'
                                             : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
@@ -235,7 +261,11 @@ export const Settings: React.FC = () => {
                                     <p className="text-sm text-slate-500">Receive email updates about new auctions.</p>
                                 </div>
                                 <button
-                                    onClick={() => setNotifications(!notifications)}
+                                    onClick={() => {
+                                        const next = !notifications;
+                                        setNotifications(next);
+                                        localStorage.setItem('goauct_notifications', String(next));
+                                    }}
                                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${notifications ? 'bg-primary' : 'bg-slate-200 dark:bg-slate-700'
                                         }`}
                                 >

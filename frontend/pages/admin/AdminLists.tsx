@@ -740,7 +740,7 @@ const AdminLists: React.FC = () => {
                                                                 <div className="text-xs flex flex-col gap-1">
                                                                     <strong className="block mb-1 text-blue-600">{prop.parcel_id}</strong>
                                                                     <span className="truncate max-w-[150px]">{prop.address || 'Address Unavailable'}</span>
-                                                                    <strong>Due:</strong> ${prop.amount_due?.toLocaleString()}
+                                                                    <strong>Opening Bid:</strong> ${prop.amount_due?.toLocaleString()}
                                                                     <Button
                                                                         size="small"
                                                                         variant="contained"
@@ -823,7 +823,7 @@ const AdminLists: React.FC = () => {
 
                                             <div className="mt-3 flex items-center gap-4">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Amount Due</span>
+                                                    <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Opening Bid</span>
                                                     <span className="text-xs font-bold text-slate-700 dark:text-white">${prop.amount_due?.toLocaleString() || '0'}</span>
                                                 </div>
                                                 <div className="flex flex-col">

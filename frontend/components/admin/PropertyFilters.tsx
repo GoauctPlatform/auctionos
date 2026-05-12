@@ -271,8 +271,8 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                                 />
 
                                 <div className="col-span-2 flex gap-2">
-                                    <TextField label="Min Amount Due ($)" type="number" size="small" fullWidth value={filters.min_amount_due || ''} onChange={(e) => handleChange('min_amount_due', e.target.value)} />
-                                    <TextField label="Max Amount Due ($)" type="number" size="small" fullWidth value={filters.max_amount_due || ''} onChange={(e) => handleChange('max_amount_due', e.target.value)} />
+                                    <TextField label="Min Opening Bid ($)" type="number" size="small" fullWidth value={filters.min_amount_due || ''} onChange={(e) => handleChange('min_amount_due', e.target.value)} />
+                                    <TextField label="Max Opening Bid ($)" type="number" size="small" fullWidth value={filters.max_amount_due || ''} onChange={(e) => handleChange('max_amount_due', e.target.value)} />
                                 </div>
 
                                 <div className="col-span-2 flex gap-2">

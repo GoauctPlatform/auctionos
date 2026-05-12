@@ -821,9 +821,6 @@ const ClientDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* System Announcements */}
-      <SystemAnnouncements />
-
       {/* Quick Actions */}
       <QuickActions />
 

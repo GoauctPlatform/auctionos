@@ -26,7 +26,7 @@ const EDITABLE_FIELDS: { key: string; label: string; type: 'text' | 'number' | '
     { key: 'county', label: 'County', type: 'text' },
     { key: 'state', label: 'State', type: 'text' },
     { key: 'occupancy', label: 'Occupancy', type: 'select', options: ['Unknown', 'Vacant', 'Owner Occupied', 'Tenant Occupied', 'Abandoned'] },
-    { key: 'amount_due', label: 'Amount Due ($)', type: 'number' },
+    { key: 'amount_due', label: 'Opening Bid ($)', type: 'number' },
     { key: 'assessed_value', label: 'Assessed Value ($)', type: 'number' },
     { key: 'estimated_value', label: 'My Estimated ARV ($)', type: 'number' },
     { key: 'rental_value', label: 'My Estimated Rent ($)', type: 'number' },

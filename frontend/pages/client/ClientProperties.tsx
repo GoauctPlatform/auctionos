@@ -235,7 +235,7 @@ const ClientProperties: React.FC = () => {
 
                     <Typography variant="caption" className="font-bold text-slate-500 uppercase tracking-wider block mt-2">Financials & Legal</Typography>
                     <div className="grid grid-cols-2 gap-4">
-                        <TextField label="Amount Due ($)" fullWidth size="small" type="number" value={createForm.amount_due} onChange={e => setCreateForm(p => ({...p, amount_due: e.target.value}))} />
+                        <TextField label="Opening Bid ($)" fullWidth size="small" type="number" value={createForm.amount_due} onChange={e => setCreateForm(p => ({...p, amount_due: e.target.value}))} />
                         <TextField label="Assessed Value ($)" fullWidth size="small" type="number" value={createForm.assessed_value} onChange={e => setCreateForm(p => ({...p, assessed_value: e.target.value}))} />
                     </div>
                     <div className="grid grid-cols-2 gap-4">

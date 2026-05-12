@@ -108,7 +108,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                     <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
                         <BadgeDollarSign size={14} className="text-slate-400" />
                         <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Amount Due</span>
+                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Opening Bid</span>
                             <span className="text-xs font-medium text-red-600 dark:text-red-400">
                                 {property.amount_due ? `$${property.amount_due.toLocaleString()}` : '-'}
                             </span>

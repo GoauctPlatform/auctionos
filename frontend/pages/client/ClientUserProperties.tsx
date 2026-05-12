@@ -207,7 +207,7 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                                     <span className="text-sm font-bold text-emerald-600">${p.assessed_value?.toLocaleString() || '0'}</span>
                                 </div>
                                 <div className="flex flex-col items-end">
-                                    <span className="text-[10px] uppercase text-slate-400 font-bold">Amount Due</span>
+                                    <span className="text-[10px] uppercase text-slate-400 font-bold">Opening Bid</span>
                                     <span className="text-sm font-bold text-red-500">${p.amount_due?.toLocaleString() || '0'}</span>
                                 </div>
                             </div>
@@ -248,7 +248,7 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                     </div>
                     <div className="flex gap-3">
                         <TextField label="Assessed Value ($)" type="number" size="small" value={formData.assessed_value || ''} onChange={f('assessed_value')} fullWidth />
-                        <TextField label="Amount Due ($)" type="number" size="small" value={formData.amount_due || ''} onChange={f('amount_due')} fullWidth />
+                        <TextField label="Opening Bid ($)" type="number" size="small" value={formData.amount_due || ''} onChange={f('amount_due')} fullWidth />
                     </div>
                     <div className="flex gap-3">
                         <TextField label="Owner Name" size="small" value={formData.owner_name || ''} onChange={f('owner_name')} fullWidth />

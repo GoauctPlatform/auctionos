@@ -118,10 +118,13 @@ def create_user(
 def update_user_me(
     *,
     db: Session = Depends(deps.get_db),
+    full_name: str = Body(None),
     password: str = Body(None),
     email: EmailStr = Body(None),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
+    if full_name is not None:
+        current_user.full_name = full_name
     if password is not None:
         current_user.hashed_password = security.get_password_hash(password)
     if email is not None:

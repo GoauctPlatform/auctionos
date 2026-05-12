@@ -158,7 +158,7 @@ const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false }
         },
         { field: 'tax_year', headerName: 'Sale Year', width: 100, type: 'number', valueFormatter: (value: any) => value ?? '-' },
         {
-            field: 'amount_due', headerName: 'Amount Due', width: 110, type: 'number',
+            field: 'amount_due', headerName: 'Opening Bid', width: 110, type: 'number',
             valueFormatter: (value: any) => {
                 return (value !== null && value !== undefined) ? `$${Number(value).toLocaleString()}` : '-';
             }

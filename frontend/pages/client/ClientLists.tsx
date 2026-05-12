@@ -1752,13 +1752,29 @@ const ClientLists: React.FC = () => {
 
                                                 <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-4">
                                                     <div className="flex flex-col">
-                                                        <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Amount Due</span>
+                                                        <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Opening Bid</span>
                                                         <span className="text-xs font-bold text-slate-700 dark:text-white">${prop.amount_due?.toLocaleString() || '0'}</span>
                                                     </div>
                                                     <div className="flex flex-col">
                                                         <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Acres</span>
                                                         <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{prop.lot_acres || 'N/A'}</span>
                                                     </div>
+                                                    {/* Legal Description Hover Badge */}
+                                                    {prop.legal_description && (
+                                                        <div className="relative group/legal flex flex-col cursor-default">
+                                                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Legal Desc.</span>
+                                                            <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 underline decoration-dotted">View ℹ</span>
+                                                            {/* Tooltip */}
+                                                            <div className="absolute bottom-full left-0 mb-2 z-50 w-72 invisible opacity-0 group-hover/legal:visible group-hover/legal:opacity-100 transition-all duration-200 pointer-events-none">
+                                                                <div className="bg-slate-900 dark:bg-slate-700 text-white text-[11px] leading-relaxed rounded-xl shadow-2xl p-3 border border-slate-700 dark:border-slate-600">
+                                                                    <p className="font-black uppercase tracking-wider text-indigo-300 text-[9px] mb-1">Legal Description</p>
+                                                                    <p className="font-mono break-words">{prop.legal_description}</p>
+                                                                </div>
+                                                                {/* Arrow */}
+                                                                <div className="w-3 h-3 bg-slate-900 dark:bg-slate-700 rotate-45 ml-4 -mt-1.5 border-r border-b border-slate-700" />
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                     {prop.is_auction_upcoming && (
                                                         <div className="flex items-center gap-2 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 rounded-lg border border-orange-100 dark:border-orange-900/30">
                                                             <span className="material-symbols-outlined text-[16px] text-orange-600 animate-bounce">gavel</span>

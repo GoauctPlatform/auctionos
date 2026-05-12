@@ -91,7 +91,7 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
         { field: 'address', headerName: 'Address', width: 200 },
         { field: 'county', headerName: 'County', width: 120 },
         {
-            field: 'amount_due', headerName: 'Amount Due', width: 110, type: 'number',
+            field: 'amount_due', headerName: 'Opening Bid', width: 110, type: 'number',
             valueFormatter: (params: any) => {
                 const val = typeof params === 'object' ? params?.value : params;
                 return (val !== null && val !== undefined) ? `$${Number(val).toLocaleString()}` : '-';

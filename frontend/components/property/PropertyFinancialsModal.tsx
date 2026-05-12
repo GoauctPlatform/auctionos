@@ -24,7 +24,7 @@ export const PropertyFinancialsModal: React.FC<Props> = ({ property, isOpen, onC
             <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                     <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-800">
-                        <p className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">Amount Due</p>
+                        <p className="text-xs font-bold text-red-600 dark:text-red-400 uppercase tracking-wider mb-1">Opening Bid</p>
                         <p className="text-2xl font-bold text-red-700 dark:text-red-300">
                             {formatCurrency(amountDue)}
                         </p>

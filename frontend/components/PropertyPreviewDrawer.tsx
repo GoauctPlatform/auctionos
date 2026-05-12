@@ -132,7 +132,7 @@ export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ op
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg">
-                                        <p className="text-xs text-slate-400 uppercase font-bold">Amount Due</p>
+                                        <p className="text-xs text-slate-400 uppercase font-bold">Opening Bid</p>
                                         <p className="text-lg font-bold text-red-600 dark:text-red-400">${property.amount_due?.toLocaleString() || '0'}</p>
                                     </div>
                                     <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-lg">

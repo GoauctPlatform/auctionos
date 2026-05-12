@@ -55,7 +55,7 @@ export default function AdminImport() {
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800 shadow-sm">
                 <h4 className="font-bold text-blue-800 dark:text-blue-300 mb-2">Instructions</h4>
                 <ul className="list-disc list-inside text-sm text-blue-700 dark:text-blue-400 space-y-1">
-                    <li><strong>Properties CSV:</strong> Must contain 'Parcel ID', 'Address', 'Amount Due', etc.</li>
+                    <li><strong>Properties CSV:</strong> Must contain 'Parcel ID', 'Address', 'Opening Bid', etc.</li>
                     <li><strong>Auctions CSV:</strong> Must contain 'Auction Name', 'Date', etc. (Import this <strong>before</strong> history).</li>
                     <li><strong>History CSV:</strong> Maps 'property_id' to 'auction_eventId'. (Import this <strong>last</strong>).</li>
                     <li>Large files will be processed in the background. You can navigate away safely.</li>
