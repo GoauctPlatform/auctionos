@@ -83,6 +83,9 @@ def create_user(
                 raise HTTPException(status_code=403, detail="Trial accounts can only assign 1 company per user.")
 
         target_role = getattr(user_in, 'role')
+        if target_role not in ["agent", "manager"]:
+            raise HTTPException(status_code=403, detail="Clients can only create Manager or Agent users.")
+            
         target_company = getattr(user_in, 'company_id', current_user.active_company_id)
         # Ensure the client owns the target company
         from sqlalchemy import text
@@ -246,6 +249,10 @@ def delete_user(
     # RBAC logic
     if not current_user.is_superuser:
         if current_user.role == "client":
+            # Clients can only delete their team members (Managers and Agents)
+            if user.role not in ["agent", "manager"]:
+                 raise HTTPException(status_code=403, detail="Not authorized to delete this type of user.")
+
             can_delete = user.created_by_id == current_user.id
             if not can_delete:
                 # Check if the user being deleted is linked to ANY company owned by the client
