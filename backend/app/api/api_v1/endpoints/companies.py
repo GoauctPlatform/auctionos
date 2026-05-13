@@ -66,6 +66,15 @@ def create_company(
     """Creates a new company for the current user."""
     if current_user.role not in ["client", "admin", "superuser"]:
         raise HTTPException(status_code=403, detail="Only clients can create companies.")
+    
+    # Trial Limit: 1 Company
+    if current_user.subscription_tier == "trial":
+        count = db.execute(text("SELECT COUNT(*) FROM companies WHERE user_id = :uid"), {"uid": current_user.id}).scalar()
+        if count >= 1:
+            raise HTTPException(
+                status_code=403, 
+                detail="Trial accounts are limited to 1 company. Upgrade to Pro for unlimited companies."
+            )
     row = db.execute(
         text("""
             INSERT INTO companies (user_id, name, address, contact)

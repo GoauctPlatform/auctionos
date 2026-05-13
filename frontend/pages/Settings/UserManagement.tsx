@@ -196,6 +196,28 @@ export const UserManagement: React.FC = () => {
                     await UserService.setUserCompanies(editingUser.id, selectedCompanyIds);
                 }
             } else {
+                // Subscription Limits Check
+                const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+                const isTrial = currentUser.subscription_tier === 'trial';
+                
+                if (isTrial) {
+                    const existingManagers = users.filter(u => u.role === 'manager').length;
+                    const existingAgents = users.filter(u => u.role === 'agent').length;
+                    
+                    if (role === 'manager' && existingManagers >= 1) {
+                        alert("⚠️ Trial Limit Reached: You can only have 1 Manager in the Trial plan. Upgrade to Pro for more.");
+                        return;
+                    }
+                    if (role === 'agent' && existingAgents >= 1) {
+                        alert("⚠️ Trial Limit Reached: You can only have 1 Field Agent in the Trial plan. Upgrade to Pro for more.");
+                        return;
+                    }
+                    if (selectedCompanyIds.length > 1) {
+                        alert("⚠️ Trial Limit Reached: You can only assign 1 Company in the Trial plan. Upgrade to Pro for more.");
+                        return;
+                    }
+                }
+                
                 await UserService.create({ email, password, role, full_name: fullName, company_ids: selectedCompanyIds });
             }
             setShowModal(false);
@@ -313,8 +335,8 @@ export const UserManagement: React.FC = () => {
                                     >
                                         <span className="material-symbols-outlined text-[14px]">corporate_fare</span>
                                         {(user as any).linked_company_ids?.length
-                                            ? `${(user as any).linked_company_ids.length} empresa(s)`
-                                            : user.active_company_id ? '1 empresa' : 'Nenhuma'}
+                                            ? `${(user as any).linked_company_ids.length} company(s)`
+                                            : user.active_company_id ? '1 company' : 'None'}
                                         <span className="material-symbols-outlined text-[13px]">edit</span>
                                     </button>
                                 </td>
@@ -326,7 +348,7 @@ export const UserManagement: React.FC = () => {
                                             className="px-3 py-1.5 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors text-xs inline-flex items-center gap-1 font-bold"
                                         >
                                             <span className="material-symbols-outlined text-[15px]">edit</span>
-                                            Editar
+                                            Edit
                                         </button>
                                         <button
                                             id={`btn-delete-user-${user.id}`}
@@ -334,7 +356,7 @@ export const UserManagement: React.FC = () => {
                                             className="px-3 py-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors text-xs inline-flex items-center gap-1 font-bold border border-red-200 dark:border-red-800"
                                         >
                                             <span className="material-symbols-outlined text-[15px]">delete</span>
-                                            Excluir
+                                            Delete
                                         </button>
                                     </div>
                                 </td>

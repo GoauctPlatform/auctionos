@@ -107,7 +107,7 @@ export const Settings: React.FC = () => {
     const userRoleLabel = roleLabel[user?.role || ''] || user?.role || 'User';
 
     return (
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-8 pb-24">
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Settings</h2>
 
             {/* Tabs */}

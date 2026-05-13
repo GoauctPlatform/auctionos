@@ -83,7 +83,24 @@ const RootRoute: React.FC = () => {
   return <Navigate to="/dashboard" replace />;
 };
 
-const App: React.FC = () => {
+function App() {
+  // Theme Persistence
+  React.useEffect(() => {
+    const savedTheme = localStorage.getItem('goauct_theme') || 'system';
+    if (savedTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else if (savedTheme === 'light') {
+      document.documentElement.classList.remove('dark');
+    } else {
+      // System preference
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, []);
+
   return (
     <AuthProvider>
       <HashRouter>

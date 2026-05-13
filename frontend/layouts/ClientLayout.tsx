@@ -70,7 +70,7 @@ const ClientLayout: React.FC = () => {
     { icon: 'list_alt', label: 'My Lists', path: '/client/lists' },
   ];
 
-  if (role === 'manager' || role === 'client') {
+  if ((role === 'manager' || role === 'client') && user?.subscription_tier !== 'trial') {
     navItems.push(
       {
         icon: 'hub',
@@ -175,11 +175,11 @@ const ClientLayout: React.FC = () => {
                   <span className="text-sm font-semibold text-slate-800 dark:text-white capitalize">{user?.subscription_tier || 'Trial'}</span>
                   {user?.subscription_tier === 'trial' && (
                     <Link
-                      to="/signup"
+                      to="/client/billing"
                       className="ml-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-primary text-primary text-sm font-bold hover:bg-primary hover:text-white transition-colors"
                     >
                       <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
-                      Upgrade Trial
+                      Upgrade
                     </Link>
                   )}
                 </div>
@@ -337,12 +337,12 @@ const ClientLayout: React.FC = () => {
               {/* Upgrade CTA mobile */}
               {user?.subscription_tier === 'trial' && (
                 <Link
-                  to="/signup"
+                  to="/client/billing"
                   onClick={() => setMobileMenuOpen(false)}
                   className="mt-2 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-primary text-white text-base font-bold"
                 >
                   <span className="material-symbols-outlined text-[18px]">rocket_launch</span>
-                  Upgrade Trial Account
+                  Upgrade Plan
                 </Link>
               )}
               

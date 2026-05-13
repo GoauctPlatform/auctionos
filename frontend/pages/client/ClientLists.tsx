@@ -1365,20 +1365,44 @@ const ClientLists: React.FC = () => {
                             <Typography variant="overline" className="px-3 text-slate-400 font-bold text-[10px] tracking-widest uppercase">Team Collaboration</Typography>
                             <div className="mt-2 space-y-0.5">
                                 <div
-                                    onClick={() => { setViewMode('my_tasks'); setSelectedListId(null); setSelectedStateName(null); setSelectedCountyName(null); }}
+                                    onClick={() => { 
+                                        if (currentUser?.subscription_tier === 'trial') {
+                                            alert("🚀 My Tasks is a Pro feature! \n\nThis tool allows you to assign field visits and due diligence tasks to realtors. Upgrade to Pro or Enterprise to start building your field team.");
+                                            return;
+                                        }
+                                        setViewMode('my_tasks'); 
+                                        setSelectedListId(null); 
+                                        setSelectedStateName(null); 
+                                        setSelectedCountyName(null); 
+                                    }}
                                     className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 
                                         ${viewMode === 'my_tasks' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
                                 >
                                     <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_tasks' ? 'text-white' : 'text-blue-500'}`}>task_alt</span>
-                                    <span className="flex-1 text-sm font-medium truncate">My Tasks</span>
+                                    <div className="flex-1 flex items-center justify-between min-w-0">
+                                        <span className="text-sm font-medium truncate">My Tasks</span>
+                                        {currentUser?.subscription_tier === 'trial' && <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>}
+                                    </div>
                                 </div>
                                 <div
-                                    onClick={() => { setViewMode('my_exports'); setSelectedListId(null); setSelectedStateName(null); setSelectedCountyName(null); }}
+                                    onClick={() => { 
+                                        if (currentUser?.subscription_tier === 'trial') {
+                                            alert("📤 Property Export is a Pro feature! \n\nThis allows you to export property packets and CSVs to your partners or realtors. Upgrade to Pro or Enterprise to enable data exports.");
+                                            return;
+                                        }
+                                        setViewMode('my_exports'); 
+                                        setSelectedListId(null); 
+                                        setSelectedStateName(null); 
+                                        setSelectedCountyName(null); 
+                                    }}
                                     className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 
                                         ${viewMode === 'my_exports' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
                                 >
                                     <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_exports' ? 'text-white' : 'text-blue-500'}`}>upload</span>
-                                    <span className="flex-1 text-sm font-medium truncate">My Exports</span>
+                                    <div className="flex-1 flex items-center justify-between min-w-0">
+                                        <span className="text-sm font-medium truncate">My Exports</span>
+                                        {currentUser?.subscription_tier === 'trial' && <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>}
+                                    </div>
                                 </div>
                                 <div
                                     onClick={() => { setViewMode('my_properties'); setSelectedListId(null); setSelectedStateName(null); setSelectedCountyName(null); }}

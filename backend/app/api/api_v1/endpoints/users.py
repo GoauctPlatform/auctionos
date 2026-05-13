@@ -64,6 +64,24 @@ def create_user(
     elif current_user.role == "client":
         if getattr(user_in, 'role', '') not in ["manager", "agent"]:
             raise HTTPException(status_code=403, detail="Clients can only create managers or agents under their company.")
+        
+        # Trial Limits Check (1 Manager, 1 Agent)
+        if current_user.subscription_tier == "trial":
+            requested_role = getattr(user_in, 'role')
+            existing_count = db.query(User).filter(
+                User.created_by_id == current_user.id,
+                User.role == requested_role
+            ).count()
+            if existing_count >= 1:
+                raise HTTPException(
+                    status_code=403, 
+                    detail=f"Trial accounts are limited to 1 {requested_role}. Upgrade to Pro for more."
+                )
+            
+            # Check company count for companies assigned to this new user
+            if user_in.company_ids and len(user_in.company_ids) > 1:
+                raise HTTPException(status_code=403, detail="Trial accounts can only assign 1 company per user.")
+
         target_role = getattr(user_in, 'role')
         target_company = getattr(user_in, 'company_id', current_user.active_company_id)
         # Ensure the client owns the target company

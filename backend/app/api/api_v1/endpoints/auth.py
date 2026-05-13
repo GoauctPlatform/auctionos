@@ -139,7 +139,7 @@ def reset_admin_production(secret: str, db: Session = Depends(deps.get_db)):
     if existing_user:
         existing_user.hashed_password = security.get_password_hash(temp_password)
         existing_user.is_superuser = True
-        msg = f"Usuário existente '{email}' atualizado com a senha: {temp_password}"
+        msg = f"Existing user '{email}' updated with password: {temp_password}"
     else:
         new_user = User(
             email=email,
@@ -148,7 +148,7 @@ def reset_admin_production(secret: str, db: Session = Depends(deps.get_db)):
             is_active=True
         )
         db.add(new_user)
-        msg = f"Novo usuário admin '{email}' criado com a senha: {temp_password}"
+        msg = f"New admin user '{email}' created with password: {temp_password}"
     
     db.commit()
     return {"message": "Success", "details": msg}
