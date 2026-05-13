@@ -328,7 +328,7 @@ const ActivityLogsPage: React.FC = () => {
                             })}
                         </div>
                         {createCompanyIds.length > 0 && (
-                            <p className="text-xs text-blue-600 font-bold mt-1">{createCompanyIds.length} empresa(s) selecionada(s)</p>
+                            <p className="text-xs text-blue-600 font-bold mt-1">{createCompanyIds.length} company(s) selected</p>
                         )}
                     </div>
                 </div>
@@ -378,7 +378,7 @@ const ActivityLogsPage: React.FC = () => {
                             })}
                         </div>
                         {editCompanyIds.length > 0 && (
-                            <p className="text-xs text-blue-600 font-bold mt-1">{editCompanyIds.length} empresa(s) selecionada(s)</p>
+                            <p className="text-xs text-blue-600 font-bold mt-1">{editCompanyIds.length} company(s) selected</p>
                         )}
                     </div>
                 </div>

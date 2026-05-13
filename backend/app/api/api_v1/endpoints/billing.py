@@ -39,8 +39,8 @@ def get_stripe():
 # and STRIPE_ENTERPRISE_PRICE_ID environment variables.
 # ─────────────────────────────────────────────────────────────────────────────
 PLAN_PRICES_BRL_CENTS = {
-    "pro": 1,           # R$0.01 – TEST VALUE
-    "enterprise": 2,    # R$0.02 – TEST VALUE
+    "pro": 51,           # R$0.51 (Minimum for Stripe is 0.50)
+    "enterprise": 52,    # R$0.52
 }
 
 PLAN_DISPLAY_PRICES = {

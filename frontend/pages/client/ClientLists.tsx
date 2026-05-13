@@ -1851,14 +1851,28 @@ const ClientLists: React.FC = () => {
                                             {!isAgent && (
                                                 <div className="mt-3 flex gap-2 border-t border-slate-100 dark:border-slate-800 pt-3" onClick={e => e.stopPropagation()}>
                                                     <button
-                                                        onClick={() => { setTaskProperty(prop); setTaskForm({ title: `Photo Verification — ${(prop.address || prop.parcel_id || '').slice(0, 40)}`, description: '', min_photos: 3, max_photos: 10, reward_usd: 10 }); }}
+                                                        onClick={() => {
+                                                            if (isTrial) {
+                                                                alert('Due Diligence Tasks are a premium feature. Upgrade to Pro or Enterprise to track your workflow.');
+                                                                return;
+                                                            }
+                                                            setTaskProperty(prop); 
+                                                            setTaskForm({ title: `Photo Verification — ${(prop.address || prop.parcel_id || '').slice(0, 40)}`, description: '', min_photos: 3, max_photos: 10, reward_usd: 10 }); 
+                                                        }}
                                                         className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800 transition-colors"
                                                     >
                                                         <span className="material-symbols-outlined text-[14px]">task_alt</span>
                                                         Create Task
                                                     </button>
                                                     <button
-                                                        onClick={() => { setExportProperty(prop); setExportForm({ contact_name: '', contact_phone: '', contact_email: '', notes: '', requested_sale_price: '' }); }}
+                                                        onClick={() => {
+                                                            if (isTrial) {
+                                                                alert('Data Exports to Realtors are a premium feature. Upgrade to Pro or Enterprise to access this tool.');
+                                                                return;
+                                                            }
+                                                            setExportProperty(prop); 
+                                                            setExportForm({ contact_name: '', contact_phone: '', contact_email: '', notes: '', requested_sale_price: '' }); 
+                                                        }}
                                                         className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800 transition-colors"
                                                     >
                                                         <span className="material-symbols-outlined text-[14px]">upload</span>

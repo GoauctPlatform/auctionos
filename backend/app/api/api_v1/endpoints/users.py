@@ -247,9 +247,16 @@ def delete_user(
     if not current_user.is_superuser:
         if current_user.role == "client":
             can_delete = user.created_by_id == current_user.id
-            if not can_delete and user.company_id:
-                co = db.execute(text("SELECT id FROM companies WHERE id = :cid AND user_id = :uid"), {"cid": user.company_id, "uid": current_user.id}).fetchone()
-                if co:
+            if not can_delete:
+                # Check if the user being deleted is linked to ANY company owned by the client
+                from sqlalchemy import text
+                link_exists = db.execute(text("""
+                    SELECT 1 FROM user_company_links ucl
+                    JOIN companies c ON c.id = ucl.company_id
+                    WHERE ucl.user_id = :uid AND c.user_id = :owner_id
+                """), {"uid": user.id, "owner_id": current_user.id}).fetchone()
+                
+                if link_exists:
                     can_delete = True
             
             if not can_delete:

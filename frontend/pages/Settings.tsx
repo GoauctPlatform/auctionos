@@ -294,8 +294,33 @@ export const Settings: React.FC = () => {
             {activeTab === 'companies' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
+                        {/* New Company Section (Moved to Top for Visibility) */}
+                        <div className="mb-8 pb-8 border-b border-slate-200 dark:border-slate-700">
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Add New Company</h3>
+                            <p className="text-sm text-slate-500 mb-4">Register a new business entity to manage separate portfolios and teams.</p>
+                            <div className="flex gap-3 max-w-2xl">
+                                <input 
+                                    className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                                    value={newCompanyName}
+                                    onChange={e => setNewCompanyName(e.target.value)}
+                                    placeholder="Company Legal Name (e.g., Summit Holdings LLC)"
+                                />
+                                <button 
+                                    disabled={!newCompanyName.trim()}
+                                    onClick={async () => {
+                                        await createCompany(newCompanyName);
+                                        setNewCompanyName('');
+                                    }}
+                                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">add_business</span>
+                                    Register Company
+                                </button>
+                            </div>
+                        </div>
+
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">My Connected Companies</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Existing Connected Companies</h3>
                         </div>
 
                         <div className="space-y-4">
@@ -337,28 +362,6 @@ export const Settings: React.FC = () => {
                                     You haven't created any companies yet. Actions will default to your personal profile.
                                 </div>
                             )}
-                        </div>
-
-                        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-700">
-                            <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-3">Register New Company</h4>
-                            <div className="flex gap-3">
-                                <input 
-                                    className="flex-1 px-4 py-2 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
-                                    value={newCompanyName}
-                                    onChange={e => setNewCompanyName(e.target.value)}
-                                    placeholder="Company Legal Name (e.g., Summit Holdings LLC)"
-                                />
-                                <button 
-                                    disabled={!newCompanyName.trim()}
-                                    onClick={async () => {
-                                        await createCompany(newCompanyName);
-                                        setNewCompanyName('');
-                                    }}
-                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-colors shadow-sm disabled:opacity-50"
-                                >
-                                    Create Profile
-                                </button>
-                            </div>
                         </div>
                     </div>
                 </div>

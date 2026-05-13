@@ -201,10 +201,10 @@ const BillingPage: React.FC = () => {
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 5.000 visualizações de propriedades</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 5 Empresas · 2 Gerentes · 10 Agentes</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 100 Propriedades customizadas</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Acesso à comunidade & exportação</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 5,000 property details views</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 5 Companies · 2 Managers · 10 Agents</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 100 Custom properties</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Community access & data exports</li>
             </ul>
             <button
               onClick={() => handleUpgrade('pro')}
@@ -212,9 +212,9 @@ const BillingPage: React.FC = () => {
               className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {upgradeLoading === 'pro' ? (
-                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processando...</>
-              ) : isPro ? 'Plano Atual' : isEnterprise ? 'Plano Inferior' : (
-                <><Lock size={14} /> Assinar Pro</>
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing...</>
+              ) : isPro ? 'Current Plan' : isEnterprise ? 'Lower Plan' : (
+                <><Lock size={14} /> Subscribe to Pro</>
               )}
             </button>
           </div>
@@ -236,18 +236,18 @@ const BillingPage: React.FC = () => {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">Enterprise</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Para grandes operações</p>
+                <p className="text-xs text-slate-400 mt-0.5">For large scale operations</p>
               </div>
               <div className="text-right">
                 <span className="text-2xl font-black text-slate-800 dark:text-white">R$350</span>
-                <span className="text-sm text-slate-400">/mês</span>
+                <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Visualizações ilimitadas</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Equipe ilimitada</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Propriedades customizadas ilimitadas</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Suporte prioritário exclusivo</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited property views</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited team members</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Priority exclusive support</li>
             </ul>
             <button
               onClick={() => handleUpgrade('enterprise')}
@@ -255,9 +255,9 @@ const BillingPage: React.FC = () => {
               className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {upgradeLoading === 'enterprise' ? (
-                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processando...</>
-              ) : isEnterprise ? 'Plano Atual' : (
-                <><Zap size={14} /> Assinar Enterprise</>
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing...</>
+              ) : isEnterprise ? 'Current Plan' : (
+                <><Zap size={14} /> Subscribe to Enterprise</>
               )}
             </button>
           </div>
@@ -265,7 +265,7 @@ const BillingPage: React.FC = () => {
           {/* Stripe Badge */}
           <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
             <Lock size={10} />
-            Pagamento seguro por <span className="font-bold text-slate-500">Stripe</span>
+            Secure payment by <span className="font-bold text-slate-500">Stripe</span>
           </div>
         </div>
       </div>
@@ -274,17 +274,17 @@ const BillingPage: React.FC = () => {
       <div className="mt-8 bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900/50 p-6">
         <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
           <span className="material-symbols-outlined text-red-500 text-[20px]">cancel</span>
-          Gerenciar Assinatura
+          Manage Subscription
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-          Para cancelar sua assinatura ou solicitar reembolso, entre em contato com nosso suporte.
+          To cancel your subscription or request a refund, please contact our support team.
         </p>
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl mb-4 text-sm text-red-700 dark:text-red-300">
-          <p className="font-semibold mb-1">Antes de cancelar:</p>
+          <p className="font-semibold mb-1">Before you cancel:</p>
           <ul className="list-disc pl-4 space-y-1">
-            <li>Você perderá o acesso a todos os recursos premium ao final do período de cobrança.</li>
-            <li>Suas listas e propriedades salvas são mantidas por 30 dias.</li>
-            <li>O cancelamento entra em vigor no final do seu ciclo de cobrança atual.</li>
+            <li>You will lose access to all premium features at the end of the billing period.</li>
+            <li>Your saved lists and properties are kept for 30 days.</li>
+            <li>Cancellation takes effect at the end of your current billing cycle.</li>
           </ul>
         </div>
         <a
@@ -292,7 +292,7 @@ const BillingPage: React.FC = () => {
           className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">contact_support</span>
-          Contatar Suporte para Cancelar
+          Contact Support to Cancel
         </a>
       </div>
     </div>
@@ -314,7 +314,7 @@ const UsageBar = ({ label, used, limit }: { label: string; used: number; limit: 
       <div className="flex justify-between text-sm mb-2">
         <span className="font-medium text-slate-700 dark:text-slate-300">{label}</span>
         <span className="text-slate-500 font-mono text-xs">
-          {isUnlimited ? '∞ Ilimitado' : `${used} / ${limit}`}
+          {isUnlimited ? '∞ Unlimited' : `${used} / ${limit}`}
         </span>
       </div>
       <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
@@ -333,7 +333,7 @@ const LimitDisplay = ({ label, limit }: { label: string; limit: number | string 
   <div className="flex justify-between text-sm py-2.5 border-b border-slate-100 dark:border-slate-800 last:border-0">
     <span className="font-medium text-slate-600 dark:text-slate-400">{label}</span>
     <span className={`font-bold ${limit === 'Unlimited' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-800 dark:text-white'}`}>
-      {limit === 'Unlimited' ? '∞ Ilimitado' : limit}
+      {limit === 'Unlimited' ? '∞ Unlimited' : limit}
     </span>
   </div>
 );
