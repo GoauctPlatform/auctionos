@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import api from '../../services/api';
-import { Shield, Zap, CheckCircle, AlertTriangle, HardDrive } from 'lucide-react';
+import { Shield, Zap, CheckCircle, AlertTriangle, HardDrive, Star, Lock } from 'lucide-react';
 
 interface UsageStats {
   used?: number;
@@ -28,8 +29,10 @@ const BillingPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const location = useLocation();
 
-  const fetchUsage = async () => {
+  const fetchUsage = useCallback(async () => {
     try {
       const res = await api.get('/billing/usage');
       setData(res.data);
@@ -38,146 +41,258 @@ const BillingPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Handle redirect back from Stripe Checkout
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const paymentStatus = params.get('payment');
+    const plan = params.get('plan');
+    const sessionId = params.get('session_id');
+
+    if (paymentStatus === 'success' && plan && sessionId) {
+      // Confirm the payment with backend (safety net in case webhook is slow)
+      api.post('/billing/confirm-payment', { session_id: sessionId, plan })
+        .then(() => {
+          setSuccessMessage(`🎉 Payment successful! Your account has been upgraded to ${plan.toUpperCase()}.`);
+          fetchUsage();
+        })
+        .catch((err) => {
+          // If confirm fails, still refresh usage (webhook may have already run)
+          fetchUsage();
+          console.warn('Payment confirmation check:', err.response?.data?.detail);
+        });
+    } else if (paymentStatus === 'cancelled') {
+      setError('Payment was cancelled. No charges were made.');
+    }
+  }, [location.search, fetchUsage]);
 
   useEffect(() => {
     fetchUsage();
-  }, []);
+  }, [fetchUsage]);
 
   const handleUpgrade = async (plan: 'pro' | 'enterprise') => {
     setUpgradeLoading(plan);
+    setError(null);
     try {
       const res = await api.post('/billing/create-checkout-session', { plan });
-      // Mock flow: immediately call the mock webhook to simulate successful payment
-      alert(res.data.message + "\n\n(Mock Mode: Simulating successful payment...)");
-      await api.post('/billing/mock-webhook', { plan });
-      await fetchUsage();
+      const { checkout_url, session_id } = res.data;
+
+      if (session_id) {
+        // Real Stripe flow – redirect to the hosted Stripe checkout page
+        window.location.href = checkout_url;
+      } else {
+        // Mock fallback – no real Stripe configured, simulate locally
+        await api.post('/billing/mock-webhook', { plan });
+        setSuccessMessage(`✅ Mock Mode: Your plan has been upgraded to ${plan.toUpperCase()}!`);
+        await fetchUsage();
+        setUpgradeLoading(null);
+      }
     } catch (err: any) {
-      alert(err.response?.data?.detail || 'Upgrade failed.');
-    } finally {
+      setError(err.response?.data?.detail || 'Upgrade failed. Please try again.');
       setUpgradeLoading(null);
     }
   };
 
-  if (loading) return <div className="p-8">Loading billing data...</div>;
-  if (error) return <div className="p-8 text-red-500">{error}</div>;
+  if (loading) return (
+    <div className="flex items-center justify-center min-h-[400px]">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-slate-500">Loading billing data...</p>
+      </div>
+    </div>
+  );
+
   if (!data) return null;
 
   const isTrial = data.plan_type === 'trial';
+  const isPro = data.plan_type === 'pro';
+  const isEnterprise = data.plan_type === 'enterprise';
 
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+    <div className="p-6 max-w-6xl mx-auto">
+
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Billing & Usage</h1>
-          <p className="text-gray-500 mt-1">Manage your GoAuct subscription and resource limits.</p>
+          <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">Manage your GoAuct subscription and resource limits.</p>
         </div>
-        <div className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 ${
-          data.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm shadow-sm ${
+          data.status === 'active'
+            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
         }`}>
-          <Shield size={20} />
-          Current Plan: {data.plan_type.toUpperCase()} ({data.status})
+          <Shield size={16} />
+          {data.plan_type.toUpperCase()} — {data.status}
         </div>
       </div>
 
+      {/* Alerts */}
+      {successMessage && (
+        <div className="mb-6 flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-300">
+          <CheckCircle size={20} className="flex-shrink-0" />
+          <span className="text-sm font-medium">{successMessage}</span>
+          <button onClick={() => setSuccessMessage(null)} className="ml-auto text-green-400 hover:text-green-600">✕</button>
+        </div>
+      )}
+      {error && (
+        <div className="mb-6 flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-700 dark:text-red-300">
+          <AlertTriangle size={20} className="flex-shrink-0" />
+          <span className="text-sm font-medium">{error}</span>
+          <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-600">✕</button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
         {/* Usage Section */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700">
-            <h2 className="text-xl font-bold mb-4 flex items-center gap-2"><HardDrive className="text-blue-500" /> Usage Meters</h2>
-            
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+            <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-800 dark:text-white">
+              <HardDrive className="text-blue-500" size={20} />
+              Usage Meters
+            </h2>
+
             <div className="space-y-6">
-              <UsageBar 
-                label="Property Details Viewed" 
-                used={data.usage.views.used || 0} 
-                limit={data.usage.views.limit} 
+              <UsageBar
+                label="Property Details Viewed"
+                used={data.usage.views.used || 0}
+                limit={data.usage.views.limit}
               />
               <LimitDisplay label="Company Profiles Allowed" limit={data.usage.companies.limit} />
               <LimitDisplay label="Manager Profiles Allowed" limit={data.usage.managers.limit} />
               <LimitDisplay label="Field Agent Profiles Allowed" limit={data.usage.agents.limit} />
             </div>
 
-            <div className="mt-8 border-t pt-6">
-              <h3 className="font-semibold mb-3">Feature Access</h3>
-              <div className="grid grid-cols-2 gap-4">
+            <div className="mt-8 border-t border-slate-100 dark:border-slate-800 pt-6">
+              <h3 className="font-semibold mb-4 text-slate-700 dark:text-slate-300">Feature Access</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <FeatureToggle label="Community & Groups" active={data.features.community} />
-                <FeatureToggle label="Create Due Diligence Tasks" active={data.features.tasks} />
+                <FeatureToggle label="Due Diligence Tasks" active={data.features.tasks} />
                 <FeatureToggle label="Data Exports" active={data.features.exports} />
               </div>
             </div>
           </div>
         </div>
 
-        {/* Upgrade Section */}
-        <div className="space-y-6">
+        {/* Upgrade Cards */}
+        <div className="space-y-5">
+
           {/* Pro Plan */}
-          <div className={`p-6 rounded-xl border-2 ${data.plan_type === 'pro' ? 'border-blue-500 bg-blue-50 dark:bg-gray-800' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold">Pro</h3>
-              <span className="text-xl font-bold text-gray-500">$130<span className="text-sm font-normal">/mo</span></span>
+          <div className={`relative p-6 rounded-2xl border-2 transition-all ${
+            isPro
+              ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20 shadow-lg shadow-blue-100 dark:shadow-none'
+              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+          }`}>
+            {isPro && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                CURRENT PLAN
+              </div>
+            )}
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">Pro</h3>
+                <p className="text-xs text-slate-400 mt-0.5">For growing teams</p>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-black text-slate-800 dark:text-white">R$130</span>
+                <span className="text-sm text-slate-400">/mês</span>
+              </div>
             </div>
-            <ul className="space-y-3 mb-6 text-sm">
-              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> 5,000 Property Views</li>
-              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> 5 Companies, 2 Managers, 10 Agents</li>
-              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> 100 Custom Properties</li>
-              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Community Access</li>
-              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Data Exports & Tasks</li>
+            <ul className="space-y-2.5 mb-6 text-sm">
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 5.000 visualizações de propriedades</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 5 Empresas · 2 Gerentes · 10 Agentes</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 100 Propriedades customizadas</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Acesso à comunidade & exportação</li>
             </ul>
-            <button 
+            <button
               onClick={() => handleUpgrade('pro')}
-              disabled={data.plan_type === 'pro' || data.plan_type === 'enterprise'}
-              className="w-full py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isPro || isEnterprise || upgradeLoading !== null}
+              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
-              {upgradeLoading === 'pro' ? 'Processing...' : data.plan_type === 'pro' ? 'Current Plan' : 'Upgrade to Pro'}
+              {upgradeLoading === 'pro' ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processando...</>
+              ) : isPro ? 'Plano Atual' : isEnterprise ? 'Plano Inferior' : (
+                <><Lock size={14} /> Assinar Pro</>
+              )}
             </button>
           </div>
 
           {/* Enterprise Plan */}
-          <div className={`p-6 rounded-xl border-2 ${data.plan_type === 'enterprise' ? 'border-purple-500 bg-purple-50 dark:bg-gray-800' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'}`}>
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-2xl font-bold">Enterprise</h3>
-              <span className="text-xl font-bold text-gray-500">$350<span className="text-sm font-normal">/mo</span></span>
+          <div className={`relative p-6 rounded-2xl border-2 transition-all ${
+            isEnterprise
+              ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20 shadow-lg shadow-purple-100 dark:shadow-none'
+              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+          }`}>
+            {isEnterprise && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                CURRENT PLAN
+              </div>
+            )}
+            <div className="absolute top-4 right-4">
+              <Star size={14} className="text-yellow-400 fill-yellow-400" />
             </div>
-            <ul className="space-y-3 mb-6 text-sm">
-              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Unlimited Property Views</li>
-              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Unlimited Team Members</li>
-              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Unlimited Custom Properties</li>
-              <li className="flex items-center gap-2"><CheckCircle size={16} className="text-green-500" /> Priority Exclusive Support</li>
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">Enterprise</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Para grandes operações</p>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-black text-slate-800 dark:text-white">R$350</span>
+                <span className="text-sm text-slate-400">/mês</span>
+              </div>
+            </div>
+            <ul className="space-y-2.5 mb-6 text-sm">
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Visualizações ilimitadas</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Equipe ilimitada</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Propriedades customizadas ilimitadas</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Suporte prioritário exclusivo</li>
             </ul>
-            <button 
+            <button
               onClick={() => handleUpgrade('enterprise')}
-              disabled={data.plan_type === 'enterprise'}
-              className="w-full py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              disabled={isEnterprise || upgradeLoading !== null}
+              className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
-              {upgradeLoading === 'enterprise' ? 'Processing...' : data.plan_type === 'enterprise' ? 'Current Plan' : <><Zap size={16}/> Upgrade to Enterprise</>}
+              {upgradeLoading === 'enterprise' ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processando...</>
+              ) : isEnterprise ? 'Plano Atual' : (
+                <><Zap size={14} /> Assinar Enterprise</>
+              )}
             </button>
+          </div>
+
+          {/* Stripe Badge */}
+          <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+            <Lock size={10} />
+            Pagamento seguro por <span className="font-bold text-slate-500">Stripe</span>
           </div>
         </div>
       </div>
 
-      {/* Cancel Subscription Section */}
-      <div className="mt-8 bg-white dark:bg-gray-800 rounded-xl border border-red-200 dark:border-red-900 p-6">
+      {/* Cancel Section */}
+      <div className="mt-8 bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900/50 p-6">
         <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
           <span className="material-symbols-outlined text-red-500 text-[20px]">cancel</span>
-          Manage Subscription
+          Gerenciar Assinatura
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-          Want to cancel your subscription? Please read the information below before proceeding.
+          Para cancelar sua assinatura ou solicitar reembolso, entre em contato com nosso suporte.
         </p>
-        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg mb-4 text-sm text-red-700 dark:text-red-300">
-          <p className="font-semibold mb-1">Before you cancel:</p>
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl mb-4 text-sm text-red-700 dark:text-red-300">
+          <p className="font-semibold mb-1">Antes de cancelar:</p>
           <ul className="list-disc pl-4 space-y-1">
-            <li>You will lose access to all premium features at the end of your billing period</li>
-            <li>Your saved lists and watchlists will be retained for 30 days</li>
-            <li>Cancellation takes effect at the end of your current billing period</li>
+            <li>Você perderá o acesso a todos os recursos premium ao final do período de cobrança.</li>
+            <li>Suas listas e propriedades salvas são mantidas por 30 dias.</li>
+            <li>O cancelamento entra em vigor no final do seu ciclo de cobrança atual.</li>
           </ul>
         </div>
         <a
           href="/client/contact-support"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
         >
           <span className="material-symbols-outlined text-[18px]">contact_support</span>
-          Contact Support to Cancel
+          Contatar Suporte para Cancelar
         </a>
       </div>
     </div>
@@ -186,38 +301,52 @@ const BillingPage: React.FC = () => {
 
 export default BillingPage;
 
-// --- Helper Components ---
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper Components
+// ─────────────────────────────────────────────────────────────────────────────
 
 const UsageBar = ({ label, used, limit }: { label: string; used: number; limit: number | string }) => {
   const isUnlimited = limit === 'Unlimited';
   const percentage = isUnlimited ? 0 : Math.min(100, (used / (limit as number)) * 100);
-  
+
   return (
     <div>
-      <div className="flex justify-between text-sm mb-1">
-        <span className="font-medium text-gray-700 dark:text-gray-300">{label}</span>
-        <span className="text-gray-500">{used} / {limit}</span>
+      <div className="flex justify-between text-sm mb-2">
+        <span className="font-medium text-slate-700 dark:text-slate-300">{label}</span>
+        <span className="text-slate-500 font-mono text-xs">
+          {isUnlimited ? '∞ Ilimitado' : `${used} / ${limit}`}
+        </span>
       </div>
-      <div className="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 overflow-hidden">
-        <div 
-          className={`h-2.5 rounded-full ${percentage > 90 ? 'bg-red-500' : 'bg-blue-600'}`} 
-          style={{ width: `${percentage}%` }}
-        ></div>
+      <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+        <div
+          className={`h-2 rounded-full transition-all duration-500 ${
+            isUnlimited ? 'bg-purple-400 w-full opacity-30' : percentage > 85 ? 'bg-red-500' : percentage > 60 ? 'bg-yellow-500' : 'bg-blue-500'
+          }`}
+          style={{ width: isUnlimited ? '100%' : `${percentage}%` }}
+        />
       </div>
     </div>
   );
-}
+};
 
 const LimitDisplay = ({ label, limit }: { label: string; limit: number | string }) => (
-  <div className="flex justify-between text-sm py-2 border-b border-gray-100 dark:border-gray-700">
-    <span className="font-medium text-gray-700 dark:text-gray-300">{label}</span>
-    <span className="font-bold text-gray-900 dark:text-white">{limit}</span>
+  <div className="flex justify-between text-sm py-2.5 border-b border-slate-100 dark:border-slate-800 last:border-0">
+    <span className="font-medium text-slate-600 dark:text-slate-400">{label}</span>
+    <span className={`font-bold ${limit === 'Unlimited' ? 'text-purple-600 dark:text-purple-400' : 'text-slate-800 dark:text-white'}`}>
+      {limit === 'Unlimited' ? '∞ Ilimitado' : limit}
+    </span>
   </div>
 );
 
 const FeatureToggle = ({ label, active }: { label: string; active: boolean }) => (
-  <div className="flex items-center gap-2 text-sm">
-    {active ? <CheckCircle size={18} className="text-green-500" /> : <AlertTriangle size={18} className="text-gray-400" />}
-    <span className={active ? "text-gray-900 dark:text-gray-100" : "text-gray-400 line-through"}>{label}</span>
+  <div className={`flex items-center gap-2 text-sm p-3 rounded-xl border ${
+    active
+      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
+      : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400'
+  }`}>
+    {active
+      ? <CheckCircle size={14} className="text-green-500 flex-shrink-0" />
+      : <AlertTriangle size={14} className="text-slate-400 flex-shrink-0" />}
+    <span className={active ? 'font-medium' : 'line-through'}>{label}</span>
   </div>
 );

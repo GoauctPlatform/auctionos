@@ -40,6 +40,12 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://redis:6379"
     ZENROWS_API_KEY: Optional[str] = None
     ATTOM_API_KEY: Optional[str] = None
+    
+    # Stripe Payment Integration
+    STRIPE_SECRET_KEY: Optional[str] = None
+    STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    STRIPE_PRO_PRICE_ID: Optional[str] = None
+    STRIPE_ENTERPRISE_PRICE_ID: Optional[str] = None
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 
