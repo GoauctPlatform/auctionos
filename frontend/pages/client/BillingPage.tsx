@@ -118,11 +118,10 @@ const BillingPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Billing & Usage</h1>
           <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">Manage your GoAuct subscription and resource limits.</p>
         </div>
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm shadow-sm ${
-          data.status === 'active'
+        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm shadow-sm ${data.status === 'active'
             ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
             : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-        }`}>
+          }`}>
           <Shield size={16} />
           {data.plan_type.toUpperCase()} — {data.status}
         </div>
@@ -180,11 +179,10 @@ const BillingPage: React.FC = () => {
         <div className="space-y-5">
 
           {/* Pro Plan */}
-          <div className={`relative p-6 rounded-2xl border-2 transition-all ${
-            isPro
+          <div className={`relative p-6 rounded-2xl border-2 transition-all ${isPro
               ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20 shadow-lg shadow-blue-100 dark:shadow-none'
               : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
-          }`}>
+            }`}>
             {isPro && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
                 CURRENT PLAN
@@ -196,8 +194,8 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For growing teams</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">R$130</span>
-                <span className="text-sm text-slate-400">/mês</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">$US$130</span>
+                <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
@@ -220,11 +218,10 @@ const BillingPage: React.FC = () => {
           </div>
 
           {/* Enterprise Plan */}
-          <div className={`relative p-6 rounded-2xl border-2 transition-all ${
-            isEnterprise
+          <div className={`relative p-6 rounded-2xl border-2 transition-all ${isEnterprise
               ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20 shadow-lg shadow-purple-100 dark:shadow-none'
               : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
-          }`}>
+            }`}>
             {isEnterprise && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
                 CURRENT PLAN
@@ -239,7 +236,7 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For large scale operations</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">R$350</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">US$350</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
@@ -319,9 +316,8 @@ const UsageBar = ({ label, used, limit }: { label: string; used: number; limit: 
       </div>
       <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
         <div
-          className={`h-2 rounded-full transition-all duration-500 ${
-            isUnlimited ? 'bg-purple-400 w-full opacity-30' : percentage > 85 ? 'bg-red-500' : percentage > 60 ? 'bg-yellow-500' : 'bg-blue-500'
-          }`}
+          className={`h-2 rounded-full transition-all duration-500 ${isUnlimited ? 'bg-purple-400 w-full opacity-30' : percentage > 85 ? 'bg-red-500' : percentage > 60 ? 'bg-yellow-500' : 'bg-blue-500'
+            }`}
           style={{ width: isUnlimited ? '100%' : `${percentage}%` }}
         />
       </div>
@@ -339,11 +335,10 @@ const LimitDisplay = ({ label, limit }: { label: string; limit: number | string 
 );
 
 const FeatureToggle = ({ label, active }: { label: string; active: boolean }) => (
-  <div className={`flex items-center gap-2 text-sm p-3 rounded-xl border ${
-    active
+  <div className={`flex items-center gap-2 text-sm p-3 rounded-xl border ${active
       ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'
       : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400'
-  }`}>
+    }`}>
     {active
       ? <CheckCircle size={14} className="text-green-500 flex-shrink-0" />
       : <AlertTriangle size={14} className="text-slate-400 flex-shrink-0" />}
