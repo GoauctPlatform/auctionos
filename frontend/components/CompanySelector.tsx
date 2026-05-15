@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useCompany } from '../context/CompanyContext';
 import { Company } from '../services/company.service';
 import { AuthService } from '../services/auth.service';
@@ -39,11 +40,11 @@ const CompanyFormModal: React.FC<{
         }
     };
 
-    return (
-        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-start pt-10 sm:items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
+    return createPortal(
+        <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-start pt-10 sm:items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
             <form
                 onSubmit={handleSubmit}
-                className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden my-auto max-h-[90vh] flex flex-col"
+                className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden my-auto max-h-[90vh] flex flex-col animate-in fade-in zoom-in duration-200"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-blue-950/20 flex justify-between items-center">
@@ -111,7 +112,8 @@ const CompanyFormModal: React.FC<{
                     </button>
                 </div>
             </form>
-        </div>
+        </div>,
+        document.body
     );
 };
 
@@ -184,14 +186,14 @@ export const CompanySelector: React.FC<CompanySelectorProps> = ({ compact = fals
                                                 <>
                                                     <button
                                                         title="Edit"
-                                                        onClick={() => { setEditingCompany(c); setShowForm(true); setOpen(false); }}
+                                                        onClick={(e) => { e.stopPropagation(); setEditingCompany(c); setShowForm(true); setOpen(false); }}
                                                         className="p-1 text-slate-300 hover:text-blue-500 transition-colors"
                                                     >
                                                         <span className="material-symbols-outlined text-[14px]">edit</span>
                                                     </button>
                                                     <button
                                                         title="Delete"
-                                                        onClick={() => setConfirmDelete(c.id)}
+                                                        onClick={(e) => { e.stopPropagation(); setConfirmDelete(c.id); }}
                                                         className="p-1 text-slate-300 hover:text-red-500 transition-colors"
                                                     >
                                                         <span className="material-symbols-outlined text-[14px]">delete</span>
@@ -228,9 +230,9 @@ export const CompanySelector: React.FC<CompanySelectorProps> = ({ compact = fals
             )}
 
             {/* Delete Confirmation */}
-            {confirmDelete !== null && (
-                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setConfirmDelete(null)}>
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6 max-w-sm w-full text-center" onClick={e => e.stopPropagation()}>
+            {confirmDelete !== null && createPortal(
+                <div className="fixed inset-0 z-[9999] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200" onClick={() => setConfirmDelete(null)}>
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-6 max-w-sm w-full text-center animate-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
                         <span className="material-symbols-outlined text-red-500 text-4xl mb-3 block">warning</span>
                         <h3 className="font-bold text-slate-900 dark:text-white mb-2">Delete Company?</h3>
                         <p className="text-sm text-slate-500 mb-5">All lists linked to this company will be unlinked. This cannot be undone.</p>
@@ -244,7 +246,8 @@ export const CompanySelector: React.FC<CompanySelectorProps> = ({ compact = fals
                             </button>
                         </div>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
         </>
     );
