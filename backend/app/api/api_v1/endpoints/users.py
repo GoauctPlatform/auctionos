@@ -1,5 +1,5 @@
 from typing import Any, List
-from fastapi import APIRouter, Body, Depends, HTTPException, status
+from fastapi import APIRouter, Body, Depends, HTTPException, status, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from pydantic.networks import EmailStr
@@ -12,6 +12,8 @@ from app.models.user import User
 from app.schemas.user import User as UserSchema, UserCreate, UserUpdate
 from app.core.rbac import allow_managers, allow_admin_only
 from app.services.activity import log_activity
+from app.core.email import send_email
+from app.core.email_templates import get_team_invite_template
 
 router = APIRouter()
 
@@ -44,10 +46,11 @@ def read_team_users(
         return [current_user]
 
 @router.post("/", response_model=UserSchema)
-def create_user(
+async def create_user(
     *,
     db: Session = Depends(deps.get_db),
     user_in: UserCreate,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(allow_managers),
 ) -> Any:
     email = user_in.email.strip().lower()
@@ -128,6 +131,21 @@ def create_user(
 
     db.commit()
     db.refresh(user)
+
+    # Trigger Team Invite Email
+    company_name = current_user.active_company.name if current_user.active_company else "your team"
+    email_body = get_team_invite_template(
+        invitee_name=user.full_name or user.email,
+        inviter_name=current_user.full_name or "Administrator",
+        company_name=company_name,
+        role=target_role
+    )
+    background_tasks.add_task(
+        send_email,
+        subject=f"Invitation to join {company_name}",
+        recipients=[user.email],
+        body=email_body
+    )
 
     log_activity(db, current_user.id, "create_user", "User", user.id, {"created_role": target_role})
 

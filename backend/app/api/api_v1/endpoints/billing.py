@@ -1,5 +1,5 @@
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, Body, Request, Header
+from fastapi import APIRouter, Depends, HTTPException, Body, Request, Header, BackgroundTasks
 from sqlalchemy.orm import Session
 from datetime import datetime, timezone
 import logging
@@ -9,6 +9,8 @@ from app.models.user import User
 from app.models.monetization import UserSubscription
 from app.services.permission_service import PermissionService, PLAN_LIMITS
 from app.core.config import settings
+from app.core.email import send_email
+from app.core.email_templates import get_plan_upgrade_template
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -52,7 +54,7 @@ PLAN_DISPLAY_PRICES = {
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
-def _activate_subscription(db: Session, user: User, plan: str):
+def _activate_subscription(db: Session, user: User, plan: str, background_tasks: Optional[BackgroundTasks] = None):
     """
     Activates or upgrades a user's subscription.
     Single source of truth – called by both the mock and real Stripe webhook flows.
@@ -72,6 +74,17 @@ def _activate_subscription(db: Session, user: User, plan: str):
     user.subscription_tier = plan
     db.commit()
     db.refresh(sub)
+
+    # Trigger Plan Upgrade Email
+    if background_tasks:
+        email_body = get_plan_upgrade_template(user.full_name or user.email, plan.capitalize())
+        background_tasks.add_task(
+            send_email,
+            subject=f"Plan Upgraded to {plan.capitalize()}!",
+            recipients=[user.email],
+            body=email_body
+        )
+
     return sub
 
 
@@ -251,7 +264,7 @@ async def stripe_webhook(
             logger.error(f"Stripe webhook: user {user_id} not found in DB.")
             return {"status": "error", "reason": "User not found"}
 
-        _activate_subscription(db, user, plan)
+        _activate_subscription(db, user, plan, background_tasks)
         logger.info(f"✅ Stripe webhook: Activated {plan} for user {user.email}")
         return {"status": "success"}
 
@@ -273,9 +286,10 @@ async def stripe_webhook(
 
 
 @router.post("/confirm-payment")
-def confirm_payment(
+async def confirm_payment(
     session_id: str = Body(..., embed=True),
     plan: str = Body(..., embed=True),
+    background_tasks: BackgroundTasks,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ) -> Any:
@@ -310,13 +324,14 @@ def confirm_payment(
             raise HTTPException(status_code=502, detail="Could not verify payment with Stripe.")
 
     # Activate the plan (idempotent – safe to call even if webhook already ran)
-    _activate_subscription(db, current_user, plan)
+    _activate_subscription(db, current_user, plan, background_tasks)
     return {"status": "success", "message": f"✅ {plan.capitalize()} plan activated!"}
 
 
 @router.post("/mock-webhook")
-def mock_stripe_webhook_success(
+async def mock_stripe_webhook_success(
     plan: str = Body(..., embed=True),
+    background_tasks: BackgroundTasks,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ) -> Any:
@@ -326,7 +341,7 @@ def mock_stripe_webhook_success(
     """
     if plan not in ["pro", "enterprise"]:
         raise HTTPException(status_code=400, detail="Invalid plan selected.")
-    _activate_subscription(db, current_user, plan)
+    _activate_subscription(db, current_user, plan, background_tasks)
     return {"status": "success", "message": f"✅ Upgraded to {plan.upper()} (mock)!"}
 
 

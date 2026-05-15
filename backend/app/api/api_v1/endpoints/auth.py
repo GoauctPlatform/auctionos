@@ -1,7 +1,7 @@
 import secrets
 from datetime import timedelta
 from typing import Any
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, BackgroundTasks
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
@@ -14,6 +14,7 @@ from app.schemas.token import Token
 from app.schemas.user import UserCreate, User as UserSchema
 from pydantic import BaseModel, EmailStr
 from app.core.email import send_email
+from app.core.email_templates import get_welcome_template
 import time
 
 router = APIRouter()
@@ -48,10 +49,11 @@ def login_access_token(
     }
 
 @router.post("/register", response_model=UserSchema)
-def register_user(
+async def register_user(
     *,
     db: Session = Depends(deps.get_db),
     user_in: UserCreate,
+    background_tasks: BackgroundTasks
 ) -> Any:
     # Allow public signup for client, realtor, agent_due_diligence roles
     allowed_roles = {"client", "realtor", "agent_due_diligence", "pending"}
@@ -84,6 +86,15 @@ def register_user(
     )
     db.add(onboarding)
     db.commit()
+
+    # Trigger Welcome Email in background
+    email_body = get_welcome_template(user.full_name or user.email)
+    background_tasks.add_task(
+        send_email,
+        subject="Welcome to GoAuct!",
+        recipients=[user.email],
+        body=email_body
+    )
 
     return user
 

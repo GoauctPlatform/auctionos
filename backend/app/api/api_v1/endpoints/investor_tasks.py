@@ -4,12 +4,14 @@ and managing property exports.
 """
 from datetime import datetime, timezone
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.api import deps
 from app.models.user import User
+from app.core.email import send_email
+from app.core.email_templates import get_task_update_template
 
 router = APIRouter()
 
@@ -156,10 +158,10 @@ def get_task_submissions(
     return [dict(r._mapping) for r in rows]
 
 
-@router.post("/tasks/{task_id}/review")
-def review_task_submission(
+async def review_task_submission(
     task_id: int,
     payload: ReviewPayload,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -218,6 +220,23 @@ def review_task_submission(
         """), {"id": task_id})
 
     db.commit()
+
+    # Trigger Task Update Email to the Realtor
+    if task.realtor_user_id:
+        realtor = db.execute(text("SELECT email, full_name FROM users WHERE id = :id"), {"id": task.realtor_user_id}).fetchone()
+        if realtor:
+            email_body = get_task_update_template(
+                task_title=task.title,
+                status=review_status,
+                updated_by=current_user.full_name or "Investor"
+            )
+            background_tasks.add_task(
+                send_email,
+                subject=f"Task Update: {task.title} is {review_status.upper()}",
+                recipients=[realtor.email],
+                body=email_body
+            )
+
     return {"ok": True, "review_status": review_status}
 
 
