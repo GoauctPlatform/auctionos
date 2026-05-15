@@ -53,7 +53,7 @@ def create_user(
     email = user_in.email.strip().lower()
     user = db.query(User).filter(User.email == email).first()
     if user:
-        raise HTTPException(status_code=400, detail="The user with this username already exists.")
+        raise HTTPException(status_code=400, detail="A user with this email already exists.")
     
     # RBAC logic: Managers can only create Agents in their own company. Admins can do anything.
     if current_user.role == "manager":
