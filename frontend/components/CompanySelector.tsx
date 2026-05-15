@@ -40,7 +40,7 @@ const CompanyFormModal: React.FC<{
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start pt-10 sm:items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
             <form
                 onSubmit={handleSubmit}
                 className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"

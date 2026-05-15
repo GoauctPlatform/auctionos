@@ -78,6 +78,9 @@ export const Settings: React.FC = () => {
 
     const { companies, activeCompany, createCompany, selectCompany, deleteCompany } = useCompany();
     const [newCompanyName, setNewCompanyName] = useState('');
+    const [newCompanyAddress, setNewCompanyAddress] = useState('');
+    const [newCompanyContact, setNewCompanyContact] = useState('');
+    const [isCreatingCompany, setIsCreatingCompany] = useState(false);
 
 
     const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -297,26 +300,62 @@ export const Settings: React.FC = () => {
                         {/* New Company Section (Moved to Top for Visibility) */}
                         <div className="mb-8 pb-8 border-b border-slate-200 dark:border-slate-700">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Add New Company</h3>
-                            <p className="text-sm text-slate-500 mb-4">Register a new business entity to manage separate portfolios and teams.</p>
-                            <div className="flex gap-3 max-w-2xl">
-                                <input 
-                                    className="flex-1 px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
-                                    value={newCompanyName}
-                                    onChange={e => setNewCompanyName(e.target.value)}
-                                    placeholder="Company Legal Name (e.g., Summit Holdings LLC)"
-                                />
-                                <button 
-                                    disabled={!newCompanyName.trim()}
-                                    onClick={async () => {
-                                        await createCompany(newCompanyName);
-                                        setNewCompanyName('');
-                                    }}
-                                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition-colors shadow-sm disabled:opacity-50 flex items-center gap-2"
-                                >
-                                    <span className="material-symbols-outlined text-[18px]">add_business</span>
-                                    Register Company
-                                </button>
+                            <p className="text-sm text-slate-500 mb-6">Register a new business entity to manage separate portfolios and teams.</p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mb-4">
+                                <div className="md:col-span-2">
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Company Legal Name *</label>
+                                    <input 
+                                        className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" 
+                                        value={newCompanyName}
+                                        onChange={e => setNewCompanyName(e.target.value)}
+                                        placeholder="e.g. Summit Holdings LLC"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Official Address</label>
+                                    <input 
+                                        className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" 
+                                        value={newCompanyAddress}
+                                        onChange={e => setNewCompanyAddress(e.target.value)}
+                                        placeholder="123 Main St, Tampa, FL"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Primary Contact</label>
+                                    <input 
+                                        className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" 
+                                        value={newCompanyContact}
+                                        onChange={e => setNewCompanyContact(e.target.value)}
+                                        placeholder="Email or Phone Number"
+                                    />
+                                </div>
                             </div>
+
+                            <button 
+                                disabled={!newCompanyName.trim() || isCreatingCompany}
+                                onClick={async () => {
+                                    setIsCreatingCompany(true);
+                                    try {
+                                        await createCompany(newCompanyName, newCompanyAddress, newCompanyContact);
+                                        setNewCompanyName('');
+                                        setNewCompanyAddress('');
+                                        setNewCompanyContact('');
+                                    } catch (err: any) {
+                                        alert(`Failed to create company: ${err.message}`);
+                                    } finally {
+                                        setIsCreatingCompany(false);
+                                    }
+                                }}
+                                className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-emerald-500/20 disabled:opacity-50 flex items-center gap-2 active:scale-95"
+                            >
+                                {isCreatingCompany ? (
+                                    <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                                ) : (
+                                    <span className="material-symbols-outlined text-[18px]">add_business</span>
+                                )}
+                                {isCreatingCompany ? 'Registering...' : 'Register Company'}
+                            </button>
                         </div>
 
                         <div className="flex justify-between items-center mb-6">

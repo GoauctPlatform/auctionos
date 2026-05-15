@@ -194,7 +194,7 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For growing teams</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">US$130</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">$130</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
@@ -236,7 +236,7 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For large scale operations</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">US$350</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">$350</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>

@@ -24,8 +24,8 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
 
     // Determine Base Path depending on User Role
     const currentUser = AuthService.getCurrentUser();
-    const isClient = currentUser?.role === 'client';
-    const basePath = isClient ? '#/client/properties' : '#/admin/properties';
+    const isTeamMember = currentUser && ['client', 'manager', 'agent'].includes(currentUser.role);
+    const basePath = isTeamMember ? '#/client/properties' : '#/admin/properties';
 
     const fetchProperties = async () => {
         setLoading(true);
