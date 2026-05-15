@@ -189,7 +189,7 @@ const PropertyDetails: React.FC = () => {
                     )}
 
                     {property.media_unlocked && (
-                        <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                        <div className="glass-card rounded-xl p-6">
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Unlocked Realtor Media</h3>
                             {property.media_files && property.media_files.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -214,7 +214,7 @@ const PropertyDetails: React.FC = () => {
 
                     <PropertyExtendedTabs property={property} />
 
-                    <div className="bg-white dark:bg-slate-800 rounded-xl p-1 shadow-sm border border-slate-200 dark:border-slate-700 h-[400px] overflow-hidden mt-6">
+                    <div className="glass-card rounded-xl p-1 h-[400px] overflow-hidden mt-6">
                         <PropertyMap property={property} />
                     </div>
                 </div>
@@ -234,7 +234,7 @@ const PropertyDetails: React.FC = () => {
                     />
 
                     {/* Admin Actions */}
-                    <div className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-sm border border-slate-200 dark:border-slate-700">
+                    <div className="glass-card rounded-xl p-6">
                         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Admin Actions</h3>
                         <div className="space-y-3">
                             <button

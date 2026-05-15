@@ -25,7 +25,7 @@ const StatCard: React.FC<{
   bg: string;
   sub?: string;
 }> = ({ label, value, icon, color, bg, sub }) => (
-  <div className={`relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col gap-2 group hover:shadow-md transition-all`}>
+  <div className={`relative overflow-hidden rounded-2xl glass-card p-6 shadow-sm flex flex-col gap-2 group hover:shadow-lg transition-all hover:-translate-y-1 duration-300`}>
     <div className={`absolute -right-4 -top-4 size-20 rounded-full opacity-20 group-hover:opacity-30 transition-opacity ${bg}`} />
     <div className={`flex items-center gap-2 ${color}`}>
       <span className="material-symbols-outlined text-[22px]">{icon}</span>
@@ -43,7 +43,7 @@ const QuickAction: React.FC<{ icon: string; label: string; desc: string; path: s
   return (
     <button
       onClick={() => navigate(path)}
-      className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md transition-all text-left group w-full"
+      className="flex items-center gap-4 p-4 rounded-xl glass-card hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-lg transition-all text-left group w-full hover:-translate-y-1 duration-300"
     >
       <div className={`size-10 rounded-xl flex items-center justify-center shrink-0 ${color}`}>
         <span className="material-symbols-outlined text-[20px]">{icon}</span>

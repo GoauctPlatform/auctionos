@@ -104,7 +104,10 @@ const ClientLayout: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-900 font-display flex flex-col">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-[#0f172a] font-display flex flex-col relative">
+      {/* Dynamic Background Layer */}
+      <div className="fixed inset-0 bg-mesh-gradient pointer-events-none z-0" />
+
       {/* Header Navigation */}
       <header className="bg-white/70 dark:bg-[#1a2634]/70 backdrop-blur-md border-b border-[#e7ecf3] dark:border-slate-700/50 sticky top-0 z-50">
         <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12">
