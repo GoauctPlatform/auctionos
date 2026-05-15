@@ -603,6 +603,7 @@ const ClientLists: React.FC = () => {
     const [favoritesSet, setFavoritesSet] = useState<Set<number>>(new Set());
     const currentUser = AuthService.getCurrentUser();
     const isAgent = currentUser?.role === 'agent';
+    const isTrial = currentUser?.subscription_tier === 'trial';
 
     // Global listener for dynamic property additions
     useEffect(() => {
@@ -1366,7 +1367,7 @@ const ClientLists: React.FC = () => {
                             <div className="mt-2 space-y-0.5">
                                 <div
                                     onClick={() => { 
-                                        if (currentUser?.subscription_tier === 'trial') {
+                                        if (isTrial) {
                                             alert("🚀 My Tasks is a Pro feature! \n\nThis tool allows you to assign field visits and due diligence tasks to realtors. Upgrade to Pro or Enterprise to start building your field team.");
                                             return;
                                         }
@@ -1381,12 +1382,12 @@ const ClientLists: React.FC = () => {
                                     <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_tasks' ? 'text-white' : 'text-blue-500'}`}>task_alt</span>
                                     <div className="flex-1 flex items-center justify-between min-w-0">
                                         <span className="text-sm font-medium truncate">My Tasks</span>
-                                        {currentUser?.subscription_tier === 'trial' && <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>}
+                                        {isTrial && <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>}
                                     </div>
                                 </div>
                                 <div
                                     onClick={() => { 
-                                        if (currentUser?.subscription_tier === 'trial') {
+                                        if (isTrial) {
                                             alert("📤 Property Export is a Pro feature! \n\nThis allows you to export property packets and CSVs to your partners or realtors. Upgrade to Pro or Enterprise to enable data exports.");
                                             return;
                                         }
@@ -1401,7 +1402,7 @@ const ClientLists: React.FC = () => {
                                     <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_exports' ? 'text-white' : 'text-blue-500'}`}>upload</span>
                                     <div className="flex-1 flex items-center justify-between min-w-0">
                                         <span className="text-sm font-medium truncate">My Exports</span>
-                                        {currentUser?.subscription_tier === 'trial' && <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>}
+                                        {isTrial && <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>}
                                     </div>
                                 </div>
                                 <div

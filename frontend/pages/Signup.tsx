@@ -153,7 +153,7 @@ export const Signup: React.FC = () => {
                                             onChange={() => setSelectedRole('agent_due_diligence')}
                                             className="text-orange-600 focus:ring-orange-600"
                                         />
-                                        <span className="text-sm text-slate-700 dark:text-slate-300">Field Agent</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">Due Diligence Agent</span>
                                     </label>
                                 </div>
                             </div>
@@ -230,7 +230,7 @@ export const Signup: React.FC = () => {
                                 <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3 flex gap-2">
                                     <span className="material-symbols-outlined text-orange-600 text-[18px] mt-0.5 shrink-0">info</span>
                                     <p className="text-xs text-orange-800 dark:text-orange-300">
-                                        Your account will be created with <strong>Field Agent role</strong>. You will be able to claim field tasks after completing your profile verification.
+                                        Your account will be created with <strong>Due Diligence Agent role</strong>. You will be able to claim field tasks after completing your profile verification.
                                     </p>
                                 </div>
                             )}
@@ -247,7 +247,7 @@ export const Signup: React.FC = () => {
                                     </>
                                 ) : (
                                     <>
-                                        {isRealtor ? 'Register as Realtor' : isAgent ? 'Register as Agent' : 'Create Investor Account'}
+                                        {isRealtor ? 'Register as Realtor' : isAgent ? 'Register as Due Diligence Agent' : 'Create Investor Account'}
                                         <span className="material-symbols-outlined text-[18px]">person_add</span>
                                     </>
                                 )}

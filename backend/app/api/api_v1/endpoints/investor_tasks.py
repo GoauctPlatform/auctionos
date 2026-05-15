@@ -384,6 +384,9 @@ def export_property(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Investor exports a property so realtors can see it in their listings."""
+    from app.services.permission_service import PermissionService
+    PermissionService.check_feature_access(db, current_user, "exports")
+
     existing = db.execute(
         text("SELECT id FROM property_exports WHERE property_id = :pid AND investor_user_id = :uid AND is_active = TRUE"),
         {"pid": payload.property_id, "uid": current_user.id}

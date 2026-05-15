@@ -13,6 +13,8 @@ class User(Base):
     is_superuser = Column(Boolean(), default=False)
     role = Column(String(50), default="client")   # 'admin', 'client', 'realtor', 'superuser'
     full_name = Column(String(255), nullable=True)
+    reset_token = Column(String(255), nullable=True)
+    reset_token_expires = Column(Integer, nullable=True) # unix timestamp
 
     # ── Billing & Usage ──────────────────────────────────────────────────────
     subscription_tier = Column(String(50), default="trial")  # 'trial', 'pro', 'enterprise'

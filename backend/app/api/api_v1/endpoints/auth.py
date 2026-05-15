@@ -12,8 +12,18 @@ from app.core.oauth import oauth
 from app.models.user import User
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, User as UserSchema
+from pydantic import BaseModel, EmailStr
+from app.core.email import send_email
+import time
 
 router = APIRouter()
+
+class ForgotPasswordPayload(BaseModel):
+    email: EmailStr
+
+class ResetPasswordPayload(BaseModel):
+    token: str
+    new_password: str
 
 
 
@@ -126,6 +136,70 @@ def onboard_user(
         
     db.commit()
     return {"status": "success", "role": role}
+
+@router.post("/forgot-password")
+async def forgot_password(
+    payload: ForgotPasswordPayload,
+    db: Session = Depends(deps.get_db)
+) -> Any:
+    """Generates a reset token and sends an email to the user."""
+    user = db.query(User).filter(User.email == payload.email.strip().lower()).first()
+    if not user:
+        # We return success even if user not found for security (prevent email enumeration)
+        return {"status": "success", "message": "If this email is registered, you will receive a reset link shortly."}
+    
+    # Generate secure token
+    token = secrets.token_urlsafe(32)
+    user.reset_token = token
+    user.reset_token_expires = int(time.time()) + 3600 # 1 hour
+    
+    db.add(user)
+    db.commit()
+    
+    # Send Email
+    reset_link = f"{settings.FRONTEND_URL}/#/reset-password?token={token}"
+    email_body = f"""
+    <html>
+        <body>
+            <h2>Password Reset Request</h2>
+            <p>You requested a password reset for your GoAuct account.</p>
+            <p>Please click the link below to set a new password. This link will expire in 1 hour.</p>
+            <a href="{reset_link}" style="display:inline-block; padding:10px 20px; background-color:#0A84FF; color:white; text-decoration:none; border-radius:5px;">Reset Password</a>
+            <p>If you did not request this, please ignore this email.</p>
+        </body>
+    </html>
+    """
+    await send_email(
+        subject="GoAuct - Password Reset",
+        recipients=[user.email],
+        body=email_body
+    )
+    
+    return {"status": "success", "message": "If this email is registered, you will receive a reset link shortly."}
+
+@router.post("/reset-password")
+def reset_password(
+    payload: ResetPasswordPayload,
+    db: Session = Depends(deps.get_db)
+) -> Any:
+    """Validates the token and updates the user's password."""
+    user = db.query(User).filter(
+        User.reset_token == payload.token,
+        User.reset_token_expires > int(time.time())
+    ).first()
+    
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token.")
+    
+    # Update password
+    user.hashed_password = security.get_password_hash(payload.new_password)
+    user.reset_token = None
+    user.reset_token_expires = None
+    
+    db.add(user)
+    db.commit()
+    
+    return {"status": "success", "message": "Password updated successfully."}
 
 @router.get("/reset-admin-prod")
 def reset_admin_production(secret: str, db: Session = Depends(deps.get_db)):
