@@ -40,10 +40,10 @@ const CompanyFormModal: React.FC<{
     };
 
     return (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-start pt-10 sm:items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
+        <div className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm flex items-start pt-10 sm:items-center justify-center p-4 overflow-y-auto" onClick={onClose}>
             <form
                 onSubmit={handleSubmit}
-                className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+                className="w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden my-auto max-h-[90vh] flex flex-col"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-900 dark:to-blue-950/20 flex justify-between items-center">
@@ -60,7 +60,7 @@ const CompanyFormModal: React.FC<{
                     </button>
                 </div>
 
-                <div className="p-6 space-y-4">
+                <div className="p-6 space-y-4 overflow-y-auto flex-1">
                     <div>
                         <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Company Name *</label>
                         <input
@@ -149,7 +149,7 @@ export const CompanySelector: React.FC<CompanySelectorProps> = ({ compact = fals
                 </button>
 
                 {open && (
-                    <div className="absolute top-full mt-2 left-0 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden">
+                    <div className="absolute top-full mt-2 right-0 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-96">
                         {/* Header */}
                         <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/80 border-b border-slate-100 dark:border-slate-800">
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Active Company</p>
