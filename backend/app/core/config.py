@@ -57,6 +57,9 @@ class Settings(BaseSettings):
     MAIL_STARTTLS: bool = False
     MAIL_SSL_TLS: bool = True
 
+    # Resend API
+    RESEND_API_KEY: Optional[str] = None
+
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
 
 settings = Settings()
