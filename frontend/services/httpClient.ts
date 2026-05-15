@@ -38,7 +38,7 @@ window.fetch = async (...args) => {
         const isApiRequest = url.includes(API_URL) || url.includes('/api/v1');
         const isLoginRequest = url.includes('/auth/login');
 
-        if (isApiRequest && !isLoginRequest && response.status === 401) {
+        if (isApiRequest && !isLoginRequest && (response.status === 401 || response.status === 403)) {
             const publicPages = ['/forgot-password', '/reset-password', '/login', '/signup', '/#/', '/'];
             const isPublicPage = publicPages.some(page => window.location.pathname.includes(page) || window.location.hash.includes(page));
             

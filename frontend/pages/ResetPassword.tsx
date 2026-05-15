@@ -13,6 +13,12 @@ export const ResetPassword: React.FC = () => {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
 
+    React.useEffect(() => {
+        // Clear any stale auth data to prevent redirect loops
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+    }, []);
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         
