@@ -60,6 +60,10 @@ class Settings(BaseSettings):
     # Resend API
     RESEND_API_KEY: Optional[str] = None
 
-    model_config = SettingsConfigDict(case_sensitive=True, env_file=".env")
+    model_config = SettingsConfigDict(
+        case_sensitive=True, 
+        env_file=".env",
+        protected_namespaces=()
+    )
 
 settings = Settings()

@@ -48,9 +48,9 @@ def read_team_users(
 @router.post("/", response_model=UserSchema)
 async def create_user(
     *,
-    db: Session = Depends(deps.get_db),
     user_in: UserCreate,
     background_tasks: BackgroundTasks,
+    db: Session = Depends(deps.get_db),
     current_user: User = Depends(allow_managers),
 ) -> Any:
     email = user_in.email.strip().lower()

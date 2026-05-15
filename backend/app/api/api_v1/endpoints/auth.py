@@ -51,9 +51,9 @@ def login_access_token(
 @router.post("/register", response_model=UserSchema)
 async def register_user(
     *,
-    db: Session = Depends(deps.get_db),
     user_in: UserCreate,
-    background_tasks: BackgroundTasks
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(deps.get_db),
 ) -> Any:
     # Allow public signup for client, realtor, agent_due_diligence roles
     allowed_roles = {"client", "realtor", "agent_due_diligence", "pending"}

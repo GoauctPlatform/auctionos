@@ -212,6 +212,7 @@ def create_checkout_session(
 @router.post("/stripe-webhook")
 async def stripe_webhook(
     request: Request,
+    background_tasks: BackgroundTasks,
     stripe_signature: Optional[str] = Header(None, alias="stripe-signature"),
     db: Session = Depends(deps.get_db),
 ) -> Any:
@@ -287,9 +288,9 @@ async def stripe_webhook(
 
 @router.post("/confirm-payment")
 async def confirm_payment(
+    background_tasks: BackgroundTasks,
     session_id: str = Body(..., embed=True),
     plan: str = Body(..., embed=True),
-    background_tasks: BackgroundTasks,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ) -> Any:
@@ -330,8 +331,8 @@ async def confirm_payment(
 
 @router.post("/mock-webhook")
 async def mock_stripe_webhook_success(
-    plan: str = Body(..., embed=True),
     background_tasks: BackgroundTasks,
+    plan: str = Body(..., embed=True),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ) -> Any:
