@@ -39,10 +39,15 @@ window.fetch = async (...args) => {
         const isLoginRequest = url.includes('/auth/login');
 
         if (isApiRequest && !isLoginRequest && response.status === 401) {
-            console.warn('Authentication token expired or invalid. Redirecting to login.');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            window.location.href = '/#/';
+            const publicPages = ['/forgot-password', '/reset-password', '/login', '/signup', '/#/', '/'];
+            const isPublicPage = publicPages.some(page => window.location.pathname.includes(page) || window.location.hash.includes(page));
+            
+            if (!isPublicPage) {
+                console.warn('Authentication token expired or invalid. Redirecting to login.');
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = '/#/';
+            }
         }
     } catch (e) {
         console.error('Error in fetch interceptor', e);

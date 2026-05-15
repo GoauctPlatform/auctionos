@@ -156,21 +156,59 @@ async def forgot_password(
     db.add(user)
     db.commit()
     
-    # Send Email
+    # Send Professional Email
     reset_link = f"{settings.FRONTEND_URL}/#/reset-password?token={token}"
     email_body = f"""
+    <!DOCTYPE html>
     <html>
-        <body>
-            <h2>Password Reset Request</h2>
-            <p>You requested a password reset for your GoAuct account.</p>
-            <p>Please click the link below to set a new password. This link will expire in 1 hour.</p>
-            <a href="{reset_link}" style="display:inline-block; padding:10px 20px; background-color:#0A84FF; color:white; text-decoration:none; border-radius:5px;">Reset Password</a>
-            <p>If you did not request this, please ignore this email.</p>
-        </body>
+    <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: #f8fafc;">
+        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #f8fafc; padding: 40px 0;">
+            <tr>
+                <td align="center">
+                    <table width="600" border="0" cellspacing="0" cellpadding="0" style="background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);">
+                        <tr>
+                            <td style="background: linear-gradient(135deg, #0A84FF 0%, #12B3B6 100%); padding: 40px; text-align: center;">
+                                <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: -0.5px;">GoAuct</h1>
+                                <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0 0; font-size: 14px;">Real Estate Intelligence OS</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 40px;">
+                                <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 22px; font-weight: 700;">Password Reset Request</h2>
+                                <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 32px 0;">
+                                    We received a request to reset the password for your GoAuct account. Click the button below to choose a new password. This link will remain active for <strong>1 hour</strong>.
+                                </p>
+                                <div style="text-align: center; margin-bottom: 32px;">
+                                    <a href="{reset_link}" style="display: inline-block; background-color: #0A84FF; color: #ffffff; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(10, 132, 255, 0.2);">
+                                        Set New Password
+                                    </a>
+                                </div>
+                                <p style="color: #94a3b8; font-size: 14px; line-height: 20px; margin: 0;">
+                                    If you didn't request this change, you can safely ignore this email. Your password will remain unchanged.
+                                </p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="background-color: #f1f5f9; padding: 24px; text-align: center;">
+                                <p style="color: #94a3b8; font-size: 12px; margin: 0;">
+                                    &copy; 2026 GoAuct Intelligence. All rights reserved.
+                                </p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
     </html>
     """
     await send_email(
-        subject="GoAuct - Password Reset",
+        subject="Reset your GoAuct password",
         recipients=[user.email],
         body=email_body
     )
