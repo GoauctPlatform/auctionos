@@ -208,18 +208,20 @@ async def forgot_password(
     </html>
     """
     try:
-        print(f"Attempting to send reset email to {user.email}")
-        await send_email(
+        print(f"Attempting to send reset email to {user.email} via {settings.MAIL_SERVER}:{settings.MAIL_PORT}")
+        success = await send_email(
             subject="Reset your GoAuct password",
             recipients=[user.email],
             body=email_body
         )
-        print(f"Successfully sent reset email to {user.email}")
+        if success:
+            print(f"Successfully sent reset email to {user.email}")
+        else:
+            print(f"CRITICAL: send_email returned False for {user.email}. Check SMTP logs.")
     except Exception as e:
-        print(f"CRITICAL EMAIL ERROR: Failed to send reset email to {user.email}. Error: {str(e)}")
-        # We still return success to the frontend to avoid email enumeration, 
-        # but we log the error for the admin to see in Railway logs.
+        print(f"CRITICAL EMAIL ERROR: Exception raised while sending to {user.email}. Error: {str(e)}")
     
+    # We still return success to the frontend to avoid email enumeration
     return {"status": "success", "message": "If this email is registered, you will receive a reset link shortly."}
 
 @router.post("/reset-password")
