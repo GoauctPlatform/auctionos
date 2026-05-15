@@ -207,11 +207,18 @@ async def forgot_password(
     </body>
     </html>
     """
-    await send_email(
-        subject="Reset your GoAuct password",
-        recipients=[user.email],
-        body=email_body
-    )
+    try:
+        print(f"Attempting to send reset email to {user.email}")
+        await send_email(
+            subject="Reset your GoAuct password",
+            recipients=[user.email],
+            body=email_body
+        )
+        print(f"Successfully sent reset email to {user.email}")
+    except Exception as e:
+        print(f"CRITICAL EMAIL ERROR: Failed to send reset email to {user.email}. Error: {str(e)}")
+        # We still return success to the frontend to avoid email enumeration, 
+        # but we log the error for the admin to see in Railway logs.
     
     return {"status": "success", "message": "If this email is registered, you will receive a reset link shortly."}
 
