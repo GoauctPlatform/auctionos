@@ -302,13 +302,14 @@ const BillingPage: React.FC = () => {
             <li>Cancellation takes effect at the end of your current billing cycle.</li>
           </ul>
         </div>
-        <a
-          href="/client/support"
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-xl font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors"
+        <button
+          onClick={handleCancelSubscription}
+          disabled={loading || data?.plan_type === 'trial'}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 active:scale-95"
         >
-          <span className="material-symbols-outlined text-[18px]">contact_support</span>
-          Contact Support to Cancel
-        </a>
+          <span className="material-symbols-outlined text-[18px]">cancel</span>
+          Cancel Subscription
+        </button>
       </div>
     </div>
   );
