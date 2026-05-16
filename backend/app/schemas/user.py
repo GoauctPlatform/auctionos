@@ -43,6 +43,7 @@ class User(BaseModel):
     active_company_id: Optional[int] = None
     company_id: Optional[int] = None
     subscription_tier: Optional[str] = "trial"
+    is_verified: bool = False
     property_searches_used: Optional[int] = 0
     linked_company_ids: Optional[List[int]] = []  # All company IDs this user belongs to
 

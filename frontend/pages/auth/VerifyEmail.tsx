@@ -29,7 +29,7 @@ const VerifyEmail: React.FC = () => {
                 const userStr = localStorage.getItem('user');
                 if (userStr) {
                     const user = JSON.parse(userStr);
-                    user.is_verified = True;
+                    user.is_verified = true;
                     localStorage.setItem('user', JSON.stringify(user));
                 }
 
