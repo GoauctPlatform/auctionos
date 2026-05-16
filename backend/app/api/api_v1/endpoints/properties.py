@@ -92,9 +92,6 @@ def read_properties(
     if occupancy:
         where_clauses.append("p.occupancy ILIKE :occupancy")
         params["occupancy"] = f"%{occupancy}%"
-    if tax_statuses:
-        where_clauses.append("LOWER(pah.tax_status) = ANY(:tax_statuses)")
-        params['tax_statuses'] = [s.lower() for s in tax_statuses]
     if tax_year:
         where_clauses.append("p.tax_year = :tax_year")
         params["tax_year"] = tax_year

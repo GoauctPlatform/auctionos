@@ -84,7 +84,8 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
                 available_count: row.live_available_count || 0,
                 register_link: row.register_link,
                 list_link: row.list_link,
-                tax_status: row.tax_status
+                tax_status: row.tax_status,
+                state: row.state
             }
         });
         setViewModalOpen(true);
