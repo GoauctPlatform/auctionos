@@ -44,6 +44,7 @@ import { TrainingPage, CommunityPage, GroupsPage, TaxSystemsPage } from './pages
 import ChangePasswordPage from './pages/client/ChangePasswordPage';
 import ActivityLogsPage from './pages/client/ActivityLogsPage';
 import BillingPage from './pages/client/BillingPage';
+import VerifyEmail from './pages/auth/VerifyEmail';
 import { CompanyProvider } from './context/CompanyContext';
 import RealtorLayout from './pages/realtor/RealtorLayout';
 import RealtorDashboard from './pages/realtor/RealtorDashboard';
@@ -113,6 +114,7 @@ function App() {
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/support" element={<SupportPage />} />
           <Route path="/contact" element={<SupportPage />} />
           <Route path="/about" element={<AboutPage />} />

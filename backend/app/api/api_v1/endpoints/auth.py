@@ -14,7 +14,7 @@ from app.schemas.token import Token
 from app.schemas.user import UserCreate, User as UserSchema
 from pydantic import BaseModel, EmailStr
 from app.core.email import send_email
-from app.core.email_templates import get_welcome_template
+from app.core.email_templates import get_welcome_template, get_verification_email_template
 import time
 
 router = APIRouter()
@@ -72,6 +72,8 @@ async def register_user(
         full_name=user_in.full_name,
         is_superuser=False,         # Never allow self-registration as superuser
         role=requested_role,
+        is_verified=False,
+        verification_token=secrets.token_urlsafe(32),
     )
     db.add(user)
     db.commit()
@@ -87,11 +89,12 @@ async def register_user(
     db.add(onboarding)
     db.commit()
 
-    # Trigger Welcome Email in background
-    email_body = get_welcome_template(user.full_name or user.email)
+    # Trigger Verification Email in background
+    verification_link = f"{settings.FRONTEND_URL}/#/verify-email?token={user.verification_token}"
+    email_body = get_verification_email_template(user.full_name or "there", verification_link)
     background_tasks.add_task(
         send_email,
-        subject="Welcome to GoAuct!",
+        subject="Verify your GoAuct Account",
         recipients=[user.email],
         body=email_body
     )
@@ -258,6 +261,50 @@ def reset_password(
     db.commit()
     
     return {"status": "success", "message": "Password updated successfully."}
+
+
+@router.post("/verify-email")
+def verify_email(
+    token: str = Body(..., embed=True),
+    db: Session = Depends(deps.get_db)
+) -> Any:
+    """Validates the verification token and marks user as verified."""
+    user = db.query(User).filter(User.verification_token == token).first()
+    if not user:
+        raise HTTPException(status_code=400, detail="Invalid or expired verification token.")
+    
+    user.is_verified = True
+    user.verification_token = None
+    db.commit()
+    
+    return {"status": "success", "message": "Email verified successfully! You can now access all features."}
+
+
+@router.post("/resend-verification")
+async def resend_verification(
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """Resends the verification email to the logged-in user."""
+    if current_user.is_verified:
+        return {"status": "success", "message": "Email is already verified."}
+    
+    if not current_user.verification_token:
+        current_user.verification_token = secrets.token_urlsafe(32)
+        db.commit()
+    
+    verification_link = f"{settings.FRONTEND_URL}/#/verify-email?token={current_user.verification_token}"
+    email_body = get_verification_email_template(current_user.full_name or "there", verification_link)
+    
+    background_tasks.add_task(
+        send_email,
+        subject="Verify your GoAuct Account",
+        recipients=[current_user.email],
+        body=email_body
+    )
+    
+    return {"status": "success", "message": "Verification email sent. Please check your inbox."}
 
 @router.get("/reset-admin-prod")
 def reset_admin_production(secret: str, db: Session = Depends(deps.get_db)):

@@ -179,3 +179,22 @@ def get_task_update_template(task_title: str, status: str, updated_by: str) -> s
         </div>
     """
     return get_base_template(content)
+
+
+def get_verification_email_template(name: str, verification_link: str) -> str:
+    content = f"""
+        <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">Verify Your Email</h2>
+        <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 32px 0;">
+            Hi {name},<br><br>
+            Welcome to GoAuct! To start using your account and access our real estate intelligence tools, please verify your email address by clicking the button below.
+        </p>
+        <div style="text-align: center; margin-bottom: 32px;">
+            <a href="{verification_link}" style="display: inline-block; background-color: #0A84FF; color: #ffffff; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(10, 132, 255, 0.2);">
+                Verify Email Address
+            </a>
+        </div>
+        <p style="color: #94a3b8; font-size: 14px; line-height: 20px; margin: 0;">
+            If you didn't create an account with GoAuct, you can safely ignore this email.
+        </p>
+    """
+    return get_base_template(content)

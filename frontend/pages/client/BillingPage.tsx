@@ -94,6 +94,24 @@ const BillingPage: React.FC = () => {
     }
   };
 
+  const handleCancelSubscription = async () => {
+    if (!window.confirm('Are you sure you want to cancel your subscription? You will be downgraded to the Trial plan immediately.')) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await api.post('/billing/cancel-subscription');
+      setSuccessMessage(res.data.message);
+      await fetchUsage();
+    } catch (err: any) {
+      setError(err.response?.data?.detail || 'Failed to cancel subscription. Please contact support.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center min-h-[400px]">
       <div className="flex flex-col items-center gap-3">

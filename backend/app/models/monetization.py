@@ -12,6 +12,10 @@ class UserSubscription(Base):
     start_date = Column(DateTime(timezone=True), server_default=func.now())
     end_date = Column(DateTime(timezone=True), nullable=True) # Trial normally 7 days
     
+    # Stripe Links
+    stripe_customer_id = Column(String(255), nullable=True)
+    stripe_subscription_id = Column(String(255), nullable=True)
+    
     # Usage tracking
     property_views_used = Column(Integer, default=0)
     property_searches_used = Column(Integer, default=0)

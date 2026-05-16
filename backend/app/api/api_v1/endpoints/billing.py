@@ -54,7 +54,14 @@ PLAN_DISPLAY_PRICES = {
 # ─────────────────────────────────────────────────────────────────────────────
 # Helpers
 # ─────────────────────────────────────────────────────────────────────────────
-def _activate_subscription(db: Session, user: User, plan: str, background_tasks: Optional[BackgroundTasks] = None):
+def _activate_subscription(
+    db: Session, 
+    user: User, 
+    plan: str, 
+    background_tasks: Optional[BackgroundTasks] = None,
+    stripe_customer_id: Optional[str] = None,
+    stripe_subscription_id: Optional[str] = None
+):
     """
     Activates or upgrades a user's subscription.
     Single source of truth – called by both the mock and real Stripe webhook flows.
@@ -69,6 +76,10 @@ def _activate_subscription(db: Session, user: User, plan: str, background_tasks:
     sub.start_date = datetime.now(timezone.utc)
     sub.end_date = None
     sub.property_views_used = 0
+    if stripe_customer_id:
+        sub.stripe_customer_id = stripe_customer_id
+    if stripe_subscription_id:
+        sub.stripe_subscription_id = stripe_subscription_id
 
     # Keep User.subscription_tier in sync (source of truth)
     user.subscription_tier = plan
@@ -265,7 +276,14 @@ async def stripe_webhook(
             logger.error(f"Stripe webhook: user {user_id} not found in DB.")
             return {"status": "error", "reason": "User not found"}
 
-        _activate_subscription(db, user, plan, background_tasks)
+        customer_id = session_data.get("customer")
+        subscription_id = session_data.get("subscription")
+
+        _activate_subscription(
+            db, user, plan, background_tasks, 
+            stripe_customer_id=customer_id, 
+            stripe_subscription_id=subscription_id
+        )
         logger.info(f"✅ Stripe webhook: Activated {plan} for user {user.email}")
         return {"status": "success"}
 
@@ -344,6 +362,58 @@ async def mock_stripe_webhook_success(
         raise HTTPException(status_code=400, detail="Invalid plan selected.")
     _activate_subscription(db, current_user, plan, background_tasks)
     return {"status": "success", "message": f"✅ Upgraded to {plan.upper()} (mock)!"}
+
+
+@router.post("/cancel-subscription")
+async def cancel_subscription(
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """
+    Cancels the user's active Stripe subscription.
+    1. Cancels in Stripe (if active).
+    2. Updates DB to 'canceled'.
+    3. Notifies support@goauct.com.
+    """
+    sub = db.query(UserSubscription).filter(UserSubscription.user_id == current_user.id).first()
+    if not sub or sub.plan_type == "trial" or sub.status != "active":
+        raise HTTPException(status_code=400, detail="No active paid subscription found to cancel.")
+
+    # 1. Real Stripe Cancellation
+    if settings.STRIPE_SECRET_KEY and sub.stripe_subscription_id:
+        stripe = get_stripe()
+        try:
+            # Cancel at end of period (default) or immediately
+            # We'll use immediately for simplicity in this flow
+            stripe.Subscription.delete(sub.stripe_subscription_id)
+        except Exception as e:
+            logger.error(f"Stripe subscription deletion failed: {e}")
+            # Continue anyway to update our DB and notify support
+
+    # 2. Update DB
+    sub.status = "canceled"
+    sub.end_date = datetime.now(timezone.utc)
+    current_user.subscription_tier = "trial" # Immediate downgrade
+    db.commit()
+
+    # 3. Notify Support
+    support_email = "support@goauct.com"
+    email_body = f"""
+        <h2>Subscription Cancelled</h2>
+        <p><strong>User:</strong> {current_user.full_name or 'N/A'} ({current_user.email})</p>
+        <p><strong>Plan:</strong> {sub.plan_type.upper()}</p>
+        <p><strong>Date:</strong> {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}</p>
+        <p>The user has requested cancellation and has been downgraded to trial.</p>
+    """
+    background_tasks.add_task(
+        send_email,
+        subject=f"Churn Alert: {current_user.email} cancelled {sub.plan_type.upper()}",
+        recipients=[support_email],
+        body=email_body
+    )
+
+    return {"message": "Subscription cancelled successfully. You have been moved back to the Trial plan."}
 
 
 @router.post("/checkout-task")
