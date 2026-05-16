@@ -134,6 +134,7 @@ export interface Property {
   notes?: string;
   attachments?: any[];
   recommended_next_steps?: any[];
+  auction_type?: string;
 }
 
 // Property Details (nested sub-object and also the single-property API response shape)

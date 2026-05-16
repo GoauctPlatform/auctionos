@@ -22,6 +22,7 @@ class AuctionRepository:
         min_parcels: Optional[int] = None,
         max_parcels: Optional[int] = None,
         q: Optional[str] = None,
+        tax_status: Optional[str] = None,
         tax_statuses: Optional[List[str]] = None,
         sort_by_date: bool = True
     ) -> tuple[List[Any], int]:
@@ -68,9 +69,13 @@ class AuctionRepository:
                 AuctionEvent.state.ilike(search_param),
                 AuctionEvent.notes.ilike(search_param),
                 AuctionEvent.location.ilike(search_param),
-                AuctionEvent.tax_status.ilike(search_param)
             ))
             
+        if tax_status and not tax_statuses:
+            tax_statuses = [tax_status]
+        elif tax_status and tax_statuses:
+            tax_statuses.append(tax_status)
+
         if tax_statuses:
             # Use ILIKE for each status to handle whitespace/formatting variations in production DB
             conditions = [AuctionEvent.tax_status.ilike(f"%{s.strip()}%") for s in tax_statuses if s.strip()]
@@ -129,7 +134,11 @@ class AuctionRepository:
             
         if q:
             where_clauses.append("(name ILIKE :q OR short_name ILIKE :q OR county ILIKE :q OR state ILIKE :q OR location ILIKE :q OR notes ILIKE :q)")
-            params['q'] = f"%{q}%"
+        if tax_status and not tax_statuses:
+            tax_statuses = [tax_status]
+        elif tax_status and tax_statuses:
+            tax_statuses.append(tax_status)
+
         if tax_statuses:
             status_conditions = []
             for i, s in enumerate(tax_statuses):

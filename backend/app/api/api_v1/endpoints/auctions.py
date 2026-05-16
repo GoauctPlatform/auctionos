@@ -21,6 +21,7 @@ def read_auctions(
     min_parcels: Optional[int] = Query(None, description="Mínimo de parcelas (imóveis)"),
     max_parcels: Optional[int] = Query(None, description="Máximo de parcelas (imóveis)"),
     q: Optional[str] = Query(None, description="Busca textual genérica avançada"),
+    tax_status: Optional[str] = Query(None, description="Filtro singular por status de impostos/leilão (compatibilidade)"),
     tax_statuses: Optional[List[str]] = Query(None, description="Filtro por múltiplos status de impostos/leilão"),
     sort_by_date: bool = Query(False, description="Ordernar por auction_date descendente (False) ou ascendente (True)"),
     skip: int = Query(0, ge=0),
@@ -54,6 +55,7 @@ def get_auction_calendar(
     start_date: Optional[date] = Query(None, description="Data inicial"),
     end_date: Optional[date] = Query(None, description="Data final"),
     q: Optional[str] = Query(None, description="Busca textual genérica avançada"),
+    tax_status: Optional[str] = Query(None, description="Filtro singular por status de impostos/leilão"),
     tax_statuses: Optional[List[str]] = Query(None, description="Filtro por múltiplos status de impostos/leilão"),
 ) -> Any:
     return auction_repo.get_calendar_events(
@@ -65,6 +67,7 @@ def get_auction_calendar(
         start_date=start_date,
         end_date=end_date,
         q=q,
+        tax_status=tax_status,
         tax_statuses=tax_statuses
     )
 

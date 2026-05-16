@@ -930,6 +930,7 @@ def get_property(
             p.*,
             pah.auction_name as current_auction_name, 
             pah.auction_date as current_auction_date,
+            ae.tax_status as auction_type,
             COALESCE(pah.info_link, ae.register_link) as auction_info_link,
             COALESCE(pah.list_link, ae.list_link) as auction_list_link
         FROM property_details p

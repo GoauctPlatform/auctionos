@@ -22,12 +22,12 @@ interface AuctionFiltersProps {
 import { useSearchParams } from 'react-router-dom';
 
 const AUCTION_TYPES = [
-    { label: 'Tax Deed', value: 'Tax Deed' },
-    { label: 'Tax Lien', value: 'Tax Lien' },
+    { label: 'Tax Deed', value: 'Deed' },
+    { label: 'Tax Lien', value: 'Lien' },
     { label: 'Foreclosure', value: 'Foreclosure' },
-    { label: 'Tax Sale', value: 'Tax Sale' },
-    { label: 'Over the Counter', value: 'Over the Counter' },
-    { label: 'Sealed Bid', value: 'Sealed Bid' }
+    { label: 'Tax Sale', value: 'Sale' },
+    { label: 'Over the Counter', value: 'OTC' },
+    { label: 'Sealed Bid', value: 'Sealed' }
 ];
 
 const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
@@ -45,7 +45,13 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
         if (searchParams.get('endDate')) initial.endDate = searchParams.get('endDate');
         if (searchParams.get('minParcels')) initial.minParcels = Number(searchParams.get('minParcels'));
         if (searchParams.get('maxParcels')) initial.maxParcels = Number(searchParams.get('maxParcels'));
-        if (searchParams.getAll('tax_statuses').length > 0) initial.tax_statuses = searchParams.getAll('tax_statuses');
+        const statuses = searchParams.getAll('tax_statuses');
+        const singularStatus = searchParams.get('tax_status');
+        if (statuses.length > 0) {
+            initial.tax_statuses = statuses;
+        } else if (singularStatus) {
+            initial.tax_statuses = [singularStatus];
+        }
         return initial;
     });
 
@@ -89,7 +95,9 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
             checkAndSet('maxParcels', maxP ? Number(maxP) : undefined);
             
             const statuses = searchParams.getAll('tax_statuses');
-            checkAndSet('tax_statuses', statuses.length > 0 ? statuses : undefined);
+            const singularStatus = searchParams.get('tax_status');
+            const combinedStatuses = statuses.length > 0 ? statuses : (singularStatus ? [singularStatus] : undefined);
+            checkAndSet('tax_statuses', combinedStatuses);
 
             return changed ? next : prev;
         });
