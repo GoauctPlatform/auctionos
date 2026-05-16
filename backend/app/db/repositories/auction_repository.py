@@ -105,6 +105,7 @@ class AuctionRepository:
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         q: Optional[str] = None,
+        tax_status: Optional[str] = None,
         tax_statuses: Optional[List[str]] = None,
     ) -> List[Any]:
         # Build dynamic WHERE clause
@@ -134,6 +135,7 @@ class AuctionRepository:
             
         if q:
             where_clauses.append("(name ILIKE :q OR short_name ILIKE :q OR county ILIKE :q OR state ILIKE :q OR location ILIKE :q OR notes ILIKE :q)")
+            params['q'] = f"%{q}%"
         if tax_status and not tax_statuses:
             tax_statuses = [tax_status]
         elif tax_status and tax_statuses:
