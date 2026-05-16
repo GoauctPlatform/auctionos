@@ -15,15 +15,15 @@ const ClientAuctions: React.FC = () => {
         const name = searchParams.get('name');
         const startDate = searchParams.get('startDate');
         const endDate = searchParams.get('endDate');
+        const taxStatuses = searchParams.getAll('tax_statuses');
         
-        if (name || startDate || endDate) {
-            setFilters(prev => ({
-                ...prev,
-                name: name || undefined,
-                startDate: startDate || undefined,
-                endDate: endDate || undefined
-            }));
-        }
+        setFilters(prev => ({
+            ...prev,
+            name: name || undefined,
+            startDate: startDate || undefined,
+            endDate: endDate || undefined,
+            tax_statuses: taxStatuses.length > 0 ? taxStatuses : undefined
+        }));
     }, [searchParams]);
 
     const handleDateTypeSelect = (date: string, type: string) => {
@@ -47,22 +47,28 @@ const ClientAuctions: React.FC = () => {
             <Typography variant="h4" className="font-bold text-slate-800 dark:text-white">
                 Live Auctions
             </Typography>
+            
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex items-center gap-3">
+                <span className="material-symbols-outlined text-blue-500">info</span>
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                    <b>Tip:</b> Click on any auction in the calendar or list to view <b>Redemption Intelligence</b> and matched properties.
+                </p>
+            </div>
+
             <AuctionFilters onFilterChange={setFilters} />
             
             <Box className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
                 <AuctionCalendar filters={filters} onDateTypeSelect={handleDateTypeSelect} />
             </Box>
 
-            {hasActiveFilters && (
-                <div className="w-full animate-in fade-in duration-500">
-                    <Typography variant="h6" className="font-bold text-slate-800 dark:text-white mb-4">
-                        Search Results
-                    </Typography>
-                    <Box className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl">
-                        <AuctionList filters={filters} readOnly={true} />
-                    </Box>
-                </div>
-            )}
+            <div className="w-full animate-in fade-in duration-500">
+                <Typography variant="h6" className="font-bold text-slate-800 dark:text-white mb-4">
+                    {hasActiveFilters ? 'Search Results' : 'Upcoming Auctions'}
+                </Typography>
+                <Box className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl">
+                    <AuctionList filters={filters} readOnly={true} />
+                </Box>
+            </div>
         </div>
     );
 };

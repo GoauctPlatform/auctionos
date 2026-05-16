@@ -22,12 +22,12 @@ interface AuctionFiltersProps {
 import { useSearchParams } from 'react-router-dom';
 
 const AUCTION_TYPES = [
-    { label: 'Tax Deed', value: 'deed' },
-    { label: 'Tax Lien', value: 'lien' },
-    { label: 'Foreclosure', value: 'foreclosure' },
-    { label: 'Quit Claim', value: 'quit claim' },
-    { label: 'Sheriff Sale', value: 'sheriff' },
-    { label: 'Federal', value: 'federal' }
+    { label: 'Tax Deed', value: 'Tax Deed' },
+    { label: 'Tax Lien', value: 'Tax Lien' },
+    { label: 'Foreclosure', value: 'Foreclosure' },
+    { label: 'Tax Sale', value: 'Tax Sale' },
+    { label: 'Over the Counter', value: 'Over the Counter' },
+    { label: 'Sealed Bid', value: 'Sealed Bid' }
 ];
 
 const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
@@ -112,7 +112,12 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
     }, [debouncedFilters, onFilterChange, setSearchParams]);
 
     const handleChange = (key: keyof AuctionFilterParams, value: any) => {
-        setFilters(prev => ({ ...prev, [key]: value || undefined }));
+        const nextFilters = { ...filters, [key]: value || undefined };
+        setFilters(nextFilters);
+        // If it's a chip (tax_statuses), we update parent immediately for better responsiveness
+        if (key === 'tax_statuses') {
+            onFilterChange(nextFilters);
+        }
     };
 
     const handleClear = () => {
@@ -198,6 +203,7 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
                 >
                     {showAdvanced ? 'Hide Advanced' : 'Show Advanced'}
                 </Button>
+
 
                 <div className="ml-auto flex gap-2">
                     <Button
