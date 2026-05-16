@@ -4,6 +4,7 @@ import { useCompany } from '../context/CompanyContext';
 import { PropertyDetails as Property } from '../types';
 import { PropertyService } from '../services/property.service';
 import { getStreetViewUrl } from '../utils/maps';
+import api from '../services/api';
 
 import { PropertyBasicInfo } from './property/PropertyBasicInfo';
 import { PropertyPurchaseOptions } from './property/PropertyPurchaseOptions';
@@ -58,6 +59,39 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
             alert(`Property added to Standard List successfully!`);
         } catch (err: any) {
             alert(`Error: ${err.message}`);
+        }
+    };
+
+    const handleUploadAttachment = async (file: File) => {
+        if (!property?.id) return;
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('property_id', property.id.toString());
+            
+            await api.post('/client-data/attachments', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            const updated = await PropertyService.getProperty(property.id.toString());
+            setProperty(updated);
+            if (onUpdate) onUpdate(updated);
+        } catch (error: any) {
+            alert(`Failed to upload file: ${error.response?.data?.detail || error.message}`);
+        }
+    };
+
+    const handleUpdateNotes = async (notes: string) => {
+        if (!property?.id) return;
+        try {
+            await api.post('/client-data/notes', {
+                property_id: property.id,
+                note_text: notes
+            });
+            const updated = await PropertyService.getProperty(property.id.toString());
+            setProperty(updated);
+            if (onUpdate) onUpdate(updated);
+        } catch (error: any) {
+            alert(`Failed to save notes: ${error.response?.data?.detail || error.message}`);
         }
     };
 
@@ -153,7 +187,12 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
                     {/* Sidebar Column */}
                     <div className="space-y-6">
                         <PropertyResearchLinks property={property} />
-                        <PropertyUserActions property={property} onAddToList={handleAddToStandardList} />
+                        <PropertyUserActions 
+                            property={property} 
+                            onAddToList={handleAddToStandardList} 
+                            onUploadAttachment={handleUploadAttachment}
+                            onUpdateNotes={handleUpdateNotes}
+                        />
                     </div>
 
                 </div>

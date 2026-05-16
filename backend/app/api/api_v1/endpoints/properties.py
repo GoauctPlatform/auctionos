@@ -109,7 +109,12 @@ def read_properties(
     if max_improvements is not None:
         where_clauses.append("p.improvement_value <= :max_improvements")
         params["max_improvements"] = max_improvements
-    if availability:
+    # Check if a specific keyword (Parcel ID, Address) is provided to bypass availability
+    ignore_availability = False
+    if keyword and len(keyword.strip()) > 3:
+        ignore_availability = True
+
+    if availability and not ignore_availability:
         # Exact match — ILIKE with % would match 'unavailable' when searching 'available'
         where_clauses.append("LOWER(p.availability_status) = LOWER(:availability)")
         params["availability"] = availability
@@ -984,15 +989,14 @@ def get_property(
             if company_id:
                 notes_query = text("""
                     SELECT note_text FROM client_notes 
-                    WHERE property_id = :prop_id 
-                    AND user_id IN (SELECT id FROM users WHERE active_company_id = :company_id OR company_id = :company_id)
+                    WHERE property_id = :prop_id AND company_id = :company_id
                     ORDER BY id DESC LIMIT 1
                 """)
                 note_row = db.execute(notes_query, {"prop_id": prop_id_int, "company_id": company_id}).fetchone()
             else:
                 notes_query = text("""
                     SELECT note_text FROM client_notes 
-                    WHERE user_id = :user_id AND property_id = :prop_id 
+                    WHERE user_id = :user_id AND property_id = :prop_id AND company_id IS NULL
                     ORDER BY id DESC LIMIT 1
                 """)
                 note_row = db.execute(notes_query, {"user_id": current_user.id, "prop_id": prop_id_int}).fetchone()
@@ -1024,12 +1028,20 @@ def get_property(
                         has_access = True
 
             if has_access:
-                # Fetch Attachments (Realtor submissions or client uploads)
-                att_query = text("""
-                    SELECT filename, file_path FROM client_attachments 
-                    WHERE property_id = :prop_id
-                """)
-                att_rows = db.execute(att_query, {"prop_id": prop_id_int}).fetchall()
+                # Fetch Attachments (Realtor submissions or client uploads - scoped to company)
+                if company_id:
+                    att_query = text("""
+                        SELECT filename, file_path FROM client_attachments 
+                        WHERE property_id = :prop_id AND company_id = :company_id
+                    """)
+                    att_rows = db.execute(att_query, {"prop_id": prop_id_int, "company_id": company_id}).fetchall()
+                else:
+                    att_query = text("""
+                        SELECT filename, file_path FROM client_attachments 
+                        WHERE property_id = :prop_id AND user_id = :user_id AND company_id IS NULL
+                    """)
+                    att_rows = db.execute(att_query, {"prop_id": prop_id_int, "user_id": current_user.id}).fetchall()
+                
                 data["attachments"] = [dict(a._mapping) for a in att_rows]
                 data["media_unlocked"] = True
             else:

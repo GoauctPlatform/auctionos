@@ -71,7 +71,7 @@ const BillingPage: React.FC = () => {
     fetchUsage();
   }, [fetchUsage]);
 
-  const handleUpgrade = async (plan: 'pro' | 'enterprise') => {
+  const handleUpgrade = async (plan: 'advanced' | 'pro' | 'enterprise') => {
     setUpgradeLoading(plan);
     setError(null);
     try {
@@ -124,6 +124,7 @@ const BillingPage: React.FC = () => {
   if (!data) return null;
 
   const isTrial = data.plan_type === 'trial';
+  const isAdvanced = data.plan_type === 'advanced';
   const isPro = data.plan_type === 'pro';
   const isEnterprise = data.plan_type === 'enterprise';
 
@@ -196,6 +197,44 @@ const BillingPage: React.FC = () => {
         {/* Upgrade Cards */}
         <div className="space-y-5">
 
+          {/* Advanced Plan */}
+          <div className={`relative p-6 rounded-2xl border-2 transition-all ${isAdvanced
+            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 shadow-lg shadow-emerald-100 dark:shadow-none'
+            : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+            }`}>
+            {isAdvanced && (
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                CURRENT PLAN
+              </div>
+            )}
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">Advanced</h3>
+                <p className="text-xs text-slate-400 mt-0.5">For active investors</p>
+              </div>
+              <div className="text-right">
+                <span className="text-2xl font-black text-slate-800 dark:text-white">$130</span>
+                <span className="text-sm text-slate-400">/mo</span>
+              </div>
+            </div>
+            <ul className="space-y-2.5 mb-6 text-sm">
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 2,000 property details views</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 1 Company · 0 Managers · 0 Agents</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 50 Custom properties</li>
+            </ul>
+            <button
+              onClick={() => handleUpgrade('advanced')}
+              disabled={isAdvanced || isPro || isEnterprise || upgradeLoading !== null}
+              className="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+            >
+              {upgradeLoading === 'advanced' ? (
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing...</>
+              ) : isAdvanced ? 'Current Plan' : isPro || isEnterprise ? 'Lower Plan' : (
+                <><Lock size={14} /> Subscribe to Advanced</>
+              )}
+            </button>
+          </div>
+
           {/* Pro Plan */}
           <div className={`relative p-6 rounded-2xl border-2 transition-all ${isPro
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20 shadow-lg shadow-blue-100 dark:shadow-none'
@@ -212,13 +251,13 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For growing teams</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$130</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">$350</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 5,000 property details views</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 5 Companies · 2 Managers · 10 Agents</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 2 Companies · 1 Manager · 1 Agent</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 100 Custom properties</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Community access & data exports</li>
             </ul>
@@ -254,7 +293,7 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For large scale operations</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$350</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">$850</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>

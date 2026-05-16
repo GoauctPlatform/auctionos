@@ -129,7 +129,21 @@ const ClientProperties: React.FC = () => {
             
             {hasActiveFilters ? (
                 <div className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl h-[calc(100vh-250px)] flex flex-col">
-                    <PropertyList filters={filters} readOnly={true} />
+                    <PropertyList 
+                        filters={filters} 
+                        readOnly={true} 
+                        onCreateCustom={() => {
+                            if (filters.keyword) {
+                                // Pre-fill the search term as parcel ID or address
+                                setCreateForm(p => ({
+                                    ...p, 
+                                    parcel_id: filters.keyword || '',
+                                    visibility: 'public' // Quick created properties from search should be public by default so Attom can enrich them
+                                }));
+                            }
+                            setCreateModalOpen(true);
+                        }} 
+                    />
                 </div>
             ) : (
                 <div className="w-full h-[400px] bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-slate-500">

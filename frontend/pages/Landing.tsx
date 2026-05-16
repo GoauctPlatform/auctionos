@@ -212,44 +212,56 @@ export const Landing: React.FC = () => {
                         <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto font-medium">Start free. Upgrade when you're ready to scale your operations.</p>
                     </div>
 
-                    <div className="grid md:grid-cols-3 gap-8 items-center">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-center">
                         {/* Trial */}
                         <div className="p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Trial</h3>
-                            <div className="text-4xl font-black text-slate-900 dark:text-white mb-6">$0</div>
-                            <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Trial</h3>
+                            <div className="text-3xl font-black text-slate-900 dark:text-white mb-6">$0</div>
+                            <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-sm">
                                 <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 7 Days Access</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 20 Property Searches</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-rose-500 text-sm">cancel</span> No Live Auctions</li>
                                 <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 1 Custom Property</li>
                             </ul>
-                            <button onClick={() => navigate('/signup')} className="w-full py-3 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">Start Free Trial</button>
+                            <button onClick={() => navigate('/signup')} className="w-full py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">Start Free</button>
+                        </div>
+
+                        {/* Advanced */}
+                        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Advanced</h3>
+                            <div className="text-3xl font-black text-slate-900 dark:text-white mb-1">$60<span className="text-sm font-medium opacity-80">/mo</span></div>
+                            <p className="text-slate-500 text-xs mb-6">Individual investors</p>
+                            <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-sm">
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 2,000 Property Searches</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Live Auctions Access</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Search Automation</li>
+                            </ul>
+                            <button onClick={() => navigate('/signup')} className="w-full py-3 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">Get Advanced</button>
                         </div>
 
                         {/* Pro */}
-                        <div className="p-8 rounded-3xl bg-blue-600 text-white shadow-2xl shadow-blue-500/30 transform md:-translate-y-4 relative">
-                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest shadow-lg">Most Popular</div>
-                            <h3 className="text-2xl font-bold mb-2">Pro Investor</h3>
-                            <div className="text-4xl font-black mb-1">$130<span className="text-lg font-medium opacity-80">/mo</span></div>
-                            <p className="text-blue-200 text-sm mb-6">Billed monthly</p>
-                            <ul className="space-y-4 mb-8">
+                        <div className="p-8 rounded-3xl bg-blue-600 text-white shadow-xl transform lg:-translate-y-4 relative">
+                            <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-lg">Most Popular</div>
+                            <h3 className="text-xl font-bold mb-2">Pro Investor</h3>
+                            <div className="text-3xl font-black mb-1">$130<span className="text-sm font-medium opacity-80">/mo</span></div>
+                            <p className="text-blue-200 text-xs mb-6">Small teams & agents</p>
+                            <ul className="space-y-4 mb-8 text-sm">
                                 <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> 5,000 Property Searches</li>
                                 <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> 100 Custom Properties</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> Add up to 3 Users</li>
                                 <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> Tasks & Exports</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> Community Access</li>
                             </ul>
-                            <button onClick={() => navigate('/signup')} className="w-full py-3 rounded-xl bg-white text-blue-700 font-bold hover:bg-blue-50 transition-all shadow-lg">Get Pro</button>
+                            <button onClick={() => navigate('/signup')} className="w-full py-3 rounded-xl bg-white text-blue-700 font-bold hover:bg-blue-50 transition-all shadow-md">Get Pro</button>
                         </div>
 
                         {/* Enterprise */}
                         <div className="p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-                            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Enterprise</h3>
-                            <div className="text-4xl font-black text-slate-900 dark:text-white mb-1">$350<span className="text-lg font-medium text-slate-500">/mo</span></div>
-                            <p className="text-slate-500 text-sm mb-6">For high-volume teams</p>
-                            <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400">
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Enterprise</h3>
+                            <div className="text-3xl font-black text-slate-900 dark:text-white mb-1">$350<span className="text-sm font-medium text-slate-500">/mo</span></div>
+                            <p className="text-slate-500 text-xs mb-6">For high-volume teams</p>
+                            <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-sm">
                                 <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Searches</li>
                                 <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Properties</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Team Members</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Dedicated Support</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Users</li>
                             </ul>
                             <button onClick={() => navigate('/signup')} className="w-full py-3 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">Contact Sales</button>
                         </div>

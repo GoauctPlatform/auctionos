@@ -27,6 +27,8 @@ class Company(Base):
     # foreign_keys is required because User also has active_company_id → companies.id
     owner = relationship("User", foreign_keys=[user_id], back_populates="companies")
     lists = relationship("ClientList", back_populates="company", cascade="all, delete-orphan")
+    notes = relationship("ClientNote", back_populates="company", cascade="all, delete-orphan")
+    attachments = relationship("ClientAttachment", back_populates="company", cascade="all, delete-orphan")
 
     # Many-to-many: all users (managers/agents) linked to this company
     members = relationship("User", secondary="user_company_links", back_populates="linked_companies")

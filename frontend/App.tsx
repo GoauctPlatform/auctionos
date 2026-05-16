@@ -45,6 +45,7 @@ import ChangePasswordPage from './pages/client/ChangePasswordPage';
 import ActivityLogsPage from './pages/client/ActivityLogsPage';
 import BillingPage from './pages/client/BillingPage';
 import VerifyEmail from './pages/auth/VerifyEmail';
+import TrialLimitPage from './pages/client/TrialLimitPage';
 import { CompanyProvider } from './context/CompanyContext';
 import RealtorLayout from './pages/realtor/RealtorLayout';
 import RealtorDashboard from './pages/realtor/RealtorDashboard';
@@ -172,6 +173,7 @@ function App() {
             <Route path="support" element={<SupportPage standalone={false} />} />
             <Route path="team" element={<ActivityLogsPage />} />
             <Route path="billing" element={<BillingPage />} />
+            <Route path="trial-limit" element={<TrialLimitPage />} />
             <Route path="settings" element={<Settings />} />
           </Route>
 

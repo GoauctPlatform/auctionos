@@ -1,5 +1,5 @@
 from typing import Any, List, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import os
@@ -253,6 +253,7 @@ def create_custom_property(
     *,
     db: Session = Depends(deps.get_db),
     property_in: CustomPropertyCreate,
+    background_tasks: BackgroundTasks,
     current_user = Depends(deps.get_current_active_user)
 ) -> Any:
     """Create a private custom property linked to a client's company and assign it to a list."""
@@ -476,6 +477,10 @@ def create_custom_property(
 
     user_identifier = current_user.full_name or current_user.email
     log_activity(db, current_user.id, "create_property", "PropertyDetails", new_prop.id, {"address": new_prop.address, "list": lst.name}, company_id=getattr(current_user, 'active_company_id', current_user.company_id))
+
+    # ── Trigger Background Enrichment via Attom API ──
+    from app.services.attom_enrichment import enrich_property
+    background_tasks.add_task(enrich_property, db, new_prop.property_id)
 
     return {"id": new_prop.id, "property_id": new_prop.property_id, "list_id": lst.id, "list_name": lst.name}
 
@@ -869,11 +874,18 @@ def get_list_properties(
                 LIMIT 1
             """), {"property_id": p.property_id}).fetchone()
             
-            # Fetch Property Notes
-            note = db.query(ClientNote).filter(
-                ClientNote.property_id == p.id,
-                ClientNote.user_id == current_user.id
-            ).first()
+            # Fetch Property Notes (Company scoped if applicable)
+            target_company = getattr(current_user, 'active_company_id', None) or getattr(current_user, 'company_id', None)
+            if target_company:
+                note = db.query(ClientNote).filter(
+                    ClientNote.property_id == p.id,
+                    ClientNote.company_id == target_company
+                ).first()
+            else:
+                note = db.query(ClientNote).filter(
+                    ClientNote.property_id == p.id,
+                    ClientNote.user_id == current_user.id
+                ).first()
 
             # Calculate days until auction
             days_until_auction = None
@@ -1067,12 +1079,20 @@ def create_client_note(
     note_in: ClientNoteCreate,
     current_user = Depends(deps.get_current_active_user)
 ) -> Any:
-    """Write or update a private note on a property."""
+    """Write or update a shared note on a property."""
+    target_company = getattr(current_user, 'active_company_id', None) or getattr(current_user, 'company_id', None)
+    
     # Check for existing note to perform an 'upsert'
-    existing_note = db.query(ClientNote).filter(
-        ClientNote.user_id == current_user.id,
-        ClientNote.property_id == note_in.property_id
-    ).first()
+    if target_company:
+        existing_note = db.query(ClientNote).filter(
+            ClientNote.company_id == target_company,
+            ClientNote.property_id == note_in.property_id
+        ).first()
+    else:
+        existing_note = db.query(ClientNote).filter(
+            ClientNote.user_id == current_user.id,
+            ClientNote.property_id == note_in.property_id
+        ).first()
     
     if existing_note:
         existing_note.note_text = note_in.note_text
@@ -1081,7 +1101,12 @@ def create_client_note(
         db.refresh(existing_note)
         return existing_note
     
-    note = ClientNote(user_id=current_user.id, property_id=note_in.property_id, note_text=note_in.note_text)
+    note = ClientNote(
+        user_id=current_user.id, 
+        company_id=target_company,
+        property_id=note_in.property_id, 
+        note_text=note_in.note_text
+    )
     db.add(note)
     db.commit()
     db.refresh(note)
@@ -1119,8 +1144,11 @@ async def upload_attachment(
                 raise HTTPException(status_code=400, detail="File too large (Max 10MB)")
             buffer.write(content)
         
+    target_company = getattr(current_user, 'active_company_id', None) or getattr(current_user, 'company_id', None)
+    
     attachment = ClientAttachment(
         user_id=current_user.id,
+        company_id=target_company,
         property_id=property_id,
         filename=file.filename,
         file_path=f"/uploads/{unique_filename}"

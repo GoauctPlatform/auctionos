@@ -37,11 +37,13 @@ class ClientNote(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="SET NULL"), nullable=True, index=True)
     property_id = Column(Integer, ForeignKey("property_details.id"), nullable=False, index=True)
     note_text = Column(String, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", backref="client_notes_rel")
+    company = relationship("Company", back_populates="notes")
     property = relationship("PropertyDetails", backref="client_notes_rel")
 
 class ClientAttachment(Base):
@@ -49,10 +51,12 @@ class ClientAttachment(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    company_id = Column(Integer, ForeignKey("companies.id", ondelete="SET NULL"), nullable=True, index=True)
     property_id = Column(Integer, ForeignKey("property_details.id"), nullable=False, index=True)
     file_path = Column(String(1000), nullable=False)
     filename = Column(String(255), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", backref="client_attachments_rel")
+    company = relationship("Company", back_populates="attachments")
     property = relationship("PropertyDetails", backref="client_attachments_rel")

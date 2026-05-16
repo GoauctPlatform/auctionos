@@ -10,9 +10,10 @@ import { calculateDealScore } from '../../intelligence/scoringEngine';
 interface PropertyListProps {
     filters?: any;
     readOnly?: boolean;
+    onCreateCustom?: () => void;
 }
 
-const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false }) => {
+const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, onCreateCustom }) => {
     const navigate = useNavigate();
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -305,6 +306,32 @@ const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false }
                         '& .MuiDataGrid-cell:focus': {
                             outline: 'none',
                         },
+                    }}
+                    slots={{
+                        noRowsOverlay: () => (
+                            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', p: 2 }}>
+                                <span className="material-symbols-outlined text-5xl text-slate-300 mb-2">search_off</span>
+                                <Typography variant="h6" color="textSecondary">No properties found</Typography>
+                                {filters?.keyword && onCreateCustom && (
+                                    <Box mt={2} textAlign="center">
+                                        <Typography variant="body2" color="textSecondary" mb={2}>
+                                            Couldn't find a match for "<b>{filters.keyword}</b>"
+                                        </Typography>
+                                        <Button 
+                                            variant="contained" 
+                                            color="primary" 
+                                            size="small" 
+                                            onClick={onCreateCustom} 
+                                            className="bg-blue-600 shadow-none hover:bg-blue-700"
+                                            sx={{ borderRadius: 2, textTransform: 'none', px: 3 }}
+                                            startIcon={<span className="material-symbols-outlined text-[18px]">bolt</span>}
+                                        >
+                                            Quick Create Property
+                                        </Button>
+                                    </Box>
+                                )}
+                            </Box>
+                        )
                     }}
                 />
             </Box>

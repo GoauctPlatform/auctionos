@@ -5,11 +5,22 @@ import AuctionFilters, { AuctionFilterParams } from '../../components/admin/Auct
 import { Box, Typography } from '@mui/material';
 import { RedemptionIntelligenceBoard } from '../../components/property/RedemptionIntelligenceBoard';
 
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const ClientAuctions: React.FC = () => {
     const [filters, setFilters] = useState<AuctionFilterParams>({});
     const [searchParams, setSearchParams] = useSearchParams();
+
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
+    // Trial Plan access barrier
+    React.useEffect(() => {
+        if (user?.subscription_tier === 'trial') {
+            navigate('/client/trial-limit', { replace: true });
+        }
+    }, [user, navigate]);
 
     // Deep-linking: Initialize filters from URL query parameters
     React.useEffect(() => {

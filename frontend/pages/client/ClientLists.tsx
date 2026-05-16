@@ -1489,7 +1489,10 @@ const ClientLists: React.FC = () => {
                         const silhouetteUrl = `https://static.simplemaps.com/resources/svg-library/us/${stateCode.toLowerCase()}.svg`;
 
                         // Aggregate auction links from all properties in the selected folder
-                        const auctionLinks = selectedListProperties.reduce((acc: any[], p: any) => {
+                        const filteredForLinks = selectedCountyName 
+                            ? selectedListProperties.filter(p => (p.county || '').trim().toLowerCase() === selectedCountyName.trim().toLowerCase())
+                            : selectedListProperties;
+                        const auctionLinks = filteredForLinks.reduce((acc: any[], p: any) => {
                             if (p.auction_info_link || p.auction_list_link) {
                                 // Unique key by links
                                 const key = `${p.auction_info_link}-${p.auction_list_link}`;

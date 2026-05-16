@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { AdminService } from '../services/admin.service';
 import { API_BASE_URL } from '../services/httpClient';
+import api from '../services/api';
 import { ChevronLeft, PencilLine, RotateCcw } from 'lucide-react';
 
 import { PropertyBasicInfo } from '../components/property/PropertyBasicInfo';
@@ -231,6 +232,21 @@ const PropertyDetails: React.FC = () => {
                         onUpdateNotes={async (notes) => {
                             if (property.parcel_id) {
                                 await PropertyService.updatePropertyNotes(property.parcel_id, notes);
+                            }
+                        }}
+                        onUploadAttachment={async (file: File) => {
+                            try {
+                                const formData = new FormData();
+                                formData.append('file', file);
+                                formData.append('property_id', property.id.toString());
+                                
+                                await api.post('/client-data/attachments', formData, {
+                                    headers: { 'Content-Type': 'multipart/form-data' }
+                                });
+                                const updated = await AdminService.getProperty(property.id.toString());
+                                setProperty(updated);
+                            } catch (error: any) {
+                                alert(`Failed to upload file: ${error.response?.data?.detail || error.message}`);
                             }
                         }}
                     />

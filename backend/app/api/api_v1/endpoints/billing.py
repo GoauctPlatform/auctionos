@@ -41,13 +41,15 @@ def get_stripe():
 # and STRIPE_ENTERPRISE_PRICE_ID environment variables.
 # ─────────────────────────────────────────────────────────────────────────────
 PLAN_PRICES_BRL_CENTS = {
+    "advanced": 51,      # R$0.51
     "pro": 51,           # R$0.51 (Minimum for Stripe is 0.50)
-    "enterprise": 52,    # R$0.52
+    "enterprise": 51,    # R$0.51
 }
 
 PLAN_DISPLAY_PRICES = {
-    "pro": "R$130/mês",
-    "enterprise": "R$350/mês",
+    "advanced": "R$130/mês",
+    "pro": "R$350/mês",
+    "enterprise": "R$850/mês",
 }
 
 
@@ -143,7 +145,7 @@ def create_checkout_session(
     Returns the hosted checkout URL to redirect the user.
     Falls back to mock flow if Stripe is not configured.
     """
-    if plan not in ["pro", "enterprise"]:
+    if plan not in ["advanced", "pro", "enterprise"]:
         raise HTTPException(status_code=400, detail="Invalid plan selected.")
 
     if current_user.role != "client":
@@ -317,7 +319,7 @@ async def confirm_payment(
     Verifies the session and activates the subscription if not already done by webhook.
     This is a safety net in case the webhook fires late.
     """
-    if plan not in ["pro", "enterprise"]:
+    if plan not in ["advanced", "pro", "enterprise"]:
         raise HTTPException(status_code=400, detail="Invalid plan.")
 
     if settings.STRIPE_SECRET_KEY and session_id:
@@ -358,7 +360,7 @@ async def mock_stripe_webhook_success(
     DEVELOPMENT ONLY – Simulates a successful Stripe payment without going through checkout.
     Used for local testing. Safe to keep in production (only activates authenticated user's plan).
     """
-    if plan not in ["pro", "enterprise"]:
+    if plan not in ["advanced", "pro", "enterprise"]:
         raise HTTPException(status_code=400, detail="Invalid plan selected.")
     _activate_subscription(db, current_user, plan, background_tasks)
     return {"status": "success", "message": f"✅ Upgraded to {plan.upper()} (mock)!"}
