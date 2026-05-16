@@ -17,7 +17,7 @@ import { PropertyBasicInfo } from '../../components/property/PropertyBasicInfo';
 import { PropertyStructureCard } from '../../components/property/PropertyStructureCard';
 import { PropertyEstimatesComps } from '../../components/property/PropertyEstimatesComps';
 import { PropertyPurchaseOptions } from '../../components/property/PropertyPurchaseOptions';
-import { RedemptionDisclaimerCard } from '../../components/property/RedemptionDisclaimerCard';
+import { PropertyRedemptionCard } from '../../components/property/PropertyRedemptionCard';
 import { PropertyMap } from '../../components/property/PropertyMap';
 import { PropertyResearchLinks } from '../../components/property/PropertyResearchLinks';
 import { PropertyNextSteps } from '../../components/property/PropertyNextSteps';
@@ -408,7 +408,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         />
                     </div>
 
-                    <RedemptionDisclaimerCard state={property.state} auctionType={property.auction_type} />
+                    <PropertyRedemptionCard stateCode={property.state} auctionType={property.auction_type} />
 
                     <PropertyMap property={property} />
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Info, CheckCircle, TrendingUp, Shield, Map, AlertTriangle } from 'lucide-react';
+import { X, Info, CircleCheck as CheckCircle, TrendingUp, Shield, Map, TriangleAlert as AlertTriangle } from 'lucide-react';
 
 interface Props {
     isOpen: boolean;

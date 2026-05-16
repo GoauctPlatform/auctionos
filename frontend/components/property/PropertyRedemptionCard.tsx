@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { Clock, Info, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Clock, Info, Shield, CircleAlert as AlertIcon } from 'lucide-react';
 
 interface RedemptionData {
     state: string;
@@ -59,7 +59,7 @@ export const PropertyRedemptionCard: React.FC<Props> = ({ stateCode, auctionType
 
             <div className="space-y-3">
                 <div className="flex gap-3 text-sm">
-                    <ShieldCheck size={18} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                    <Shield size={18} className="text-emerald-500 flex-shrink-0 mt-0.5" />
                     <div>
                         <p className="font-bold text-slate-700 dark:text-slate-200">{rule.state} {rule.type} Law</p>
                         <p className="text-xs text-slate-500 leading-relaxed">

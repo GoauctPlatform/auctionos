@@ -16,8 +16,10 @@ export const AuctionService = {
         if (filters.limit !== undefined) queryParams.append('limit', String(filters.limit));
         if (filters.sortBy) queryParams.append('sort_by', filters.sortBy);
         if (filters.order) queryParams.append('order', filters.order);
-        if (filters.q) queryParams.append('q', filters.q);
-        if (filters.tax_status) queryParams.append('tax_status', filters.tax_status);
+        if (filters.tax_status) queryParams.append('tax_statuses', filters.tax_status);
+        if (filters.tax_statuses && Array.isArray(filters.tax_statuses)) {
+            filters.tax_statuses.forEach((s: string) => queryParams.append('tax_statuses', s));
+        }
 
         const response = await fetch(`${API_URL}/auctions/?${queryParams.toString()}`, {
             headers: getHeaders()
@@ -72,7 +74,10 @@ export const AuctionService = {
         if (filters.startDate) queryParams.append('start_date', filters.startDate);
         if (filters.endDate) queryParams.append('end_date', filters.endDate);
         if (filters.q) queryParams.append('q', filters.q);
-        if (filters.tax_status) queryParams.append('tax_status', filters.tax_status);
+        if (filters.tax_status) queryParams.append('tax_statuses', filters.tax_status);
+        if (filters.tax_statuses && Array.isArray(filters.tax_statuses)) {
+            filters.tax_statuses.forEach((s: string) => queryParams.append('tax_statuses', s));
+        }
 
         const response = await fetch(`${API_URL}/auctions/calendar?${queryParams.toString()}`, {
             headers: getHeaders()

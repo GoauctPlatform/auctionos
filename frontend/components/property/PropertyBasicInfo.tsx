@@ -1,7 +1,8 @@
+import React, { useState } from 'react';
 import { Property } from '../../types';
 import { calculateDealScore, DealScoreResult } from '../../intelligence/scoringEngine';
 import { PropertyScoreModal } from './PropertyScoreModal';
-import { HelpCircle } from 'lucide-react';
+import { CircleHelp as HelpCircle } from 'lucide-react';
 
 interface Props {
     property: Property;
@@ -11,7 +12,7 @@ interface Props {
 }
 
 export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials, onOpenMetadata, dealScore: passedScore }) => {
-    const [isScoreModalOpen, setIsScoreModalOpen] = React.useState(false);
+    const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
     
     // Fallback to local calculation if no score passed or persisted yet
     const displayScore = passedScore || calculateDealScore(property);

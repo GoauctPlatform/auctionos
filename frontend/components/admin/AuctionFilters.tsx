@@ -59,7 +59,13 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
             const next = { ...prev };
             
             const checkAndSet = (key: keyof AuctionFilterParams, val: any) => {
-                if (next[key] !== val) {
+                const isArray = Array.isArray(val);
+                const currentVal = next[key];
+                const isMatch = isArray 
+                    ? JSON.stringify(currentVal) === JSON.stringify(val)
+                    : currentVal === val;
+
+                if (!isMatch) {
                     next[key] = val;
                     changed = true;
                 }
