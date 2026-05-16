@@ -8,7 +8,10 @@ import { countyService } from '../../services/county.service';
 import { StatesService, StateContact } from '../../services/states.service';
 import { Autocomplete } from '@mui/material';
 
+import { useAuth } from '../../context/AuthContext';
+
 const ClientProperties: React.FC = () => {
+    const { user } = useAuth();
     const [searchParams] = useSearchParams();
     const [filters, setFilters] = useState<PropertyFilterParams>(() => {
         try {
@@ -111,9 +114,15 @@ const ClientProperties: React.FC = () => {
                 </Typography>
                 <Button 
                     variant="contained" 
-                    color="primary" 
-                    className="bg-blue-600 rounded-lg shadow-none"
-                    onClick={() => setCreateModalOpen(true)}
+                    color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
+                    className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-600'} rounded-lg shadow-none`}
+                    onClick={() => {
+                        if (user?.subscription_tier === 'trial') {
+                            alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
+                            return;
+                        }
+                        setCreateModalOpen(true);
+                    }}
                     startIcon={<span className="material-symbols-outlined text-[18px]">add</span>}
                 >
                     Create Custom Property
@@ -133,6 +142,10 @@ const ClientProperties: React.FC = () => {
                         filters={filters} 
                         readOnly={true} 
                         onCreateCustom={() => {
+                            if (user?.subscription_tier === 'trial') {
+                                alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
+                                return;
+                            }
                             if (filters.keyword) {
                                 // Pre-fill the search term as parcel ID or address
                                 setCreateForm(p => ({

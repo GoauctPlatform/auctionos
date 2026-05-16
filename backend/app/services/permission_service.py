@@ -23,17 +23,17 @@ PLAN_LIMITS = {
         "companies": 1,
         "managers": 0,
         "agents": 0,
-        "custom_properties": 50,
-        "community": False,
-        "tasks": False,
-        "exports": False
+        "custom_properties": float('inf'),
+        "community": True,
+        "tasks": True,
+        "exports": True
     },
     "pro": {
         "views": 5000,
         "companies": 2,
         "managers": 1,
         "agents": 1,
-        "custom_properties": 100,
+        "custom_properties": float('inf'),
         "community": True,
         "tasks": True,
         "exports": True

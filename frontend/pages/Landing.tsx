@@ -214,26 +214,33 @@ export const Landing: React.FC = () => {
 
                     <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-center">
                         {/* Trial */}
-                        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Trial</h3>
                             <div className="text-3xl font-black text-slate-900 dark:text-white mb-6">$0</div>
                             <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-sm">
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 7 Days Access</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 7-Day Free Access</li>
                                 <li className="flex items-center gap-2"><span className="material-symbols-outlined text-rose-500 text-sm">cancel</span> No Live Auctions</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 1 Custom Property</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-rose-500 text-sm">cancel</span> No Custom Properties</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-rose-500 text-sm">cancel</span> Individual only (No Team Members)</li>
                             </ul>
                             <button onClick={() => navigate('/signup')} className="w-full py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">Start Free</button>
                         </div>
 
                         {/* Advanced */}
-                        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div className="p-8 rounded-3xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm relative overflow-hidden">
+                            <div className="absolute -top-1 -right-8 transform rotate-45 bg-amber-500 text-white text-[8px] font-black py-1 px-8 text-center shadow-sm">
+                                PROMO
+                            </div>
                             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Advanced</h3>
-                            <div className="text-3xl font-black text-slate-900 dark:text-white mb-1">$60<span className="text-sm font-medium opacity-80">/mo</span></div>
-                            <p className="text-slate-500 text-xs mb-6">Individual investors</p>
+                            <div className="text-3xl font-black text-slate-900 dark:text-white mb-1">
+                                <span className="text-sm line-through text-slate-400 mr-2 font-normal">$90</span>$60<span className="text-sm font-medium opacity-80">/mo</span>
+                            </div>
+                            <p className="text-slate-500 text-xs mb-6">Individual Power Plan</p>
                             <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-sm">
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 2,000 Property Searches</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Live Auctions Access</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Search Automation</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 2,000 Property Detail Views</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Custom Properties</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Live Auctions & Calendar</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Tasks & Data Exports</li>
                             </ul>
                             <button onClick={() => navigate('/signup')} className="w-full py-3 rounded-xl border-2 border-blue-600 text-blue-600 font-bold hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">Get Advanced</button>
                         </div>
@@ -241,14 +248,14 @@ export const Landing: React.FC = () => {
                         {/* Pro */}
                         <div className="p-8 rounded-3xl bg-blue-600 text-white shadow-xl transform lg:-translate-y-4 relative">
                             <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-amber-400 to-orange-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-lg">Most Popular</div>
-                            <h3 className="text-xl font-bold mb-2">Pro Investor</h3>
+                            <h3 className="text-xl font-bold mb-2">Pro</h3>
                             <div className="text-3xl font-black mb-1">$130<span className="text-sm font-medium opacity-80">/mo</span></div>
-                            <p className="text-blue-200 text-xs mb-6">Small teams & agents</p>
+                            <p className="text-blue-200 text-xs mb-6">For growing teams</p>
                             <ul className="space-y-4 mb-8 text-sm">
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> 5,000 Property Searches</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> 100 Custom Properties</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> Add up to 3 Users</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> Tasks & Exports</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> 5,000 Property Detail Views</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> 2 Companies · 1 Manager · 1 Agent</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> Unlimited Custom Properties</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> Community, Tasks & Exports</li>
                             </ul>
                             <button onClick={() => navigate('/signup')} className="w-full py-3 rounded-xl bg-white text-blue-700 font-bold hover:bg-blue-50 transition-all shadow-md">Get Pro</button>
                         </div>
@@ -259,9 +266,10 @@ export const Landing: React.FC = () => {
                             <div className="text-3xl font-black text-slate-900 dark:text-white mb-1">$350<span className="text-sm font-medium text-slate-500">/mo</span></div>
                             <p className="text-slate-500 text-xs mb-6">For high-volume teams</p>
                             <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-sm">
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Searches</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Properties</li>
-                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Users</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Property Views</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 4 Companies · 2 Managers · 3 Agents</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Custom Properties</li>
+                                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Priority 24/7 Support</li>
                             </ul>
                             <button onClick={() => navigate('/signup')} className="w-full py-3 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-700 transition-all">Contact Sales</button>
                         </div>

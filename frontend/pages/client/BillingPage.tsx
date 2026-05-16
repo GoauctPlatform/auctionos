@@ -207,20 +207,25 @@ const BillingPage: React.FC = () => {
                 CURRENT PLAN
               </div>
             )}
+            <div className="absolute -top-3 right-4 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+              PROMO: SAVE 33%
+            </div>
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">Advanced</h3>
-                <p className="text-xs text-slate-400 mt-0.5">For active investors</p>
+                <p className="text-xs text-slate-400 mt-0.5">Individual Power Plan</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$130</span>
+                <div className="text-xs text-slate-400 line-through">$90</div>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">$60</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 2,000 property details views</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 1 Company · 0 Managers · 0 Agents</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 50 Custom properties</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties (Public/Private)</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Calendar, Auctions, Tasks & Exports</li>
             </ul>
             <button
               onClick={() => handleUpgrade('advanced')}
@@ -251,15 +256,15 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For growing teams</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$350</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">$130</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 5,000 property details views</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 2 Companies · 1 Manager · 1 Agent</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 100 Custom properties</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Community access & data exports</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties (Public/Private)</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Community access, due diligence & exports</li>
             </ul>
             <button
               onClick={() => handleUpgrade('pro')}
@@ -293,15 +298,15 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For large scale operations</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$850</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">$350</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited property views</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited team members</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Priority exclusive support</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 4 Companies · 2 Managers · 3 Agents</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties (Public/Private)</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Priority exclusive 24/7 support</li>
             </ul>
             <button
               onClick={() => handleUpgrade('enterprise')}

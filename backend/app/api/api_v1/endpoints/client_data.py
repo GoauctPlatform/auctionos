@@ -264,6 +264,15 @@ def create_custom_property(
     if property_in.visibility == "private" and not current_user.active_company_id:
         raise HTTPException(status_code=400, detail="User must belong to a company to create private custom properties.")
 
+    # Prevent Trial users from creating custom properties (public or private)
+    from app.services.permission_service import PermissionService
+    parent_sub = PermissionService.get_parent_subscription(db, current_user)
+    if parent_sub.plan_type == "trial":
+        raise HTTPException(
+            status_code=403,
+            detail="Trial plan users are not allowed to create properties manually. Please upgrade to a paid plan."
+        )
+
     # Format the fallback address based on fields if address not fully provided
     full_address = property_in.address or ""
     if property_in.city and property_in.state:

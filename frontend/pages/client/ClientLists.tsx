@@ -1488,9 +1488,17 @@ const ClientLists: React.FC = () => {
                         const stateCode = STATE_CODE_MAP[selectedStateName] || 'FL'; // Default to FL fallback if missing
                         const silhouetteUrl = `https://static.simplemaps.com/resources/svg-library/us/${stateCode.toLowerCase()}.svg`;
 
+                        // Helper to match county name robustly (ignoring case, spaces, and the "County" suffix)
+                        const normalizedMatch = (c1: string, c2: string) => {
+                            if (!c1 || !c2) return false;
+                            const n1 = c1.trim().toLowerCase().replace(/[\s\-_]+county$/i, '').replace(/[^a-z0-9]/g, '');
+                            const n2 = c2.trim().toLowerCase().replace(/[\s\-_]+county$/i, '').replace(/[^a-z0-9]/g, '');
+                            return n1 === n2 || n1.includes(n2) || n2.includes(n1);
+                        };
+
                         // Aggregate auction links from all properties in the selected folder
                         const filteredForLinks = selectedCountyName 
-                            ? selectedListProperties.filter(p => (p.county || '').trim().toLowerCase() === selectedCountyName.trim().toLowerCase())
+                            ? selectedListProperties.filter(p => normalizedMatch(p.county, selectedCountyName))
                             : selectedListProperties;
                         const auctionLinks = filteredForLinks.reduce((acc: any[], p: any) => {
                             if (p.auction_info_link || p.auction_list_link) {
@@ -1658,7 +1666,7 @@ const ClientLists: React.FC = () => {
                     ) : (() => {
                         // Filter by county if a subfolder is selected
                         const displayProperties = [...(selectedStateName && selectedCountyName
-                            ? selectedListProperties.filter(p => (p.county || '').trim().toLowerCase() === selectedCountyName.trim().toLowerCase())
+                            ? selectedListProperties.filter(p => normalizedMatch(p.county, selectedCountyName))
                             : selectedListProperties)]
                             .sort((a, b) => {
                                 const isAFav = favoritesSet.has(a.id);
