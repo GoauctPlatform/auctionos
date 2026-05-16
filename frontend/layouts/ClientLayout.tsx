@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import { AuthService } from '../services/auth.service';
@@ -24,14 +25,27 @@ const ClientLayout: React.FC = () => {
        const hasUpcoming = lists.filter((l: any) => l.has_upcoming_auction).reduce((acc: number, curr: any) => acc + (curr.upcoming_auctions_count || 0), 0);
        setUpcomingAuctions(hasUpcoming);
     }).catch(() => {});
+
+    // REFRESH VERIFICATION STATUS: 
+    // If the local user object says unverified, check the backend one last time.
+    // This solves the issue where existing users have a stale "is_verified: false" in localStorage.
+    if (user && !user.is_verified) {
+      AuthService.getMe().then(updatedUser => {
+        if (updatedUser.is_verified) {
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+          // Small delay then reload to clear the verification overlay
+          setTimeout(() => window.location.reload(), 500);
+        }
+      }).catch(() => {});
+    }
   }, []);
 
-  const user = AuthService.getCurrentUser();
+  const { user, logout: authLogout } = useAuth();
   const userDisplayName = user?.email ? user.email.split('@')[0] : 'Client';
   const userInitial = userDisplayName.charAt(0).toUpperCase();
 
   const handleLogout = () => {
-    AuthService.logout();
+    authLogout();
     navigate('/login');
   };
 

@@ -23,6 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const userProfile = await AuthService.getMe();
                 if (userProfile) {
                     setUser(userProfile);
+                    localStorage.setItem('user', JSON.stringify(userProfile));
                 }
             } catch (error) {
                 console.error("Failed to load user profile:", error);
