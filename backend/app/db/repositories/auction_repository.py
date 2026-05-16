@@ -22,7 +22,7 @@ class AuctionRepository:
         min_parcels: Optional[int] = None,
         max_parcels: Optional[int] = None,
         q: Optional[str] = None,
-        tax_status: Optional[str] = None,
+        tax_statuses: Optional[List[str]] = None,
         sort_by_date: bool = True
     ) -> tuple[List[Any], int]:
         query = db.query(AuctionEvent)
@@ -71,8 +71,8 @@ class AuctionRepository:
                 AuctionEvent.tax_status.ilike(search_param)
             ))
             
-        if tax_status:
-            query = query.filter(AuctionEvent.tax_status.ilike(f"%{tax_status}%"))
+        if tax_statuses:
+            query = query.filter(AuctionEvent.tax_status.in_(tax_statuses))
 
         if sort_by_date:
             query = query.order_by(asc(AuctionEvent.auction_date))
@@ -97,7 +97,7 @@ class AuctionRepository:
         start_date: Optional[date] = None,
         end_date: Optional[date] = None,
         q: Optional[str] = None,
-        tax_status: Optional[str] = None,
+        tax_statuses: Optional[List[str]] = None,
     ) -> List[Any]:
         # Build dynamic WHERE clause
         where_clauses = []
@@ -127,9 +127,9 @@ class AuctionRepository:
         if q:
             where_clauses.append("(name ILIKE :q OR short_name ILIKE :q OR county ILIKE :q OR state ILIKE :q OR location ILIKE :q OR notes ILIKE :q)")
             params['q'] = f"%{q}%"
-        if tax_status:
-            where_clauses.append("tax_status ILIKE :tax_status")
-            params['tax_status'] = f"%{tax_status}%"
+        if tax_statuses:
+            where_clauses.append("tax_status = ANY(:tax_statuses)")
+            params['tax_statuses'] = tax_statuses
 
         where_sql = ""
         if where_clauses:

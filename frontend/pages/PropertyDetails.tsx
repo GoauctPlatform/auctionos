@@ -15,6 +15,7 @@ import { PropertyOverridePanel } from '../components/property/PropertyOverridePa
 import { PropertyMap } from '../components/property/PropertyMap';
 import { PropertyExtendedTabs } from '../components/property/PropertyExtendedTabs';
 import { PropertyOwnerCard } from '../components/property/PropertyOwnerCard';
+import { PropertyRedemptionCard } from '../components/property/PropertyRedemptionCard';
 
 import { PropertyService, ClientDataService } from '../services/property.service';
 import { useCompany } from '../context/CompanyContext';
@@ -222,6 +223,7 @@ const PropertyDetails: React.FC = () => {
                 {/* Sidebar Column (Right) */}
                 <div className="space-y-6">
                     <PropertyOwnerCard property={property} />
+                    <PropertyRedemptionCard stateCode={property.state} auctionType={property.property_category || property.details?.property_category} />
                     <PropertyResearchLinks property={property} />
                     <PropertyUserActions 
                         property={property} 

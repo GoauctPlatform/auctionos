@@ -12,7 +12,7 @@ export interface AuctionFilterParams {
     endDate?: string;
     minParcels?: number;
     maxParcels?: number;
-    tax_status?: string;
+    tax_statuses?: string[];
 }
 
 interface AuctionFiltersProps {
@@ -45,7 +45,7 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
         if (searchParams.get('endDate')) initial.endDate = searchParams.get('endDate');
         if (searchParams.get('minParcels')) initial.minParcels = Number(searchParams.get('minParcels'));
         if (searchParams.get('maxParcels')) initial.maxParcels = Number(searchParams.get('maxParcels'));
-        if (searchParams.get('tax_status')) initial.tax_status = searchParams.get('tax_status');
+        if (searchParams.getAll('tax_statuses').length > 0) initial.tax_statuses = searchParams.getAll('tax_statuses');
         return initial;
     });
 
@@ -82,7 +82,8 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
             const maxP = searchParams.get('maxParcels');
             checkAndSet('maxParcels', maxP ? Number(maxP) : undefined);
             
-            checkAndSet('tax_status', searchParams.get('tax_status') || undefined);
+            const statuses = searchParams.getAll('tax_statuses');
+            checkAndSet('tax_statuses', statuses.length > 0 ? statuses : undefined);
 
             return changed ? next : prev;
         });
@@ -90,10 +91,14 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
 
     // Sync state TO URL and emit parent callback
     useEffect(() => {
-        const cleanParams: any = {};
+        const cleanParams = new URLSearchParams();
         Object.entries(debouncedFilters).forEach(([key, value]) => {
             if (value !== undefined && value !== '') {
-                cleanParams[key] = String(value);
+                if (key === 'tax_statuses' && Array.isArray(value)) {
+                    value.forEach(v => cleanParams.append('tax_statuses', v));
+                } else {
+                    cleanParams.set(key, String(value));
+                }
             }
         });
         setSearchParams(cleanParams, { replace: true });
@@ -115,28 +120,37 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
                 {/* Auction Types Chip Selector */}
                 <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
                     <button
-                        onClick={() => handleChange('tax_status', undefined)}
-                        className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                            !filters.tax_status
-                                ? 'bg-primary text-white shadow-sm'
-                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-700'
+                        onClick={() => handleChange('tax_statuses', undefined)}
+                        className={`px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap transition-colors border ${
+                            !filters.tax_statuses || filters.tax_statuses.length === 0
+                                ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
                         }`}
                     >
                         All Types
                     </button>
-                    {AUCTION_TYPES.map(type => (
-                        <button
-                            key={type.value}
-                            onClick={() => handleChange('tax_status', type.value)}
-                            className={`px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                                filters.tax_status === type.value
-                                    ? 'bg-primary text-white shadow-sm'
-                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:bg-slate-700'
-                            }`}
-                        >
-                            {type.label}
-                        </button>
-                    ))}
+                    {AUCTION_TYPES.map(type => {
+                        const isSelected = filters.tax_statuses?.includes(type.value);
+                        return (
+                            <button
+                                key={type.value}
+                                onClick={() => {
+                                    const current = filters.tax_statuses || [];
+                                    const next = isSelected 
+                                        ? current.filter(v => v !== type.value)
+                                        : [...current, type.value];
+                                    handleChange('tax_statuses', next.length > 0 ? next : undefined);
+                                }}
+                                className={`px-4 py-1.5 rounded-full text-sm font-bold whitespace-nowrap transition-colors border ${
+                                    isSelected
+                                        ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                                        : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700'
+                                }`}
+                            >
+                                {type.label}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 <div className="flex flex-wrap gap-4 items-center">

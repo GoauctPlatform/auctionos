@@ -9,6 +9,7 @@ from app.schemas.property import PropertyDashboardSchema, PaginatedPropertyRespo
 from app.models.user import User
 from app.services.reconciliation_service import reconciliation_service
 from app.utils.state_mapper import normalize_state
+from app.services.intelligence_service import intelligence_service
 import uuid
 
 router = APIRouter()
@@ -23,6 +24,7 @@ def read_properties(
     state: Optional[str] = None,
     auction_name: Optional[str] = None,
     auction_date: Optional[str] = None,
+    auction_types: Optional[List[str]] = None,
     auction_id: Optional[int] = None,
     sort_field: Optional[str] = None,
     sort_order: Optional[str] = "asc",
@@ -74,6 +76,10 @@ def read_properties(
     if auction_date:
         where_clauses.append("pah.auction_date::text LIKE :auction_date")
         params["auction_date"] = f"{auction_date}%"
+    if auction_types:
+        # Filter by multiple types if provided (e.g. Deed, Lien, Foreclosure)
+        where_clauses.append("LOWER(pah.listed_as) = ANY(:auction_types) OR LOWER(p.property_category) = ANY(:auction_types)")
+        params["auction_types"] = [t.lower() for t in auction_types]
     if min_amount_due is not None:
         where_clauses.append("p.amount_due >= :min_amount_due")
         params["min_amount_due"] = min_amount_due
@@ -542,6 +548,38 @@ def delete_property(
     return {"message": "Property deleted successfully", "parcel_id": parcel_id}
 
 
+@router.get("/redemption-info", response_model=dict)
+def get_redemption_info(
+    state: str,
+    auction_type: Optional[str] = None
+) -> Any:
+    """
+    Tier 5: Specialized Redemption Intelligence.
+    Returns legal rules for a specific state/auction combo.
+    """
+    import os
+    import json as _json
+    
+    path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "core", "redemption_data.json")
+    if not os.path.exists(path):
+        return {"error": "Redemption database not found."}
+        
+    with open(path, "r") as f:
+        data = _json.load(f)
+        
+    # Filter by state (fuzzy match)
+    matches = [d for d in data if state.lower() in d['state'].lower()]
+    
+    if auction_type:
+        matches = [d for d in matches if auction_type.lower() in d['type'].lower()]
+        
+    return {
+        "state": state,
+        "results": matches,
+        "disclaimer": "Redemption rules vary by county. Verify with local officials."
+    }
+
+
 # ── Override Endpoints ────────────────────────────────────────────────────────
 
 @router.put("/{parcel_id}/override", response_model=dict)
@@ -992,24 +1030,48 @@ def get_property(
     
     data["recommended_next_steps"] = next_steps
 
-    # Fetch persisted ML score if available
-    import json as _json
-    score_row = db.execute(
-        text("SELECT deal_score, rating, score_factors, model_version, updated_at FROM property_scores WHERE parcel_id = :parcel_id"),
-        {"parcel_id": parcel_id}
-    ).fetchone()
-    if score_row:
-        data["deal_score"] = score_row[0]
-        data["deal_rating"] = score_row[1]
-        data["score_factors"] = _json.loads(score_row[2]) if score_row[2] else []
-        data["score_model_version"] = score_row[3]
-        data["score_updated_at"] = score_row[4].isoformat() if score_row[4] else None
-    else:
-        data["deal_score"] = None
-        data["deal_rating"] = None
-        data["score_factors"] = []
-        data["score_model_version"] = None
-        data["score_updated_at"] = None
+    # ── Tier 5: Real-time Intelligence Trigger ─────────────────────────────
+    # If estimate or score is missing/stale, recompute using comparative logic
+    needs_recompute = not data.get("estimated_value") or not data.get("deal_score")
+    
+    if needs_recompute:
+        try:
+            # 1. Comparative Market Analysis (CMA)
+            new_estimate = intelligence_service.get_comparative_estimate(
+                db, parcel_id, data.get("county"), data.get("address", ""), data.get("property_type")
+            )
+            if new_estimate:
+                data["estimated_value"] = new_estimate
+                db.execute(text("UPDATE property_details SET estimated_value = :val WHERE parcel_id = :pid"), {"val": new_estimate, "pid": parcel_id})
+            
+            # 2. Weighted Motor Score
+            new_score_data = intelligence_service.calculate_weighted_score(data)
+            data["deal_score"] = new_score_data["score"]
+            data["deal_rating"] = new_score_data["rating"]
+            data["score_factors"] = new_score_data["factors"]
+            
+            # Persist score
+            db.execute(
+                text("""
+                    INSERT INTO property_scores (parcel_id, deal_score, rating, score_factors, model_version, computed_at, updated_at)
+                    VALUES (:pid, :score, :rating, :factors, 'motor-v1', NOW(), NOW())
+                    ON CONFLICT (parcel_id) DO UPDATE SET
+                        deal_score = EXCLUDED.deal_score,
+                        rating = EXCLUDED.rating,
+                        score_factors = EXCLUDED.score_factors,
+                        updated_at = NOW()
+                """),
+                {
+                    "pid": parcel_id,
+                    "score": new_score_data["score"],
+                    "rating": new_score_data["rating"],
+                    "factors": _json.dumps(new_score_data["factors"])
+                }
+            )
+            db.commit()
+        except Exception as e:
+            print(f"Intelligence recompute error: {e}")
+            db.rollback()
 
     # ── JSONB Override Merge ────────────────────────────────────────────────
     # Load the user's private overrides (if any) and merge on top of master data.

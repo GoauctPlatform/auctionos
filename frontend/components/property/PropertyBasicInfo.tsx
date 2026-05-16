@@ -1,6 +1,7 @@
-import React from 'react';
 import { Property } from '../../types';
 import { calculateDealScore, DealScoreResult } from '../../intelligence/scoringEngine';
+import { PropertyScoreModal } from './PropertyScoreModal';
+import { HelpCircle } from 'lucide-react';
 
 interface Props {
     property: Property;
@@ -10,6 +11,8 @@ interface Props {
 }
 
 export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials, onOpenMetadata, dealScore: passedScore }) => {
+    const [isScoreModalOpen, setIsScoreModalOpen] = React.useState(false);
+    
     // Fallback to local calculation if no score passed or persisted yet
     const displayScore = passedScore || calculateDealScore(property);
 
@@ -55,13 +58,27 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                         {displayScore.rating}
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Deal Score</span>
+                        <div className="flex items-center gap-1 mb-1">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Deal Score</span>
+                            <button 
+                                onClick={() => setIsScoreModalOpen(true)}
+                                className="text-slate-300 hover:text-blue-500 transition-colors"
+                                title="How we score"
+                            >
+                                <HelpCircle size={10} />
+                            </button>
+                        </div>
                         <span className="text-sm font-black text-slate-700 dark:text-slate-200 leading-none">
                             {displayScore.score}/100
                         </span>
                     </div>
                 </div>
             </div>
+
+            <PropertyScoreModal 
+                isOpen={isScoreModalOpen}
+                onClose={() => setIsScoreModalOpen(false)}
+            />
 
             {/* Critical Attributes Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-6 gap-x-4 mb-6">
