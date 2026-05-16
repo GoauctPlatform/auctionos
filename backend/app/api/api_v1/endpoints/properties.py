@@ -550,12 +550,12 @@ def delete_property(
 
 @router.get("/redemption-info", response_model=dict)
 def get_redemption_info(
-    state: str,
+    state: Optional[str] = None,
     auction_type: Optional[str] = None
 ) -> Any:
     """
     Tier 5: Specialized Redemption Intelligence.
-    Returns legal rules for a specific state/auction combo.
+    Returns legal rules for a specific state/auction combo or full database.
     """
     import os
     import json as _json
@@ -566,6 +566,14 @@ def get_redemption_info(
         
     with open(path, "r") as f:
         data = _json.load(f)
+        
+    # If no state is provided, return the full database for the global board
+    if not state:
+        return {
+            "state": "ALL",
+            "results": data,
+            "disclaimer": "Global database of state-level redemption rules."
+        }
         
     from app.utils.state_mapper import STATE_MAPPING
     

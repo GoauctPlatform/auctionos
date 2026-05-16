@@ -22,7 +22,13 @@ export const PropertyRedemptionCard: React.FC<Props> = ({ stateCode, auctionType
     useEffect(() => {
         const fetchRedemption = async () => {
             try {
-                const res = await api.get(`/properties/redemption-info?state=${stateCode}&auction_type=${auctionType || ''}`);
+                let res = await api.get(`/properties/redemption-info?state=${stateCode}&auction_type=${auctionType || ''}`);
+                
+                // Fallback: If no results for specific auctionType, fetch all for that state
+                if ((!res.data.results || res.data.results.length === 0) && auctionType) {
+                    res = await api.get(`/properties/redemption-info?state=${stateCode}`);
+                }
+                
                 setData(res.data.results || []);
             } catch (e) {
                 console.error('Failed to load redemption info:', e);

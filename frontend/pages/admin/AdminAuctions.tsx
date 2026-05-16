@@ -11,6 +11,7 @@ import UserList from '../../components/admin/UserList';
 import { Box } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
 import { PropertyService } from '../../services/property.service';
+import { RedemptionIntelligenceBoard } from '../../components/property/RedemptionIntelligenceBoard';
 
 interface AdminAuctionsProps {
     defaultTab?: 'auctions' | 'properties' | 'broadcasts' | 'users';
@@ -88,6 +89,8 @@ export const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auct
             {activeTab === 'auctions' && (
                 <div className="flex flex-col gap-4">
                     <AuctionFilters onFilterChange={setFilters} />
+                    
+                    <RedemptionIntelligenceBoard />
 
                     <div className="flex flex-col gap-6">
                         <Box className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl">

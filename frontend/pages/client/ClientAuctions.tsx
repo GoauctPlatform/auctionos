@@ -3,6 +3,7 @@ import AuctionList from '../../components/admin/AuctionList';
 import AuctionCalendar from '../../components/admin/AuctionCalendar';
 import AuctionFilters, { AuctionFilterParams } from '../../components/admin/AuctionFilters';
 import { Box, Typography } from '@mui/material';
+import { RedemptionIntelligenceBoard } from '../../components/property/RedemptionIntelligenceBoard';
 
 import { useSearchParams } from 'react-router-dom';
 
@@ -56,6 +57,8 @@ const ClientAuctions: React.FC = () => {
             </div>
 
             <AuctionFilters onFilterChange={setFilters} />
+            
+            <RedemptionIntelligenceBoard />
             
             <Box className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
                 <AuctionCalendar filters={filters} onDateTypeSelect={handleDateTypeSelect} />
