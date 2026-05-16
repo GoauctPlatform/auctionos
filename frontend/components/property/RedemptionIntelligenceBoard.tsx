@@ -37,7 +37,7 @@ interface RedemptionEntry {
 export const RedemptionIntelligenceBoard: React.FC = () => {
     const [data, setData] = useState<RedemptionEntry[]>([]);
     const [loading, setLoading] = useState(true);
-    const [selectedState, setSelectedState] = useState<string>('all');
+    const [selectedState, setSelectedState] = useState<string>('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -54,18 +54,18 @@ export const RedemptionIntelligenceBoard: React.FC = () => {
     }, []);
 
     const uniqueStates = useMemo(() => {
-        const states = Array.from(new Set(data.map(d => d.state))).sort();
+        const states = Array.from(new Set(data.map(d => d.state).filter(Boolean))).sort();
         return states;
     }, [data]);
 
     const stateDescription = useMemo(() => {
-        if (selectedState === 'all') return null;
+        if (!selectedState || selectedState === 'all') return null;
         const entry = data.find(d => d.state === selectedState && d.description);
         return entry ? entry.description : null;
     }, [data, selectedState]);
 
     const filteredRules = useMemo(() => {
-        if (selectedState === 'all') return data.filter(d => d.auction); // Show all rules by default
+        if (!selectedState || selectedState === 'all') return []; // Start empty until state is selected
         return data.filter(item => item.state === selectedState && item.auction);
     }, [data, selectedState]);
 
@@ -115,12 +115,13 @@ export const RedemptionIntelligenceBoard: React.FC = () => {
                                 <Select
                                     labelId="state-select-label"
                                     value={selectedState}
+                                    displayEmpty
                                     label="Choose a State to View Rules"
                                     onChange={(e) => setSelectedState(e.target.value)}
                                     sx={{ bgcolor: 'white', borderRadius: 2 }}
                                     startAdornment={<FilterIcon fontSize="small" sx={{ mr: 1, color: 'action.active' }} />}
                                 >
-                                    <MenuItem value="all">View All States</MenuItem>
+                                    <MenuItem value="" disabled>Select a State...</MenuItem>
                                     {uniqueStates.map(s => (
                                         <MenuItem key={s} value={s}>{s}</MenuItem>
                                     ))}

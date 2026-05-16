@@ -560,9 +560,14 @@ def get_redemption_info(
     import os
     import json as _json
     
-    path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "core", "redemption_data.json")
+    # Path: backend/app/core/redemption_data.json
+    # __file__ is backend/app/api/api_v1/endpoints/properties.py
+    # 4 levels up to get to backend/app/
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+    path = os.path.join(base_dir, "core", "redemption_data.json")
     if not os.path.exists(path):
-        return {"error": "Redemption database not found."}
+        # Fallback for different environments if necessary
+        return {"error": f"Redemption database not found at {path}"}
         
     with open(path, "r") as f:
         data = _json.load(f)
