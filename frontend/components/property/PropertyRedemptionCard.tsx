@@ -38,18 +38,23 @@ export const PropertyRedemptionCard: React.FC<Props> = ({ stateCode, auctionType
     const rule = data[0]; // Take primary match
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 shadow-sm border border-blue-100 dark:border-blue-900/30">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
-                <Clock className="text-blue-500" size={20} />
-                Redemption Intelligence
-            </h3>
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-5 rounded-2xl border-2 border-blue-200 dark:border-blue-800 shadow-sm mb-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <div className="flex items-center gap-3 mb-4">
+                <div className="bg-blue-600 p-2 rounded-lg">
+                    <Info className="text-white" size={20} />
+                </div>
+                <div>
+                    <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-xs">Redemption Intelligence</h3>
+                    <p className="text-[10px] text-blue-600 dark:text-blue-400 font-bold">Legal Framework & Timelines</p>
+                </div>
+            </div>
 
             <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="p-3 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-blue-100 dark:border-blue-900/30">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Max Interest</label>
                     <p className="text-lg font-black text-blue-600 dark:text-blue-400">{rule.max_interest}</p>
                 </div>
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-800">
+                <div className="p-3 bg-white/50 dark:bg-slate-800/50 rounded-xl border border-blue-100 dark:border-blue-900/30">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Redemption Period</label>
                     <p className="text-lg font-black text-slate-700 dark:text-slate-200">
                         {rule.redemption_months > 0 ? `${rule.redemption_months} Months` : 'No Redemption'}

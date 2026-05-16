@@ -92,6 +92,9 @@ def read_properties(
     if occupancy:
         where_clauses.append("p.occupancy ILIKE :occupancy")
         params["occupancy"] = f"%{occupancy}%"
+    if tax_statuses:
+        where_clauses.append("LOWER(pah.tax_status) = ANY(:tax_statuses)")
+        params['tax_statuses'] = [s.lower() for s in tax_statuses]
     if tax_year:
         where_clauses.append("p.tax_year = :tax_year")
         params["tax_year"] = tax_year
@@ -571,7 +574,9 @@ def get_redemption_info(
     matches = [d for d in data if state.lower() in d['state'].lower()]
     
     if auction_type:
-        matches = [d for d in matches if auction_type.lower() in d['type'].lower()]
+        # Check if either one contains the other (e.g. "Tax Deed" vs "Deed")
+        at_lower = auction_type.lower()
+        matches = [d for d in matches if d['type'].lower() in at_lower or at_lower in d['type'].lower()]
         
     return {
         "state": state,

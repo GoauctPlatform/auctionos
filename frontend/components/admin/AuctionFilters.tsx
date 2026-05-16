@@ -107,9 +107,10 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
                 }
             }
         });
+        
         setSearchParams(cleanParams, { replace: true });
-        onFilterChange(debouncedFilters);
-    }, [debouncedFilters, onFilterChange, setSearchParams]);
+        onFilterChange(filters);
+    }, [filters, onFilterChange, setSearchParams]);
 
     const handleChange = (key: keyof AuctionFilterParams, value: any) => {
         const nextFilters = { ...filters, [key]: value || undefined };

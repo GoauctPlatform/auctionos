@@ -72,7 +72,7 @@ class AuctionRepository:
             ))
             
         if tax_statuses:
-            query = query.filter(AuctionEvent.tax_status.in_(tax_statuses))
+            query = query.filter(func.lower(AuctionEvent.tax_status).in_([s.lower() for s in tax_statuses]))
 
         if sort_by_date:
             query = query.order_by(asc(AuctionEvent.auction_date))
@@ -128,8 +128,8 @@ class AuctionRepository:
             where_clauses.append("(name ILIKE :q OR short_name ILIKE :q OR county ILIKE :q OR state ILIKE :q OR location ILIKE :q OR notes ILIKE :q)")
             params['q'] = f"%{q}%"
         if tax_statuses:
-            where_clauses.append("tax_status = ANY(:tax_statuses)")
-            params['tax_statuses'] = tax_statuses
+            where_clauses.append("LOWER(tax_status) = ANY(:tax_statuses)")
+            params['tax_statuses'] = [s.lower() for s in tax_statuses]
 
         where_sql = ""
         if where_clauses:
