@@ -72,7 +72,10 @@ class AuctionRepository:
             ))
             
         if tax_statuses:
-            query = query.filter(func.lower(AuctionEvent.tax_status).in_([s.lower() for s in tax_statuses]))
+            # Use ILIKE for each status to handle whitespace/formatting variations in production DB
+            conditions = [AuctionEvent.tax_status.ilike(f"%{s.strip()}%") for s in tax_statuses if s.strip()]
+            if conditions:
+                query = query.filter(or_(*conditions))
 
         if sort_by_date:
             query = query.order_by(asc(AuctionEvent.auction_date))
@@ -128,8 +131,13 @@ class AuctionRepository:
             where_clauses.append("(name ILIKE :q OR short_name ILIKE :q OR county ILIKE :q OR state ILIKE :q OR location ILIKE :q OR notes ILIKE :q)")
             params['q'] = f"%{q}%"
         if tax_statuses:
-            where_clauses.append("LOWER(tax_status) = ANY(:tax_statuses)")
-            params['tax_statuses'] = [s.lower() for s in tax_statuses]
+            status_conditions = []
+            for i, s in enumerate(tax_statuses):
+                if s.strip():
+                    status_conditions.append(f"tax_status ILIKE :ts_{i}")
+                    params[f"ts_{i}"] = f"%{s.strip()}%"
+            if status_conditions:
+                where_clauses.append("(" + " OR ".join(status_conditions) + ")")
 
         where_sql = ""
         if where_clauses:

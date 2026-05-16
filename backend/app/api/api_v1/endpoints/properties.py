@@ -567,8 +567,14 @@ def get_redemption_info(
     with open(path, "r") as f:
         data = _json.load(f)
         
-    # Filter by state (fuzzy match)
-    matches = [d for d in data if state.lower() in d['state'].lower()]
+    from app.utils.state_mapper import STATE_MAPPING
+    
+    # Create reverse mapping to convert 'FL' to 'Florida'
+    reverse_mapping = {v.lower(): k.lower() for k, v in STATE_MAPPING.items()}
+    state_to_search = reverse_mapping.get(state.lower(), state.lower())
+    
+    # Filter by state (exact match or containment)
+    matches = [d for d in data if state_to_search in d['state'].lower() or d['state'].lower() in state_to_search]
     
     if auction_type:
         # Check if either one contains the other (e.g. "Tax Deed" vs "Deed")
