@@ -16,7 +16,7 @@ class AgentDueDiligenceProfile(Base):
     social_security = Column(String(100), nullable=True)
     payment_account = Column(String(255), nullable=True) # Bank, PayPal, etc.
 
-    is_verified = Column(Boolean, default=False)
+    verification_status = Column(String(50), default="pending")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="agent_profile")

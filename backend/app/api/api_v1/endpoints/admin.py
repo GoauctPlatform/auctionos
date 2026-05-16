@@ -3,6 +3,8 @@ from typing import Any
 import uuid
 import os
 from app.services.import_service import import_service
+from app.core.email import send_email
+from app.core.email_templates import get_partner_decision_template
 from app.api import deps
 from app.api.deps import get_current_active_user
 from app.models.user import User
@@ -37,9 +39,9 @@ def get_admin_stats(
                 (SELECT COUNT(*) FROM auction_events WHERE LOWER(tax_status) LIKE '%%deed%%' OR LOWER(name) LIKE '%%deed%%') AS deed_count,
                 (SELECT COUNT(*) FROM auction_events WHERE LOWER(tax_status) LIKE '%%foreclosure%%' OR LOWER(name) LIKE '%%foreclosure%%') AS foreclosure_count,
                 (SELECT COUNT(*) FROM auction_events WHERE LOWER(tax_status) LIKE '%%lien%%' OR LOWER(name) LIKE '%%lien%%') AS lien_count,
-                (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'trial' AND is_active = TRUE) AS trial_users,
-                (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'pro' AND is_active = TRUE) AS pro_users,
-                (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'enterprise' AND is_active = TRUE) AS enterprise_users,
+                (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'trial' AND is_active = TRUE AND role = 'client') AS trial_users,
+                (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'pro' AND is_active = TRUE AND role = 'client') AS pro_users,
+                (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'enterprise' AND is_active = TRUE AND role = 'client') AS enterprise_users,
                 (SELECT COUNT(*) FROM users WHERE is_active = TRUE AND role NOT IN ('admin', 'superuser')) AS total_active_users
         """)).fetchone()
 
@@ -186,6 +188,7 @@ def list_realtor_applications(
 def verify_realtor(
     realtor_id: int,
     body: dict,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """Admin: approve or reject a realtor application."""
@@ -216,6 +219,14 @@ def verify_realtor(
                 db.execute(text("UPDATE users SET role = 'realtor' WHERE id = :uid"), {"uid": row[0]})
 
         db.commit()
+
+        # Notify User in Background
+        # We need the user's email and name. 'result' only has realtor info.
+        background_tasks.add_task(
+            _notify_partner_decision, 
+            result.name, result.email, "realtor", new_status
+        )
+
         return dict(result._mapping)
     finally:
         db.close()
@@ -245,4 +256,106 @@ def delete_realtor_application(
         return {"deleted": realtor_id}
     finally:
         db.close()
+
+
+@router.get("/agents")
+def list_agent_applications(
+    status: str = None,     # e.g. 'pending', 'verified', 'rejected'
+    limit: int = 50,
+    skip: int = 0,
+    current_user: User = Depends(get_current_active_user),
+) -> Any:
+    """Admin: list all agent applications."""
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+
+    if current_user.role not in ("admin", "superuser"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    db = SessionLocal()
+    try:
+        where = "WHERE verification_status = :status" if status else ""
+        params: dict = {"limit": limit, "skip": skip}
+        if status:
+            params["status"] = status
+
+        rows = db.execute(
+            text(f"""
+                SELECT a.*, u.email AS user_email, u.role AS user_role
+                FROM agent_due_diligence_profiles a
+                LEFT JOIN users u ON a.user_id = u.id
+                {where}
+                ORDER BY a.created_at DESC
+                LIMIT :limit OFFSET :skip
+            """),
+            params
+        ).fetchall()
+
+        return {
+            "items": [dict(r._mapping) for r in rows],
+            "total": len(rows),
+        }
+    finally:
+        db.close()
+
+
+@router.put("/agents/{agent_id}/verify")
+def verify_agent(
+    agent_id: int,
+    body: dict,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_active_user),
+) -> Any:
+    """Admin: approve or reject an agent application."""
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+
+    if current_user.role not in ("admin", "superuser"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    new_status = body.get("status", "verified")
+    if new_status not in ("verified", "rejected", "pending"):
+        raise HTTPException(status_code=400, detail="Invalid status.")
+
+    db = SessionLocal()
+    try:
+        result = db.execute(
+            text("UPDATE agent_due_diligence_profiles SET verification_status = :s WHERE id = :id RETURNING id, user_id, verification_status"),
+            {"s": new_status, "id": agent_id}
+        ).fetchone()
+
+        if not result:
+            raise HTTPException(status_code=404, detail="Agent profile not found")
+
+        # If approved: update the linked user's role
+        if new_status == "verified":
+            db.execute(text("UPDATE users SET role = 'agent_due_diligence' WHERE id = :uid"), {"uid": result.user_id})
+
+        db.commit()
+
+        # Notify User in Background
+        user = db.execute(text("SELECT email, full_name FROM users WHERE id = :uid"), {"uid": result.user_id}).fetchone()
+        if user:
+            background_tasks.add_task(
+                _notify_partner_decision, 
+                user.full_name or "Partner", user.email, "agent", new_status
+            )
+
+        return dict(result._mapping)
+    finally:
+        db.close()
+
+
+async def _notify_partner_decision(name: str, email: str, role: str, status: str):
+    """Helper to send approval/rejection email."""
+    if status not in ("verified", "rejected"):
+        return
+        
+    email_body = get_partner_decision_template(name, role, status)
+    subject = f"GoAuct Application: {status.capitalize()}"
+    await send_email(
+        subject=subject,
+        recipients=[email],
+        body=email_body
+    )
 

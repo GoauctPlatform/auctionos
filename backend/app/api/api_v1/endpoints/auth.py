@@ -114,8 +114,9 @@ def onboard_user(
     if role not in ["client", "realtor", "agent_due_diligence"]:
         raise HTTPException(status_code=400, detail="Invalid role selection.")
     
-    # Update User Role
-    if current_user.role == "pending":
+    # Update User Role (ONLY for non-partner roles or if it's client)
+    # Realtors and Agents stay 'pending' until Admin approval in admin dashboard
+    if current_user.role == "pending" and role == "client":
         current_user.role = role
     
     # If Realtor, create/update Realtor Profile

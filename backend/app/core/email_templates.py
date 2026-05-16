@@ -198,3 +198,38 @@ def get_verification_email_template(name: str, verification_link: str) -> str:
         </p>
     """
     return get_base_template(content)
+
+
+def get_partner_decision_template(name: str, role: str, status: str) -> str:
+    is_approved = status == "verified"
+    title = "Application Approved!" if is_approved else "Update on your Application"
+    color = "#10b981" if is_approved else "#ef4444"
+    
+    content = f"""
+        <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">{title}</h2>
+        <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 32px 0;">
+            Hi {name},<br><br>
+            Thank you for applying to be a <strong>{role.replace('_', ' ').capitalize()}</strong> on GoAuct.<br><br>
+            We have reviewed your profile and your application has been: <strong style="color: {color};">{status.upper()}</strong>.
+        </p>
+    """
+    
+    if is_approved:
+        content += f"""
+            <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 32px 0;">
+                Congratulations! Your account has been upgraded. You now have access to your dedicated partner portal where you can manage listings and tasks.
+            </p>
+            <div style="text-align: center; margin-bottom: 32px;">
+                <a href="{settings.FRONTEND_URL}" style="display: inline-block; background-color: #0A84FF; color: #ffffff; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(10, 132, 255, 0.2);">
+                    Log In to Your Portal
+                </a>
+            </div>
+        """
+    else:
+        content += f"""
+            <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 32px 0;">
+                Unfortunately, we cannot approve your application at this time. If you believe this is a mistake or would like to provide more information, please contact our support team.
+            </p>
+        """
+        
+    return get_base_template(content)
