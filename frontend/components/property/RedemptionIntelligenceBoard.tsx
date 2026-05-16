@@ -7,37 +7,36 @@ import {
     AccordionDetails, 
     Grid, 
     Chip, 
-    TextField, 
-    InputAdornment,
-    FormControl,
-    InputLabel,
-    Select,
-    MenuItem,
-    CircularProgress,
-    Tooltip
+    FormControl, 
+    InputLabel, 
+    Select, 
+    MenuItem, 
+    CircularProgress, 
+    Divider,
+    Paper
 } from '@mui/material';
 import { 
     ExpandMore as ExpandMoreIcon, 
-    Search as SearchIcon, 
     Gavel as GavelIcon, 
     Timer as TimerIcon, 
     TrendingUp as InterestIcon,
-    FilterList as FilterIcon
+    FilterList as FilterIcon,
+    Info as InfoIcon
 } from '@mui/icons-material';
 import api from '../../services/api';
 
 interface RedemptionEntry {
     state: string;
-    auction: string;
-    type: string;
-    max_interest: string;
-    redemption_months: number;
+    auction?: string;
+    type?: string;
+    max_interest?: string;
+    redemption_months?: string;
+    description?: string;
 }
 
 export const RedemptionIntelligenceBoard: React.FC = () => {
     const [data, setData] = useState<RedemptionEntry[]>([]);
     const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState('');
     const [selectedState, setSelectedState] = useState<string>('all');
 
     useEffect(() => {
@@ -59,14 +58,16 @@ export const RedemptionIntelligenceBoard: React.FC = () => {
         return states;
     }, [data]);
 
-    const filteredData = useMemo(() => {
-        return data.filter(item => {
-            const matchesSearch = item.state.toLowerCase().includes(search.toLowerCase()) ||
-                                item.auction.toLowerCase().includes(search.toLowerCase());
-            const matchesState = selectedState === 'all' || item.state === selectedState;
-            return matchesSearch && matchesState;
-        });
-    }, [data, search, selectedState]);
+    const stateDescription = useMemo(() => {
+        if (selectedState === 'all') return null;
+        const entry = data.find(d => d.state === selectedState && d.description);
+        return entry ? entry.description : null;
+    }, [data, selectedState]);
+
+    const filteredRules = useMemo(() => {
+        if (selectedState === 'all') return data.filter(d => d.auction); // Show all rules by default
+        return data.filter(item => item.state === selectedState && item.auction);
+    }, [data, selectedState]);
 
     if (loading && data.length === 0) return (
         <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
@@ -101,115 +102,100 @@ export const RedemptionIntelligenceBoard: React.FC = () => {
                                 Legal Redemption Intelligence
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                                Quick reference for State interest rates and periods
+                                Official rules for State interest rates and periods
                             </Typography>
                         </Box>
                     </Box>
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 0 }}>
                     <Box sx={{ p: 2, bgcolor: 'slate.50', borderTop: '1px solid', borderColor: 'divider' }}>
-                        <Grid container spacing={2} sx={{ mb: 3 }}>
-                            <Grid item xs={12} md={8}>
-                                <TextField
-                                    fullWidth
-                                    size="small"
-                                    placeholder="Search by keywords (e.g. Upset, Adjudicated...)"
-                                    value={search}
-                                    onChange={(e) => setSearch(e.target.value)}
+                        <Box sx={{ mb: 3, maxWidth: '400px' }}>
+                            <FormControl fullWidth size="small">
+                                <InputLabel id="state-select-label">Choose a State to View Rules</InputLabel>
+                                <Select
+                                    labelId="state-select-label"
+                                    value={selectedState}
+                                    label="Choose a State to View Rules"
+                                    onChange={(e) => setSelectedState(e.target.value)}
                                     sx={{ bgcolor: 'white', borderRadius: 2 }}
-                                    InputProps={{
-                                        startAdornment: (
-                                            <InputAdornment position="start">
-                                                <SearchIcon fontSize="small" color="action" />
-                                            </InputAdornment>
-                                        ),
-                                    }}
-                                />
-                            </Grid>
-                            <Grid item xs={12} md={4}>
-                                <FormControl fullWidth size="small">
-                                    <InputLabel id="state-select-label">Select State</InputLabel>
-                                    <Select
-                                        labelId="state-select-label"
-                                        value={selectedState}
-                                        label="Select State"
-                                        onChange={(e) => setSelectedState(e.target.value)}
-                                        sx={{ bgcolor: 'white', borderRadius: 2 }}
-                                        startAdornment={
-                                            <InputAdornment position="start">
-                                                <FilterIcon fontSize="small" color="action" />
-                                            </InputAdornment>
-                                        }
-                                    >
-                                        <MenuItem value="all">All States</MenuItem>
-                                        {uniqueStates.map(s => (
-                                            <MenuItem key={s} value={s}>{s}</MenuItem>
-                                        ))}
-                                    </Select>
-                                </FormControl>
-                            </Grid>
-                        </Grid>
-                        
-                        <Grid container spacing={2} sx={{ maxHeight: '500px', overflowY: 'auto', p: 1 }}>
-                            {filteredData.length === 0 ? (
-                                <Grid item xs={12}>
-                                    <Box sx={{ textAlign: 'center', py: 4, bgcolor: 'white', borderRadius: 2, border: '1px dashed', borderColor: 'divider' }}>
-                                        <Typography color="text.secondary">No legal data found for this selection.</Typography>
+                                    startAdornment={<FilterIcon fontSize="small" sx={{ mr: 1, color: 'action.active' }} />}
+                                >
+                                    <MenuItem value="all">View All States</MenuItem>
+                                    {uniqueStates.map(s => (
+                                        <MenuItem key={s} value={s}>{s}</MenuItem>
+                                    ))}
+                                </Select>
+                            </FormControl>
+                        </Box>
+
+                        {stateDescription && (
+                            <Paper variant="outlined" sx={{ p: 2, mb: 3, bgcolor: 'primary.50', borderColor: 'primary.100', borderRadius: 2 }}>
+                                <Box sx={{ display: 'flex', gap: 1.5 }}>
+                                    <InfoIcon color="primary" fontSize="small" sx={{ mt: 0.3 }} />
+                                    <Box>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.main', mb: 0.5 }}>
+                                            {selectedState} Legal Overview
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.5 }}>
+                                            {stateDescription}
+                                        </Typography>
                                     </Box>
-                                </Grid>
-                            ) : filteredData.map((item, idx) => (
+                                </Box>
+                            </Paper>
+                        )}
+                        
+                        <Divider sx={{ mb: 3 }} />
+
+                        <Grid container spacing={2} sx={{ maxHeight: '500px', overflowY: 'auto', p: 1 }}>
+                            {filteredRules.map((item, idx) => (
                                 <Grid item xs={12} md={6} lg={4} key={`${item.state}-${idx}`}>
-                                    <Tooltip title={`Click to filter by ${item.state}`} placement="top">
-                                        <Box 
-                                            onClick={() => setSelectedState(item.state)}
-                                            sx={{ 
-                                                p: 2, 
-                                                borderRadius: 2, 
-                                                border: '1px solid',
-                                                borderColor: selectedState === item.state ? 'primary.main' : 'divider',
-                                                bgcolor: selectedState === item.state ? 'primary.50' : 'white',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s',
-                                                '&:hover': {
-                                                    borderColor: 'primary.main',
-                                                    transform: 'translateY(-2px)',
-                                                    boxShadow: '0 4px 12px rgba(0,0,0,0.05)',
-                                                    bgcolor: 'primary.50'
-                                                }
-                                            }}
-                                        >
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                                                <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                                                    {item.state}
-                                                </Typography>
-                                                <Chip 
-                                                    label={item.type} 
-                                                    size="small" 
-                                                    color={item.type === 'Deed' ? 'success' : 'error'} 
-                                                    variant={selectedState === item.state ? 'filled' : 'outlined'}
-                                                    sx={{ fontWeight: 'bold', fontSize: '0.65rem', height: '20px' }}
-                                                />
-                                            </Box>
-                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, height: '32px', overflow: 'hidden', lineHeight: 1.2 }}>
+                                    <Box sx={{ 
+                                        p: 2, 
+                                        borderRadius: 2, 
+                                        border: '1px solid',
+                                        borderColor: 'divider',
+                                        bgcolor: 'white',
+                                        transition: 'all 0.2s',
+                                        '&:hover': {
+                                            borderColor: 'primary.main',
+                                            transform: 'translateY(-2px)',
+                                            boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
+                                        }
+                                    }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                                {selectedState === 'all' ? item.state : item.auction}
+                                            </Typography>
+                                            <Chip 
+                                                label={item.type} 
+                                                size="small" 
+                                                color={item.type === 'Deed' ? 'success' : (item.type === 'Lien' ? 'error' : 'secondary')} 
+                                                variant="outlined"
+                                                sx={{ fontWeight: 'bold', fontSize: '0.65rem', height: '20px' }}
+                                            />
+                                        </Box>
+                                        
+                                        {selectedState === 'all' && (
+                                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
                                                 {item.auction}
                                             </Typography>
-                                            
-                                            <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                    <InterestIcon sx={{ fontSize: 14, color: 'success.main' }} />
-                                                    <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                                                        {item.max_interest}
-                                                    </Typography>
-                                                </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                                    <TimerIcon sx={{ fontSize: 14, color: 'warning.main' }} />
-                                                    <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
-                                                        {item.redemption_months > 0 ? `${item.redemption_months}mo` : '0mo (Final)'}
-                                                    </Typography>
-                                                </Box>
+                                        )}
+                                        
+                                        <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                <InterestIcon sx={{ fontSize: 14, color: 'success.main' }} />
+                                                <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                                                    {item.max_interest !== '-' ? `Max Interest: ${item.max_interest}` : 'No Interest'}
+                                                </Typography>
+                                            </Box>
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                <TimerIcon sx={{ fontSize: 14, color: 'warning.main' }} />
+                                                <Typography variant="caption" sx={{ fontWeight: 'bold' }}>
+                                                    {item.redemption_months !== '0' ? `Redemption: ${item.redemption_months} mo` : 'Final Sale (0 mo)'}
+                                                </Typography>
                                             </Box>
                                         </Box>
-                                    </Tooltip>
+                                    </Box>
                                 </Grid>
                             ))}
                         </Grid>
