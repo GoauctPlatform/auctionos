@@ -5,7 +5,8 @@ Handles: available tasks, claiming, submitting evidence (photo+GPS), commissions
 import math
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
+from app.core.email import send_email
+from fastapi import APIRouter, Depends, HTTPException, Form, UploadFile, File, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -119,6 +120,7 @@ def get_my_tasks(
 def claim_task(
     task_id: int,
     payload: ClaimTaskPayload,
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -142,6 +144,19 @@ def claim_task(
         WHERE id = :id
     """), {"uid": current_user.id, "id": task_id, "deadline": deadline})
     db.commit()
+
+    # Notify investor via background task
+    if task.investor_user_id:
+        investor = db.execute(text("SELECT email, full_name FROM users WHERE id = :id"), {"id": task.investor_user_id}).fetchone()
+        if investor:
+            email_body = f"Hello {investor.full_name or 'Investor'},\n\nField Agent {current_user.full_name or current_user.email} has claimed your BPO mission '{task.title}' and committed to submit the results within {payload.deadline_hours} hours."
+            background_tasks.add_task(
+                send_email,
+                subject=f"BPO Mission Claimed: '{task.title}'",
+                recipients=[investor.email],
+                body=email_body
+            )
+
     return {"ok": True, "task_id": task_id, "deadline": deadline.isoformat()}
 
 
@@ -226,7 +241,16 @@ async def submit_task_evidence(
     db.commit()
     
     # Notify investor via background task
-    # In a real setup, we query investor email from `users` and use `send_email`.
+    if task.investor_user_id:
+        investor = db.execute(text("SELECT email, full_name FROM users WHERE id = :id"), {"id": task.investor_user_id}).fetchone()
+        if investor:
+            email_body = f"Hello {investor.full_name or 'Investor'},\n\nField Agent {current_user.full_name or current_user.email} has submitted the BPO results for '{task.title}'.\n\nPlease check your Field Missions Dashboard to review."
+            background_tasks.add_task(
+                send_email,
+                subject=f"Mission Results Submitted: Review '{task.title}'",
+                recipients=[investor.email],
+                body=email_body
+            )
     
     return {
         "ok": True,
