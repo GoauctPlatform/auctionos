@@ -118,7 +118,7 @@ def create_task(
                 },
                 "quantity": 1,
             }],
-            success_url=f"{settings.FRONTEND_URL}/#/client/tasks/review?payment=success&session_id={{CHECKOUT_SESSION_ID}}",
+            success_url=f"{settings.FRONTEND_URL}/#/client/tasks?payment=success&session_id={{CHECKOUT_SESSION_ID}}",
             cancel_url=f"{settings.FRONTEND_URL}/#/client/properties/{payload.property_id}?payment=cancelled",
             customer_email=current_user.email,
             metadata={

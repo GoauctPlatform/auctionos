@@ -16,9 +16,16 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
     const [submissions, setSubmissions] = useState<any[]>([]);
     const [reviewNotes, setReviewNotes] = useState('');
     const [isReviewing, setIsReviewing] = useState(false);
+    const [showSuccessToast, setShowSuccessToast] = useState(false);
 
     useEffect(() => {
         fetchTasks();
+        if (window.location.href.includes('payment=success')) {
+            setShowSuccessToast(true);
+            // Clean url params beautifully without reloading page
+            const cleanUrl = window.location.href.split('?')[0];
+            window.history.replaceState({}, document.title, cleanUrl);
+        }
     }, []);
 
     const fetchTasks = async () => {
@@ -110,6 +117,23 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
+            {showSuccessToast && (
+                <div className="mb-6 p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl flex items-center justify-between shadow-lg backdrop-blur-xl animate-fade-in">
+                    <div className="flex items-center gap-3 text-emerald-800 dark:text-emerald-300">
+                        <CheckCircle className="text-emerald-600 dark:text-emerald-400 shrink-0" size={24} />
+                        <div>
+                            <p className="font-bold text-sm">Escrow Payment Confirmed!</p>
+                            <p className="text-xs opacity-90">Your BPO Due Diligence mission has been successfully published to the Realtor Marketplace.</p>
+                        </div>
+                    </div>
+                    <button 
+                        onClick={() => setShowSuccessToast(false)} 
+                        className="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-200 p-1 rounded-full hover:bg-emerald-100/50"
+                    >
+                        <span className="material-symbols-outlined text-[20px]">close</span>
+                    </button>
+                </div>
+            )}
             {onBack && (
                 <button
                     onClick={onBack}
