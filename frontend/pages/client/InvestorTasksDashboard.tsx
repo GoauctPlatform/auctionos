@@ -239,6 +239,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                         {sub.file_path?.split(',').map((url: string, i: number) => {
                                                             const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
                                                             return (
+                                                                <a href={fullUrl} target="_blank" rel="noreferrer" key={i}>
                                                                     <img 
                                                                         src={fullUrl} 
                                                                         alt="Evidence" 
