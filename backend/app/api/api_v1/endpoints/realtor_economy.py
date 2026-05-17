@@ -1,10 +1,11 @@
 from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from pydantic import BaseModel
 from app.api import deps
 from app.models.user import User
+from app.core.email import send_email
 
 router = APIRouter()
 
@@ -69,6 +70,7 @@ def get_wallet_balance(
 @router.post("/withdraw")
 def request_withdrawal(
     payload: WithdrawalRequestPayload,
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -106,6 +108,28 @@ def request_withdrawal(
     })
 
     db.commit()
+
+    # Send notification email to support
+    email_body = (
+        f"Hello Admin,\n\n"
+        f"A new withdrawal request has been submitted on GoAuct.\n\n"
+        f"User Details:\n"
+        f"- ID: {current_user.id}\n"
+        f"- Name: {current_user.full_name or 'N/A'}\n"
+        f"- Email: {current_user.email}\n\n"
+        f"Withdrawal Details:\n"
+        f"- Amount: ${payload.amount_usd:.2f}\n"
+        f"- Payment Method: {payload.payment_method}\n"
+        f"- Payment Details: {payload.payment_details}\n\n"
+        f"Please verify their completed tasks in the Admin CRM panel and process the payment."
+    )
+    background_tasks.add_task(
+        send_email,
+        subject=f"Withdrawal Requested: ${payload.amount_usd:.2f} by {current_user.email}",
+        recipients=["support@goauct.com"],
+        body=email_body
+    )
+
     return {"ok": True, "message": "Withdrawal requested successfully."}
 
 @router.get("/withdrawals")

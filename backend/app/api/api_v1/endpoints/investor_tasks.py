@@ -180,11 +180,12 @@ class ConfirmEscrowPayload(BaseModel):
 @router.post("/tasks/confirm-payment")
 def confirm_escrow_payment(
     payload: ConfirmEscrowPayload,
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Confirms the Stripe payment and unlocks the task for realtors."""
-    task = db.execute(text("SELECT status FROM realtor_tasks WHERE id = :id AND investor_user_id = :uid"), 
+    task = db.execute(text("SELECT title, address, reward_points, status FROM realtor_tasks WHERE id = :id AND investor_user_id = :uid"), 
         {"id": payload.task_id, "uid": current_user.id}).fetchone()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
@@ -195,6 +196,26 @@ def confirm_escrow_payment(
     # Verify session with Stripe (omitted for speed, relying on frontend validation for test environment)
     db.execute(text("UPDATE realtor_tasks SET status = 'open' WHERE id = :id"), {"id": payload.task_id})
     db.commit()
+
+    # Notify all active realtors/agents via background task
+    realtors = db.execute(text("SELECT email FROM users WHERE role IN ('realtor', 'agent_due_diligence') AND is_active = true")).fetchall()
+    realtor_emails = [r.email for r in realtors if r.email]
+    if realtor_emails:
+        email_body = (
+            f"Hello Field Agent,\n\n"
+            f"A new Due Diligence BPO mission has been funded and posted!\n\n"
+            f"Mission: {task.title}\n"
+            f"Address: {task.address}\n"
+            f"Reward Points: {task.reward_points} pts\n\n"
+            f"Log in to your Available Tasks Dashboard on GoAuct to claim this mission before other agents do!"
+        )
+        background_tasks.add_task(
+            send_email,
+            subject=f"New Funded BPO Mission Available: '{task.title}'",
+            recipients=realtor_emails,
+            body=email_body
+        )
+
     return {"ok": True, "status": "open"}
 
 
