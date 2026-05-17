@@ -187,11 +187,14 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                 <div>
                                                     <h4 className="font-bold mb-3 flex items-center gap-2"><FileText size={16}/> Evidence Photos</h4>
                                                     <div className="grid grid-cols-3 gap-2">
-                                                        {sub.file_path?.split(',').map((url: string, i: number) => (
-                                                            <a href={url} target="_blank" rel="noreferrer" key={i}>
-                                                                <img src={url} alt="Evidence" className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity" />
-                                                            </a>
-                                                        ))}
+                                                        {sub.file_path?.split(',').map((url: string, i: number) => {
+                                                            const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
+                                                            return (
+                                                                <a href={fullUrl} target="_blank" rel="noreferrer" key={i}>
+                                                                    <img src={fullUrl} alt="Evidence" className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity" />
+                                                                </a>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </div>
 

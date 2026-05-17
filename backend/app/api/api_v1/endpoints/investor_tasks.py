@@ -64,13 +64,17 @@ def create_task(
     from app.services.permission_service import PermissionService
     PermissionService.check_feature_access(db, current_user, "tasks")
 
-    # Validate photo count
-    if payload.min_photos < MIN_PHOTOS:
-        raise HTTPException(status_code=400, detail=f"Minimum photos must be at least {MIN_PHOTOS}.")
-    if payload.max_photos > 10:
-        raise HTTPException(status_code=400, detail="Maximum photos cannot exceed 10.")
-    if payload.min_photos > payload.max_photos:
-        raise HTTPException(status_code=400, detail="min_photos cannot exceed max_photos.")
+    # Validate photo count based on task type
+    if payload.task_type == "visual_feedback":
+        if payload.min_photos != 0 or payload.max_photos != 0:
+            raise HTTPException(status_code=400, detail="Visual feedback tasks must have 0 photos.")
+    else:
+        if payload.min_photos < MIN_PHOTOS:
+            raise HTTPException(status_code=400, detail=f"Minimum photos must be at least {MIN_PHOTOS}.")
+        if payload.max_photos > 50:
+            raise HTTPException(status_code=400, detail="Maximum photos cannot exceed 50.")
+        if payload.min_photos > payload.max_photos:
+            raise HTTPException(status_code=400, detail="min_photos cannot exceed max_photos.")
 
     # Validate reward points vs. photo count
     min_required = calculate_min_points(payload.min_photos)
@@ -414,12 +418,17 @@ def update_task(
     new_min = payload.min_photos if payload.min_photos is not None else task.min_photos
     new_max = payload.max_photos if payload.max_photos is not None else task.max_photos
     new_pts = payload.reward_points if payload.reward_points is not None else task.reward_points
-    if new_min < MIN_PHOTOS:
-        raise HTTPException(status_code=400, detail=f"Minimum photos must be at least {MIN_PHOTOS}.")
-    if new_max > 10:
-        raise HTTPException(status_code=400, detail="Maximum photos cannot exceed 10.")
-    if new_min > new_max:
-        raise HTTPException(status_code=400, detail="min_photos cannot exceed max_photos.")
+    new_type = task.task_type
+    if new_type == "visual_feedback":
+        if new_min != 0 or new_max != 0:
+            raise HTTPException(status_code=400, detail="Visual feedback tasks must have 0 photos.")
+    else:
+        if new_min < MIN_PHOTOS:
+            raise HTTPException(status_code=400, detail=f"Minimum photos must be at least {MIN_PHOTOS}.")
+        if new_max > 50:
+            raise HTTPException(status_code=400, detail="Maximum photos cannot exceed 50.")
+        if new_min > new_max:
+            raise HTTPException(status_code=400, detail="min_photos cannot exceed max_photos.")
     min_req = calculate_min_points(new_min)
     if new_pts < min_req:
         raise HTTPException(status_code=400, detail=f"Minimum reward for {new_min} photos is {min_req} pts.")

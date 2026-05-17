@@ -196,8 +196,9 @@ async def submit_task_evidence(
         distance = haversine_meters(submission_lat, submission_lng, task.latitude, task.longitude)
         geo_validated = distance <= (task.geo_radius_meters or 50)
 
-    # Save files
-    upload_dir = f"/app/uploads/tasks/{task_id}"
+    # Save files using dynamically resolved local path
+    base_upload_dir = os.path.join(os.getcwd(), "uploads")
+    upload_dir = os.path.join(base_upload_dir, "tasks", str(task_id))
     os.makedirs(upload_dir, exist_ok=True)
     saved_paths = []
     for f in files:
