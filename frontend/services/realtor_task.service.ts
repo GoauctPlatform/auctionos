@@ -23,6 +23,8 @@ export interface Task {
   investor_name?: string;
   realtor_name?: string;
   created_at?: string;
+  checklist_requirements?: string;
+  gps_photo_reference?: string;
 }
 
 export interface Commission {
@@ -78,13 +80,15 @@ export const RealtorTaskService = {
     files: File[],
     lat?: number,
     lng?: number,
-    notes?: string
+    notes?: string,
+    checklistResponses?: string
   ): Promise<any> => {
     const form = new FormData();
     files.forEach(f => form.append('files', f));
     if (lat !== undefined) form.append('submission_lat', lat.toString());
     if (lng !== undefined) form.append('submission_lng', lng.toString());
     if (notes) form.append('notes', notes);
+    if (checklistResponses) form.append('checklist_responses', checklistResponses);
 
     const res = await fetch(`${API_URL}/realtor-tasks/${taskId}/submit`, {
       method: 'POST',
