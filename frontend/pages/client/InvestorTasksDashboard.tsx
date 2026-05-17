@@ -240,7 +240,14 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                             const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
                                                             return (
                                                                 <a href={fullUrl} target="_blank" rel="noreferrer" key={i}>
-                                                                    <img src={fullUrl} alt="Evidence" className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity" />
+                                                                    <img 
+                                                                        src={fullUrl} 
+                                                                        alt="Evidence" 
+                                                                        className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity"
+                                                                        onError={(e) => {
+                                                                            e.currentTarget.src = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80";
+                                                                        }}
+                                                                    />
                                                                 </a>
                                                             );
                                                         })}

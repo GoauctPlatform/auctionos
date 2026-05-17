@@ -275,6 +275,7 @@ def get_task_submissions(
     return [dict(r._mapping) for r in rows]
 
 
+@router.post("/tasks/{task_id}/review")
 async def review_task_submission(
     task_id: int,
     payload: ReviewPayload,
@@ -300,9 +301,12 @@ async def review_task_submission(
     db.execute(text("""
         UPDATE task_submissions
         SET review_status = :status, review_notes = :notes, reviewed_at = NOW()
-        WHERE task_id = :task_id
-        ORDER BY submitted_at DESC
-        LIMIT 1
+        WHERE id = (
+            SELECT id FROM task_submissions
+            WHERE task_id = :task_id
+            ORDER BY submitted_at DESC
+            LIMIT 1
+        )
     """), {"status": review_status, "notes": payload.review_notes, "task_id": task_id})
 
     if payload.approved:
