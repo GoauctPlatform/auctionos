@@ -158,9 +158,13 @@ def create_checkout_session(
         # Determine the price to charge
         # If dedicated Price IDs are configured, use them (Recurring).
         # Otherwise, fall back to a one-time payment (ad-hoc price) for testing.
-        price_id = (
-            settings.STRIPE_PRO_PRICE_ID if plan == "pro" else settings.STRIPE_ENTERPRISE_PRICE_ID
-        )
+        price_id = None
+        if plan == "advanced":
+            price_id = settings.STRIPE_ADVANCED_PRICE_ID
+        elif plan == "pro":
+            price_id = settings.STRIPE_PRO_PRICE_ID
+        elif plan == "enterprise":
+            price_id = settings.STRIPE_ENTERPRISE_PRICE_ID
 
         try:
             if price_id:

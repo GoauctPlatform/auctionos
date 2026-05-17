@@ -44,6 +44,7 @@ class Settings(BaseSettings):
     # Stripe Payment Integration
     STRIPE_SECRET_KEY: Optional[str] = None
     STRIPE_WEBHOOK_SECRET: Optional[str] = None
+    STRIPE_ADVANCED_PRICE_ID: Optional[str] = None
     STRIPE_PRO_PRICE_ID: Optional[str] = None
     STRIPE_ENTERPRISE_PRICE_ID: Optional[str] = None
 
