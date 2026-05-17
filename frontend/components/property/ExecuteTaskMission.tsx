@@ -14,7 +14,7 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
         ? (typeof task.checklist_requirements === 'string' ? JSON.parse(task.checklist_requirements) : task.checklist_requirements)
         : {};
 
-    const hasChecklist = Object.keys(requiredChecklist).length > 0;
+    const hasChecklist = task.task_type !== 'photo_verification' && Object.keys(requiredChecklist).length > 0;
 
     // Load initial drafted responses from LocalStorage if they exist (Offline Draft Persistence)
     const storageKey = `bpo_draft_${task.id}`;
@@ -63,7 +63,7 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
     };
 
     const handleSubmit = async () => {
-        if (photos.length < task.min_photos) {
+        if (task.task_type !== 'visual_feedback' && photos.length < task.min_photos) {
             alert(`Minimum ${task.min_photos} photos required.`);
             return;
         }
@@ -193,61 +193,63 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
                     )}
 
                     {/* Step 3: Photos */}
-                    <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                        <h3 className="font-bold mb-1 flex items-center gap-2">
-                            <Camera className="text-indigo-500" /> {hasChecklist ? '3' : '2'}. Evidence Camera
-                        </h3>
-                        <p className="text-xs text-slate-500 mb-4">Take {task.min_photos} to {task.max_photos} photos of the property condition.</p>
-                        
-                        {task.gps_photo_reference && (
-                            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex gap-3">
-                                <img src={task.gps_photo_reference} alt="Reference" className="w-16 h-16 object-cover rounded-lg border border-blue-200" />
-                                <div>
-                                    <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Investor's Target Match</p>
-                                    <p className="text-[10px] text-blue-600 dark:text-blue-400 mt-0.5">Please ensure the facade matches this reference.</p>
-                                </div>
-                            </div>
-                        )}
-
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            capture="environment"
-                            multiple
-                            className="hidden"
-                            onChange={e => setPhotos(prev => [...prev, ...Array.from(e.target.files || [])])}
-                        />
-                        
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                            <button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="col-span-2 py-4 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 transition-colors border-2 border-dashed border-indigo-300 dark:border-indigo-700 rounded-xl flex flex-col items-center justify-center text-indigo-600 dark:text-indigo-400 gap-1"
-                            >
-                                <Camera size={24} />
-                                <span className="text-sm font-bold">Open Camera</span>
-                            </button>
-                        </div>
-
-                        {photos.length > 0 && (
-                            <div className="grid grid-cols-4 gap-2">
-                                {photos.map((f, i) => (
-                                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
-                                        <img src={URL.createObjectURL(f)} alt="Evidence" className="w-full h-full object-cover" />
-                                        <button 
-                                            onClick={() => setPhotos(p => p.filter((_, idx) => idx !== i))}
-                                            className="absolute top-1 right-1 size-5 bg-black/50 text-white rounded-full flex items-center justify-center text-xs"
-                                        >
-                                            <X size={12}/>
-                                        </button>
+                    {task.task_type !== 'visual_feedback' && (
+                        <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                            <h3 className="font-bold mb-1 flex items-center gap-2">
+                                <Camera className="text-indigo-500" /> {hasChecklist ? '3' : '2'}. Evidence Camera
+                            </h3>
+                            <p className="text-xs text-slate-500 mb-4">Take {task.min_photos} to {task.max_photos} photos of the property condition.</p>
+                            
+                            {task.gps_photo_reference && (
+                                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex gap-3">
+                                    <img src={task.gps_photo_reference} alt="Reference" className="w-16 h-16 object-cover rounded-lg border border-blue-200" />
+                                    <div>
+                                        <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Investor's Target Match</p>
+                                        <p className="text-[10px] text-blue-600 dark:text-blue-400 mt-0.5">Please ensure the facade matches this reference.</p>
                                     </div>
-                                ))}
+                                </div>
+                            )}
+
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                capture="environment"
+                                multiple
+                                className="hidden"
+                                onChange={e => setPhotos(prev => [...prev, ...Array.from(e.target.files || [])])}
+                            />
+                            
+                            <div className="grid grid-cols-2 gap-3 mb-4">
+                                <button
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="col-span-2 py-4 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 transition-colors border-2 border-dashed border-indigo-300 dark:border-indigo-700 rounded-xl flex flex-col items-center justify-center text-indigo-600 dark:text-indigo-400 gap-1"
+                                >
+                                    <Camera size={24} />
+                                    <span className="text-sm font-bold">Open Camera</span>
+                                </button>
                             </div>
-                        )}
-                        <p className="text-right text-xs mt-2 font-medium text-slate-500">
-                            {photos.length} / {task.min_photos} Minimum Required
-                        </p>
-                    </div>
+
+                            {photos.length > 0 && (
+                                <div className="grid grid-cols-4 gap-2">
+                                    {photos.map((f, i) => (
+                                        <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-slate-200">
+                                            <img src={URL.createObjectURL(f)} alt="Evidence" className="w-full h-full object-cover" />
+                                            <button 
+                                                onClick={() => setPhotos(p => p.filter((_, idx) => idx !== i))}
+                                                className="absolute top-1 right-1 size-5 bg-black/50 text-white rounded-full flex items-center justify-center text-xs"
+                                            >
+                                                <X size={12}/>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                            <p className="text-right text-xs mt-2 font-medium text-slate-500">
+                                {photos.length} / {task.min_photos} Minimum Required
+                            </p>
+                        </div>
+                    )}
 
                 </div>
             </div>
@@ -261,7 +263,7 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
                 )}
                 <button
                     onClick={handleSubmit}
-                    disabled={submitting || photos.length < task.min_photos || !gpsCoords}
+                    disabled={submitting || (task.task_type !== 'visual_feedback' && photos.length < task.min_photos) || !gpsCoords}
                     className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 disabled:bg-slate-400 text-white font-black text-lg rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
                 >
                     {submitting ? 'Uploading...' : <><UploadCloud size={20}/> Submit Mission Data</>}

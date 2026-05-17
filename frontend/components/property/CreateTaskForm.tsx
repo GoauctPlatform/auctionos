@@ -79,13 +79,23 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
     const [taskType, setTaskType] = useState('bpo');
     const [minPhotos, setMinPhotos] = useState(5);
     const [deadlineHours, setDeadlineHours] = useState(168); // 7 days
-    const [rewardPoints, setRewardPoints] = useState(10000); // 10000 points = $100 Combo
     const [gpsReferenceUrl, setGpsReferenceUrl] = useState('');
     
     // Checklist State
     const [selectedChecklist, setSelectedChecklist] = useState<Record<string, string[]>>({});
-    
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Handle type change and update pricing/photo rules
+    const handleTaskTypeChange = (type: string) => {
+        setTaskType(type);
+        if (type === 'bpo') {
+            setMinPhotos(5);
+        } else if (type === 'photo_verification') {
+            setMinPhotos(3);
+        } else {
+            setMinPhotos(0); // visual_feedback (Checklist Only) requires 0 photos
+        }
+    };
 
     const toggleChecklistItem = (categoryId: string, itemId: string) => {
         setSelectedChecklist(prev => {
@@ -108,21 +118,36 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
 
     const clearChecklist = () => setSelectedChecklist({});
 
+    // Dynamic visual price structure
+    const getPricing = () => {
+        if (taskType === 'bpo') {
+            return { points: 10000, displayUsd: '$100.00', displayTestBrl: 'R$ 0.51' };
+        }
+        return { points: 5000, displayUsd: '$50.00', displayTestBrl: 'R$ 0.51' };
+    };
+
+    const priceInfo = getPricing();
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
 
         try {
+            // Apply strict restrictions on payload submission based on chosen BPO task type
+            const finalMinPhotos = taskType === 'visual_feedback' ? 0 : minPhotos;
+            const finalMaxPhotos = taskType === 'visual_feedback' ? 0 : finalMinPhotos + 10;
+            const finalChecklist = taskType === 'photo_verification' ? '{}' : JSON.stringify(selectedChecklist);
+
             const payload = {
                 property_id: propertyId,
                 title,
                 description,
                 task_type: taskType,
-                min_photos: minPhotos,
-                max_photos: minPhotos + 10,
-                reward_points: rewardPoints,
+                min_photos: finalMinPhotos,
+                max_photos: finalMaxPhotos,
+                reward_points: priceInfo.points,
                 deadline_hours: deadlineHours,
-                checklist_requirements: JSON.stringify(selectedChecklist),
+                checklist_requirements: finalChecklist,
                 gps_photo_reference: gpsReferenceUrl || null
             };
 
@@ -138,7 +163,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
             const data = await res.json();
             if (res.ok) {
                 if (data.checkout_url) {
-                    // Redirect to Stripe to pay the escrow!
+                    // Redirect directly to Stripe sandbox session (charging BRL 0.51)
                     window.location.href = data.checkout_url;
                 } else {
                     alert('Task created successfully (Mock Mode without Stripe).');
@@ -155,22 +180,27 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
         }
     };
 
-    const usdPrice = (rewardPoints / 100).toFixed(2);
-
     return (
-        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-4xl flex flex-col max-h-[90vh]">
-                <div className="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 bg-slate-950/40 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+            {/* Ultra-Premium Glassmorphism Container */}
+            <div className="glass-card bg-white/75 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-800/40 rounded-3xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh] overflow-hidden transition-all duration-300">
+                
+                {/* Header */}
+                <div className="flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md">
                     <div>
-                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">Create BPO Mission</h2>
-                        <p className="text-sm text-slate-500 mt-1">Request a field agent to investigate {propertyAddress}</p>
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <span className="material-symbols-outlined text-indigo-500">add_moderator</span>
+                            Create BPO Mission
+                        </h2>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Request a field agent to investigate {propertyAddress}</p>
                     </div>
-                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                    <button onClick={onClose} className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100/50 dark:hover:bg-slate-800/50 rounded-full transition-all">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="p-6 overflow-y-auto custom-scrollbar flex-1">
+                {/* Scrollable Form Area */}
+                <div className="p-6 overflow-y-auto custom-scrollbar flex-1 bg-white/10 dark:bg-slate-900/10">
                     <form id="bpo-form" onSubmit={handleSubmit} className="space-y-8">
                         
                         {/* Basic Info */}
@@ -178,111 +208,136 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
                             <div className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Mission Title</label>
-                                    <input required type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white" />
+                                    <input required type="text" value={title} onChange={e => setTitle(e.target.value)} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all" />
                                 </div>
                                 
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Task Type</label>
-                                    <select value={taskType} onChange={e => setTaskType(e.target.value)} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
-                                        <option value="bpo">Broker Price Opinion (Combo)</option>
-                                        <option value="photo_verification">Photo Verification Only</option>
-                                        <option value="visual_feedback">Visual Feedback (Checklist Only)</option>
+                                    <select value={taskType} onChange={e => handleTaskTypeChange(e.target.value)} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all">
+                                        <option value="bpo">Broker Price Opinion (Combo - Photos + Checklist)</option>
+                                        <option value="photo_verification">Photo Verification Only (No Checklist)</option>
+                                        <option value="visual_feedback">Visual Feedback (Checklist Only - No Photos)</option>
                                     </select>
                                 </div>
 
                                 <div>
                                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Instructions / Comments</label>
-                                    <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white" placeholder="Specific instructions for the field agent..."></textarea>
+                                    <textarea value={description} onChange={e => setDescription(e.target.value)} rows={3} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all" placeholder="Specific instructions for the field agent..."></textarea>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
-                                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800/30">
-                                    <h4 className="font-bold text-blue-900 dark:text-blue-300 mb-2 flex items-center gap-2">
-                                        <Navigation size={16} /> GPS Reference Photo (Optional)
+                                {/* Glassmorphism GPS box */}
+                                <div className="bg-indigo-50/50 dark:bg-indigo-950/20 backdrop-blur-md p-4 rounded-2xl border border-indigo-100/50 dark:border-indigo-900/30 shadow-inner">
+                                    <h4 className="font-bold text-indigo-950 dark:text-indigo-300 mb-1.5 flex items-center gap-2 text-sm">
+                                        <Navigation size={16} className="text-indigo-500" /> GPS Reference Photo (Optional)
                                     </h4>
-                                    <p className="text-xs text-blue-700 dark:text-blue-400 mb-3">Provide a Street View link or image URL so the agent targets the correct house.</p>
-                                    <input type="text" value={gpsReferenceUrl} onChange={e => setGpsReferenceUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 text-sm rounded border border-blue-200 dark:border-blue-700/50 bg-white dark:bg-slate-800 dark:text-white" />
+                                    <p className="text-xs text-indigo-700/80 dark:text-indigo-400 mb-3">Provide a Street View link or image URL so the agent targets the correct house.</p>
+                                    <input type="text" value={gpsReferenceUrl} onChange={e => setGpsReferenceUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 text-sm rounded-xl border border-indigo-200/50 dark:border-indigo-800/40 bg-white/70 dark:bg-slate-800/50 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Min Photos</label>
-                                        <input type="number" min={3} max={50} value={minPhotos} onChange={e => setMinPhotos(Number(e.target.value))} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-transparent dark:text-white" />
+                                {/* Dynamic constraints & Photo verification warning boxes */}
+                                {taskType === 'visual_feedback' ? (
+                                    <div className="bg-emerald-50/50 dark:bg-emerald-950/20 backdrop-blur-md border border-emerald-100/50 dark:border-emerald-900/30 rounded-2xl p-4 flex gap-3 shadow-inner">
+                                        <span className="material-symbols-outlined text-2xl text-emerald-500">fact_check</span>
+                                        <div>
+                                            <h4 className="font-bold text-emerald-900 dark:text-emerald-300 text-sm mb-0.5">Checklist Mode Active</h4>
+                                            <p className="text-xs text-emerald-700 dark:text-emerald-400">This mission will require 0 photos. The field agent will focus entirely on completing the visual property condition checklist.</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Deadline</label>
-                                        <select value={deadlineHours} onChange={e => setDeadlineHours(Number(e.target.value))} className="w-full px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 dark:text-white">
-                                            <option value={48}>48 Hours</option>
-                                            <option value={72}>72 Hours</option>
-                                            <option value={168}>1 Week</option>
-                                        </select>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Min Photos Required</label>
+                                            <input type="number" min={3} max={50} value={minPhotos} onChange={e => setMinPhotos(Number(e.target.value))} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all" />
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1">Deadline</label>
+                                            <select value={deadlineHours} onChange={e => setDeadlineHours(Number(e.target.value))} className="w-full px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700/60 bg-white/50 dark:bg-slate-800/30 backdrop-blur-sm dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all">
+                                                <option value={48}>48 Hours</option>
+                                                <option value={72}>72 Hours</option>
+                                                <option value={168}>1 Week</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
 
-                        {/* Interactive Checklist Builder */}
-                        <div>
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                    <CheckSquare className="text-indigo-500" /> Property Condition Checklist
-                                </h3>
-                                <div className="space-x-3 text-sm">
-                                    <button type="button" onClick={selectAllChecklist} className="text-indigo-600 font-medium hover:underline">Select All</button>
-                                    <button type="button" onClick={clearChecklist} className="text-slate-500 hover:underline">Clear</button>
+                        {/* Interactive Checklist Builder - Conditionally Hidden / Restricted */}
+                        {taskType === 'photo_verification' ? (
+                            <div className="bg-indigo-50/30 dark:bg-indigo-950/10 backdrop-blur-md border border-indigo-100/50 dark:border-indigo-900/20 rounded-2xl p-6 text-center shadow-inner">
+                                <span className="material-symbols-outlined text-4xl text-indigo-500/80 mb-2">photo_camera</span>
+                                <h4 className="font-bold text-indigo-950 dark:text-indigo-300 text-base mb-1">Photo Verification Mode Active</h4>
+                                <p className="text-sm text-indigo-700 dark:text-indigo-400 max-w-lg mx-auto">This task requires the field agent to submit geo-located condition photos only. No custom inspection checklists will be generated or sent.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                        <CheckSquare className="text-indigo-500" /> Property Condition Checklist Builder
+                                    </h3>
+                                    <div className="space-x-3 text-sm">
+                                        <button type="button" onClick={selectAllChecklist} className="text-indigo-600 dark:text-indigo-400 font-bold hover:underline">Select All</button>
+                                        <button type="button" onClick={clearChecklist} className="text-slate-500 dark:text-slate-400 font-bold hover:underline">Clear</button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    {CHECKLIST_CATEGORIES.map(category => (
+                                        <div key={category.id} className="border border-slate-200/60 dark:border-slate-800/60 rounded-2xl overflow-hidden bg-white/30 dark:bg-slate-800/20 backdrop-blur-md shadow-sm">
+                                            <div className="bg-slate-50/50 dark:bg-slate-800/40 px-4 py-2 border-b border-slate-200/50 dark:border-slate-850/50">
+                                                <h4 className="font-bold text-slate-800 dark:text-slate-200 text-xs uppercase tracking-wider">{category.label}</h4>
+                                            </div>
+                                            <div className="p-3 space-y-2">
+                                                {category.items.map(item => {
+                                                    const isChecked = (selectedChecklist[category.id] || []).includes(item.id);
+                                                    return (
+                                                        <label key={item.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/60 dark:hover:bg-slate-800/40 cursor-pointer transition-all border border-transparent hover:border-slate-200/40 dark:hover:border-slate-700/30">
+                                                            <input 
+                                                                type="checkbox" 
+                                                                checked={isChecked}
+                                                                onChange={() => toggleChecklistItem(category.id, item.id)}
+                                                                className="w-4 h-4 text-indigo-600 rounded border-slate-350 focus:ring-indigo-550 focus:ring-offset-0 bg-transparent transition-all"
+                                                            />
+                                                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{item.label}</span>
+                                                        </label>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                                {CHECKLIST_CATEGORIES.map(category => (
-                                    <div key={category.id} className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800/50">
-                                        <div className="bg-slate-100 dark:bg-slate-800 px-4 py-2 border-b border-slate-200 dark:border-slate-700">
-                                            <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">{category.label}</h4>
-                                        </div>
-                                        <div className="p-3 space-y-2">
-                                            {category.items.map(item => {
-                                                const isChecked = (selectedChecklist[category.id] || []).includes(item.id);
-                                                return (
-                                                    <label key={item.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white dark:hover:bg-slate-800 cursor-pointer transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-700">
-                                                        <input 
-                                                            type="checkbox" 
-                                                            checked={isChecked}
-                                                            onChange={() => toggleChecklistItem(category.id, item.id)}
-                                                            className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
-                                                        />
-                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.label}</span>
-                                                    </label>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        )}
 
                     </form>
                 </div>
 
-                <div className="p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/30 flex items-center justify-between">
+                {/* Footer with Premium Escrow Summary */}
+                <div className="p-6 border-t border-slate-200/50 dark:border-slate-800/50 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
-                        <p className="text-sm text-slate-500 font-medium">Escrow Total</p>
-                        <div className="flex items-end gap-2">
-                            <span className="text-3xl font-black text-slate-900 dark:text-white">${usdPrice}</span>
-                            <span className="text-sm text-slate-500 mb-1">({rewardPoints} pts)</span>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Escrow Total</p>
+                        <div className="flex flex-wrap items-baseline gap-2 mt-0.5">
+                            <span className="text-3xl font-black text-indigo-600 dark:text-indigo-400">{priceInfo.displayUsd}</span>
+                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-full border border-emerald-100/50 dark:border-emerald-900/30 shadow-sm flex items-center gap-1">
+                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Test BRL: {priceInfo.displayTestBrl}
+                            </span>
+                            <span className="text-xs text-slate-400 dark:text-slate-400">({priceInfo.points} points escrowed)</span>
                         </div>
                     </div>
-                    <div className="flex gap-3">
-                        <button type="button" onClick={onClose} className="px-6 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+                    <div className="flex gap-3 justify-end">
+                        <button type="button" onClick={onClose} className="px-6 py-2.5 rounded-xl font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-800/50 transition-all">
                             Cancel
                         </button>
                         <button 
                             type="submit" 
                             form="bpo-form"
                             disabled={isSubmitting}
-                            className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none transition-colors flex items-center gap-2"
+                            className="px-8 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none hover:shadow-indigo-300 transition-all flex items-center gap-2"
                         >
-                            {isSubmitting ? 'Processing...' : 'Pay & Publish Mission'}
+                            {isSubmitting ? 'Processing Payment...' : 'Pay & Publish Mission'}
                         </button>
                     </div>
                 </div>

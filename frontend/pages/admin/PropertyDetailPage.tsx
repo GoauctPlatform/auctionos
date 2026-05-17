@@ -28,6 +28,7 @@ import { PropertyInventoryHistory } from '../../components/property/PropertyInve
 import { PropertyFinancialsModal } from '../../components/property/PropertyFinancialsModal';
 import { PropertyMetadataModal } from '../../components/property/PropertyMetadataModal';
 import { useCompany } from '../../context/CompanyContext';
+import { CreateTaskForm } from '../../components/property/CreateTaskForm';
 
 interface PropertyDetailPageProps {
     readOnly?: boolean;
@@ -51,6 +52,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
     const [isFinOpen, setIsFinOpen] = useState(false);
     const [isMetaOpen, setIsMetaOpen] = useState(false);
     const [streetViewError, setStreetViewError] = useState(false);
+    const [isBpoOpen, setIsBpoOpen] = useState(false);
 
     // ── Override / Edit Mode ──────────────────────────────────────────────────
     // Auto-activated via ?edit=true (set when user tries to create a duplicate property)
@@ -454,6 +456,21 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         }}
                     />
 
+                    {/* BPO Due Diligence Marketplace */}
+                    <div className="bg-indigo-900 rounded-xl p-6 shadow-sm border border-indigo-800 text-white">
+                        <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                            <span className="material-symbols-outlined">real_estate_agent</span>
+                            BPO Due Diligence
+                        </h3>
+                        <p className="text-sm text-indigo-200 mb-4">Request a local field agent to perform a property condition check and take custom photos.</p>
+                        <button
+                            onClick={() => setIsBpoOpen(true)}
+                            className="w-full py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white font-bold rounded-lg transition-colors shadow-sm"
+                        >
+                            Request Field Mission
+                        </button>
+                    </div>
+
                     <PropertyContactInfo property={property} />
 
                     <CountyContactCard 
@@ -506,6 +523,14 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 onClose={() => setIsMetaOpen(false)} 
                 property={property} 
             />
+
+            {isBpoOpen && (
+                <CreateTaskForm 
+                    propertyId={property.id} 
+                    propertyAddress={property.parcel_address || property.parcel_id} 
+                    onClose={() => setIsBpoOpen(false)} 
+                />
+            )}
         </div>
     );
 };

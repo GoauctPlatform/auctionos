@@ -16,6 +16,7 @@ import { API_URL, getHeaders } from '../../services/httpClient';
 import { StreetViewThumbnail } from '../../components/StreetViewThumbnail';
 import { ClientUserProperties } from './ClientUserProperties';
 import { InvestorTasksDashboard } from './InvestorTasksDashboard';
+import { CreateTaskForm } from '../../components/property/CreateTaskForm';
 
 // Helper to map state names to codes for the SVG silhouette
 const STATE_CODE_MAP: Record<string, string> = {
@@ -252,9 +253,7 @@ const ClientLists: React.FC = () => {
     // Task & Export state
     const [taskProperty, setTaskProperty] = useState<any | null>(null);
     const [exportProperty, setExportProperty] = useState<any | null>(null);
-    const [taskForm, setTaskForm] = useState({ title: '', description: '', min_photos: 3, max_photos: 10, reward_usd: 10 });
     const [exportForm, setExportForm] = useState({ contact_name: '', contact_phone: '', contact_email: '', notes: '', requested_sale_price: '' });
-    const [taskSubmitting, setTaskSubmitting] = useState(false);
     const [exportSubmitting, setExportSubmitting] = useState(false);
     
     const [favoritesSet, setFavoritesSet] = useState<Set<number>>(new Set());
@@ -1518,7 +1517,6 @@ const ClientLists: React.FC = () => {
                                                                 return;
                                                             }
                                                             setTaskProperty(prop); 
-                                                            setTaskForm({ title: `Photo Verification — ${(prop.address || prop.parcel_id || '').slice(0, 40)}`, description: '', min_photos: 3, max_photos: 10, reward_usd: 10 }); 
                                                         }}
                                                         className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800 transition-colors"
                                                     >
@@ -1711,54 +1709,14 @@ const ClientLists: React.FC = () => {
                 </div>
             </Dialog>
 
-            {/* Create Task Dialog */}
-            <Dialog open={!!taskProperty} onClose={() => setTaskProperty(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-                <Typography variant="h6" className="font-bold mb-1 text-slate-800 dark:text-white">Create Field Task</Typography>
-                <Typography variant="body2" className="text-slate-500 mb-4 text-xs">{taskProperty?.address || taskProperty?.parcel_id}</Typography>
-                <div className="space-y-3">
-                    <TextField label="Task Title" size="small" fullWidth value={taskForm.title} onChange={e => setTaskForm(p => ({...p, title: e.target.value}))} />
-                    <TextField label="Description (what the realtor needs to do)" size="small" fullWidth multiline rows={2} value={taskForm.description} onChange={e => setTaskForm(p => ({...p, description: e.target.value}))} />
-                    <div className="flex gap-3">
-                        <TextField label="Min Photos" type="number" size="small" fullWidth value={taskForm.min_photos} onChange={e => setTaskForm(p => ({...p, min_photos: Math.max(3, Math.min(10, parseInt(e.target.value)||3))}))} inputProps={{min:3,max:10}} />
-                        <TextField label="Max Photos" type="number" size="small" fullWidth value={taskForm.max_photos} onChange={e => setTaskForm(p => ({...p, max_photos: Math.max(taskForm.min_photos, Math.min(10, parseInt(e.target.value)||10))}))} inputProps={{min:3,max:10}} />
-                    </div>
-                    <TextField label="Task Reward ($ USD)" type="number" size="small" fullWidth value={taskForm.reward_usd} onChange={e => setTaskForm(p => ({...p, reward_usd: Math.max(7.5, parseFloat(e.target.value)||7.5)}))} inputProps={{min:7.5,step:1}} />
-                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3 text-xs text-blue-700 dark:text-blue-300">
-                        This is the amount that will be charged to your wallet for the task completion.
-                    </div>
-                </div>
-                <div className="flex gap-2 mt-4">
-                    <Button onClick={() => setTaskProperty(null)} color="inherit">Cancel</Button>
-                    <Button
-                        variant="contained" color="primary"
-                        disabled={taskSubmitting || !taskForm.title}
-                        onClick={async () => {
-                            setTaskSubmitting(true);
-                            try {
-                                // 1. Initiate Checkout
-                                const checkoutRes = await api.post('/billing/checkout-task', { amount_usd: taskForm.reward_usd, property_id: taskProperty.id });
-                                alert(checkoutRes.data.message + "\n\n(Mock Mode: Simulating successful payment...)");
-                                
-                                // 2. Simulate Webhook Success
-                                await api.post('/billing/mock-webhook-action', { action_type: 'task', property_id: taskProperty.id });
-
-                                // 3. Create the Task
-                                const calculatedRewardPoints = Math.round((taskForm.reward_usd * 0.70) * 100);
-                                await InvestorTaskService.createTask({ property_id: taskProperty.id, ...taskForm, reward_points: calculatedRewardPoints });
-                                
-                                setTaskProperty(null);
-                                alert('✅ Task created and payment successful! Realtors can now claim it.');
-                            } catch(e:any) { 
-                                // Catch specific permission errors from the interceptor/API
-                                alert(e.response?.data?.detail || e.message || "Failed to process task checkout."); 
-                            }
-                            finally { setTaskSubmitting(false); }
-                        }}
-                    >
-                        {taskSubmitting ? 'Processing Payment…' : 'Pay & Create Task'}
-                    </Button>
-                </div>
-            </Dialog>
+            {/* Create Task Form (Updated Model) */}
+            {taskProperty && (
+                <CreateTaskForm 
+                    propertyId={taskProperty.id} 
+                    propertyAddress={taskProperty.address || taskProperty.parcel_address || taskProperty.parcel_id} 
+                    onClose={() => setTaskProperty(null)} 
+                />
+            )}
 
             {/* Export Property Dialog */}
             <Dialog open={!!exportProperty} onClose={() => setExportProperty(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>

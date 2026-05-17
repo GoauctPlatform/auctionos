@@ -163,7 +163,7 @@ function App() {
             <Route path="properties" element={<ClientProperties />} />
             <Route path="lists" element={<ClientLists />} />
             {/* Target same detail page internally handling client view restrictions */}
-            <Route path="properties/:id" element={<PropertyDetails />} />
+            <Route path="properties/:id" element={<PropertyDetailPage readOnly={true} />} />
             {/* Ecosystem Pages */}
             <Route path="tax-systems" element={<TaxSystemsPage />} />
             <Route path="training" element={<TrainingPage />} />
