@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, Clock, FileText, AlertTriangle, MapPin } from 'lucide-react';
 import { API_BASE_URL } from '../../services/httpClient';
 
-export const InvestorTasksDashboard: React.FC = () => {
+interface InvestorTasksDashboardProps {
+    onBack?: () => void;
+}
+
+export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ onBack }) => {
     const navigate = useNavigate();
     const [tasks, setTasks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -106,6 +110,15 @@ export const InvestorTasksDashboard: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
+            {onBack && (
+                <button
+                    onClick={onBack}
+                    className="mb-6 flex items-center gap-1.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                >
+                    <span className="material-symbols-outlined text-[18px]">arrow_back</span>
+                    Back to folders
+                </button>
+            )}
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white">My Field Missions</h1>
