@@ -20,13 +20,38 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
 
     useEffect(() => {
         fetchTasks();
-        if (window.location.href.includes('payment=success')) {
-            setShowSuccessToast(true);
-            // Clean url params beautifully without reloading page
+        
+        const hashParts = window.location.href.split('?');
+        const urlParams = new URLSearchParams(hashParts[1] || '');
+        const payment = urlParams.get('payment');
+        const sessionId = urlParams.get('session_id');
+
+        if (payment === 'success' && sessionId) {
+            confirmPayment(sessionId);
+        }
+    }, []);
+
+    const confirmPayment = async (sessionId: string) => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/v1/investor/tasks/confirm-payment`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ session_id: sessionId })
+            });
+            if (res.ok) {
+                setShowSuccessToast(true);
+                fetchTasks();
+            }
+        } catch (err) {
+            console.error("Failed to confirm BPO payment:", err);
+        } finally {
             const cleanUrl = window.location.href.split('?')[0];
             window.history.replaceState({}, document.title, cleanUrl);
         }
-    }, []);
+    };
 
     const fetchTasks = async () => {
         try {

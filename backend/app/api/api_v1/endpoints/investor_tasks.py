@@ -178,7 +178,7 @@ def create_task(
     }
 
 class ConfirmEscrowPayload(BaseModel):
-    task_id: int
+    task_id: Optional[int] = None
     session_id: str
 
 @router.post("/tasks/confirm-payment")
@@ -189,8 +189,13 @@ def confirm_escrow_payment(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Confirms the Stripe payment and unlocks the task for realtors."""
-    task = db.execute(text("SELECT title, address, reward_points, status FROM realtor_tasks WHERE id = :id AND investor_user_id = :uid"), 
-        {"id": payload.task_id, "uid": current_user.id}).fetchone()
+    if payload.task_id is not None:
+        task = db.execute(text("SELECT id, title, address, reward_points, status FROM realtor_tasks WHERE id = :id AND investor_user_id = :uid"), 
+            {"id": payload.task_id, "uid": current_user.id}).fetchone()
+    else:
+        task = db.execute(text("SELECT id, title, address, reward_points, status FROM realtor_tasks WHERE stripe_charge_id = :session_id AND investor_user_id = :uid"), 
+            {"session_id": payload.session_id, "uid": current_user.id}).fetchone()
+
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     
@@ -198,7 +203,7 @@ def confirm_escrow_payment(
         return {"ok": True, "status": task.status}
 
     # Verify session with Stripe (omitted for speed, relying on frontend validation for test environment)
-    db.execute(text("UPDATE realtor_tasks SET status = 'open' WHERE id = :id"), {"id": payload.task_id})
+    db.execute(text("UPDATE realtor_tasks SET status = 'open' WHERE id = :id"), {"id": task.id})
     db.commit()
 
     # Notify all active realtors/agents via background task
