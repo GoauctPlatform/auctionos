@@ -69,7 +69,7 @@ def get_available_tasks(
             t.id, t.title, t.description, t.task_type, t.status,
             t.address, t.latitude, t.longitude, t.geo_radius_meters,
             t.min_photos, t.max_photos, CAST(t.reward_points * 0.7 AS INT) AS reward_points,
-            t.created_at,
+            t.created_at, t.checklist_requirements, t.gps_photo_reference,
             p.parcel_id, p.state, p.county, p.property_type,
             u.full_name AS investor_name
         FROM realtor_tasks t
@@ -103,6 +103,7 @@ def get_my_tasks(
             t.address, t.latitude, t.longitude, t.geo_radius_meters,
             t.min_photos, t.max_photos, CAST(t.reward_points * 0.7 AS INT) AS reward_points,
             t.created_at, t.deadline, t.claimed_at, t.submitted_at, t.approved_at,
+            t.checklist_requirements, t.gps_photo_reference,
             p.parcel_id, p.state, p.county,
             u.full_name AS investor_name
         FROM realtor_tasks t
