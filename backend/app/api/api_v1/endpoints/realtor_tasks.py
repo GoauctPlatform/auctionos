@@ -198,7 +198,7 @@ async def submit_task_evidence(
         geo_validated = distance <= (task.geo_radius_meters or 50)
 
     # Save files using dynamically resolved local path
-    base_upload_dir = os.path.join(os.getcwd(), "uploads")
+    base_upload_dir = os.getenv("UPLOADS_DIR", os.path.join(os.getcwd(), "uploads"))
     upload_dir = os.path.join(base_upload_dir, "tasks", str(task_id))
     os.makedirs(upload_dir, exist_ok=True)
     saved_paths = []

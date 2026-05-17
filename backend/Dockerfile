@@ -36,8 +36,8 @@ COPY . .
 # Ensure browsers are installed
 RUN playwright install chromium
 
-# Create data directory and set permissions (don't copy local data to avoid build errors if missing)
-RUN mkdir -p /app/data/media /app/data/reports && chmod -R 777 /app/data
+# Create data and uploads directories and set permissions (don't copy local data to avoid build errors if missing)
+RUN mkdir -p /app/data/media /app/data/reports /app/uploads && chmod -R 777 /app/data /app/uploads
 
 COPY start.sh /start.sh
 RUN chmod +x /start.sh

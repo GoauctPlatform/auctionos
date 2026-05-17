@@ -192,7 +192,7 @@ async def log_requests(request: Request, call_next):
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Mount client upload files
-uploads_dir = os.path.join(os.getcwd(), "uploads")
+uploads_dir = os.getenv("UPLOADS_DIR", os.path.join(os.getcwd(), "uploads"))
 os.makedirs(uploads_dir, exist_ok=True)
 app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
 

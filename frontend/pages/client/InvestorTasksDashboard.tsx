@@ -239,13 +239,14 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                         {sub.file_path?.split(',').map((url: string, i: number) => {
                                                             const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
                                                             return (
-                                                                <a href={fullUrl} target="_blank" rel="noreferrer" key={i}>
                                                                     <img 
                                                                         src={fullUrl} 
                                                                         alt="Evidence" 
-                                                                        className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity"
+                                                                        className="w-full h-24 object-cover rounded-lg hover:opacity-80 transition-opacity bg-slate-100 dark:bg-slate-800"
                                                                         onError={(e) => {
-                                                                            e.currentTarget.src = "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=400&q=80";
+                                                                            // Fallback to a clear broken-image generic grey box rather than a fake property mock
+                                                                            e.currentTarget.src = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2394a3b8'%3E%3Cpath d='M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z'/%3E%3C/svg%3E";
+                                                                            e.currentTarget.className = "w-full h-24 object-contain p-4 bg-slate-100 dark:bg-slate-800 rounded-lg opacity-50";
                                                                         }}
                                                                     />
                                                                 </a>
@@ -256,11 +257,47 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
 
                                                 {/* Checklist */}
                                                 {sub.checklist_responses && (
-                                                    <div>
-                                                        <h4 className="font-bold mb-3 flex items-center gap-2"><CheckCircle size={16}/> Checklist Responses</h4>
-                                                        <pre className="bg-slate-100 dark:bg-slate-800 p-4 rounded-lg text-xs overflow-auto">
-                                                            {JSON.stringify(JSON.parse(sub.checklist_responses), null, 2)}
-                                                        </pre>
+                                                    <div className="space-y-4">
+                                                        <h4 className="font-bold mb-2 flex items-center gap-2"><CheckCircle size={16}/> Checklist Responses</h4>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            {Object.entries(JSON.parse(sub.checklist_responses)).map(([catId, items]: [string, any]) => (
+                                                                <div key={catId} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                                    <h5 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">
+                                                                        {catId.replace(/_/g, ' ')}
+                                                                    </h5>
+                                                                    <div className="space-y-3">
+                                                                        {Object.entries(items).map(([itemId, response]: [string, any]) => {
+                                                                            const isObject = typeof response === 'object' && response !== null;
+                                                                            const value = isObject ? response.value : response;
+                                                                            const note = isObject ? response.note : '';
+                                                                            
+                                                                            return (
+                                                                                <div key={itemId} className="flex flex-col gap-1.5">
+                                                                                    <div className="flex items-start justify-between gap-2">
+                                                                                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-tight">
+                                                                                            {itemId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                                                                        </span>
+                                                                                        {value === true ? (
+                                                                                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded text-xs font-bold shrink-0 shadow-sm">Sim</span>
+                                                                                        ) : value === false ? (
+                                                                                            <span className="px-2 py-0.5 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 rounded text-xs font-bold shrink-0 shadow-sm">Não</span>
+                                                                                        ) : (
+                                                                                            <span className="px-2 py-0.5 bg-slate-200 text-slate-500 dark:bg-slate-700 rounded text-xs font-bold shrink-0">N/A</span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                    {note && (
+                                                                                        <p className="text-xs text-slate-600 dark:text-slate-400 italic bg-white dark:bg-slate-900/60 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 mt-1">
+                                                                                            <span className="font-bold block mb-0.5 text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[9px]">Comentários</span>
+                                                                                            {note}
+                                                                                        </p>
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 )}
 
