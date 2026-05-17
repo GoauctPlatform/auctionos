@@ -31,6 +31,7 @@ import AdminImportProperties from './pages/admin/AdminImportProperties';
 import AdminImportAuctions from './pages/admin/AdminImportAuctions';
 import AdminBroadcasts from './pages/admin/AdminBroadcasts';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
+import { AdminTaskMediation } from './pages/admin/AdminTaskMediation';
 
 // Client Portal Pages
 import ClientLayout from './layouts/ClientLayout';
@@ -46,6 +47,7 @@ import ActivityLogsPage from './pages/client/ActivityLogsPage';
 import BillingPage from './pages/client/BillingPage';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import TrialLimitPage from './pages/client/TrialLimitPage';
+import { InvestorTasksDashboard } from './pages/client/InvestorTasksDashboard';
 import { CompanyProvider } from './context/CompanyContext';
 import RealtorLayout from './pages/realtor/RealtorLayout';
 import RealtorDashboard from './pages/realtor/RealtorDashboard';
@@ -141,6 +143,7 @@ function App() {
             <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
             <Route path="/admin/users" element={<AdminUsers />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
+            <Route path="/admin/mediation" element={<AdminTaskMediation />} />
             <Route path="/settings" element={<Settings />} />
             <Route path="/properties/new" element={<PropertyManualEntry />} />
             <Route path="/properties/:id" element={<PropertyDetails />} />
@@ -167,6 +170,7 @@ function App() {
             <Route path="community" element={<CommunityPage />} />
             <Route path="groups" element={<GroupsPage />} />
             {/* Account Support Pages */}
+            <Route path="tasks" element={<InvestorTasksDashboard />} />
             <Route path="change-password" element={<ChangePasswordPage />} />
             <Route path="contact-support" element={<ClientSupportPage />} />
             <Route path="about" element={<AboutPage standalone={false} />} />

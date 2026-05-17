@@ -47,6 +47,13 @@ class RealtorTask(Base):
     max_photos = Column(Integer, default=10)
     reward_points = Column(Integer, default=500)  # investor sets this
 
+    # BPO Checklist & Extensions
+    checklist_requirements = Column(Text, nullable=True)  # JSON string of required checklist categories/items
+    gps_photo_reference = Column(String(2048), nullable=True) # Reference photo of the facade
+    rejections_count = Column(Integer, default=0) # Tracks number of investor rejections
+    stripe_charge_id = Column(String(255), nullable=True) # For escrow refunds
+    expiration_date = Column(DateTime(timezone=True), nullable=True) # Escrow refund deadline
+
     # Status lifecycle: open → claimed → submitted → approved | rejected
     status = Column(String(50), default="open", index=True)
 
@@ -78,6 +85,7 @@ class TaskSubmission(Base):
     photo_count = Column(Integer, default=1)          # how many photos in this submission
 
     notes = Column(Text, nullable=True)
+    checklist_responses = Column(Text, nullable=True) # JSON string of checklist answers
     submitted_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Hybrid review: auto-approved if geo_validated, investor can contest

@@ -32,6 +32,7 @@ export const Layout: React.FC = () => {
       dropdown: [
         { label: 'User Management', path: '/admin/users' },
         { label: 'Realtor Withdrawals', path: '/admin/withdrawals' },
+        { label: 'Conflict Mediation', path: '/admin/mediation' },
       ],
     },
     { icon: 'settings', label: 'Settings', path: '/settings' },

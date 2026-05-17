@@ -17,6 +17,7 @@ import { PropertyMap } from '../components/property/PropertyMap';
 import { PropertyExtendedTabs } from '../components/property/PropertyExtendedTabs';
 import { PropertyOwnerCard } from '../components/property/PropertyOwnerCard';
 import { PropertyRedemptionCard } from '../components/property/PropertyRedemptionCard';
+import { CreateTaskForm } from '../components/property/CreateTaskForm';
 
 import { PropertyService, ClientDataService } from '../services/property.service';
 import { useCompany } from '../context/CompanyContext';
@@ -32,6 +33,7 @@ const PropertyDetails: React.FC = () => {
 
     const [isFinOpen, setIsFinOpen] = useState(false);
     const [isMetaOpen, setIsMetaOpen] = useState(false);
+    const [isBpoOpen, setIsBpoOpen] = useState(false);
 
     // ── Override / Edit Mode ──────────────────────────────────────────────────
     // Activated by: ?edit=true URL param (auto-set when user tries to create a dup property)
@@ -98,6 +100,31 @@ const PropertyDetails: React.FC = () => {
         navigate(location.pathname, { replace: true });
     };
 
+    const handlePurchaseSecondaryBPO = async (purchaseType: string) => {
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/v1/investor/secondary-market/purchase`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    property_id: property.id,
+                    purchase_type: purchaseType
+                })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                window.location.href = data.checkout_url;
+            } else {
+                const error = await res.json();
+                alert(error.detail || 'Failed to initiate purchase');
+            }
+        } catch (e: any) {
+            alert('Error connecting to payment gateway.');
+        }
+    };
+
     if (loading) return <div className="p-8 text-center text-slate-500">Loading details...</div>;
     if (!property) return <div className="p-8 text-center text-red-500">Property not found.</div>;
 
@@ -159,34 +186,52 @@ const PropertyDetails: React.FC = () => {
                         <PropertyEstimatesComps property={property} />
                     </div>
 
-                    {/* Media Paywall Section */}
+                    {/* BPO Secondary Market Packages */}
                     {property.has_realtor_media && !property.media_unlocked && (
-                        <div className="bg-slate-900 rounded-xl p-8 shadow-sm flex flex-col items-center text-center text-white">
-                            <span className="material-symbols-outlined text-4xl mb-3 text-slate-400">lock</span>
-                            <h3 className="text-lg font-bold mb-1">Exclusive Realtor Media Available</h3>
-                            <p className="text-sm text-slate-400 mb-6">Unlock high-quality photos, drone footage, and on-site reports for $100.</p>
-                            <button
-                                onClick={async () => {
-                                    try {
-                                        const res = await fetch(`${API_BASE_URL}/api/v1/properties/${property.id}/purchase-media`, {
-                                            method: 'POST',
-                                            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                                        });
-                                        if (res.ok) {
-                                            alert('Media unlocked successfully!');
-                                            window.location.reload();
-                                        } else {
-                                            const error = await res.json();
-                                            alert(error.detail || 'Failed to unlock media');
-                                        }
-                                    } catch (e: any) {
-                                        alert(e.message);
-                                    }
-                                }}
-                                className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg font-bold transition-colors"
-                            >
-                                Unlock Media for $100
-                            </button>
+                        <div className="bg-slate-900 rounded-xl p-8 shadow-sm flex flex-col items-center text-center text-white border-2 border-indigo-500/30">
+                            <span className="material-symbols-outlined text-4xl mb-3 text-indigo-400">verified_user</span>
+                            <h3 className="text-xl font-black mb-1">Verified BPO Data Available</h3>
+                            <p className="text-sm text-slate-400 mb-6 max-w-md">A licensed Field Agent has already completed a Due Diligence mission for this property. Purchase the data instantly.</p>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
+                                {/* Photos Package */}
+                                <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col items-center hover:border-slate-500 transition-colors">
+                                    <span className="material-symbols-outlined text-3xl text-emerald-400 mb-2">photo_camera</span>
+                                    <h4 className="font-bold text-sm">Photos Only</h4>
+                                    <p className="text-emerald-400 font-black text-xl my-2">$20</p>
+                                    <button
+                                        onClick={() => handlePurchaseSecondaryBPO('photos')}
+                                        className="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition-colors mt-auto"
+                                    >
+                                        Buy Photos
+                                    </button>
+                                </div>
+                                {/* Checklist Package */}
+                                <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col items-center hover:border-slate-500 transition-colors">
+                                    <span className="material-symbols-outlined text-3xl text-amber-400 mb-2">fact_check</span>
+                                    <h4 className="font-bold text-sm">Checklist Only</h4>
+                                    <p className="text-amber-400 font-black text-xl my-2">$30</p>
+                                    <button
+                                        onClick={() => handlePurchaseSecondaryBPO('checklist')}
+                                        className="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition-colors mt-auto"
+                                    >
+                                        Buy Checklist
+                                    </button>
+                                </div>
+                                {/* Combo Package */}
+                                <div className="bg-indigo-900 p-5 rounded-xl border border-indigo-500 flex flex-col items-center transform scale-105 shadow-xl shadow-indigo-900/50 relative">
+                                    <span className="absolute -top-3 right-3 bg-rose-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">Best Value</span>
+                                    <span className="material-symbols-outlined text-3xl text-white mb-2">diamond</span>
+                                    <h4 className="font-bold text-sm">Full Combo</h4>
+                                    <p className="text-white font-black text-2xl my-2">$50</p>
+                                    <button
+                                        onClick={() => handlePurchaseSecondaryBPO('combo')}
+                                        className="w-full py-2 bg-indigo-500 hover:bg-indigo-400 rounded-lg text-xs font-bold transition-colors mt-auto text-white shadow-lg"
+                                    >
+                                        Unlock All
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
 
@@ -251,6 +296,21 @@ const PropertyDetails: React.FC = () => {
                         }}
                     />
 
+                    {/* BPO Due Diligence Marketplace */}
+                    <div className="bg-indigo-900 rounded-xl p-6 shadow-sm border border-indigo-800 text-white">
+                        <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
+                            <span className="material-symbols-outlined">real_estate_agent</span>
+                            BPO Due Diligence
+                        </h3>
+                        <p className="text-sm text-indigo-200 mb-4">Request a local field agent to perform a property condition check and take custom photos.</p>
+                        <button
+                            onClick={() => setIsBpoOpen(true)}
+                            className="w-full py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white font-bold rounded-lg transition-colors shadow-sm"
+                        >
+                            Request Field Mission
+                        </button>
+                    </div>
+
                     {/* Admin Actions */}
                     <div className="glass-card rounded-xl p-6">
                         <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Admin Actions</h3>
@@ -271,6 +331,14 @@ const PropertyDetails: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            {isBpoOpen && (
+                <CreateTaskForm 
+                    propertyId={property.id} 
+                    propertyAddress={property.address || property.parcel_id} 
+                    onClose={() => setIsBpoOpen(false)} 
+                />
+            )}
 
             <PropertyFinancialsModal
                 isOpen={isFinOpen}

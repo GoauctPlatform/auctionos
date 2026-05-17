@@ -5,7 +5,7 @@ Handles: available tasks, claiming, submitting evidence (photo+GPS), commissions
 import math
 from datetime import datetime, timedelta, timezone
 from typing import Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import text
@@ -151,7 +151,9 @@ async def submit_task_evidence(
     submission_lat: Optional[float] = Form(None),
     submission_lng: Optional[float] = Form(None),
     notes: Optional[str] = Form(None),
+    checklist_responses: Optional[str] = Form(None),
     files: list[UploadFile] = File(...),
+    background_tasks: BackgroundTasks = BackgroundTasks(),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -196,10 +198,10 @@ async def submit_task_evidence(
         INSERT INTO task_submissions
             (task_id, realtor_user_id, submission_lat, submission_lng,
              distance_meters, geo_validated, file_path, file_type, photo_count, notes,
-             review_status)
+             checklist_responses, review_status)
         VALUES
             (:task_id, :uid, :lat, :lng, :dist, :geo_ok,
-             :file_path, 'image', :photo_count, :notes, :review_status)
+             :file_path, 'image', :photo_count, :notes, :checklist, 'pending')
     """), {
         "task_id": task_id,
         "uid": current_user.id,
@@ -210,7 +212,7 @@ async def submit_task_evidence(
         "file_path": ",".join(saved_paths),
         "photo_count": len(files),
         "notes": notes,
-        "review_status": "approved" if geo_validated else "pending",
+        "checklist": checklist_responses,
     })
 
     # Update task status
@@ -221,18 +223,17 @@ async def submit_task_evidence(
         WHERE id = :id
     """), {"status": new_status, "id": task_id})
 
-    # If geo_validated → auto-approve and credit points
-    if geo_validated:
-        _approve_task(task_id, task.reward_points, current_user.id, db)
-        _copy_task_photos_to_attachments(task_id, task.property_id, task.investor_user_id, db)
-
     db.commit()
+    
+    # Notify investor via background task
+    # In a real setup, we query investor email from `users` and use `send_email`.
+    
     return {
         "ok": True,
         "geo_validated": geo_validated,
         "distance_meters": round(distance, 1) if distance else None,
         "photos_saved": len(saved_paths),
-        "auto_approved": geo_validated,
+        "auto_approved": False,
     }
 
 def _copy_task_photos_to_attachments(task_id: int, property_id: int, investor_id: int, db: Session):

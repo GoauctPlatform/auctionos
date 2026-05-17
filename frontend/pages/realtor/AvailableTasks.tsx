@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { CircularProgress, Dialog, Button } from '@mui/material';
 import { RealtorTaskService, Task } from '../../services/realtor_task.service';
 import { InvestorTaskService } from '../../services/realtor_task.service';
+import { ExecuteTaskMission } from '../../components/property/ExecuteTaskMission';
 
 const STATUS_COLORS: Record<string, string> = {
   open: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
@@ -259,98 +260,17 @@ const AvailableTasks: React.FC = () => {
         </div>
       </Dialog>
 
-      {/* Submit Evidence Dialog */}
-      <Dialog open={!!submitTask} onClose={() => setSubmitTask(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-        <p className="text-base font-bold text-slate-800 dark:text-white mb-1">Submit Evidence</p>
-        <p className="text-sm text-slate-500 mb-4">{submitTask?.title} — {submitTask?.address}</p>
-        <div className="space-y-4">
-          {/* GPS Capture */}
-          <div>
-            <p className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">1. Capture your location</p>
-            <button
-              onClick={handleCaptureGPS}
-              className={`w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold border transition-colors ${
-                gpsStatus === 'ok' ? 'bg-emerald-50 border-emerald-300 text-emerald-700' :
-                gpsStatus === 'error' ? 'bg-red-50 border-red-300 text-red-700' :
-                'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300'
-              }`}
-            >
-              <span className="material-symbols-outlined text-[18px]">my_location</span>
-              {gpsStatus === 'loading' ? 'Getting location…' :
-               gpsStatus === 'ok' ? `✅ ${gpsCoords?.lat.toFixed(5)}, ${gpsCoords?.lng.toFixed(5)}` :
-               gpsStatus === 'error' ? '❌ Location failed — try again' : 'Capture GPS Location'}
-            </button>
-          </div>
-
-          {/* Photo Upload */}
-          <div>
-            <p className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">
-              2. Upload photos ({submitTask?.min_photos}–{submitTask?.max_photos} required)
-            </p>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={e => setPhotos(prev => [...prev, ...Array.from(e.target.files || [])])}
-            />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-bold border border-dashed border-slate-300 dark:border-slate-600 hover:border-blue-400 text-slate-600 dark:text-slate-400 transition-colors"
-            >
-              <span className="material-symbols-outlined text-[18px]">add_a_photo</span>
-              {photos.length > 0 ? `Add more photos (${photos.length} selected)` : 'Select Photos (camera or gallery)'}
-            </button>
-            {photos.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {photos.map((f, i) => (
-                  <span key={i} className="flex items-center gap-1 text-[10px] bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-0.5 rounded-full font-medium">
-                    {f.name}
-                    <button 
-                      className="hover:text-red-500 font-bold ml-1" 
-                      onClick={(e) => { e.stopPropagation(); setPhotos(p => p.filter((_, idx) => idx !== i)); }}
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Notes */}
-          <div>
-            <p className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">3. Notes (optional)</p>
-            <textarea
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Describe what you observed at the property…"
-              rows={3}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          {!navigator.onLine && (
-            <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300 font-medium flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px]">cloud_off</span>
-              You're offline. Evidence will be saved locally and submitted when you reconnect.
-            </div>
-          )}
-        </div>
-        <div className="flex gap-2 mt-4">
-          <Button onClick={() => setSubmitTask(null)} color="inherit" size="small">Cancel</Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            color="primary"
-            size="small"
-            disabled={submitting || photos.length < (submitTask?.min_photos || 3)}
-          >
-            {submitting ? 'Submitting…' : 'Submit Evidence'}
-          </Button>
-        </div>
-      </Dialog>
+      {/* Submit Evidence Full Screen UI */}
+      {submitTask && (
+        <ExecuteTaskMission 
+          task={submitTask}
+          onClose={() => setSubmitTask(null)}
+          onSuccess={() => {
+            setSubmitTask(null);
+            loadData();
+          }}
+        />
+      )}
     </div>
   );
 };

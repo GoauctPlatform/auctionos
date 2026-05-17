@@ -139,6 +139,7 @@ const ClientLayout: React.FC = () => {
     { icon: 'campaign', label: 'Live Auctions', path: '/client/auctions' },
     { icon: 'location_on', label: 'Property Search', path: '/client/properties' },
     { icon: 'list_alt', label: 'My Lists', path: '/client/lists' },
+    { icon: 'real_estate_agent', label: 'Field Missions', path: '/client/tasks' },
   ];
 
   if ((role === 'manager' || role === 'client') && user?.subscription_tier !== 'trial') {
