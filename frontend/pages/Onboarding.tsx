@@ -26,6 +26,10 @@ export const Onboarding: React.FC = () => {
             navigate('/login');
             return;
         }
+        if (!currentUser.is_verified) {
+            navigate('/client');
+            return;
+        }
         setUser(currentUser);
         if (currentUser.role === 'pending') {
             setStep('role_selection');
@@ -67,6 +71,7 @@ export const Onboarding: React.FC = () => {
 
     const handleComplete = () => {
         if (user) {
+            localStorage.setItem(`goauct_onboarding_completed_${user.id}`, 'true');
             const finalUser = { ...user, role: selectedRole || user.role };
             if (finalUser.role === 'realtor') navigate('/realtor?welcome=true');
             else if (finalUser.role === 'agent_due_diligence') navigate('/agent?welcome=true');

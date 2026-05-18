@@ -10,6 +10,7 @@ import { Mail, ShieldAlert, Loader2, RefreshCw } from 'lucide-react';
 import api from '../services/api';
 
 const ClientLayout: React.FC = () => {
+  const { user, logout: authLogout } = useAuth();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -17,9 +18,16 @@ const ClientLayout: React.FC = () => {
   const [upcomingAuctions, setUpcomingAuctions] = useState<number>(0);
   
 
-
-
   React.useEffect(() => {
+    // If verified user hasn't completed onboarding tour, force redirect to it
+    if (user && user.is_verified) {
+      const isCompleted = localStorage.getItem(`goauct_onboarding_completed_${user.id}`) === 'true';
+      if (!isCompleted) {
+        navigate('/onboarding');
+        return;
+      }
+    }
+
     // Basic ping to count if any user list has upcoming auctions
     ClientDataService.getLists().then(lists => {
        const hasUpcoming = lists.filter((l: any) => l.has_upcoming_auction).reduce((acc: number, curr: any) => acc + (curr.upcoming_auctions_count || 0), 0);
@@ -38,9 +46,8 @@ const ClientLayout: React.FC = () => {
         }
       }).catch(() => {});
     }
-  }, []);
+  }, [user, navigate]);
 
-  const { user, logout: authLogout } = useAuth();
   const userDisplayName = user?.email ? user.email.split('@')[0] : 'Client';
   const userInitial = userDisplayName.charAt(0).toUpperCase();
 

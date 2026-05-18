@@ -34,7 +34,7 @@ const VerifyEmail: React.FC = () => {
                 }
 
                 // Redirect after 3 seconds
-                setTimeout(() => navigate('/client'), 3000);
+                setTimeout(() => navigate('/onboarding'), 3000);
             } catch (err: any) {
                 setStatus('error');
                 setMessage(err.response?.data?.detail || 'Verification failed. The link might be expired.');
