@@ -219,12 +219,29 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                 {renderStatusBadge(selectedTask.status)}
                             </div>
 
-                            {selectedTask.status === 'submitted' && submissions.length > 0 && (
+                            {submissions.length > 0 && (
                                 <div className="space-y-8">
                                     {submissions.map((sub, idx) => (
-                                        <div key={idx} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
-                                            <div className="bg-slate-50 dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                                                <h3 className="font-bold">Submission by {sub.realtor_name}</h3>
+                                        <div key={idx} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
+                                            <div className="bg-slate-50 dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-700 flex flex-wrap gap-3 justify-between items-center">
+                                                <div className="flex items-center gap-3">
+                                                    <h3 className="font-bold text-slate-800 dark:text-white">Submission by {sub.realtor_name}</h3>
+                                                    {sub.review_status === 'pending' && (
+                                                        <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded-md">
+                                                            Pending Review
+                                                        </span>
+                                                    )}
+                                                    {sub.review_status === 'approved' && (
+                                                        <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 rounded-md">
+                                                            Approved
+                                                        </span>
+                                                    )}
+                                                    {sub.review_status === 'rejected' && (
+                                                        <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 rounded-md">
+                                                            Rejected
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 {sub.geo_validated ? (
                                                     <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded">
                                                         <MapPin size={12}/> GPS Validated ({sub.distance_meters}m)
@@ -239,7 +256,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                             <div className="p-4 space-y-6">
                                                 {/* Photos */}
                                                 <div>
-                                                    <h4 className="font-bold mb-3 flex items-center gap-2"><FileText size={16}/> Evidence Photos</h4>
+                                                    <h4 className="font-bold mb-3 flex items-center gap-2 text-slate-800 dark:text-white"><FileText size={16}/> Evidence Photos</h4>
                                                     <div className="grid grid-cols-3 gap-2">
                                                         {(() => {
                                                             const allImages = sub.file_path?.split(',').map((url: string) => url.startsWith('http') ? url : `${API_BASE_URL}${url}`) || [];
@@ -273,7 +290,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                 {/* Checklist */}
                                                 {sub.checklist_responses && (
                                                     <div className="space-y-4">
-                                                        <h4 className="font-bold mb-2 flex items-center gap-2"><CheckCircle size={16}/> Checklist Responses</h4>
+                                                        <h4 className="font-bold mb-2 flex items-center gap-2 text-slate-800 dark:text-white"><CheckCircle size={16}/> Checklist Responses</h4>
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             {Object.entries(JSON.parse(sub.checklist_responses)).map(([catId, items]: [string, any]) => (
                                                                 <div key={catId} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -316,41 +333,55 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                     </div>
                                                 )}
 
-                                                {/* Review Action Form */}
-                                                <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                                                    <h4 className="font-bold mb-2">Review Decision</h4>
-                                                    <textarea 
-                                                        value={reviewNotes} 
-                                                        onChange={e => setReviewNotes(e.target.value)}
-                                                        placeholder="Provide a reason if rejecting..."
-                                                        className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 mb-4"
-                                                        rows={3}
-                                                    />
-                                                    
-                                                    {selectedTask.rejections_count > 0 && (
-                                                        <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 flex items-center gap-2">
-                                                            <AlertTriangle size={16} />
-                                                            Warning: This task has already been rejected {selectedTask.rejections_count} times. Another rejection will escalate it to Admin Mediation.
-                                                        </div>
-                                                    )}
-
-                                                    <div className="flex gap-4">
-                                                        <button 
-                                                            onClick={() => handleReview(true)}
-                                                            disabled={isReviewing}
-                                                            className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg flex items-center justify-center gap-2"
-                                                        >
-                                                            <CheckCircle size={18}/> Approve & Pay Escrow
-                                                        </button>
-                                                        <button 
-                                                            onClick={() => handleReview(false)}
-                                                            disabled={isReviewing}
-                                                            className="flex-1 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg flex items-center justify-center gap-2"
-                                                        >
-                                                            <XCircle size={18}/> Reject Submission
-                                                        </button>
+                                                {/* Rejection comments for historical items */}
+                                                {sub.review_status === 'rejected' && sub.review_notes && (
+                                                    <div className="p-4 bg-rose-50/50 dark:bg-rose-950/15 border border-rose-100 dark:border-rose-900/30 rounded-xl space-y-1">
+                                                        <h5 className="text-[10px] font-black text-rose-700 dark:text-rose-400 uppercase tracking-widest">
+                                                            Investor Rejection Feedback
+                                                        </h5>
+                                                        <p className="text-sm text-slate-700 dark:text-slate-300 italic">
+                                                            "{sub.review_notes}"
+                                                        </p>
                                                     </div>
-                                                </div>
+                                                )}
+
+                                                {/* Review Action Form (Only active on latest submission if pending) */}
+                                                {idx === 0 && sub.review_status === 'pending' && selectedTask.status === 'submitted' && (
+                                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                        <h4 className="font-bold mb-2 text-slate-800 dark:text-white">Review Decision</h4>
+                                                        <textarea 
+                                                            value={reviewNotes} 
+                                                            onChange={e => setReviewNotes(e.target.value)}
+                                                            placeholder="Provide a reason if rejecting..."
+                                                            className="w-full p-3 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-900 dark:text-white mb-4"
+                                                            rows={3}
+                                                        />
+                                                        
+                                                        {selectedTask.rejections_count > 0 && (
+                                                            <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 flex items-center gap-2">
+                                                                <AlertTriangle size={16} />
+                                                                Warning: This task has already been rejected {selectedTask.rejections_count} times. Another rejection will escalate it to Admin Mediation.
+                                                            </div>
+                                                        )}
+
+                                                        <div className="flex gap-4">
+                                                            <button 
+                                                                onClick={() => handleReview(true)}
+                                                                disabled={isReviewing}
+                                                                className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg flex items-center justify-center gap-2"
+                                                            >
+                                                                <CheckCircle size={18}/> Approve & Pay Escrow
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => handleReview(false)}
+                                                                disabled={isReviewing}
+                                                                className="flex-1 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg flex items-center justify-center gap-2"
+                                                            >
+                                                                <XCircle size={18}/> Reject Submission
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
