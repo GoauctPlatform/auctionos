@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../../services/httpClient';
 import { ShieldAlert, CheckCircle, XCircle, Clock, MapPin, Search } from 'lucide-react';
-import { PhotoViewerLightbox } from '../../components/property/PhotoViewerLightbox';
+import { PhotoViewerLightbox } from '../../components/PhotoViewerLightbox';
 
 export const AdminTaskMediation: React.FC = () => {
     const [tickets, setTickets] = useState<any[]>([]);
