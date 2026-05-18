@@ -373,16 +373,6 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
                                 <Camera className="text-indigo-500" /> {hasChecklist ? '3' : '2'}. Evidence Camera
                             </h3>
                             <p className="text-xs text-slate-500 mb-4">Take {task.min_photos} to {task.max_photos} photos of the property condition.</p>
-                            
-                            {task.gps_photo_reference && (
-                                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex gap-3">
-                                    <img src={task.gps_photo_reference} alt="Reference" className="w-16 h-16 object-cover rounded-lg border border-blue-200" />
-                                    <div>
-                                        <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Investor's Target Match</p>
-                                        <p className="text-[10px] text-blue-600 dark:text-blue-400 mt-0.5">Please ensure the facade matches this reference.</p>
-                                    </div>
-                                </div>
-                            )}
 
                             <input
                                 ref={fileInputRef}
