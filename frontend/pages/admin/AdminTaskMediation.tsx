@@ -298,7 +298,9 @@ export const AdminTaskMediation: React.FC = () => {
                 <PhotoViewerLightbox
                     isOpen={lightboxOpen}
                     onClose={() => setLightboxOpen(false)}
-                    photos={taskDetails.submission_photos}
+                    images={taskDetails.submission_photos.map((photo: string) => 
+                        photo.startsWith('http') ? photo : `${API_BASE_URL}${photo}`
+                    )}
                     initialIndex={lightboxIndex}
                 />
             )}
