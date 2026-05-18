@@ -19,6 +19,7 @@ class Realtor(Base):
     license_number = Column(String(100), nullable=True) # CRECI equivalent
     mls_id = Column(String(100), nullable=True)
     payment_account = Column(String(255), nullable=True) # Bank, PayPal, etc.
+    rejection_reason = Column(String(500), nullable=True)
     
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

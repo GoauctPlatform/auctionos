@@ -40,6 +40,28 @@ class ClaimTaskPayload(BaseModel):
 
 # ── Agent Profile ─────────────────────────────────────────────────────────────
 
+@router.get("/profile")
+def get_my_agent_profile(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Returns the agent profile linked to the current user."""
+    profile = db.query(AgentDueDiligenceProfile).filter(AgentDueDiligenceProfile.user_id == current_user.id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="No agent profile found for this user.")
+    return {
+        "id": profile.id,
+        "user_id": profile.user_id,
+        "coverage_area": profile.coverage_area,
+        "coverage_radius_miles": profile.coverage_radius_miles,
+        "vehicle_type": profile.vehicle_type,
+        "social_security": profile.social_security,
+        "payment_account": profile.payment_account,
+        "verification_status": profile.verification_status,
+        "rejection_reason": profile.rejection_reason,
+        "created_at": profile.created_at
+    }
+
 @router.post("/profile")
 def create_agent_profile(
     payload: AgentProfilePayload,
@@ -108,6 +130,19 @@ def claim_task(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Agent claims an open geo task."""
+    # 1. Verify partner account status
+    agent = db.execute(text("SELECT verification_status FROM agent_due_diligence_profiles WHERE user_id = :uid"), {"uid": current_user.id}).fetchone()
+    if not agent or agent.verification_status != "verified":
+        raise HTTPException(status_code=403, detail="Your partner account must be verified by compliance before claiming tasks.")
+
+    # 2. Enforce the 5-task limit
+    active_count = db.execute(text("""
+        SELECT COUNT(id) FROM realtor_tasks 
+        WHERE realtor_user_id = :uid AND status IN ('claimed', 'submitted')
+    """), {"uid": current_user.id}).scalar()
+    if active_count >= 5:
+        raise HTTPException(status_code=400, detail="Claim limit reached. You can hold a maximum of 5 concurrent active tasks.")
+
     task = db.execute(text("SELECT * FROM realtor_tasks WHERE id = :id AND task_type IN ('geo', 'photo')"), {"id": task_id}).fetchone()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found or is not a geo-task")

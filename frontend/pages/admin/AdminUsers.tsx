@@ -168,8 +168,9 @@ const AdminUsers: React.FC = () => {
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [logs, setLogs] = useState<ActivityLog[]>([]);
     const [realtors, setConsultants] = useState<ConsultantApplication[]>([]);
+    const [agents, setAgents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'users' | 'logs' | 'realtors'>('users');
+    const [tab, setTab] = useState<'users' | 'logs' | 'realtors' | 'agents'>('users');
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -177,6 +178,39 @@ const AdminUsers: React.FC = () => {
     const [logSearch, setLogSearch] = useState('');
     const [consultantFilter, setConsultantFilter] = useState<string>('pending');
     const [actionLoading, setActionLoading] = useState<number | null>(null);
+
+    // Expandable credentials view state
+    const [expandedAppId, setExpandedAppId] = useState<number | null>(null);
+
+    // Rejection reason prompt state
+    const [rejectingApplication, setRejectingApplication] = useState<{ id: number; role: 'realtor' | 'agent' } | null>(null);
+    const [rejectReason, setRejectReason] = useState('');
+    const [selectedPresetReason, setSelectedPresetReason] = useState('');
+    const [rejectError, setRejectError] = useState('');
+    const [rejectSaving, setRejectSaving] = useState(false);
+
+    // Dynamic pending badges state
+    const [pendingRealtorsCount, setPendingRealtorsCount] = useState(0);
+    const [pendingAgentsCount, setPendingAgentsCount] = useState(0);
+
+    const loadPendingCounts = async () => {
+        try {
+            const [rRes, aRes] = await Promise.all([
+                fetch(`${API_URL}/admin/realtors?status=pending&limit=1`, { headers: getHeaders() }),
+                fetch(`${API_URL}/admin/agents?status=pending&limit=1`, { headers: getHeaders() })
+            ]);
+            if (rRes.ok) {
+                const rData = await rRes.json();
+                setPendingRealtorsCount(rData.total || 0);
+            }
+            if (aRes.ok) {
+                const aData = await aRes.json();
+                setPendingAgentsCount(aData.total || 0);
+            }
+        } catch (e) {
+            console.error("Failed to load pending counts:", e);
+        }
+    };
 
     const loadData = async () => {
         setLoading(true);
@@ -193,7 +227,14 @@ const AdminUsers: React.FC = () => {
                     const data = await res.json();
                     setConsultants(data.items || []);
                 }
+            } else if (tab === 'agents') {
+                const res = await fetch(`${API_URL}/admin/agents?status=${consultantFilter}&limit=100`, { headers: getHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    setAgents(data.items || []);
+                }
             }
+            await loadPendingCounts();
         } catch (error) {
             console.error('Failed to load data', error);
         } finally {
@@ -201,24 +242,40 @@ const AdminUsers: React.FC = () => {
         }
     };
 
-    const handleVerify = async (id: number, status: 'verified' | 'rejected') => {
+    const handleVerify = async (id: number, role: 'realtor' | 'agent', status: 'verified' | 'rejected', reason?: string) => {
         setActionLoading(id);
         try {
-            await fetch(`${API_URL}/admin/realtors/${id}/verify`, {
+            const url = role === 'realtor' 
+                ? `${API_URL}/admin/realtors/${id}/verify` 
+                : `${API_URL}/admin/agents/${id}/verify`;
+                
+            const res = await fetch(url, {
                 method: 'PUT',
                 headers: getHeaders(),
-                body: JSON.stringify({ status }),
+                body: JSON.stringify({ status, reason }),
             });
-            loadData();
-        } catch {}
-        finally { setActionLoading(null); }
+            
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                alert(err.detail || `Failed to verify ${role}`);
+            } else {
+                loadData();
+            }
+        } catch (e: any) {
+            alert(e.message || "An unexpected error occurred");
+        } finally {
+            setActionLoading(null);
+        }
     };
 
-    const handleDeleteConsultant = async (id: number) => {
-        if (!window.confirm('Delete this application?')) return;
+    const handleDeleteConsultant = async (id: number, role: 'realtor' | 'agent') => {
+        if (!window.confirm(`Delete this ${role} application?`)) return;
         setActionLoading(id);
         try {
-            await fetch(`${API_URL}/admin/realtors/${id}`, { method: 'DELETE', headers: getHeaders() });
+            const url = role === 'realtor' 
+                ? `${API_URL}/admin/realtors/${id}` 
+                : `${API_URL}/admin/agents/${id}`;
+            await fetch(url, { method: 'DELETE', headers: getHeaders() });
             loadData();
         } catch {}
         finally { setActionLoading(null); }
@@ -293,7 +350,8 @@ const AdminUsers: React.FC = () => {
             <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl w-fit flex-wrap">
                 {[
                     { key: 'users', icon: 'manage_accounts', label: 'Users & Roles' },
-                    { key: 'realtors', icon: 'handshake', label: 'Realtor Apps', badge: realtors.filter(c => c.verification_status === 'pending').length },
+                    { key: 'realtors', icon: 'handshake', label: 'Realtor Apps', badge: pendingRealtorsCount },
+                    { key: 'agents', icon: 'directions_car', label: 'Agent Apps', badge: pendingAgentsCount },
                     { key: 'logs', icon: 'history', label: 'Activity Logs' },
                 ].map(t => (
                     <button
@@ -318,9 +376,9 @@ const AdminUsers: React.FC = () => {
                 <div className="flex justify-center py-20">
                     <CircularProgress size={32} />
                 </div>
-            ) : tab === 'realtors' ? (
+            ) : (tab === 'realtors' || tab === 'agents') ? (
                 <>
-                    {/* Realtor Filter */}
+                    {/* Filters */}
                     <div className="flex gap-2 flex-wrap">
                         {['pending', 'verified', 'rejected', ''].map(s => (
                             <button
@@ -342,7 +400,7 @@ const AdminUsers: React.FC = () => {
                             <table className="min-w-full">
                                 <thead>
                                     <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80">
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Name</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Name / Partner</th>
                                         <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Email</th>
                                         <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Phone</th>
                                         <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
@@ -351,62 +409,128 @@ const AdminUsers: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                                    {realtors.map(c => (
-                                        <tr key={c.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                            <td className="px-5 py-3">
-                                                <div className="text-sm font-bold text-slate-800 dark:text-white">{c.name}</div>
-                                                {c.user_email && <div className="text-[10px] text-slate-400">Account: {c.user_email}</div>}
-                                            </td>
-                                            <td className="px-5 py-3 text-sm text-slate-600 dark:text-slate-300">{c.email}</td>
-                                            <td className="px-5 py-3 text-sm text-slate-500">{c.phone || '—'}</td>
-                                            <td className="px-5 py-3">
-                                                <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
-                                                    c.verification_status === 'verified'
-                                                        ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                                                        : c.verification_status === 'rejected'
-                                                            ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-                                                            : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                                                }`}>{c.verification_status}</span>
-                                            </td>
-                                            <td className="px-5 py-3 text-xs text-slate-400">
-                                                {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
-                                            </td>
-                                            <td className="px-5 py-3">
-                                                <div className="flex gap-1.5">
-                                                    {c.verification_status !== 'verified' && (
-                                                        <button
-                                                            onClick={() => handleVerify(c.id, 'verified')}
-                                                            disabled={actionLoading === c.id}
-                                                            className="px-3 py-1 text-[10px] font-bold rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 transition-colors disabled:opacity-60"
-                                                        >
-                                                            ✓ Approve
-                                                        </button>
-                                                    )}
-                                                    {c.verification_status !== 'rejected' && (
-                                                        <button
-                                                            onClick={() => handleVerify(c.id, 'rejected')}
-                                                            disabled={actionLoading === c.id}
-                                                            className="px-3 py-1 text-[10px] font-bold rounded-lg bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 transition-colors disabled:opacity-60"
-                                                        >
-                                                            ✗ Reject
-                                                        </button>
-                                                    )}
-                                                    <button
-                                                        onClick={() => handleDeleteConsultant(c.id)}
-                                                        disabled={actionLoading === c.id}
-                                                        className="p-1 text-slate-400 hover:text-red-500 transition-colors disabled:opacity-60"
-                                                    >
-                                                        <span className="material-symbols-outlined text-[16px]">delete</span>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                    {realtors.length === 0 && (
+                                    {(tab === 'realtors' ? realtors : agents).map(c => {
+                                        const isExpanded = expandedAppId === c.id;
+                                        return (
+                                            <React.Fragment key={c.id}>
+                                                <tr 
+                                                    onClick={() => setExpandedAppId(isExpanded ? null : c.id)}
+                                                    className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors cursor-pointer"
+                                                >
+                                                    <td className="px-5 py-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="material-symbols-outlined text-[18px] text-slate-400">
+                                                                {isExpanded ? 'expand_less' : 'expand_more'}
+                                                            </span>
+                                                            <div>
+                                                                <div className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
+                                                                    {c.name || 'Anonymous Partner'}
+                                                                    <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded uppercase">
+                                                                        {tab === 'realtors' ? 'Realtor' : 'Due Diligence'}
+                                                                    </span>
+                                                                </div>
+                                                                {c.user_email && <div className="text-[10px] text-slate-400">Account: {c.user_email}</div>}
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="px-5 py-3 text-sm text-slate-600 dark:text-slate-300">{c.email || c.user_email || '—'}</td>
+                                                    <td className="px-5 py-3 text-sm text-slate-500">{c.phone || '—'}</td>
+                                                    <td className="px-5 py-3">
+                                                        <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase ${
+                                                            c.verification_status === 'verified'
+                                                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                                                : c.verification_status === 'rejected'
+                                                                    ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                                                                    : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                                                        }`}>{c.verification_status}</span>
+                                                    </td>
+                                                    <td className="px-5 py-3 text-xs text-slate-400">
+                                                        {c.created_at ? new Date(c.created_at).toLocaleDateString() : '—'}
+                                                    </td>
+                                                    <td className="px-5 py-3" onClick={(e) => e.stopPropagation()}>
+                                                        <div className="flex gap-1.5">
+                                                            {c.verification_status !== 'verified' && (
+                                                                <button
+                                                                    onClick={() => handleVerify(c.id, tab === 'realtors' ? 'realtor' : 'agent', 'verified')}
+                                                                    disabled={actionLoading === c.id}
+                                                                    className="px-3 py-1 text-[10px] font-bold rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 transition-colors disabled:opacity-60"
+                                                                >
+                                                                    ✓ Approve
+                                                                </button>
+                                                            )}
+                                                            {c.verification_status !== 'rejected' && (
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setSelectedPresetReason('');
+                                                                        setRejectReason('');
+                                                                        setRejectError('');
+                                                                        setRejectingApplication({ id: c.id, role: tab === 'realtors' ? 'realtor' : 'agent' });
+                                                                    }}
+                                                                    disabled={actionLoading === c.id}
+                                                                    className="px-3 py-1 text-[10px] font-bold rounded-lg bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 transition-colors disabled:opacity-60"
+                                                                >
+                                                                    ✗ Reject
+                                                                </button>
+                                                            )}
+                                                            <button
+                                                                onClick={() => handleDeleteConsultant(c.id, tab === 'realtors' ? 'realtor' : 'agent')}
+                                                                disabled={actionLoading === c.id}
+                                                                className="p-1 text-slate-400 hover:text-red-500 transition-colors disabled:opacity-60"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                {isExpanded && (
+                                                    <tr className="bg-slate-50/50 dark:bg-slate-800/20">
+                                                        <td colSpan={6} className="px-8 py-4 border-t border-slate-100 dark:border-slate-800">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                                                <div>
+                                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Social Security Number (SSN)</div>
+                                                                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.social_security || '—'}</div>
+                                                                </div>
+                                                                {tab === 'realtors' ? (
+                                                                    <>
+                                                                        <div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">CRECI / State License Number</div>
+                                                                            <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.license_number || '—'}</div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">MLS ID</div>
+                                                                            <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.mls_id || '—'}</div>
+                                                                        </div>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Coverage Area (ZIPs)</div>
+                                                                            <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.coverage_area || '—'}</div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Vehicle Type</div>
+                                                                            <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.vehicle_type || '—'}</div>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                                <div>
+                                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Payment Method / Account</div>
+                                                                    <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.payment_account || '—'}</div>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                )}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                    {(tab === 'realtors' ? realtors : agents).length === 0 && (
                                         <tr>
                                             <td colSpan={6} className="py-16 text-center text-slate-400">
-                                                <span className="material-symbols-outlined text-3xl mb-2 block opacity-50">handshake</span>
-                                                No realtor applications found.
+                                                <span className="material-symbols-outlined text-3xl mb-2 block opacity-50">
+                                                    {tab === 'realtors' ? 'handshake' : 'directions_car'}
+                                                </span>
+                                                No {tab === 'realtors' ? 'realtor' : 'field agent'} applications found.
                                             </td>
                                         </tr>
                                     )}
@@ -596,6 +720,129 @@ const AdminUsers: React.FC = () => {
                     onClose={() => setEditingUser(null)}
                     onSave={loadData}
                 />
+            )}
+
+            {/* Custom Rejection Reason Modal */}
+            {rejectingApplication && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                                <span className="material-symbols-outlined text-red-500">warning</span>
+                                Reject Partner Application
+                            </h3>
+                            <button 
+                                onClick={() => setRejectingApplication(null)}
+                                className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                                <span className="material-symbols-outlined text-[20px]">close</span>
+                            </button>
+                        </div>
+                        
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                            Please select or write a reason for rejection. This feedback will be sent directly to the applicant via email to help them correct their information.
+                        </p>
+
+                        <div className="flex flex-col gap-2">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Preset Reasons</label>
+                            <div className="flex flex-col gap-1.5">
+                                {(rejectingApplication.role === 'realtor' 
+                                    ? [
+                                        "No valid active state real estate license found.",
+                                        "Social Security Number (SSN) verification mismatch.",
+                                        "Invalid/unsupported payment account details."
+                                      ]
+                                    : [
+                                        "Missing or invalid Work Permit authorization.",
+                                        "Social Security Number (SSN) verification mismatch.",
+                                        "Invalid/unsupported payment account details."
+                                      ]
+                                ).map((reasonOption) => (
+                                    <button
+                                        key={reasonOption}
+                                        type="button"
+                                        onClick={() => {
+                                            setSelectedPresetReason(reasonOption);
+                                            setRejectReason(reasonOption);
+                                        }}
+                                        className={`text-left text-xs p-2.5 rounded-lg border font-medium transition-all ${
+                                            selectedPresetReason === reasonOption
+                                                ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-950/20 dark:border-red-900/40 dark:text-red-400'
+                                                : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                                        }`}
+                                    >
+                                        {reasonOption}
+                                    </button>
+                                ))}
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setSelectedPresetReason('custom');
+                                        setRejectReason('');
+                                    }}
+                                    className={`text-left text-xs p-2.5 rounded-lg border font-medium transition-all ${
+                                        selectedPresetReason === 'custom'
+                                            ? 'bg-red-50 border-red-200 text-red-700 dark:bg-red-950/20 dark:border-red-900/40 dark:text-red-400'
+                                            : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40'
+                                    }`}
+                                >
+                                    Custom Reason...
+                                </button>
+                            </div>
+                        </div>
+
+                        {selectedPresetReason === 'custom' && (
+                            <div className="flex flex-col gap-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Custom Feedback</label>
+                                <textarea
+                                    value={rejectReason}
+                                    onChange={(e) => setRejectReason(e.target.value)}
+                                    placeholder="Type specific details explaining the rejection reason..."
+                                    rows={3}
+                                    className="w-full text-xs p-3 border border-slate-200 dark:border-slate-800 rounded-xl bg-transparent text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-red-500 placeholder-slate-400"
+                                />
+                            </div>
+                        )}
+
+                        {rejectError && (
+                            <div className="text-[11px] text-red-500 font-bold bg-red-50 dark:bg-red-950/10 p-2.5 rounded-lg border border-red-100 dark:border-red-900/30">
+                                {rejectError}
+                            </div>
+                        )}
+
+                        <div className="flex items-center justify-end gap-2 mt-2">
+                            <button
+                                type="button"
+                                onClick={() => setRejectingApplication(null)}
+                                className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-xl transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    if (!rejectReason.trim()) {
+                                        setRejectError("Please select or write a reason first.");
+                                        return;
+                                    }
+                                    setRejectSaving(true);
+                                    try {
+                                        await handleVerify(rejectingApplication.id, rejectingApplication.role, 'rejected', rejectReason);
+                                        setRejectingApplication(null);
+                                    } catch (e: any) {
+                                        setRejectError(e.message || "Failed to process rejection.");
+                                    } finally {
+                                        setRejectSaving(false);
+                                    }
+                                }}
+                                disabled={rejectSaving}
+                                className="px-4 py-2 text-xs font-bold bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white rounded-xl transition-colors flex items-center justify-center gap-1.5 min-w-[120px]"
+                            >
+                                {rejectSaving ? 'Sending...' : 'Confirm Rejection'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

@@ -200,24 +200,56 @@ def verify_realtor(
         raise HTTPException(status_code=403, detail="Admin access required")
 
     new_status = body.get("status", "verified")
+    reason = body.get("reason")
     if new_status not in ("verified", "rejected", "pending"):
         raise HTTPException(status_code=400, detail="Invalid status. Use: verified, rejected, pending")
 
     db = SessionLocal()
     try:
-        result = db.execute(
-            text("UPDATE realtors SET verification_status = :s WHERE id = :id RETURNING id, name, email, verification_status"),
-            {"s": new_status, "id": realtor_id}
+        # Get current profile details
+        current_profile = db.execute(
+            text("SELECT user_id, verification_status FROM realtors WHERE id = :id"),
+            {"id": realtor_id}
         ).fetchone()
 
-        if not result:
+        if not current_profile:
             raise HTTPException(status_code=404, detail="Realtor not found")
+
+        user_id = current_profile.user_id
+
+        # Enforce deactivation checks ONLY if they were verified and are now being rejected
+        if current_profile.verification_status == "verified" and new_status == "rejected" and user_id:
+            # 1. Check in-progress tasks
+            active_tasks = db.execute(text("""
+                SELECT COUNT(id) FROM realtor_tasks 
+                WHERE realtor_user_id = :uid AND status IN ('claimed', 'submitted')
+            """), {"uid": user_id}).scalar()
+            if active_tasks > 0:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Cannot reject partner. They currently have active claimed or submitted tasks in progress."
+                )
+                
+            # 2. Check wallet balance
+            wallet = db.execute(
+                text("SELECT balance FROM realtor_wallets WHERE user_id = :uid"), 
+                {"uid": user_id}
+            ).fetchone()
+            if wallet and wallet.balance > 0:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Cannot reject partner. They have an outstanding wallet balance of ${wallet.balance:.2f} that must be fully withdrawn and settled first."
+                )
+
+        result = db.execute(
+            text("UPDATE realtors SET verification_status = :s, rejection_reason = :reason WHERE id = :id RETURNING id, name, email, verification_status, rejection_reason"),
+            {"s": new_status, "reason": reason, "id": realtor_id}
+        ).fetchone()
 
         # If approved: also update the linked user's role to 'realtor'
         if new_status == "verified":
-            row = db.execute(text("SELECT user_id FROM realtors WHERE id = :id"), {"id": realtor_id}).fetchone()
-            if row and row[0]:
-                db.execute(text("UPDATE users SET role = 'realtor' WHERE id = :uid"), {"uid": row[0]})
+            if user_id:
+                db.execute(text("UPDATE users SET role = 'realtor' WHERE id = :uid"), {"uid": user_id})
 
         db.commit()
 
@@ -225,7 +257,7 @@ def verify_realtor(
         # We need the user's email and name. 'result' only has realtor info.
         background_tasks.add_task(
             _notify_partner_decision, 
-            result.name, result.email, "realtor", new_status
+            result.name, result.email, "realtor", new_status, reason
         )
 
         return dict(result._mapping)
@@ -282,7 +314,7 @@ def list_agent_applications(
 
         rows = db.execute(
             text(f"""
-                SELECT a.*, u.email AS user_email, u.role AS user_role
+                SELECT a.*, u.email AS user_email, u.role AS user_role, u.full_name AS name
                 FROM agent_due_diligence_profiles a
                 LEFT JOIN users u ON a.user_id = u.id
                 {where}
@@ -315,44 +347,79 @@ def verify_agent(
         raise HTTPException(status_code=403, detail="Admin access required")
 
     new_status = body.get("status", "verified")
+    reason = body.get("reason")
     if new_status not in ("verified", "rejected", "pending"):
         raise HTTPException(status_code=400, detail="Invalid status.")
 
     db = SessionLocal()
     try:
-        result = db.execute(
-            text("UPDATE agent_due_diligence_profiles SET verification_status = :s WHERE id = :id RETURNING id, user_id, verification_status"),
-            {"s": new_status, "id": agent_id}
+        # Get current profile details
+        current_profile = db.execute(
+            text("SELECT user_id, verification_status FROM agent_due_diligence_profiles WHERE id = :id"),
+            {"id": agent_id}
         ).fetchone()
 
-        if not result:
+        if not current_profile:
             raise HTTPException(status_code=404, detail="Agent profile not found")
+
+        user_id = current_profile.user_id
+
+        # Enforce deactivation checks ONLY if they were verified and are now being rejected
+        if current_profile.verification_status == "verified" and new_status == "rejected" and user_id:
+            # 1. Check in-progress tasks
+            active_tasks = db.execute(text("""
+                SELECT COUNT(id) FROM realtor_tasks 
+                WHERE realtor_user_id = :uid AND status IN ('claimed', 'submitted')
+            """), {"uid": user_id}).scalar()
+            if active_tasks > 0:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Cannot reject partner. They currently have active claimed or submitted tasks in progress."
+                )
+                
+            # 2. Check wallet balance
+            wallet = db.execute(
+                text("SELECT balance FROM realtor_wallets WHERE user_id = :uid"), 
+                {"uid": user_id}
+            ).fetchone()
+            if wallet and wallet.balance > 0:
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Cannot reject partner. They have an outstanding wallet balance of ${wallet.balance:.2f} that must be fully withdrawn and settled first."
+                )
+
+        result = db.execute(
+            text("UPDATE agent_due_diligence_profiles SET verification_status = :s, rejection_reason = :reason WHERE id = :id RETURNING id, user_id, verification_status, rejection_reason"),
+            {"s": new_status, "reason": reason, "id": agent_id}
+        ).fetchone()
 
         # If approved: update the linked user's role
         if new_status == "verified":
-            db.execute(text("UPDATE users SET role = 'agent_due_diligence' WHERE id = :uid"), {"uid": result.user_id})
+            if user_id:
+                db.execute(text("UPDATE users SET role = 'agent_due_diligence' WHERE id = :uid"), {"uid": user_id})
 
         db.commit()
 
         # Notify User in Background
-        user = db.execute(text("SELECT email, full_name FROM users WHERE id = :uid"), {"uid": result.user_id}).fetchone()
-        if user:
-            background_tasks.add_task(
-                _notify_partner_decision, 
-                user.full_name or "Partner", user.email, "agent", new_status
-            )
+        if user_id:
+            user = db.execute(text("SELECT email, full_name FROM users WHERE id = :uid"), {"uid": user_id}).fetchone()
+            if user:
+                background_tasks.add_task(
+                    _notify_partner_decision, 
+                    user.full_name or "Partner", user.email, "agent", new_status, reason
+                )
 
         return dict(result._mapping)
     finally:
         db.close()
 
 
-async def _notify_partner_decision(name: str, email: str, role: str, status: str):
+async def _notify_partner_decision(name: str, email: str, role: str, status: str, reason: str = None):
     """Helper to send approval/rejection email."""
     if status not in ("verified", "rejected"):
         return
         
-    email_body = get_partner_decision_template(name, role, status)
+    email_body = get_partner_decision_template(name, role, status, reason)
     subject = f"GoAuct Application: {status.capitalize()}"
     await send_email(
         subject=subject,

@@ -200,7 +200,7 @@ def get_verification_email_template(name: str, verification_link: str) -> str:
     return get_base_template(content)
 
 
-def get_partner_decision_template(name: str, role: str, status: str) -> str:
+def get_partner_decision_template(name: str, role: str, status: str, reason: str = None) -> str:
     is_approved = status == "verified"
     title = "Application Approved!" if is_approved else "Update on your Application"
     color = "#10b981" if is_approved else "#ef4444"
@@ -226,7 +226,16 @@ def get_partner_decision_template(name: str, role: str, status: str) -> str:
             </div>
         """
     else:
+        reason_html = ""
+        if reason:
+            reason_html = f"""
+                <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 8px; margin-bottom: 24px;">
+                    <strong style="color: #991b1b; font-size: 14px; display: block; margin-bottom: 8px;">Compliance Feedback / Rejection Reason:</strong>
+                    <p style="color: #7f1d1d; font-size: 15px; margin: 0; line-height: 22px;">"{reason}"</p>
+                </div>
+            """
         content += f"""
+            {reason_html}
             <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 32px 0;">
                 Unfortunately, we cannot approve your application at this time. If you believe this is a mistake or would like to provide more information, please contact our support team.
             </p>

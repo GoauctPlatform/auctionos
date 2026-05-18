@@ -126,6 +126,19 @@ def claim_task(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Realtor claims an open task, blocking other realtors for deadline_hours."""
+    # 1. Verify partner account status
+    realtor = db.execute(text("SELECT verification_status FROM realtors WHERE user_id = :uid"), {"uid": current_user.id}).fetchone()
+    if not realtor or realtor.verification_status != "verified":
+        raise HTTPException(status_code=403, detail="Your partner account must be verified by compliance before claiming tasks.")
+
+    # 2. Enforce the 5-task limit
+    active_count = db.execute(text("""
+        SELECT COUNT(id) FROM realtor_tasks 
+        WHERE realtor_user_id = :uid AND status IN ('claimed', 'submitted')
+    """), {"uid": current_user.id}).scalar()
+    if active_count >= 5:
+        raise HTTPException(status_code=400, detail="Claim limit reached. You can hold a maximum of 5 concurrent active tasks.")
+
     task = db.execute(text("SELECT * FROM realtor_tasks WHERE id = :id"), {"id": task_id}).fetchone()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")

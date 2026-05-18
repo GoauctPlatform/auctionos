@@ -33,6 +33,7 @@ class ConsultantOut(BaseModel):
     phone: Optional[str]
     verification_status: str
     commission_model: Optional[str]
+    rejection_reason: Optional[str] = None
 
     class Config:
         from_attributes = True
