@@ -8,6 +8,7 @@ export const Onboarding: React.FC = () => {
     const [user, setUser] = useState<any>(null);
     const [step, setStep] = useState<'role_selection' | 'profile_setup' | 'tour' | 'done'>('role_selection');
     const [selectedRole, setSelectedRole] = useState('');
+    const [currentSlide, setCurrentSlide] = useState(0);
     
     // Form fields
     const [ssn, setSsn] = useState('');
@@ -164,18 +165,214 @@ export const Onboarding: React.FC = () => {
                     </div>
                 )}
 
-                {step === 'tour' && (
-                    <div className="text-center">
-                        <h1 className="text-2xl font-bold mb-2 text-slate-800 dark:text-white">Profile Verified!</h1>
-                        <p className="text-slate-600 dark:text-slate-400 mb-6">You're all set up. Let's take a quick look around.</p>
-                        <div className="h-48 bg-slate-100 dark:bg-slate-700 rounded-xl flex items-center justify-center mb-6">
-                            <span className="material-symbols-outlined text-[64px] text-blue-500">explore</span>
+                {step === 'tour' && (() => {
+                    const getTourSlides = () => {
+                        if (selectedRole === 'realtor') {
+                            return [
+                                {
+                                    title: "Partner with Active Investors",
+                                    description: "Receive high-value property lists exported directly to you by real estate investors looking for local seller outreach, representation, and listings.",
+                                    icon: "handshake",
+                                    color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30"
+                                },
+                                {
+                                    title: "Browse & Claim Local Tasks",
+                                    description: "Explore on-demand BPO and due diligence research tasks available in your area. Claim them to secure exclusive execution rights.",
+                                    icon: "explore",
+                                    color: "text-blue-500 bg-blue-50 dark:bg-blue-950/30"
+                                },
+                                {
+                                    title: "Execute Research Missions",
+                                    description: "Visit properties to submit certified photo evidence, fill out condition checklists, and upload secure GPS-stamped data right from your device.",
+                                    icon: "photo_camera",
+                                    color: "text-amber-500 bg-amber-50 dark:bg-amber-950/30"
+                                },
+                                {
+                                    title: "Earn Commission Payouts",
+                                    description: "Earn cash-backed points for every approved task. Request fast, direct-to-bank or PayPal withdrawals straight from your balance wallet.",
+                                    icon: "payments",
+                                    color: "text-purple-500 bg-purple-50 dark:bg-purple-950/30"
+                                }
+                            ];
+                        } else if (selectedRole === 'agent_due_diligence') {
+                            return [
+                                {
+                                    title: "Local Mission Board",
+                                    description: "Discover verified property inspection opportunities posted nearby. Accept tasks that align with your daily schedule and coverage area.",
+                                    icon: "explore",
+                                    color: "text-orange-500 bg-orange-50 dark:bg-orange-950/30"
+                                },
+                                {
+                                    title: "On-Site Inspections",
+                                    description: "Visit distress listings to document property statuses, complete investor-requested questionnaires, and capture high-resolution pictures.",
+                                    icon: "publish",
+                                    color: "text-blue-500 bg-blue-50 dark:bg-blue-950/30"
+                                },
+                                {
+                                    title: "GPS-Stamp Verification",
+                                    description: "Submit geolocated evidence on-site. Our system automatically validates your coordinates against target listings to trigger auto-approvals.",
+                                    icon: "location_on",
+                                    color: "text-red-500 bg-red-50 dark:bg-red-950/30"
+                                },
+                                {
+                                    title: "Secure Payout Wallet",
+                                    description: "Accumulate points for every verified field task. Liquidate your earnings instantly to your preferred payout account with one click.",
+                                    icon: "account_balance_wallet",
+                                    color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30"
+                                }
+                            ];
+                        } else {
+                            return [
+                                {
+                                    title: "Welcome to GoAuct Mission Control",
+                                    description: "The ultimate distress real estate intelligence platform. Discover tax liens, deeds, and foreclosures, and coordinate field agents on one screen.",
+                                    icon: "rocket_launch",
+                                    color: "text-blue-500 bg-blue-50 dark:bg-blue-950/30"
+                                },
+                                {
+                                    title: "National Yield Heatmap",
+                                    description: "Get immediate macro visibility into yield performance. Tap on any state to instantly isolate the highest-yield deeds and foreclosures.",
+                                    icon: "public",
+                                    color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30"
+                                },
+                                {
+                                    title: "Smart AI Scoring Engine",
+                                    description: "Identify high-value equity plays. Our algorithms calculate target safety margins and score properties from A+ down to C.",
+                                    icon: "auto_awesome",
+                                    color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30"
+                                },
+                                {
+                                    title: "Global Property Search Engine",
+                                    description: "Filter through over 500,000 delinquent and distressed assets instantly. Search by county, zip code, opening tax bids, or physical features.",
+                                    icon: "search",
+                                    color: "text-blue-500 bg-blue-50 dark:bg-blue-950/30"
+                                },
+                                {
+                                    title: "Custom Off-Market Assets",
+                                    description: "Found an off-market deal? Create custom property cards with tax history, spatial logs, and custom private tags to track them with your team.",
+                                    icon: "add_home",
+                                    color: "text-teal-500 bg-teal-50 dark:bg-teal-950/30"
+                                },
+                                {
+                                    title: "Live Auctions & Calendar",
+                                    description: "Track upcoming tax deed, lien, and foreclosure sales day-by-day. Use the interactive calendar to map out auctions across multiple counties.",
+                                    icon: "calendar_month",
+                                    color: "text-rose-500 bg-rose-50 dark:bg-rose-950/30"
+                                },
+                                {
+                                    title: "Redemption Risk Intelligence",
+                                    description: "Evaluate bidding risk instantly. Our Redemption Intelligence gauges historical county payout rates to predict if homeowners will redeem their debt.",
+                                    icon: "analytics",
+                                    color: "text-cyan-500 bg-cyan-50 dark:bg-cyan-950/30"
+                                },
+                                {
+                                    title: "Watchlist Folder Silos",
+                                    description: "Organize distress assets by US state and county automatically. Access official municipal registers, write private notes, and view state silhouettes.",
+                                    icon: "folder_open",
+                                    color: "text-purple-500 bg-purple-50 dark:bg-purple-950/30"
+                                },
+                                {
+                                    title: "Broker & Field Team Workflows",
+                                    description: "Coordinate your acquisitions pipeline. Assign occupancy inspections to local agents on-site, and export property packages to broker partners to initiate bids.",
+                                    icon: "groups",
+                                    color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30"
+                                },
+                                {
+                                    title: "Field Missions Control Center",
+                                    description: "Track on-site property inspections in real-time. Verify occupant status, hazard risks, and structural damage directly from our interactive checklist dashboards.",
+                                    icon: "assignment",
+                                    color: "text-amber-500 bg-amber-50 dark:bg-amber-950/30"
+                                },
+                                {
+                                    title: "GPS Verification & Escalation",
+                                    description: "Validate the field agent's physical coordinates against the property. Rejections are sent back for revision; continuous disputes trigger support mediation.",
+                                    icon: "verified",
+                                    color: "text-emerald-500 bg-emerald-50 dark:bg-emerald-950/30"
+                                },
+                                {
+                                    title: "Workspace & Team Isolation",
+                                    description: "Register multiple company holdings and switch workspace context instantly. Assign managers and field agents while enforcing trial gates safely.",
+                                    icon: "domain",
+                                    color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30"
+                                },
+                                {
+                                    title: "Billing Telemetry & Stripe Escrow",
+                                    description: "Monitor monthly property detail views and active team limits in real-time. Upgrade securely via Stripe checkout links to unlock unlimited research scopes.",
+                                    icon: "account_balance_wallet",
+                                    color: "text-purple-500 bg-purple-50 dark:bg-purple-950/30"
+                                }
+                            ];
+                        }
+                    };
+
+                    const slides = getTourSlides();
+
+                    return (
+                        <div className="flex flex-col h-full justify-between animate-in fade-in duration-300">
+                            {/* Progress Bar */}
+                            <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden mb-6">
+                                <div 
+                                    className="bg-blue-600 h-full transition-all duration-300"
+                                    style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}
+                                />
+                            </div>
+
+                            {/* Slide Content */}
+                            <div className="text-center flex-1 py-4 flex flex-col items-center justify-center min-h-[300px]">
+                                <div className={`w-24 h-24 rounded-3xl flex items-center justify-center mb-6 shadow-sm ${slides[currentSlide].color}`}>
+                                    <span className="material-symbols-outlined text-4xl">{slides[currentSlide].icon}</span>
+                                </div>
+                                <h2 className="text-xl font-black text-slate-800 dark:text-white mb-3">
+                                    {slides[currentSlide].title}
+                                </h2>
+                                <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm leading-relaxed mx-auto">
+                                    {slides[currentSlide].description}
+                                </p>
+                            </div>
+
+                            {/* Navigation Footer */}
+                            <div className="mt-8 border-t border-slate-100 dark:border-slate-700/60 pt-6 flex flex-col gap-4">
+                                {/* Slide Indicator Dots */}
+                                <div className="flex justify-center gap-2">
+                                    {slides.map((_, idx) => (
+                                        <button 
+                                            key={idx}
+                                            onClick={() => setCurrentSlide(idx)}
+                                            className={`h-2 rounded-full transition-all ${idx === currentSlide ? 'w-6 bg-blue-600' : 'w-2 bg-slate-200 dark:bg-slate-700'}`}
+                                        />
+                                    ))}
+                                </div>
+
+                                {/* Buttons */}
+                                <div className="flex items-center justify-between gap-3 mt-2">
+                                    <button
+                                        onClick={() => currentSlide > 0 && setCurrentSlide(prev => prev - 1)}
+                                        disabled={currentSlide === 0}
+                                        className="px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white uppercase tracking-wider disabled:opacity-30 transition-colors"
+                                    >
+                                        Previous
+                                    </button>
+                                    
+                                    {currentSlide < slides.length - 1 ? (
+                                        <button
+                                            onClick={() => setCurrentSlide(prev => prev + 1)}
+                                            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-md shadow-blue-500/10 transition-colors"
+                                        >
+                                            Next Step
+                                        </button>
+                                    ) : (
+                                        <button
+                                            onClick={handleComplete}
+                                            className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-md shadow-emerald-500/10 transition-all active:scale-[0.98]"
+                                        >
+                                            Enter Platform 🚀
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                        <button onClick={handleComplete} className="bg-emerald-600 text-white p-3 rounded-xl hover:bg-emerald-700 w-full font-bold">
-                            Enter GoAuct
-                        </button>
-                    </div>
-                )}
+                    );
+                })()}
             </div>
         </div>
     );
