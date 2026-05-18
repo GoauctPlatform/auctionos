@@ -6,6 +6,7 @@ import { PhotoViewerLightbox } from '../../components/PhotoViewerLightbox';
 export const AdminTaskMediation: React.FC = () => {
     const [tickets, setTickets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [statusFilter, setStatusFilter] = useState<'open' | 'resolved'>('open');
     const [selectedTicket, setSelectedTicket] = useState<any>(null);
     const [taskDetails, setTaskDetails] = useState<any>(null);
     const [resolving, setResolving] = useState(false);
@@ -14,21 +15,19 @@ export const AdminTaskMediation: React.FC = () => {
     const [lightboxIndex, setLightboxIndex] = useState(0);
 
     useEffect(() => {
-        fetchDisputedTickets();
-    }, []);
+        fetchDisputedTickets(statusFilter);
+    }, [statusFilter]);
 
-    const fetchDisputedTickets = async () => {
+    const fetchDisputedTickets = async (status: 'open' | 'resolved') => {
+        setLoading(true);
         try {
-            // Ideally we'd have a specific endpoint for admins to fetch tickets.
-            // Assuming an admin route exists or we use a general one.
-            const res = await fetch(`${API_BASE_URL}/api/v1/admin/support-tickets?status=open&type=task_conflict`, {
+            const res = await fetch(`${API_BASE_URL}/api/v1/admin/support-tickets?status=${status}&type=task_conflict`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
             });
             if (res.ok) {
                 const data = await res.json();
                 setTickets(data);
             } else {
-                // Mock data for development if the endpoint isn't fully ready
                 setTickets([]);
             }
         } catch (err) {
@@ -40,6 +39,7 @@ export const AdminTaskMediation: React.FC = () => {
 
     const handleSelectTicket = async (ticket: any) => {
         setSelectedTicket(ticket);
+        setTaskDetails(null);
         try {
             const res = await fetch(`${API_BASE_URL}/api/v1/admin/realtor-tasks/${ticket.task_id}`, {
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
@@ -70,7 +70,7 @@ export const AdminTaskMediation: React.FC = () => {
                 alert(`Mediation concluded: ${decision}`);
                 setSelectedTicket(null);
                 setResolutionNotes('');
-                fetchDisputedTickets();
+                fetchDisputedTickets(statusFilter);
             } else {
                 alert('Failed to resolve mediation.');
             }
@@ -82,18 +82,40 @@ export const AdminTaskMediation: React.FC = () => {
         }
     };
 
-    if (loading) return <div className="p-8 text-center">Loading Mediation Queue...</div>;
+    if (loading) return <div className="p-8 text-center text-slate-500 font-medium">Loading Mediation Queue...</div>;
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
                         <ShieldAlert className="text-rose-500" size={32} />
-                        Dispute Mediation Queue
+                        Dispute Mediation Center
                     </h1>
                     <p className="text-slate-500 mt-1">Review double-rejected BPO missions and force a final resolution.</p>
                 </div>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex border-b border-slate-200 dark:border-slate-800 mb-6 gap-2">
+                <button
+                    onClick={() => {
+                        setStatusFilter('open');
+                        setSelectedTicket(null);
+                    }}
+                    className={`pb-3 px-4 font-bold text-sm border-b-2 transition-colors ${statusFilter === 'open' ? 'border-rose-500 text-rose-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                >
+                    Active Disputes
+                </button>
+                <button
+                    onClick={() => {
+                        setStatusFilter('resolved');
+                        setSelectedTicket(null);
+                    }}
+                    className={`pb-3 px-4 font-bold text-sm border-b-2 transition-colors ${statusFilter === 'resolved' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
+                >
+                    Resolved History
+                </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -104,18 +126,22 @@ export const AdminTaskMediation: React.FC = () => {
                         <div className="glass-card p-12 text-center text-slate-500 rounded-2xl flex flex-col items-center">
                             <CheckCircle size={48} className="text-emerald-500 opacity-50 mb-4" />
                             <h3 className="font-bold text-lg mb-1">Queue is Empty</h3>
-                            <p className="text-sm">No active BPO conflicts require mediation.</p>
+                            <p className="text-sm">No conflicts found matching this status.</p>
                         </div>
                     ) : (
                         tickets.map(ticket => (
                             <div 
                                 key={ticket.id} 
                                 onClick={() => handleSelectTicket(ticket)}
-                                className={`glass-card p-4 rounded-xl cursor-pointer transition-all border-l-4 ${selectedTicket?.id === ticket.id ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/10' : 'border-transparent hover:border-slate-300'}`}
+                                className={`glass-card p-4 rounded-xl cursor-pointer transition-all border-l-4 ${selectedTicket?.id === ticket.id ? (statusFilter === 'open' ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/10' : 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10') : 'border-transparent hover:border-slate-300'}`}
                             >
                                 <div className="flex justify-between items-start mb-1">
                                     <h3 className="font-bold text-slate-900 dark:text-white truncate">Task #{ticket.task_id}</h3>
-                                    <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600">Double Rejected</span>
+                                    {ticket.status === 'resolved' ? (
+                                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">Resolved</span>
+                                    ) : (
+                                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">Double Rejected</span>
+                                    )}
                                 </div>
                                 <p className="text-xs text-slate-500 mb-2 truncate">Investor User ID: {ticket.user_id}</p>
                                 <div className="text-xs text-slate-400 flex items-center gap-1">
@@ -133,10 +159,32 @@ export const AdminTaskMediation: React.FC = () => {
                             
                             <div className="mb-6">
                                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Mediation Ticket #{selectedTicket.id}</h2>
-                                <div className="bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 p-4 rounded-xl border border-rose-200 dark:border-rose-800/30">
+                                <div className="bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 p-4 rounded-xl border border-rose-200 dark:border-rose-800/30 mb-4">
                                     <p className="font-bold mb-1">Conflict Summary:</p>
                                     <p className="text-sm">{selectedTicket.message}</p>
                                 </div>
+
+                                {selectedTicket.status === 'resolved' && (
+                                    <div className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 p-5 rounded-xl border border-emerald-200 dark:border-emerald-800/30 shadow-sm">
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <CheckCircle className="text-emerald-500 shrink-0" size={20} />
+                                            <span className="font-black text-lg">Conflict Concluded</span>
+                                        </div>
+                                        <p className="text-sm font-semibold mb-3">
+                                            Verdict: {taskDetails?.status === 'approved' ? (
+                                                <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-1 rounded-lg">Force Approved (Agent Paid)</span>
+                                            ) : (
+                                                <span className="text-rose-600 dark:text-rose-400 font-bold bg-rose-100 dark:bg-rose-900/40 px-2.5 py-1 rounded-lg">Refunded Investor (Submission Rejected)</span>
+                                            )}
+                                        </p>
+                                        {selectedTicket.admin_response && (
+                                            <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/20">
+                                                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Administrator's Audit Notes</span>
+                                                <p className="text-sm italic text-slate-700 dark:text-slate-350 font-medium">"{selectedTicket.admin_response}"</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             {taskDetails ? (
@@ -253,32 +301,38 @@ export const AdminTaskMediation: React.FC = () => {
                                     )}
 
                                     {/* Admin Decision Form */}
-                                    <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
-                                        <h3 className="font-black text-lg mb-4">Executive Decision</h3>
-                                        <textarea 
-                                            value={resolutionNotes} 
-                                            onChange={e => setResolutionNotes(e.target.value)}
-                                            placeholder="Document your findings and justification for this decision..."
-                                            className="w-full p-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 mb-4 h-32"
-                                        />
-                                        
-                                        <div className="flex gap-4">
-                                            <button 
-                                                onClick={() => handleResolve('approve_realtor')}
-                                                disabled={resolving}
-                                                className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
-                                            >
-                                                <CheckCircle size={20}/> Force Approve (Pay Agent)
-                                            </button>
-                                            <button 
-                                                onClick={() => handleResolve('refund_investor')}
-                                                disabled={resolving}
-                                                className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center justify-center gap-2"
-                                            >
-                                                <XCircle size={20}/> Reject Submission (Refund Investor)
-                                            </button>
+                                    {selectedTicket.status === 'open' ? (
+                                        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
+                                            <h3 className="font-black text-lg mb-4">Executive Decision</h3>
+                                            <textarea 
+                                                value={resolutionNotes} 
+                                                onChange={e => setResolutionNotes(e.target.value)}
+                                                placeholder="Document your findings and justification for this decision..."
+                                                className="w-full p-4 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 mb-4 h-32"
+                                            />
+                                            
+                                            <div className="flex gap-4">
+                                                <button 
+                                                    onClick={() => handleResolve('approve_realtor')}
+                                                    disabled={resolving}
+                                                    className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
+                                                >
+                                                    <CheckCircle size={20}/> Force Approve (Pay Agent)
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleResolve('refund_investor')}
+                                                    disabled={resolving}
+                                                    className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center justify-center gap-2"
+                                                >
+                                                    <XCircle size={20}/> Reject Submission (Refund Investor)
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    ) : (
+                                        <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 text-center text-slate-400 font-bold text-sm italic">
+                                            This dispute has been concluded and resolved.
+                                        </div>
+                                    )}
 
                                 </div>
                             ) : (
