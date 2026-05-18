@@ -116,7 +116,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
     };
 
     return (
-        <div className="flex flex-col gap-4 mb-6 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 w-full transition-all">
+        <div className="flex flex-col gap-4 mb-6 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 w-full transition-all dark:[&_input]:text-white dark:[&_label]:text-slate-400 dark:[&_.MuiSelect-select]:text-white dark:[&_fieldset]:border-slate-600">
             {/* Primary Search Row */}
             <div className="flex flex-wrap gap-4 items-center w-full">
                 <Autocomplete

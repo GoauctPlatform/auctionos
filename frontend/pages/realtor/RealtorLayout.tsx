@@ -14,6 +14,22 @@ const ConsultantLayout: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  
+  // Theme state
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+  
+  const toggleTheme = () => {
+    if (isDark) {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+      setIsDark(false);
+    } else {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+      setIsDark(true);
+    }
+  };
   const user = AuthService.getCurrentUser();
   const displayName = user?.full_name || user?.email?.split('@')[0] || 'Realtor';
 
@@ -27,14 +43,14 @@ const ConsultantLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#060c19] flex">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#060c19] flex overflow-hidden">
       {/* Sidebar */}
       <aside className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-900
+        fixed inset-y-0 left-0 z-40 bg-white dark:bg-slate-900
         border-r border-slate-200 dark:border-slate-800
-        transform transition-transform duration-200
-        ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:block
+        transform transition-all duration-300 ease-in-out
+        ${mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'}
+        ${sidebarOpen ? 'lg:translate-x-0 lg:static lg:block lg:w-64' : 'lg:-translate-x-full lg:hidden lg:w-0 lg:p-0 lg:border-0 lg:opacity-0'}
         flex flex-col
       `}>
         {/* Logo */}
@@ -102,29 +118,59 @@ const ConsultantLayout: React.FC = () => {
       )}
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile top bar */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20">
-          <button
-            onClick={() => setMobileOpen(true)}
-            className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-          >
-            <span className="material-symbols-outlined">menu</span>
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-emerald-600 text-[20px]">handshake</span>
-            <span className="font-extrabold text-sm text-slate-900 dark:text-white">GoAuct Partner</span>
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Universal Top Bar */}
+        <header className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0 z-20">
+          <div className="flex items-center gap-3">
+            {/* Mobile menu button */}
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+            >
+              <span className="material-symbols-outlined">menu</span>
+            </button>
+            {/* Desktop toggle button */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="hidden lg:block p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              title={sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
+            >
+              <span className="material-symbols-outlined">
+                {sidebarOpen ? 'menu_open' : 'menu'}
+              </span>
+            </button>
+
+            <div className="lg:hidden flex items-center gap-2">
+              <span className="material-symbols-outlined text-emerald-600 text-[20px]">handshake</span>
+              <span className="font-extrabold text-sm text-slate-900 dark:text-white">Partner Portal</span>
+            </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-          >
-            <span className="material-symbols-outlined text-[20px]">logout</span>
-          </button>
+
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center"
+              title="Toggle Theme"
+            >
+              <span className="material-symbols-outlined">
+                {isDark ? 'light_mode' : 'dark_mode'}
+              </span>
+            </button>
+            
+            {/* Desktop Quick Logout */}
+            <button
+              onClick={handleLogout}
+              className="hidden sm:flex items-center justify-center p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              title="Logout"
+            >
+              <span className="material-symbols-outlined text-[20px]">logout</span>
+            </button>
+          </div>
         </header>
 
         {/* Page content */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto">
           <Outlet />
         </main>
       </div>

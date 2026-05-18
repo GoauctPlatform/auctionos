@@ -4,6 +4,7 @@ import { AdminService } from '../services/admin.service';
 import { API_BASE_URL } from '../services/httpClient';
 import api from '../services/api';
 import { ChevronLeft, PencilLine, RotateCcw } from 'lucide-react';
+import { PhotoViewerLightbox } from '../components/PhotoViewerLightbox';
 
 import { PropertyBasicInfo } from '../components/property/PropertyBasicInfo';
 import { PropertyPurchaseOptions } from '../components/property/PropertyPurchaseOptions';
@@ -34,6 +35,10 @@ const PropertyDetails: React.FC = () => {
     const [isFinOpen, setIsFinOpen] = useState(false);
     const [isMetaOpen, setIsMetaOpen] = useState(false);
     const [isBpoOpen, setIsBpoOpen] = useState(false);
+
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxImages, setLightboxImages] = useState<string[]>([]);
+    const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0);
 
     // ── Override / Edit Mode ──────────────────────────────────────────────────
     // Activated by: ?edit=true URL param (auto-set when user tries to create a dup property)
@@ -240,18 +245,34 @@ const PropertyDetails: React.FC = () => {
                             <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Unlocked Realtor Media</h3>
                             {property.media_files && property.media_files.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                    {property.media_files.map((file: any, idx: number) => (
-                                        <div key={idx} className="aspect-square bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden relative group">
-                                            {file.url ? (
-                                                <img src={file.url} alt="Property Media" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                                            ) : (
-                                                <div className="flex flex-col items-center justify-center w-full h-full text-slate-400">
-                                                    <span className="material-symbols-outlined text-3xl">image</span>
-                                                    <span className="text-xs mt-2">{file.name || 'Media File'}</span>
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                    {(() => {
+                                        const allImages = property.media_files
+                                            .filter((file: any) => !!file.url)
+                                            .map((file: any) => file.url);
+                                        return property.media_files.map((file: any, idx: number) => (
+                                            <div 
+                                                key={idx} 
+                                                onClick={() => {
+                                                    if (file.url) {
+                                                        const imgIndex = allImages.indexOf(file.url);
+                                                        setLightboxImages(allImages);
+                                                        setLightboxInitialIndex(imgIndex !== -1 ? imgIndex : 0);
+                                                        setLightboxOpen(true);
+                                                    }
+                                                }}
+                                                className={`aspect-square bg-slate-100 dark:bg-slate-900 rounded-lg overflow-hidden relative group ${file.url ? 'cursor-pointer' : ''}`}
+                                            >
+                                                {file.url ? (
+                                                    <img src={file.url} alt="Property Media" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                                ) : (
+                                                    <div className="flex flex-col items-center justify-center w-full h-full text-slate-400">
+                                                        <span className="material-symbols-outlined text-3xl">image</span>
+                                                        <span className="text-xs mt-2">{file.name || 'Media File'}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ));
+                                    })()}
                                 </div>
                             ) : (
                                 <p className="text-sm text-slate-500">Processing media files... They will appear here shortly.</p>
@@ -350,6 +371,13 @@ const PropertyDetails: React.FC = () => {
                 isOpen={isMetaOpen}
                 onClose={() => setIsMetaOpen(false)}
                 property={property}
+            />
+
+            <PhotoViewerLightbox 
+                isOpen={lightboxOpen}
+                onClose={() => setLightboxOpen(false)}
+                images={lightboxImages}
+                initialIndex={lightboxInitialIndex}
             />
         </div>
     );

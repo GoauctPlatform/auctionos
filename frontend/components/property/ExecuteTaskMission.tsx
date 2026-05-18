@@ -1,34 +1,35 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Camera, MapPin, CheckSquare, UploadCloud, X, Save, AlertTriangle, FileText, Info } from 'lucide-react';
+import { Camera, MapPin, CheckSquare, UploadCloud, X, Save, AlertTriangle, FileText, Info, Navigation, ExternalLink } from 'lucide-react';
 import { RealtorTaskService, Task } from '../../services/realtor_task.service';
+import { getStreetViewUrl } from '../../utils/maps';
 
 const CHECKLIST_DESCRIPTIONS: Record<string, string> = {
-    'roof_sagging': 'O telhado tem ondulações ou partes afundadas?',
-    'missing_shingles': 'Há telhas faltando, soltas ou quebradas?',
-    'foundation_cracks': 'Existem rachaduras visíveis na base de concreto?',
-    'leaning_walls': 'Alguma parede externa parece torta ou estufada?',
-    'fascia_rot': 'A madeira de acabamento sob o telhado está podre?',
-    'broken_windows': 'Há vidros quebrados ou janelas trincadas?',
-    'boarded_doors': 'As aberturas estão tapadas com tapumes/madeira?',
-    'damaged_doors': 'As portas externas estão arrombadas ou danificadas?',
-    'garage_functional': 'A porta da garagem parece inteira e alinhada?',
-    'ac_present': 'A unidade externa do ar-condicionado está no local? (Comum ser roubada em casas de leilão)',
-    'ac_damaged': 'O ar-condicionado parece vandalizado ou depenado?',
-    'electric_meter': 'O relógio de energia da subestação está instalado? (Se não, fiação pode ter sido cortada)',
-    'water_meter': 'O hidrômetro de água está visível e lacrado?',
-    'gas_meter': 'O medidor de gás (se aplicável) está conectado?',
-    'missing_siding': 'Há falta de placas de vinil, madeira ou reboco?',
-    'wood_rot': 'Há madeira apodrecendo exposta ao tempo?',
-    'peeling_paint': 'A pintura externa está descascando severamente?',
-    'pest_trails': 'Há caminhos de terra na parede (sinal de cupim)?',
-    'overgrown_veg': 'O mato está muito alto ou cobrindo a estrutura?',
-    'tree_hazards': 'Há árvores grandes encostando ou caídas no telhado?',
-    'standing_water': 'Há poças de água parada acumuladas ao redor da casa? (Sinal de problema de drenagem)',
-    'debris': 'Há lixo acumulado, carros velhos ou entulho no lote?',
-    'fencing': 'As cercas de isolamento estão caídas ou quebradas?',
-    'vacant': 'A casa parece totalmente vazia e abandonada?',
-    'squatters': 'Há indícios de invasores (lixo recente, pichação)?',
-    'notices': 'Existem avisos judiciais colados na porta/janela?'
+    'roof_sagging': 'Does the roof have visible sagging or dipping?',
+    'missing_shingles': 'Are there missing, loose, or broken shingles?',
+    'foundation_cracks': 'Are there visible cracks in the concrete foundation?',
+    'leaning_walls': 'Do any exterior walls appear to be leaning or bowing?',
+    'fascia_rot': 'Is there visible rot on the fascia or soffit under the roof?',
+    'broken_windows': 'Are there any broken glass or cracked windows?',
+    'boarded_doors': 'Are any doors or windows boarded up?',
+    'damaged_doors': 'Are the exterior doors damaged or forced open?',
+    'garage_functional': 'Does the garage door appear intact and aligned?',
+    'ac_present': 'Is the exterior AC condenser unit present? (Commonly stolen in auction properties)',
+    'ac_damaged': 'Does the AC unit appear vandalized or stripped of parts?',
+    'electric_meter': 'Is the electric meter installed? (If not, wiring might be cut)',
+    'water_meter': 'Is the water meter visible and secured?',
+    'gas_meter': 'Is the gas meter connected (if applicable)?',
+    'missing_siding': 'Is there missing vinyl, wood, or stucco siding?',
+    'wood_rot': 'Is there any exposed wood rot due to weather?',
+    'peeling_paint': 'Is the exterior paint severely peeling?',
+    'pest_trails': 'Are there mud tubes on the walls (signs of termites)?',
+    'overgrown_veg': 'Is the vegetation overgrown or covering the structure?',
+    'tree_hazards': 'Are there large tree branches touching or fallen on the roof?',
+    'standing_water': 'Is there standing water around the house? (Sign of drainage issues)',
+    'debris': 'Is there accumulated trash, old cars, or debris in the yard?',
+    'fencing': 'Are the isolation fences fallen down or broken?',
+    'vacant': 'Does the house appear completely vacant and abandoned?',
+    'squatters': 'Are there signs of squatters (recent trash, graffiti)?',
+    'notices': 'Are there any legal or foreclosure notices posted on the door/window?'
 };
 
 interface ExecuteTaskMissionProps {
@@ -160,12 +161,20 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
     return (
         <div className="fixed inset-0 z-[100] bg-white dark:bg-slate-900 flex flex-col sm:p-4 overflow-hidden">
             {/* Mobile Header */}
-            <div className="bg-indigo-600 text-white p-4 flex items-center justify-between shadow-md shrink-0 sm:rounded-t-2xl">
-                <div>
+            <div className="bg-indigo-600 text-white p-4 flex items-start justify-between shadow-md shrink-0 sm:rounded-t-2xl">
+                <div className="flex flex-col">
                     <h2 className="font-bold text-lg leading-tight truncate w-64">{task.title}</h2>
-                    <p className="text-xs text-indigo-200 truncate w-64">{task.address}</p>
+                    <p className="text-xs text-indigo-200 truncate w-64 mt-0.5">{task.address}</p>
+                    <a 
+                        href={`https://www.google.com/maps/search/?api=1&query=${task.latitude || ''},${task.longitude || ''}${!task.latitude ? encodeURIComponent(task.address) : ''}`}
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="text-[10px] font-bold text-white underline mt-1.5 opacity-80 hover:opacity-100 w-max flex items-center gap-1"
+                    >
+                        <MapPin size={12}/> Open in GPS / Maps
+                    </a>
                 </div>
-                <button onClick={onClose} className="p-2 hover:bg-indigo-500 rounded-full transition-colors">
+                <button onClick={onClose} className="p-2 hover:bg-indigo-500 rounded-full transition-colors shrink-0">
                     <X size={24} />
                 </button>
             </div>
@@ -176,11 +185,11 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
                     {/* Disclaimers & General Notes */}
                     <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-5 rounded-2xl shadow-sm space-y-4">
                         <h4 className="font-bold flex items-center gap-2 text-blue-800 dark:text-blue-300">
-                            <Info size={18} /> 💡 Dicas de Execução para Leilão
+                            <Info size={18} /> 💡 Execution Tips for Auction/BPO
                         </h4>
                         <ul className="text-xs text-blue-700 dark:text-blue-400 space-y-2 list-disc pl-5">
-                            <li><strong>Evite invasão de propriedade:</strong> Se o imóvel estiver trancado, nunca force a entrada. Limite-se ao diagnóstico visual externo (Drive-by BPO). Entrar sem autorização em imóveis de leilão pode ser considerado trespassing (crime de invasão nos EUA).</li>
-                            <li><strong>Zoom nas fotos:</strong> Peça para quem for tirar as fotos focar bem no medidor de energia (para ver se há lacre da prefeitura) e nas junções do telhado, onde as infiltrações costumam começar.</li>
+                            <li><strong>Avoid trespassing:</strong> If the property is locked, never force entry. Limit yourself to an external visual diagnosis (Drive-by BPO). Entering an auction property without authorization is considered trespassing.</li>
+                            <li><strong>Zoom in photos:</strong> Focus well on the energy meter (to see if there is a municipal seal) and the roof junctions, where leaks usually start.</li>
                         </ul>
                         
                         <div className="pt-2">
@@ -194,6 +203,77 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
                                 className="w-full rounded-xl border border-blue-200 dark:border-blue-700 bg-white dark:bg-slate-900 p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-slate-700 dark:text-slate-300"
                                 rows={3}
                             />
+                        </div>
+                    </div>
+
+                    {/* Property Location, Map and Street View Panel */}
+                    <div className="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm space-y-4">
+                        <h3 className="font-bold flex items-center gap-2">
+                            <Navigation className="text-indigo-500" size={20} /> Property Navigation & Reference
+                        </h3>
+                        <p className="text-xs text-slate-500">
+                            Below is the target property location. Use the interactive map or open GPS directly.
+                        </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Maps Iframe */}
+                            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-48 bg-slate-100 dark:bg-slate-900 relative">
+                                <iframe
+                                    title="Property Map"
+                                    width="100%"
+                                    height="100%"
+                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(task.address || '')}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                                    frameBorder="0"
+                                    scrolling="no"
+                                    marginHeight={0}
+                                    marginWidth={0}
+                                />
+                            </div>
+
+                            {/* Street View Picture */}
+                            <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-48 bg-slate-100 dark:bg-slate-900 relative flex items-center justify-center">
+                                {(() => {
+                                    const svUrl = getStreetViewUrl(task.address || '');
+                                    if (svUrl) {
+                                        return (
+                                            <img
+                                                src={svUrl}
+                                                alt="Street View"
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLElement).style.display = 'none';
+                                                }}
+                                            />
+                                        );
+                                    }
+                                    return (
+                                        <div className="text-xs text-slate-400 p-4 text-center">
+                                            Street View not available or missing API Key.
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3">
+                            <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(task.address || '')}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs rounded-xl shadow-md transition-all"
+                            >
+                                <MapPin size={16} /> Open Google Maps GPS
+                                <ExternalLink size={14} />
+                            </a>
+                            <a
+                                href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${task.latitude || ''},${task.longitude || ''}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl transition-all border border-slate-200 dark:border-slate-600"
+                            >
+                                <Navigation size={16} /> Open Interactive Street View
+                                <ExternalLink size={14} />
+                            </a>
                         </div>
                     </div>
 
@@ -250,7 +330,7 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
                                                                 {itemId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                                             </span>
                                                             <span className="text-xs text-slate-500 dark:text-slate-400 block leading-snug">
-                                                                {CHECKLIST_DESCRIPTIONS[itemId] || "Descrição não disponível."}
+                                                                {CHECKLIST_DESCRIPTIONS[itemId] || "Description not available."}
                                                             </span>
                                                         </div>
                                                         <div className="flex gap-2 shrink-0 mt-1">
@@ -258,20 +338,20 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
                                                                 onClick={() => handleToggleResponse(catId, itemId, true)}
                                                                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${responses[catId]?.[itemId]?.value === true ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20 scale-105' : 'bg-white dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
                                                             >
-                                                                Sim
+                                                                Yes
                                                             </button>
                                                             <button 
                                                                 onClick={() => handleToggleResponse(catId, itemId, false)}
                                                                 className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${responses[catId]?.[itemId]?.value === false ? 'bg-rose-500 text-white shadow-md shadow-rose-500/20 scale-105' : 'bg-white dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'}`}
                                                             >
-                                                                Não
+                                                                No
                                                             </button>
                                                         </div>
                                                     </div>
                                                     <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
                                                         <input 
                                                             type="text"
-                                                            placeholder="Comentários / Detalhes (Opcional)..."
+                                                            placeholder="Comments / Details (Optional)..."
                                                             className="w-full bg-transparent text-xs text-slate-700 dark:text-slate-300 placeholder:text-slate-400 outline-none"
                                                             value={responses[catId]?.[itemId]?.note || ''}
                                                             onChange={(e) => handleUpdateNote(catId, itemId, e.target.value)}

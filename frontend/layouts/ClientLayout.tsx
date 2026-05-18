@@ -268,9 +268,9 @@ const ClientLayout: React.FC = () => {
               </div>
 
               {/* User Info */}
-              <div className="hidden md:flex flex-col items-end">
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-200">{userDisplayName}</span>
-                <span className="text-xs text-slate-500 dark:text-slate-400 capitalize">{role}</span>
+              <div className="hidden md:flex flex-col items-end max-w-[120px]">
+                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate w-full text-right">{userDisplayName}</span>
+                <span className="text-[10px] font-bold tracking-widest text-slate-500 dark:text-slate-400 capitalize truncate w-full text-right">{role}</span>
               </div>
               <div className="size-9 rounded-full bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-primary dark:text-blue-300 font-bold cursor-pointer text-sm">
                 {userInitial}
@@ -353,7 +353,7 @@ const ClientLayout: React.FC = () => {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 dark:border-slate-700">
+          <div className="md:hidden border-t border-slate-200 dark:border-slate-700 max-h-[calc(100vh-64px)] overflow-y-auto">
             <div className="pt-2 pb-3 px-4 flex flex-col gap-1">
               {navItems.map((item) => (
                 <div key={item.label}>

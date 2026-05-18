@@ -79,7 +79,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
     const [taskType, setTaskType] = useState('bpo');
     const [minPhotos, setMinPhotos] = useState(5);
     const [deadlineHours, setDeadlineHours] = useState(168); // 7 days
-    const [gpsReferenceUrl, setGpsReferenceUrl] = useState('');
+
     
     // Checklist State
     const [selectedChecklist, setSelectedChecklist] = useState<Record<string, string[]>>({});
@@ -148,7 +148,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
                 reward_points: priceInfo.points,
                 deadline_hours: deadlineHours,
                 checklist_requirements: finalChecklist,
-                gps_photo_reference: gpsReferenceUrl || null
+                gps_photo_reference: null
             };
 
             const res = await fetch(`${API_BASE_URL}/api/v1/investor/tasks`, {
@@ -227,14 +227,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
                             </div>
 
                             <div className="space-y-4">
-                                {/* Glassmorphism GPS box */}
-                                <div className="bg-indigo-50/50 dark:bg-indigo-950/20 backdrop-blur-md p-4 rounded-2xl border border-indigo-100/50 dark:border-indigo-900/30 shadow-inner">
-                                    <h4 className="font-bold text-indigo-950 dark:text-indigo-300 mb-1.5 flex items-center gap-2 text-sm">
-                                        <Navigation size={16} className="text-indigo-500" /> GPS Reference Photo (Optional)
-                                    </h4>
-                                    <p className="text-xs text-indigo-700/80 dark:text-indigo-400 mb-3">Provide a Street View link or image URL so the agent targets the correct house.</p>
-                                    <input type="text" value={gpsReferenceUrl} onChange={e => setGpsReferenceUrl(e.target.value)} placeholder="https://..." className="w-full px-3 py-2 text-sm rounded-xl border border-indigo-200/50 dark:border-indigo-800/40 bg-white/70 dark:bg-slate-800/50 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all" />
-                                </div>
 
                                 {/* Dynamic constraints & Photo verification warning boxes */}
                                 {taskType === 'visual_feedback' ? (

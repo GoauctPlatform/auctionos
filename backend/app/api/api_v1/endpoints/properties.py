@@ -1004,6 +1004,22 @@ def get_property(
             if note_row:
                 data["notes"] = note_row[0]
             
+            # Fetch Client Attachments ALWAYS (regardless of BPO media unlock)
+            if company_id:
+                att_query = text("""
+                    SELECT filename, file_path FROM client_attachments 
+                    WHERE property_id = :prop_id AND company_id = :company_id
+                """)
+                att_rows = db.execute(att_query, {"prop_id": prop_id_int, "company_id": company_id}).fetchall()
+            else:
+                att_query = text("""
+                    SELECT filename, file_path FROM client_attachments 
+                    WHERE property_id = :prop_id AND user_id = :user_id AND company_id IS NULL
+                """)
+                att_rows = db.execute(att_query, {"prop_id": prop_id_int, "user_id": current_user.id}).fetchall()
+            
+            data["attachments"] = [dict(a._mapping) for a in att_rows]
+
             # Check Media Monetization (Paywall)
             has_access = False
             if current_user.is_superuser:
@@ -1027,26 +1043,38 @@ def get_property(
                     if task:
                         has_access = True
 
+            # Check if realtor media exists
+            realtor_media_check = db.execute(text("""
+                SELECT 1 FROM task_submissions ts
+                JOIN realtor_tasks t ON t.id = ts.task_id
+                WHERE t.property_id = :prop_id AND t.status = 'approved'
+                LIMIT 1
+            """), {"prop_id": prop_id_int}).fetchone()
+            data["has_realtor_media"] = True if realtor_media_check else False
+
             if has_access:
-                # Fetch Attachments (Realtor submissions or client uploads - scoped to company)
-                if company_id:
-                    att_query = text("""
-                        SELECT filename, file_path FROM client_attachments 
-                        WHERE property_id = :prop_id AND company_id = :company_id
-                    """)
-                    att_rows = db.execute(att_query, {"prop_id": prop_id_int, "company_id": company_id}).fetchall()
-                else:
-                    att_query = text("""
-                        SELECT filename, file_path FROM client_attachments 
-                        WHERE property_id = :prop_id AND user_id = :user_id AND company_id IS NULL
-                    """)
-                    att_rows = db.execute(att_query, {"prop_id": prop_id_int, "user_id": current_user.id}).fetchall()
+                import os
+                realtor_media_query = text("""
+                    SELECT file_path FROM task_submissions
+                    WHERE task_id IN (
+                        SELECT id FROM realtor_tasks WHERE property_id = :prop_id AND status = 'approved'
+                    )
+                """)
+                realtor_media_rows = db.execute(realtor_media_query, {"prop_id": prop_id_int}).fetchall()
                 
-                data["attachments"] = [dict(a._mapping) for a in att_rows]
+                media_files = []
+                for row in realtor_media_rows:
+                    paths = row[0].split(',') if row[0] else []
+                    for p in paths:
+                        if p:
+                            media_files.append({
+                                "name": os.path.basename(p),
+                                "url": p
+                            })
+                data["media_files"] = media_files
                 data["media_unlocked"] = True
             else:
-                # Stub out attachments and flag as locked
-                data["attachments"] = []
+                data["media_files"] = []
                 data["media_unlocked"] = False
                 
         except Exception as e:

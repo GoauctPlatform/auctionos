@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { CircularProgress, Dialog, Button } from '@mui/material';
 import { RealtorTaskService, Task } from '../../services/realtor_task.service';
 import { InvestorTaskService } from '../../services/realtor_task.service';
@@ -80,10 +81,20 @@ function saveOffline(item: OfflineItem) {
 }
 
 const AvailableTasks: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [myTasks, setMyTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<'available' | 'mine'>('available');
+  const [tab, setTab] = useState<'available' | 'mine'>(searchParams.get('tab') === 'mine' ? 'mine' : 'available');
+
+  useEffect(() => {
+    const t = searchParams.get('tab');
+    if (t === 'mine') {
+      setTab('mine');
+    } else if (t === 'available') {
+      setTab('available');
+    }
+  }, [searchParams]);
 
   // Claim dialog
   const [claimTask, setClaimTask] = useState<Task | null>(null);

@@ -18,7 +18,7 @@ from app.services.activity import log_activity
 router = APIRouter()
 
 # UPLOAD_DIR = "/app/uploads"
-UPLOAD_DIR = os.path.join(os.getcwd(), "uploads")
+UPLOAD_DIR = os.getenv("UPLOADS_DIR", "/app/uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # --- Schemas ---
