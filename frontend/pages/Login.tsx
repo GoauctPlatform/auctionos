@@ -34,6 +34,7 @@ export const Login: React.FC = () => {
 
       setIsLoading(true);
       try {
+        localStorage.setItem('token', token);
         const user = await AuthService.getMe();
         authLogin(token, user);
         
@@ -76,6 +77,7 @@ export const Login: React.FC = () => {
 
     try {
       const { access_token } = await AuthService.login(email, password);
+      localStorage.setItem('token', access_token);
       const user = await AuthService.getMe();
       authLogin(access_token, user);
       routeAfterLogin(user);

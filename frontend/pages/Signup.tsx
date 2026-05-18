@@ -53,6 +53,7 @@ export const Signup: React.FC = () => {
 
             // Auto-login after registration
             const { access_token } = await AuthService.login(formData.email, formData.password);
+            localStorage.setItem('token', access_token);
             const user = await AuthService.getMe();
             authLogin(access_token, user);
 
