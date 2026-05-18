@@ -307,6 +307,17 @@ async def resend_verification(
     
     return {"status": "success", "message": "Verification email sent. Please check your inbox."}
 
+@router.post("/dev-auto-verify")
+def dev_auto_verify(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """Instantly verify the logged-in user in development or mock mode."""
+    current_user.is_verified = True
+    current_user.verification_token = None
+    db.commit()
+    return {"status": "success", "message": "Development auto-verification successful!"}
+
 @router.get("/reset-admin-prod")
 def reset_admin_production(secret: str, db: Session = Depends(deps.get_db)):
     if secret != "ResetAdmin2026Secure!":

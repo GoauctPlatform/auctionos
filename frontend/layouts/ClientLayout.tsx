@@ -80,6 +80,24 @@ const ClientLayout: React.FC = () => {
     }
   };
 
+  const [devVerifying, setDevVerifying] = useState(false);
+  const handleDevVerify = async () => {
+    setDevVerifying(true);
+    try {
+        await api.post('/auth/dev-auto-verify');
+        if (user) {
+            const updated = { ...user, is_verified: true };
+            localStorage.setItem('user', JSON.stringify(updated));
+        }
+        alert("🎉 Dev Mode: Account verified instantly!");
+        window.location.reload();
+    } catch (e) {
+        alert("Failed to auto-verify account.");
+    } finally {
+        setDevVerifying(false);
+    }
+  };
+
   const VerificationBlock = () => (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 backdrop-blur-xl bg-slate-900/60 overflow-hidden">
         <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-[32px] shadow-2xl border border-white/20 p-8 text-center animate-in fade-in zoom-in duration-300">
@@ -110,6 +128,17 @@ const ClientLayout: React.FC = () => {
                     {resending ? <Loader2 size={18} className="animate-spin" /> : <RefreshCw size={18} />}
                     Resend Email
                 </button>
+
+                <div className="border-t border-slate-100 dark:border-slate-800/80 my-2 pt-3">
+                    <button 
+                        onClick={handleDevVerify}
+                        disabled={devVerifying}
+                        className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs uppercase tracking-wider rounded-2xl transition-all disabled:opacity-50 shadow-md shadow-orange-500/10 flex items-center justify-center gap-2"
+                    >
+                        {devVerifying ? <Loader2 size={16} className="animate-spin" /> : <ShieldAlert size={16} />}
+                        [Dev Mode] Bypass & Verify Account
+                    </button>
+                </div>
             </div>
 
             <button 
