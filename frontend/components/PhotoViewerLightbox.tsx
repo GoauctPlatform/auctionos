@@ -62,13 +62,7 @@ export const PhotoViewerLightbox: React.FC<PhotoViewerLightboxProps> = ({
         
         setIsDownloading(true);
         try {
-            const token = localStorage.getItem('token');
-            const headers: HeadersInit = {};
-            if (token) {
-                headers['Authorization'] = `Bearer ${token}`;
-            }
-
-            const response = await fetch(url, { headers });
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Fetch failed');
             
             const blob = await response.blob();
