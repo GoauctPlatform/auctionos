@@ -126,9 +126,13 @@ def claim_task(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Realtor claims an open task, blocking other realtors for deadline_hours."""
-    # 1. Verify partner account status
-    realtor = db.execute(text("SELECT verification_status FROM realtors WHERE user_id = :uid"), {"uid": current_user.id}).fetchone()
-    if not realtor or realtor.verification_status != "verified":
+    # 1. Verify partner account status based on role
+    if current_user.role == 'agent_due_diligence':
+        profile = db.execute(text("SELECT verification_status FROM agent_due_diligence_profiles WHERE user_id = :uid"), {"uid": current_user.id}).fetchone()
+    else:
+        profile = db.execute(text("SELECT verification_status FROM realtors WHERE user_id = :uid"), {"uid": current_user.id}).fetchone()
+        
+    if not profile or profile.verification_status != "verified":
         raise HTTPException(status_code=403, detail="Your partner account must be verified by compliance before claiming tasks.")
 
     # 2. Enforce the 5-task limit
