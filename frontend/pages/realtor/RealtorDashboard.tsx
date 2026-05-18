@@ -5,6 +5,7 @@ import { AuthService } from '../../services/auth.service';
 import api from '../../services/api';
 import { API_URL, getHeaders } from '../../services/httpClient';
 import { CircularProgress } from '@mui/material';
+import { ExecuteTaskMission } from '../../components/property/ExecuteTaskMission';
 
 interface ExportedProperty {
   export_id: number;
@@ -54,6 +55,7 @@ const ConsultantDashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [showWelcomeModal, setShowWelcomeModal] = useState(searchParams.get('welcome') === 'true');
   const [profile, setProfile] = useState<any>(null);
+  const [submitTask, setSubmitTask] = useState<Task | null>(null);
   
   // Data loading states
   const [recentExports, setRecentExports] = useState<ExportedProperty[]>([]);
@@ -129,6 +131,7 @@ const ConsultantDashboard: React.FC = () => {
   // Compute tasks in progress
   const activeMissionsCount = myTasks.filter(t => t.status === 'claimed').length;
   const pendingReviewCount = myTasks.filter(t => t.status === 'submitted').length;
+  const completedMissionsCount = myTasks.filter(t => t.status === 'approved').length;
 
   return (
     <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-500">
@@ -223,17 +226,17 @@ const ConsultantDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* KPI 3: Commission Model */}
-        <div className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:border-amber-500/40 transition-all cursor-pointer">
+        {/* KPI 3: Total Completed */}
+        <div className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:border-emerald-500/40 transition-all cursor-pointer" onClick={() => navigate('/realtor/tasks?tab=mine')}>
           <div className="space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Commission Cut</div>
-            <div className="text-xl sm:text-2xl font-black text-slate-800 dark:text-white group-hover:text-amber-500 transition-colors truncate max-w-[130px]">
-              {profileLoading ? <CircularProgress size={16} /> : (profile?.commission_model || 'Standard 70%')}
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Approved</div>
+            <div className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white group-hover:text-emerald-500 transition-colors">
+              {loading ? <CircularProgress size={20} /> : completedMissionsCount}
             </div>
-            <div className="text-[9px] font-semibold text-slate-400">Of task point value</div>
+            <div className="text-[9px] font-semibold text-slate-400">Payouts completed</div>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/20 flex items-center justify-center text-amber-500">
-            <span className="material-symbols-outlined text-2xl">payments</span>
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center text-emerald-500">
+            <span className="material-symbols-outlined text-2xl">verified</span>
           </div>
         </div>
 
@@ -413,10 +416,10 @@ const ConsultantDashboard: React.FC = () => {
                             </span>
                           ) : (
                             <button
-                              onClick={() => navigate(`/realtor/tasks?tab=mine`)}
+                              onClick={() => setSubmitTask(task)}
                               className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-xl shadow-md shadow-emerald-500/10 transition-colors"
                             >
-                              Submit Evidence
+                              Submit Task
                             </button>
                           )}
                         </div>
@@ -519,6 +522,17 @@ const ConsultantDashboard: React.FC = () => {
             )}
           </section>
         </div>
+        {/* Submit Task Modal */}
+        {submitTask && (
+          <ExecuteTaskMission 
+            task={submitTask}
+            onClose={() => setSubmitTask(null)}
+            onSuccess={() => {
+              setSubmitTask(null);
+              loadDashboardData();
+            }}
+          />
+        )}
       </div>
     </div>
   );
