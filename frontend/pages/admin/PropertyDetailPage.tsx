@@ -29,6 +29,7 @@ import { PropertyFinancialsModal } from '../../components/property/PropertyFinan
 import { PropertyMetadataModal } from '../../components/property/PropertyMetadataModal';
 import { useCompany } from '../../context/CompanyContext';
 import { CreateTaskForm } from '../../components/property/CreateTaskForm';
+import { useTour } from '../../context/TourContext';
 
 interface PropertyDetailPageProps {
     readOnly?: boolean;
@@ -39,6 +40,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
     const navigate = useNavigate();
     const location = useLocation();
     const { activeCompany } = useCompany();
+    const { startTour } = useTour();
     const [property, setProperty] = useState<Property | null>(null);
     const [countyContacts, setCountyContacts] = useState<CountyContact[]>([]);
     const [loading, setLoading] = useState(true);
@@ -281,6 +283,13 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
                 {/* ── Customize My View Button (Client/Manager/Agent) ── */}
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => startTour('property_details')}
+                        className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">menu_book</span>
+                        Page Tour
+                    </button>
                     {(property as any).has_overrides && !isEditing && (
                         <span className="flex items-center gap-1 text-[10px] font-black px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full uppercase tracking-wider">
                             <PencilLine size={10} />
@@ -392,27 +401,33 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 
                 {/* Main Content Column (Left/Center) */}
                 <div className="xl:col-span-2 space-y-8">
-                    <PropertyBasicInfo 
-                        property={property} 
-                        onOpenFinancials={() => setIsFinOpen(true)}
-                        onOpenMetadata={() => setIsMetaOpen(true)}
-                        dealScore={localScore}
-                    />
-
-                    <PropertyEstimatesComps property={property} />
-
-                    <div className="grid grid-cols-1 gap-8">
-                        <PropertyPurchaseOptions 
+                    <div id="tour-property-basic-info">
+                        <PropertyBasicInfo 
                             property={property} 
-                            readOnly={readOnly}
-                            actionLoading={actionLoading}
-                            onSimulatePurchase={handlePurchaseOnline}
+                            onOpenFinancials={() => setIsFinOpen(true)}
+                            onOpenMetadata={() => setIsMetaOpen(true)}
+                            dealScore={localScore}
                         />
+                    </div>
+
+                    <div id="tour-property-financials" className="space-y-8">
+                        <PropertyEstimatesComps property={property} />
+
+                        <div className="grid grid-cols-1 gap-8">
+                            <PropertyPurchaseOptions 
+                                property={property} 
+                                readOnly={readOnly}
+                                actionLoading={actionLoading}
+                                onSimulatePurchase={handlePurchaseOnline}
+                            />
+                        </div>
                     </div>
 
                     <PropertyRedemptionCard stateCode={property.state} auctionType={property.auction_type} />
 
-                    <PropertyMap property={property} />
+                    <div id="tour-property-maps">
+                        <PropertyMap property={property} />
+                    </div>
 
                     {/* Preserved Raw Data Block */}
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
@@ -434,27 +449,31 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
                 {/* Sidebar Column (Right) */}
                 <div className="space-y-8 mt-0">
-                    <PropertyResearchLinks property={property} />
+                    <div id="tour-property-research-links">
+                        <PropertyResearchLinks property={property} />
+                    </div>
                     
                     <PropertyNextSteps property={property} />
 
-                    <PropertyUserActions 
-                        property={property} 
-                        isFavorite={isFavorite}
-                        onToggleFavorite={handleToggleFavorite}
-                        onAddToList={handleOpenListMenu}
-                        onUpdateNotes={async (noteText) => {
-                            try {
-                                await ClientDataService.createNote(property.id, noteText);
-                            } catch (err) {}
-                        }}
-                        onUploadAttachment={async (file) => {
-                            try {
-                                await ClientDataService.uploadAttachment(property.id, file);
-                                loadProperty(property.parcel_id);
-                            } catch (err: any) { alert(err.message); }
-                        }}
-                    />
+                    <div id="tour-property-actions">
+                        <PropertyUserActions 
+                            property={property} 
+                            isFavorite={isFavorite}
+                            onToggleFavorite={handleToggleFavorite}
+                            onAddToList={handleOpenListMenu}
+                            onUpdateNotes={async (noteText) => {
+                                try {
+                                    await ClientDataService.createNote(property.id, noteText);
+                                } catch (err) {}
+                            }}
+                            onUploadAttachment={async (file) => {
+                                try {
+                                    await ClientDataService.uploadAttachment(property.id, file);
+                                    loadProperty(property.parcel_id);
+                                } catch (err: any) { alert(err.message); }
+                            }}
+                        />
+                    </div>
 
                     {/* BPO Due Diligence Marketplace */}
                     <div className="bg-indigo-900 rounded-xl p-6 shadow-sm border border-indigo-800 text-white">
