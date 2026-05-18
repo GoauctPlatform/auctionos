@@ -13,14 +13,59 @@ interface TourContextType {
   tourActive: boolean;
   activeStep: number;
   steps: TourStep[];
-  startTour: (type: 'investor' | 'live_auctions') => void;
+  startTour: (type: 'investor' | 'live_auctions' | 'property_details') => void;
   nextStep: () => void;
   prevStep: () => void;
   endTour: () => void;
-  tourType: 'investor' | 'live_auctions' | null;
+  tourType: 'investor' | 'live_auctions' | 'property_details' | null;
 }
 
 const TourContext = createContext<TourContextType | undefined>(undefined);
+
+export const PROPERTY_DETAILS_TOUR_STEPS: TourStep[] = [
+  {
+    target: '#tour-property-basic-info',
+    title: 'Basic Property Data 🏠',
+    content: 'View essential structural details, parcel identifiers, owner names, building years, and tax assessment valuations gathered from local county registries.',
+    path: 'any'
+  },
+  {
+    target: '#btn-customize-property-view',
+    title: 'Customize Your Research 🎨',
+    content: 'Click here to unlock the Overrides Panel. You can customize descriptions, update building parameters, or adjust calculated yields based on your field findings.',
+    path: 'any'
+  },
+  {
+    target: '#tour-property-financials',
+    title: 'Yields & Estimated Values 💰',
+    content: 'Compare our automated ARV calculations, monthly rent estimates, deal scores, and potential secondary BPO combo acquisition offers instantly.',
+    path: 'any'
+  },
+  {
+    target: '#tour-property-maps',
+    title: 'Street View & Map Placement 🗺️',
+    content: 'Inspect actual property conditions remotely. Explore local streets, locate county pins, and evaluate structural neighborhood risks visually.',
+    path: 'any'
+  },
+  {
+    target: '#tour-property-research-links',
+    title: 'Pre-populated County Portals 🔗',
+    content: 'Jump straight to local resources with one click. We pre-fill parcel searches on tax assessors, deed records, tax collectors, and GIS maps.',
+    path: 'any'
+  },
+  {
+    target: '#tour-property-actions',
+    title: 'Team Collaboration & Watchlists ⚙️',
+    content: 'Write private company notes, upload structural attachments, or add this property to your primary watchlists to keep the whole team aligned in real-time.',
+    path: 'any'
+  },
+  {
+    target: 'none',
+    title: 'Tour Complete! 🎯',
+    content: 'You now know how to leverage GoAuct\'s property analytics. Start customizing views, taking notes, or deploying field missions now!',
+    path: 'any'
+  }
+];
 
 export const INVESTOR_TOUR_STEPS: TourStep[] = [
   {
@@ -127,20 +172,28 @@ export const LIVE_AUCTIONS_TOUR_STEPS: TourStep[] = [
 export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [tourActive, setTourActive] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [tourType, setTourType] = useState<'investor' | 'live_auctions' | null>(null);
+  const [tourType, setTourType] = useState<'investor' | 'live_auctions' | 'property_details' | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const steps = tourType === 'live_auctions' ? LIVE_AUCTIONS_TOUR_STEPS : INVESTOR_TOUR_STEPS;
+  const steps = tourType === 'live_auctions' 
+    ? LIVE_AUCTIONS_TOUR_STEPS 
+    : tourType === 'property_details' 
+      ? PROPERTY_DETAILS_TOUR_STEPS 
+      : INVESTOR_TOUR_STEPS;
 
-  const startTour = (type: 'investor' | 'live_auctions') => {
+  const startTour = (type: 'investor' | 'live_auctions' | 'property_details') => {
     setTourType(type);
     setActiveStep(0);
     setTourActive(true);
     
     // Automatically redirect to the starting page of the tour
-    const startStep = type === 'live_auctions' ? LIVE_AUCTIONS_TOUR_STEPS[0] : INVESTOR_TOUR_STEPS[0];
-    if (location.pathname !== startStep.path) {
+    const startStep = type === 'live_auctions' 
+      ? LIVE_AUCTIONS_TOUR_STEPS[0] 
+      : type === 'property_details' 
+        ? PROPERTY_DETAILS_TOUR_STEPS[0] 
+        : INVESTOR_TOUR_STEPS[0];
+    if (startStep.path !== 'any' && location.pathname !== startStep.path) {
       navigate(startStep.path);
     }
   };
@@ -151,6 +204,8 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (user) {
       if (tourType === 'live_auctions') {
         localStorage.setItem(`goauct_live_auctions_tour_completed_${user.id}`, 'true');
+      } else if (tourType === 'property_details') {
+        localStorage.setItem(`goauct_property_details_tour_completed_${user.id}`, 'true');
       } else {
         localStorage.setItem(`goauct_onboarding_completed_${user.id}`, 'true');
       }

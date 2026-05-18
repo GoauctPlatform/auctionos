@@ -22,9 +22,11 @@ import { CreateTaskForm } from '../components/property/CreateTaskForm';
 
 import { PropertyService, ClientDataService } from '../services/property.service';
 import { useCompany } from '../context/CompanyContext';
+import { useTour } from '../context/TourContext';
 
 const PropertyDetails: React.FC = () => {
     const { activeCompany } = useCompany();
+    const { startTour } = useTour();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const location = useLocation();
@@ -146,6 +148,13 @@ const PropertyDetails: React.FC = () => {
 
                 {/* ── Edit / Customize Button ─────────────────────────────── */}
                 <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => startTour('property_details')}
+                        className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">menu_book</span>
+                        Page Tour
+                    </button>
                     {property.has_overrides && !isEditing && (
                         <span className="flex items-center gap-1 text-[10px] font-black px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full uppercase tracking-wider">
                             <PencilLine size={10} />
@@ -180,13 +189,15 @@ const PropertyDetails: React.FC = () => {
 
                 {/* Main Content Column (Left) */}
                 <div className="xl:col-span-2 space-y-6">
-                    <PropertyBasicInfo
-                        property={property}
-                        onOpenFinancials={() => setIsFinOpen(true)}
-                        onOpenMetadata={() => setIsMetaOpen(true)}
-                    />
+                    <div id="tour-property-basic-info">
+                        <PropertyBasicInfo
+                            property={property}
+                            onOpenFinancials={() => setIsFinOpen(true)}
+                            onOpenMetadata={() => setIsMetaOpen(true)}
+                        />
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div id="tour-property-financials" className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <PropertyPurchaseOptions property={property} />
                         <PropertyEstimatesComps property={property} />
                     </div>
@@ -282,7 +293,7 @@ const PropertyDetails: React.FC = () => {
 
                     <PropertyExtendedTabs property={property} />
 
-                    <div className="glass-card rounded-xl p-1 h-[400px] overflow-hidden mt-6">
+                    <div id="tour-property-maps" className="glass-card rounded-xl p-1 h-[400px] overflow-hidden mt-6">
                         <PropertyMap property={property} />
                     </div>
                 </div>
@@ -291,31 +302,35 @@ const PropertyDetails: React.FC = () => {
                 <div className="space-y-6">
                     <PropertyOwnerCard property={property} />
                     <PropertyRedemptionCard stateCode={property.state} auctionType={property.property_category || property.details?.property_category} />
-                    <PropertyResearchLinks property={property} />
-                    <PropertyUserActions 
-                        property={property} 
-                        onAddToList={handleAddToStandardList} 
-                        onUpdateNotes={async (notes) => {
-                            if (property.parcel_id) {
-                                await PropertyService.updatePropertyNotes(property.parcel_id, notes);
-                            }
-                        }}
-                        onUploadAttachment={async (file: File) => {
-                            try {
-                                const formData = new FormData();
-                                formData.append('file', file);
-                                formData.append('property_id', property.id.toString());
-                                
-                                await api.post('/client-data/attachments', formData, {
-                                    headers: { 'Content-Type': 'multipart/form-data' }
-                                });
-                                const updated = await AdminService.getProperty(property.id.toString());
-                                setProperty(updated);
-                            } catch (error: any) {
-                                alert(`Failed to upload file: ${error.response?.data?.detail || error.message}`);
-                            }
-                        }}
-                    />
+                    <div id="tour-property-research-links">
+                        <PropertyResearchLinks property={property} />
+                    </div>
+                    <div id="tour-property-actions">
+                        <PropertyUserActions 
+                            property={property} 
+                            onAddToList={handleAddToStandardList} 
+                            onUpdateNotes={async (notes) => {
+                                if (property.parcel_id) {
+                                    await PropertyService.updatePropertyNotes(property.parcel_id, notes);
+                                }
+                            }}
+                            onUploadAttachment={async (file: File) => {
+                                try {
+                                    const formData = new FormData();
+                                    formData.append('file', file);
+                                    formData.append('property_id', property.id.toString());
+                                    
+                                    await api.post('/client-data/attachments', formData, {
+                                        headers: { 'Content-Type': 'multipart/form-data' }
+                                    });
+                                    const updated = await AdminService.getProperty(property.id.toString());
+                                    setProperty(updated);
+                                } catch (error: any) {
+                                    alert(`Failed to upload file: ${error.response?.data?.detail || error.message}`);
+                                }
+                            }}
+                        />
+                    </div>
 
                     {/* BPO Due Diligence Marketplace */}
                     <div className="bg-indigo-900 rounded-xl p-6 shadow-sm border border-indigo-800 text-white">

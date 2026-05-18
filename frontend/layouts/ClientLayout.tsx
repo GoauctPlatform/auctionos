@@ -146,16 +146,6 @@ const ClientLayout: React.FC = () => {
                     Resend Email
                 </button>
 
-                <div className="border-t border-slate-100 dark:border-slate-800/80 my-2 pt-3">
-                    <button 
-                        onClick={handleDevVerify}
-                        disabled={devVerifying}
-                        className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold text-xs uppercase tracking-wider rounded-2xl transition-all disabled:opacity-50 shadow-md shadow-orange-500/10 flex items-center justify-center gap-2"
-                    >
-                        {devVerifying ? <Loader2 size={16} className="animate-spin" /> : <ShieldAlert size={16} />}
-                        [Dev Mode] Bypass & Verify Account
-                    </button>
-                </div>
             </div>
 
             <button 
