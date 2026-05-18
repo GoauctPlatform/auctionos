@@ -246,10 +246,16 @@ async def submit_task_evidence(
     if task.investor_user_id:
         investor = db.execute(text("SELECT email, full_name FROM users WHERE id = :id"), {"id": task.investor_user_id}).fetchone()
         if investor:
-            email_body = f"Hello {investor.full_name or 'Investor'},\n\nField Agent {current_user.full_name or current_user.email} has submitted the BPO results for '{task.title}'.\n\nPlease check your Field Missions Dashboard to review."
+            from app.core.email_templates import get_task_resubmitted_by_realtor_template
+            email_body = get_task_resubmitted_by_realtor_template(
+                investor_name=investor.full_name or "Investor",
+                realtor_name=current_user.full_name or "Agent",
+                task_title=task.title
+            )
+            subject_str = f"Task Resubmitted: {task.title}" if (task.rejections_count or 0) > 0 else f"Task Submitted: {task.title}"
             background_tasks.add_task(
                 send_email,
-                subject=f"Mission Results Submitted: Review '{task.title}'",
+                subject=subject_str,
                 recipients=[investor.email],
                 body=email_body
             )

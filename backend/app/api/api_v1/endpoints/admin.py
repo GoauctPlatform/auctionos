@@ -460,6 +460,7 @@ class ResolveTicketPayload(BaseModel):
 def resolve_support_ticket(
     ticket_id: int,
     payload: ResolveTicketPayload,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Admin: resolve a task conflict mediation ticket."""
@@ -597,6 +598,44 @@ def resolve_support_ticket(
             SET status = 'resolved', admin_response = :notes, responded_at = NOW()
             WHERE id = :id
         """), {"notes": payload.notes, "id": ticket_id})
+
+        # 5. Notify both Realtor and Investor of Admin Mediation Decision
+        from app.core.email import send_email
+        from app.core.email_templates import get_task_mediation_resolved_template
+        
+        # Notify Realtor
+        if task.realtor_user_id:
+            realtor = db.execute(text("SELECT email, full_name FROM users WHERE id = :id"), {"id": task.realtor_user_id}).fetchone()
+            if realtor:
+                realtor_body = get_task_mediation_resolved_template(
+                    user_name=realtor.full_name or "Agent",
+                    task_title=task.title,
+                    decision=payload.decision,
+                    admin_notes=payload.notes
+                )
+                background_tasks.add_task(
+                    send_email,
+                    subject=f"Mediation Decision: {task.title}",
+                    recipients=[realtor.email],
+                    body=realtor_body
+                )
+        
+        # Notify Investor
+        if task.investor_user_id:
+            investor = db.execute(text("SELECT email, full_name FROM users WHERE id = :id"), {"id": task.investor_user_id}).fetchone()
+            if investor:
+                investor_body = get_task_mediation_resolved_template(
+                    user_name=investor.full_name or "Investor",
+                    task_title=task.title,
+                    decision=payload.decision,
+                    admin_notes=payload.notes
+                )
+                background_tasks.add_task(
+                    send_email,
+                    subject=f"Mediation Decision: {task.title}",
+                    recipients=[investor.email],
+                    body=investor_body
+                )
 
         db.commit()
         return {"ok": True, "message": "Conflict successfully resolved"}

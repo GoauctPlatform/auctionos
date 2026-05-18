@@ -371,21 +371,58 @@ async def review_task_submission(
 
     db.commit()
 
-    # Trigger Task Update Email to the Realtor
+    # Trigger Task Update Email based on revision count
     if task.realtor_user_id:
         realtor = db.execute(text("SELECT email, full_name FROM users WHERE id = :id"), {"id": task.realtor_user_id}).fetchone()
         if realtor:
-            email_body = get_task_update_template(
-                task_title=task.title,
-                status=review_status,
-                updated_by=current_user.full_name or "Investor"
-            )
-            background_tasks.add_task(
-                send_email,
-                subject=f"Task Update: {task.title} is {review_status.upper()}",
-                recipients=[realtor.email],
-                body=email_body
-            )
+            if payload.action == "reject":
+                if new_count >= 2:
+                    # Second reject: notify both Realtor and Investor about mediation escalation
+                    from app.core.email_templates import get_task_mediation_initiated_template
+                    
+                    realtor_body = get_task_mediation_initiated_template(realtor.full_name or "Agent", task.title)
+                    background_tasks.add_task(
+                        send_email,
+                        subject=f"Task Escalated to Mediation: {task.title}",
+                        recipients=[realtor.email],
+                        body=realtor_body
+                    )
+                    
+                    investor_body = get_task_mediation_initiated_template(current_user.full_name or "Investor", task.title)
+                    background_tasks.add_task(
+                        send_email,
+                        subject=f"Task Escalated to Mediation: {task.title}",
+                        recipients=[current_user.email],
+                        body=investor_body
+                    )
+                else:
+                    # First reject: notify Realtor that revision is required
+                    from app.core.email_templates import get_task_rejected_by_investor_template
+                    
+                    realtor_body = get_task_rejected_by_investor_template(
+                        realtor.full_name or "Agent",
+                        task.title,
+                        payload.review_notes or "No notes provided"
+                    )
+                    background_tasks.add_task(
+                        send_email,
+                        subject=f"Revision Required: {task.title}",
+                        recipients=[realtor.email],
+                        body=realtor_body
+                    )
+            else:
+                # Approved: notify Realtor using standard template
+                email_body = get_task_update_template(
+                    task_title=task.title,
+                    status=review_status,
+                    updated_by=current_user.full_name or "Investor"
+                )
+                background_tasks.add_task(
+                    send_email,
+                    subject=f"Task Update: {task.title} is {review_status.upper()}",
+                    recipients=[realtor.email],
+                    body=email_body
+                )
 
     return {"ok": True, "review_status": review_status}
 

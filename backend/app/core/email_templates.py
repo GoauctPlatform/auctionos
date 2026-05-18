@@ -233,3 +233,90 @@ def get_partner_decision_template(name: str, role: str, status: str) -> str:
         """
         
     return get_base_template(content)
+
+
+def get_task_rejected_by_investor_template(realtor_name: str, task_title: str, notes: str) -> str:
+    content = f"""
+        <h2 style="color: #ef4444; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">Task Revision Required</h2>
+        <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">
+            Hi {realtor_name},<br><br>
+            The investor has reviewed your submission for the task <strong>"{task_title}"</strong> and requested a revision.
+        </p>
+        <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px; border-radius: 8px; margin-bottom: 32px;">
+            <strong style="color: #991b1b; font-size: 14px; display: block; margin-bottom: 8px;">Investor's Feedback:</strong>
+            <p style="color: #7f1d1d; font-size: 15px; margin: 0; line-height: 22px;">"{notes}"</p>
+        </div>
+        <p style="color: #64748b; font-size: 15px; margin-bottom: 32px;">
+            Please review the comments, collect any missing/corrected evidence or photos, and resubmit the task as soon as possible.
+        </p>
+        <div style="text-align: center;">
+            <a href="{settings.FRONTEND_URL}/#/realtor/tasks" style="display: inline-block; background-color: #0A84FF; color: #ffffff; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px;">
+                Open Realtor Portal
+            </a>
+        </div>
+    """
+    return get_base_template(content)
+
+
+def get_task_resubmitted_by_realtor_template(investor_name: str, realtor_name: str, task_title: str) -> str:
+    content = f"""
+        <h2 style="color: #10b981; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">Task Resubmitted!</h2>
+        <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">
+            Hi {investor_name},<br><br>
+            The agent <strong>{realtor_name}</strong> has resubmitted the task <strong>"{task_title}"</strong> with the requested updates.
+        </p>
+        <p style="color: #64748b; font-size: 15px; margin-bottom: 32px;">
+            Please log in to your dashboard to review the updated photos, checklist, and notes.
+        </p>
+        <div style="text-align: center;">
+            <a href="{settings.FRONTEND_URL}/#/client/tasks" style="display: inline-block; background-color: #0A84FF; color: #ffffff; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px;">
+                Review Submission
+            </a>
+        </div>
+    """
+    return get_base_template(content)
+
+
+def get_task_mediation_initiated_template(user_name: str, task_title: str) -> str:
+    content = f"""
+        <h2 style="color: #f59e0b; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">Task Sent to Admin Mediation</h2>
+        <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">
+            Hi {user_name},<br><br>
+            The task <strong>"{task_title}"</strong> has been rejected for a second time.
+        </p>
+        <div style="background-color: #fffbeb; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin-bottom: 32px;">
+            <p style="color: #78350f; font-size: 15px; margin: 0; line-height: 22px;">
+                As per platform guidelines, this task has now entered <strong>Admin Mediation</strong>. A GoAuct administrator will audit the submitted property checklist, notes, and photos against the task criteria to resolve the conflict fairly.
+            </p>
+        </div>
+        <p style="color: #64748b; font-size: 15px;">
+            No further action is required from you at this time. You will receive an automated email as soon as the administrator makes a final decision.
+        </p>
+    """
+    return get_base_template(content)
+
+
+def get_task_mediation_resolved_template(user_name: str, task_title: str, decision: str, admin_notes: str) -> str:
+    decision_text = "APPROVED (Realtor credited)" if decision == "approve_realtor" else "REJECTED (Investor refunded)"
+    color = "#10b981" if decision == "approve_realtor" else "#ef4444"
+    bg_color = "#f0fdf4" if decision == "approve_realtor" else "#fef2f2"
+    border_color = "#10b981" if decision == "approve_realtor" else "#ef4444"
+    
+    content = f"""
+        <h2 style="color: {color}; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">Mediation Resolution</h2>
+        <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">
+            Hi {user_name},<br><br>
+            A GoAuct administrator has finalized the mediation audit for the task <strong>"{task_title}"</strong>.
+        </p>
+        <div style="background-color: {bg_color}; border: 1px solid {border_color}; padding: 24px; border-radius: 12px; margin-bottom: 32px;">
+            <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Official Decision:</span>
+            <div style="font-size: 20px; font-weight: 800; color: {color}; margin: 4px 0 16px 0;">{decision_text}</div>
+            
+            <span style="font-size: 12px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px;">Admin's Audit Notes:</span>
+            <p style="font-size: 15px; color: #1e293b; margin: 4px 0 0 0; line-height: 22px;">"{admin_notes}"</p>
+        </div>
+        <p style="color: #64748b; font-size: 14px; margin: 0;">
+            If you have any questions, please reach out to GoAuct support.
+        </p>
+    """
+    return get_base_template(content)
