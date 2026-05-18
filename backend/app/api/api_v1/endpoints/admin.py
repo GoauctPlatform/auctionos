@@ -1,5 +1,6 @@
 from fastapi import APIRouter, File, UploadFile, BackgroundTasks, HTTPException, Depends
-from typing import Any
+from typing import Any, Optional
+from pydantic import BaseModel
 import uuid
 import os
 from app.services.import_service import import_service
@@ -359,3 +360,206 @@ async def _notify_partner_decision(name: str, email: str, role: str, status: str
         body=email_body
     )
 
+
+# ─── BPO Task Mediation Endpoints ──────────────────────────────────────────
+
+@router.get("/support-tickets")
+def list_support_tickets(
+    status: Optional[str] = None,
+    type: Optional[str] = None,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Admin: list all BPO mediation tickets."""
+    if current_user.role not in ("admin", "superuser"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+
+    db = SessionLocal()
+    try:
+        where_clauses = []
+        params = {}
+        if status:
+            where_clauses.append("status = :status")
+            params["status"] = status
+        if type:
+            where_clauses.append("ticket_type = :type")
+            params["type"] = type
+
+        where_str = f"WHERE {' AND '.join(where_clauses)}" if where_clauses else ""
+        rows = db.execute(text(f"""
+            SELECT * FROM support_tickets
+            {where_str}
+            ORDER BY created_at DESC
+        """), params).fetchall()
+
+        return [dict(r._mapping) for r in rows]
+    finally:
+        db.close()
+
+
+@router.get("/realtor-tasks/{task_id}")
+def get_task_for_mediation(
+    task_id: int,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Admin: view details of a disputed task for mediation."""
+    if current_user.role not in ("admin", "superuser"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+
+    db = SessionLocal()
+    try:
+        task = db.execute(text("""
+            SELECT t.*, t.address AS property_address
+            FROM realtor_tasks t
+            WHERE t.id = :task_id
+        """), {"task_id": task_id}).fetchone()
+
+        if not task:
+            raise HTTPException(status_code=404, detail="Task not found")
+
+        # Get latest submission details
+        sub = db.execute(text("""
+            SELECT s.geo_validated, s.distance_meters, s.file_path
+            FROM task_submissions s
+            WHERE s.task_id = :task_id
+            ORDER BY s.submitted_at DESC
+            LIMIT 1
+        """), {"task_id": task_id}).fetchone()
+
+        task_dict = dict(task._mapping)
+        if sub:
+            task_dict["geo_validated"] = sub.geo_validated
+            task_dict["distance_meters"] = sub.distance_meters
+            photos = sub.file_path.split(",") if sub.file_path else []
+            task_dict["submission_photos"] = photos
+        else:
+            task_dict["geo_validated"] = False
+            task_dict["distance_meters"] = 0
+            task_dict["submission_photos"] = []
+
+        return task_dict
+    finally:
+        db.close()
+
+
+class ResolveTicketPayload(BaseModel):
+    decision: str  # 'approve_realtor' or 'refund_investor'
+    notes: str
+
+
+@router.post("/support-tickets/{ticket_id}/resolve")
+def resolve_support_ticket(
+    ticket_id: int,
+    payload: ResolveTicketPayload,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """Admin: resolve a task conflict mediation ticket."""
+    if current_user.role not in ("admin", "superuser"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+
+    from app.db.session import SessionLocal
+    from sqlalchemy import text
+
+    db = SessionLocal()
+    try:
+        # Fetch support ticket
+        ticket = db.execute(text("""
+            SELECT * FROM support_tickets WHERE id = :id
+        """), {"id": ticket_id}).fetchone()
+        
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Mediation ticket not found")
+
+        task_id = ticket.task_id
+        if not task_id:
+            raise HTTPException(status_code=400, detail="Ticket is not associated with a task")
+
+        # Fetch realtor task
+        task = db.execute(text("""
+            SELECT * FROM realtor_tasks WHERE id = :id
+        """), {"id": task_id}).fetchone()
+
+        if not task:
+            raise HTTPException(status_code=404, detail="Associated task not found")
+
+        if payload.decision == "approve_realtor":
+            # 1. Update Realtor Task
+            db.execute(text("""
+                UPDATE realtor_tasks
+                SET status = 'approved', approved_at = NOW()
+                WHERE id = :id
+            """), {"id": task_id})
+
+            # 2. Update Latest Submission
+            db.execute(text("""
+                UPDATE task_submissions
+                SET review_status = 'approved', review_notes = :notes, reviewed_at = NOW()
+                WHERE id = (
+                    SELECT id FROM task_submissions
+                    WHERE task_id = :task_id
+                    ORDER BY submitted_at DESC
+                    LIMIT 1
+                )
+            """), {"notes": payload.notes, "task_id": task_id})
+
+            # 3. Credit Realtor
+            if task.realtor_user_id:
+                realtor_points = int(task.reward_points * 0.9)
+                usd = realtor_points / 100.0
+                db.execute(text("""
+                    INSERT INTO realtor_commissions
+                        (realtor_user_id, task_id, points, usd_value, type, status, description)
+                    VALUES (:uid, :task_id, :pts, :usd, 'earned', 'available', :desc)
+                """), {
+                    "uid": task.realtor_user_id,
+                    "task_id": task_id,
+                    "pts": realtor_points,
+                    "usd": usd,
+                    "desc": f"Task #{task_id} approved by admin mediation",
+                })
+
+            # 4. Copy photos to public property attachments
+            from app.api.api_v1.endpoints.realtor_tasks import _copy_task_photos_to_attachments
+            _copy_task_photos_to_attachments(task_id, task.property_id, task.investor_user_id, db)
+
+        elif payload.decision == "refund_investor":
+            # 1. Update Realtor Task
+            db.execute(text("""
+                UPDATE realtor_tasks
+                SET status = 'rejected'
+                WHERE id = :id
+            """), {"id": task_id})
+
+            # 2. Update Latest Submission
+            db.execute(text("""
+                UPDATE task_submissions
+                SET review_status = 'rejected', review_notes = :notes, reviewed_at = NOW()
+                WHERE id = (
+                    SELECT id FROM task_submissions
+                    WHERE task_id = :task_id
+                    ORDER BY submitted_at DESC
+                    LIMIT 1
+                )
+            """), {"notes": payload.notes, "task_id": task_id})
+        else:
+            raise HTTPException(status_code=400, detail="Invalid decision type")
+
+        # Update Support Ticket status
+        db.execute(text("""
+            UPDATE support_tickets
+            SET status = 'resolved', admin_response = :notes, responded_at = NOW()
+            WHERE id = :id
+        """), {"notes": payload.notes, "id": ticket_id})
+
+        db.commit()
+        return {"ok": True, "message": "Conflict successfully resolved"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        db.close()
