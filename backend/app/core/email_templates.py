@@ -251,7 +251,7 @@ def get_task_rejected_by_investor_template(realtor_name: str, task_title: str, n
         </p>
         <div style="text-align: center;">
             <a href="{settings.FRONTEND_URL}/#/realtor/tasks" style="display: inline-block; background-color: #0A84FF; color: #ffffff; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px;">
-                Open Realtor Portal
+                Open Partner Portal
             </a>
         </div>
     """
@@ -263,7 +263,7 @@ def get_task_resubmitted_by_realtor_template(investor_name: str, realtor_name: s
         <h2 style="color: #10b981; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">Task Resubmitted!</h2>
         <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">
             Hi {investor_name},<br><br>
-            The agent <strong>{realtor_name}</strong> has resubmitted the task <strong>"{task_title}"</strong> with the requested updates.
+            The field agent <strong>{realtor_name}</strong> has resubmitted the task <strong>"{task_title}"</strong> with the requested updates.
         </p>
         <p style="color: #64748b; font-size: 15px; margin-bottom: 32px;">
             Please log in to your dashboard to review the updated photos, checklist, and notes.
@@ -297,7 +297,7 @@ def get_task_mediation_initiated_template(user_name: str, task_title: str) -> st
 
 
 def get_task_mediation_resolved_template(user_name: str, task_title: str, decision: str, admin_notes: str) -> str:
-    decision_text = "APPROVED (Realtor credited)" if decision == "approve_realtor" else "REJECTED (Investor refunded)"
+    decision_text = "APPROVED (Field Agent credited)" if decision == "approve_realtor" else "REJECTED (Investor refunded)"
     color = "#10b981" if decision == "approve_realtor" else "#ef4444"
     bg_color = "#f0fdf4" if decision == "approve_realtor" else "#fef2f2"
     border_color = "#10b981" if decision == "approve_realtor" else "#ef4444"
