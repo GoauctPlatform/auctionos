@@ -27,12 +27,14 @@ export const TourOverlay: React.FC = () => {
 
     // Delay slightly to let the route fully load and render layout
     const t = setTimeout(updateRect, 500);
+    const interval = setInterval(updateRect, 300); // Continuous polling to dynamically snap and prevent loss on slow loads!
 
     window.addEventListener('resize', updateRect);
     window.addEventListener('scroll', updateRect, true);
 
     return () => {
       clearTimeout(t);
+      clearInterval(interval);
       window.removeEventListener('resize', updateRect);
       window.removeEventListener('scroll', updateRect, true);
     };
@@ -75,11 +77,7 @@ export const TourOverlay: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-[9990] overflow-hidden pointer-events-none select-none">
-      {/* Transparent Click-to-Dismiss Backdrop (no background coloring or blur) */}
-      <div 
-        className="absolute inset-0 bg-transparent pointer-events-auto"
-        onClick={endTour}
-      />
+      {/* No pointer blocker backdrop is rendered here so the user can interactively browse the dashboard, change pages and click items. Clicks are passed through successfully, maintaining tour persistence until the explicit close 'X' or last step button is pressed. */}
 
       {/* Spotlight Frame Outline (no dark shadow mask) */}
       {rect && (
