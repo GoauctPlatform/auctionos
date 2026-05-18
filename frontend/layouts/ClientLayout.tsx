@@ -8,10 +8,13 @@ import { CompanySelector } from '../components/CompanySelector';
 import { Dialog, Typography, TextField, Button, Box } from '@mui/material';
 import { Mail, ShieldAlert, Loader2, RefreshCw } from 'lucide-react';
 import api from '../services/api';
+import { useTour } from '../context/TourContext';
+import { TourOverlay } from '../components/TourOverlay';
 
 const ClientLayout: React.FC = () => {
   const { user, logout: authLogout } = useAuth();
   const navigate = useNavigate();
+  const { startTour, tourActive } = useTour();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -19,12 +22,19 @@ const ClientLayout: React.FC = () => {
   
 
   React.useEffect(() => {
-    // If verified user hasn't completed onboarding tour, force redirect to it
+    // If verified user hasn't completed onboarding tour, start the interactive tour!
     if (user && user.is_verified) {
       const isCompleted = localStorage.getItem(`goauct_onboarding_completed_${user.id}`) === 'true';
-      if (!isCompleted) {
-        navigate('/onboarding');
-        return;
+      if (!isCompleted && !tourActive) {
+        startTour('investor');
+      }
+
+      // If upgraded to paid and hasn't done live auctions calendar tour yet
+      if (user.subscription_tier !== 'trial') {
+        const liveTourCompleted = localStorage.getItem(`goauct_live_auctions_tour_completed_${user.id}`) === 'true';
+        if (!liveTourCompleted && !tourActive && window.location.hash.includes('/client/auctions')) {
+          startTour('live_auctions');
+        }
       }
     }
 
@@ -46,7 +56,7 @@ const ClientLayout: React.FC = () => {
         }
       }).catch(() => {});
     }
-  }, [user, navigate]);
+  }, [user, navigate, tourActive, startTour]);
 
   const userDisplayName = user?.email ? user.email.split('@')[0] : 'Client';
   const userInitial = userDisplayName.charAt(0).toUpperCase();
@@ -237,7 +247,7 @@ const ClientLayout: React.FC = () => {
               {/* Desktop Nav */}
               <div className="hidden md:ml-6 md:flex md:items-center md:gap-0.5">
                 {navItems.map((item) => (
-                  <div key={item.label} className="relative group">
+                  <div key={item.label} className="relative group" id={`tour-nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}>
                     {item.dropdown ? (
                       <>
                         <div className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 cursor-pointer transition-colors">
@@ -287,6 +297,7 @@ const ClientLayout: React.FC = () => {
                   {user?.subscription_tier === 'trial' && (
                     <Link
                       to="/client/billing"
+                      id="tour-upgrade-button"
                       className="ml-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border-2 border-primary text-primary text-sm font-bold hover:bg-primary hover:text-white transition-colors"
                     >
                       <span className="material-symbols-outlined text-[16px]">rocket_launch</span>
@@ -480,6 +491,9 @@ const ClientLayout: React.FC = () => {
 
       {/* Verification Overlay */}
       {user && !user.is_verified && <VerificationBlock />}
+
+      {/* Tour Guide Overlay */}
+      <TourOverlay />
 
       <Footer />
     </div>

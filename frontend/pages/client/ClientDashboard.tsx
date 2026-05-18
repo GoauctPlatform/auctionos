@@ -755,7 +755,7 @@ const ClientDashboard: React.FC = () => {
       )}
 
       {/* Welcome Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div id="tour-welcome-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
             Welcome back, <span className="text-primary">{userName}</span>
@@ -771,34 +771,44 @@ const ClientDashboard: React.FC = () => {
       </div>
 
       {/* System Announcements Rotator */}
-      {announcements.length > 0 && (() => {
-        const ann = announcements[annIndex];
-        const typeMap: Record<string, {bg: string; icon: string; color: string}> = {
-          info:    { bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',       icon: 'info',         color: 'text-blue-600 dark:text-blue-400' },
-          warning: { bg: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800',   icon: 'warning',      color: 'text-amber-600 dark:text-amber-400' },
-          success: { bg: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800', icon: 'check_circle', color: 'text-emerald-600 dark:text-emerald-400' },
-          update:  { bg: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800', icon: 'new_releases', color: 'text-purple-600 dark:text-purple-400' },
-        };
-        const cfg = typeMap[ann.type] || typeMap.info;
-        return (
-          <div className={`flex items-start gap-3 px-4 py-3 border rounded-xl transition-all duration-500 ${cfg.bg}`}>
-            <span className={`material-symbols-outlined text-[20px] mt-0.5 shrink-0 ${cfg.color}`}>{cfg.icon}</span>
-            <div className="flex-1 min-w-0">
-              <p className={`text-sm font-bold ${cfg.color}`}>{ann.title}</p>
-              <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2">{ann.message}</p>
-            </div>
-            {announcements.length > 1 && (
-              <div className="shrink-0 flex items-center gap-1.5 mt-1">
-                {announcements.map((_, i) => (
-                  <button key={i} onClick={() => setAnnIndex(i)}
-                    className={`h-1.5 rounded-full transition-all ${i === annIndex ? 'w-4 bg-current' : 'w-1.5 bg-slate-300 dark:bg-slate-600'}`}
-                  />
-                ))}
+      <div id="tour-announcements">
+        {announcements.length > 0 ? (() => {
+          const ann = announcements[annIndex];
+          const typeMap: Record<string, {bg: string; icon: string; color: string}> = {
+            info:    { bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',       icon: 'info',         color: 'text-blue-600 dark:text-blue-400' },
+            warning: { bg: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800',   icon: 'warning',      color: 'text-amber-600 dark:text-amber-400' },
+            success: { bg: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800', icon: 'check_circle', color: 'text-emerald-600 dark:text-emerald-400' },
+            update:  { bg: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800', icon: 'new_releases', color: 'text-purple-600 dark:text-purple-400' },
+          };
+          const cfg = typeMap[ann.type] || typeMap.info;
+          return (
+            <div className={`flex items-start gap-3 px-4 py-3 border rounded-xl transition-all duration-500 ${cfg.bg}`}>
+              <span className={`material-symbols-outlined text-[20px] mt-0.5 shrink-0 ${cfg.color}`}>{cfg.icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-bold ${cfg.color}`}>{ann.title}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2">{ann.message}</p>
               </div>
-            )}
+              {announcements.length > 1 && (
+                <div className="shrink-0 flex items-center gap-1.5 mt-1">
+                  {announcements.map((_, i) => (
+                    <button key={i} onClick={() => setAnnIndex(i)}
+                      className={`h-1.5 rounded-full transition-all ${i === annIndex ? 'w-4 bg-current' : 'w-1.5 bg-slate-300 dark:bg-slate-600'}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })() : (
+          <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
+            <span className="material-symbols-outlined text-blue-500 mt-0.5">campaign</span>
+            <div>
+              <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">System Announcements</p>
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-0.5">No active announcements at this time.</p>
+            </div>
           </div>
-        );
-      })()}
+        )}
+      </div>
 
       {/* Personalization Banner — shown when Home is filtered by My Lists */}
       {isPersonalized && myListsPreferences && (
@@ -847,7 +857,7 @@ const ClientDashboard: React.FC = () => {
       {/* Intelligence Layer Stack (Mapa acima de Recomendações) */}
       <div className="flex flex-col gap-8">
         {/* State Intelligence Heatmap */}
-        <div className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden flex flex-col" style={{ minHeight: '520px' }}>
+        <div id="tour-yield-heatmap" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden flex flex-col" style={{ minHeight: '520px' }}>
             <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 shrink-0">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                     <span className="material-symbols-outlined text-blue-500">public</span>
@@ -869,7 +879,7 @@ const ClientDashboard: React.FC = () => {
         </div>
 
         {/* Suggested Deals Panel */}
-        <div className="w-full">
+        <div id="tour-suggested-deals" className="w-full">
           <SuggestedDeals
             properties={filteredDeals.length > 0 ? filteredDeals : suggestedDeals}
             loading={loading || dealsLoading}

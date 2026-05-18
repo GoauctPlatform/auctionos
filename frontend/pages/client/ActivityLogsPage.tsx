@@ -194,7 +194,7 @@ const ActivityLogsPage: React.FC = () => {
                 </button>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden min-h-[400px]">
+            <div id="tour-team-logs" className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden min-h-[400px]">
                 {loading ? (
                     <div className="flex justify-center py-20"><CircularProgress /></div>
                 ) : tab === 'team' ? (

@@ -195,7 +195,7 @@ const BillingPage: React.FC = () => {
         </div>
 
         {/* Upgrade Cards */}
-        <div className="space-y-5">
+        <div id="tour-billing-plans" className="space-y-5">
 
           {/* Advanced Plan */}
           <div className={`relative p-6 rounded-2xl border-2 transition-all ${isAdvanced
@@ -330,7 +330,7 @@ const BillingPage: React.FC = () => {
       </div>
 
       {/* Cancel Section */}
-      <div className="mt-8 bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900/50 p-6">
+      <div id="tour-billing-invoice" className="mt-8 bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900/50 p-6">
         <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
           <span className="material-symbols-outlined text-red-500 text-[20px]">cancel</span>
           Manage Subscription

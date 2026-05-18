@@ -738,7 +738,7 @@ const ClientLists: React.FC = () => {
     return (
         <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-slate-50 dark:bg-slate-950 border-x border-slate-200 dark:border-slate-800">
             {/* Left Sidebar */}
-            <div className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-xl overflow-hidden shrink-0`}>
+            <div id="tour-lists-sidebar" className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-xl overflow-hidden shrink-0`}>
                 <div className="p-4 flex justify-between items-center w-64">
                     <Typography variant="h6" className="font-bold text-slate-800 dark:text-white tracking-tight">Folders</Typography>
                     <IconButton size="small" onClick={() => setOpenModal(true)} className="hover:bg-slate-200 dark:hover:bg-slate-800">
@@ -747,7 +747,7 @@ const ClientLists: React.FC = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-2 pb-4">
-                    <div className="space-y-6">
+                    <div id="tour-lists-folders" className="space-y-6">
                         {/* smart lists / favorites */}
                         {lists.some(l => l.is_favorite_list) && (
                             <div>
@@ -1084,7 +1084,7 @@ const ClientLists: React.FC = () => {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col bg-white dark:bg-slate-950">
+            <div id="tour-lists-grid" className="flex-1 flex flex-col bg-white dark:bg-slate-950">
                 {viewMode === 'my_tasks' ? (
                     <InvestorTasksDashboard onBack={() => setViewMode('folders')} />
                 ) : viewMode === 'my_exports' ? (
@@ -1511,6 +1511,7 @@ const ClientLists: React.FC = () => {
                                             {!isAgent && (
                                                 <div className="mt-3 flex gap-2 border-t border-slate-100 dark:border-slate-800 pt-3" onClick={e => e.stopPropagation()}>
                                                     <button
+                                                        id="tour-missions-new-visit"
                                                         onClick={() => {
                                                             if (isTrial) {
                                                                 alert('Due Diligence Tasks are a premium feature. Upgrade to Pro or Enterprise to track your workflow.');

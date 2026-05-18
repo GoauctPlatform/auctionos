@@ -377,7 +377,12 @@ async def login_oauth(request: Request, provider: str, role: str = "investor"):
     return await client.authorize_redirect(request, str(redirect_uri), **extra_params)
 
 @router.get("/callback/{provider}", name="oauth_callback", response_model=Token)
-async def auth_callback(request: Request, provider: str, db: Session = Depends(deps.get_db)):
+async def auth_callback(
+    request: Request,
+    provider: str,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(deps.get_db),
+):
     """
     OAuth Callback handler. Verifies token, fetches user info and grants access.
     """
@@ -436,7 +441,9 @@ async def auth_callback(request: Request, provider: str, db: Session = Depends(d
             full_name=user_info.get('name') or user_info.get('given_name') or None,
             is_active=True,
             is_superuser=False,
-            role=intended_role
+            role=intended_role,
+            is_verified=False,
+            verification_token=secrets.token_urlsafe(32),
         )
         db.add(user)
         db.commit()
@@ -451,6 +458,16 @@ async def auth_callback(request: Request, provider: str, db: Session = Depends(d
         )
         db.add(onboarding)
         db.commit()
+
+        # Trigger Verification Email in background
+        verification_link = f"{settings.FRONTEND_URL}/#/verify-email?token={user.verification_token}"
+        email_body = get_verification_email_template(user.full_name or "there", verification_link)
+        background_tasks.add_task(
+            send_email,
+            subject="Verify your GoAuct Account",
+            recipients=[user.email],
+            body=email_body
+        )
         
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(

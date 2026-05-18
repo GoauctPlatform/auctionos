@@ -1,3 +1,4 @@
+import secrets
 from typing import Any, List
 from fastapi import APIRouter, Body, Depends, HTTPException, status, BackgroundTasks
 from fastapi.encoders import jsonable_encoder
@@ -112,6 +113,8 @@ async def create_user(
         active_company_id=target_company,
         created_by_id=current_user.id,
         subscription_tier=inherited_tier or "trial",
+        is_verified=False,
+        verification_token=secrets.token_urlsafe(32),
     )
     db.add(user)
     db.flush()  # Flush to get user.id before linking companies
@@ -129,6 +132,14 @@ async def create_user(
             {"uid": user.id, "cid": cid, "role": target_role}
         )
 
+    # Initialize onboarding record
+    from app.models.user_onboarding import UserOnboarding
+    onboarding = UserOnboarding(
+        user_id=user.id,
+        has_completed_tour=False,
+        onboarding_step="profile_setup"
+    )
+    db.add(onboarding)
     db.commit()
     db.refresh(user)
 
@@ -145,6 +156,18 @@ async def create_user(
         subject=f"Invitation to join {company_name}",
         recipients=[user.email],
         body=email_body
+    )
+
+    # Trigger Verification Email in background
+    from app.core.email_templates import get_verification_email_template
+    from app.core.config import settings
+    verification_link = f"{settings.FRONTEND_URL}/#/verify-email?token={user.verification_token}"
+    email_body_verification = get_verification_email_template(user.full_name or "there", verification_link)
+    background_tasks.add_task(
+        send_email,
+        subject="Verify your GoAuct Account",
+        recipients=[user.email],
+        body=email_body_verification
     )
 
     log_activity(db, current_user.id, "create_user", "User", user.id, {"created_role": target_role})

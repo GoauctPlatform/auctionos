@@ -146,7 +146,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
     if (loading) return <div className="p-8 text-center">Loading your BPO Missions...</div>;
 
     return (
-        <div className="max-w-7xl mx-auto px-4 py-8 h-full overflow-y-auto w-full scrollbar-thin">
+        <div id="tour-missions-dashboard" className="max-w-7xl mx-auto px-4 py-8 h-full overflow-y-auto w-full scrollbar-thin">
             {showSuccessToast && (
                 <div className="mb-6 p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/50 rounded-2xl flex items-center justify-between shadow-lg backdrop-blur-xl animate-fade-in">
                     <div className="flex items-center gap-3 text-emerald-800 dark:text-emerald-300">
@@ -183,7 +183,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
                 {/* Task List */}
-                <div className="lg:col-span-1 space-y-4">
+                <div id="tour-missions-grid" className="lg:col-span-1 space-y-4">
                     {tasks.length === 0 ? (
                         <div className="glass-card p-6 text-center text-slate-500 rounded-xl">No missions created yet.</div>
                     ) : (

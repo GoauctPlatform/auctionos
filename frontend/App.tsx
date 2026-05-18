@@ -20,6 +20,8 @@ import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
 import DisclaimerPage from './pages/DisclaimerPage';
 import { TaxSystemsLandingPage } from './pages/connect/TaxSystemsLandingPage';
 import { TrainingLandingPage } from './pages/connect/TrainingLandingPage';
+import { TourProvider } from './context/TourContext';
+import { TourOverlay } from './components/TourOverlay';
 
 import { Settings } from './pages/Settings';
 import AdminAuctions from './pages/admin/AdminAuctions';
@@ -109,7 +111,8 @@ function App() {
   return (
     <AuthProvider>
       <HashRouter>
-        <Routes>
+        <TourProvider>
+          <Routes>
           {/* Public Routes */}
           <Route path="/" element={<RootRoute />} />
           <Route path="/login" element={<Login />} />
@@ -206,6 +209,8 @@ function App() {
             <Route path="withdraw" element={<AgentWithdraw />} />
           </Route>
         </Routes>
+        </TourProvider>
+        <TourOverlay />
       </HashRouter>
     </AuthProvider>
   );

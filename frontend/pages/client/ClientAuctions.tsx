@@ -67,11 +67,13 @@ const ClientAuctions: React.FC = () => {
                 </p>
             </div>
 
-            <AuctionFilters onFilterChange={setFilters} />
+            <div id="tour-auctions-filters">
+                <AuctionFilters onFilterChange={setFilters} />
+            </div>
             
             <RedemptionIntelligenceBoard />
             
-            <Box className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <Box id="tour-auctions-calendar" className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
                 <AuctionCalendar filters={filters} onDateTypeSelect={handleDateTypeSelect} />
             </Box>
 
