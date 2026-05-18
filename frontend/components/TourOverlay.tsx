@@ -75,13 +75,13 @@ export const TourOverlay: React.FC = () => {
 
   return (
     <div className="fixed inset-0 z-[9990] overflow-hidden pointer-events-none select-none">
-      {/* Blurred Backdrop Shadow */}
+      {/* Transparent Click-to-Dismiss Backdrop (no background coloring or blur) */}
       <div 
-        className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2.5px] pointer-events-auto transition-opacity duration-300"
+        className="absolute inset-0 bg-transparent pointer-events-auto"
         onClick={endTour}
       />
 
-      {/* Spotlight Frame */}
+      {/* Spotlight Frame Outline (no dark shadow mask) */}
       {rect && (
         <div 
           style={{
@@ -90,7 +90,6 @@ export const TourOverlay: React.FC = () => {
             left: rect.left - 6,
             width: rect.width + 12,
             height: rect.height + 12,
-            boxShadow: '0 0 0 9999px rgba(15, 23, 42, 0.65)',
             borderRadius: '16px',
             border: '2.5px solid #10b981', // Emerald outline for positive glow
             zIndex: 9995,
