@@ -209,8 +209,8 @@ function App() {
             <Route path="withdraw" element={<AgentWithdraw />} />
           </Route>
         </Routes>
-        </TourProvider>
         <TourOverlay />
+        </TourProvider>
       </HashRouter>
     </AuthProvider>
   );
