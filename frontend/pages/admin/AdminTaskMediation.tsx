@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../../services/httpClient';
 import { ShieldAlert, CheckCircle, XCircle, Clock, MapPin, Search } from 'lucide-react';
+import { PhotoViewerLightbox } from '../../components/property/PhotoViewerLightbox';
 
 export const AdminTaskMediation: React.FC = () => {
     const [tickets, setTickets] = useState<any[]>([]);
@@ -9,6 +10,8 @@ export const AdminTaskMediation: React.FC = () => {
     const [taskDetails, setTaskDetails] = useState<any>(null);
     const [resolving, setResolving] = useState(false);
     const [resolutionNotes, setResolutionNotes] = useState('');
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
 
     useEffect(() => {
         fetchDisputedTickets();
@@ -157,6 +160,98 @@ export const AdminTaskMediation: React.FC = () => {
                                         </div>
                                     </div>
 
+                                    {/* Agent's Notes */}
+                                    {taskDetails.agent_notes && (
+                                        <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Agent's Field Comments</p>
+                                            <p className="text-sm italic text-slate-700 dark:text-slate-350">"{taskDetails.agent_notes}"</p>
+                                        </div>
+                                    )}
+
+                                    {/* Evidence Photos */}
+                                    {taskDetails.submission_photos && taskDetails.submission_photos.length > 0 && (
+                                        <div>
+                                            <h4 className="font-bold mb-3 text-slate-800 dark:text-white flex items-center gap-2">
+                                                Uploaded Evidence Photos ({taskDetails.submission_photos.length})
+                                            </h4>
+                                            <div className="grid grid-cols-4 gap-3">
+                                                {taskDetails.submission_photos.map((photo: string, index: number) => {
+                                                    const fullUrl = photo.startsWith('http') ? photo : `${API_BASE_URL}${photo}`;
+                                                    return (
+                                                        <div 
+                                                            key={index} 
+                                                            onClick={() => {
+                                                                setLightboxIndex(index);
+                                                                setLightboxOpen(true);
+                                                            }}
+                                                            className="aspect-square rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer hover:opacity-90 transition-opacity relative group"
+                                                        >
+                                                            <img 
+                                                                src={fullUrl} 
+                                                                alt={`Evidence ${index + 1}`} 
+                                                                className="w-full h-full object-cover" 
+                                                                onError={(e) => {
+                                                                    e.currentTarget.src = "/placeholder-house.png";
+                                                                }}
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">
+                                                                View Fullscreen
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Checklist Responses */}
+                                    {taskDetails.checklist_responses && (
+                                        <div className="space-y-4">
+                                            <h4 className="font-bold mb-2 flex items-center gap-2 text-slate-800 dark:text-white flex items-center gap-2">
+                                                <CheckCircle size={16}/> Checklist Responses
+                                            </h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                {Object.entries(JSON.parse(taskDetails.checklist_responses)).map(([catId, items]: [string, any]) => (
+                                                    <div key={catId} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                                        <h5 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3 border-b border-slate-200 dark:border-slate-700 pb-2">
+                                                            {catId.replace(/_/g, ' ')}
+                                                        </h5>
+                                                        <div className="space-y-3">
+                                                            {Object.entries(items).map(([itemId, response]: [string, any]) => {
+                                                                const isObject = typeof response === 'object' && response !== null;
+                                                                const value = isObject ? response.value : response;
+                                                                const note = isObject ? response.note : '';
+                                                                
+                                                                return (
+                                                                    <div key={itemId} className="flex flex-col gap-1.5">
+                                                                        <div className="flex items-start justify-between gap-2">
+                                                                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-tight">
+                                                                                {itemId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                                                            </span>
+                                                                            {value === true ? (
+                                                                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded text-xs font-bold shrink-0 shadow-sm">Yes</span>
+                                                                            ) : value === false ? (
+                                                                                <span className="px-2 py-0.5 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 rounded text-xs font-bold shrink-0 shadow-sm">No</span>
+                                                                            ) : (
+                                                                                <span className="px-2 py-0.5 bg-slate-200 text-slate-500 dark:bg-slate-700 rounded text-xs font-bold shrink-0">N/A</span>
+                                                                            )}
+                                                                        </div>
+                                                                        {note && (
+                                                                            <p className="text-xs text-slate-600 dark:text-slate-400 italic bg-white dark:bg-slate-900/60 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 mt-1">
+                                                                                <span className="font-bold block mb-0.5 text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[9px]">Comments</span>
+                                                                                {note}
+                                                                            </p>
+                                                                        )}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Admin Decision Form */}
                                     <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
                                         <h3 className="font-black text-lg mb-4">Executive Decision</h3>
@@ -197,6 +292,16 @@ export const AdminTaskMediation: React.FC = () => {
                     )}
                 </div>
             </div>
+
+            {/* Lightbox modal */}
+            {lightboxOpen && taskDetails?.submission_photos && (
+                <PhotoViewerLightbox
+                    isOpen={lightboxOpen}
+                    onClose={() => setLightboxOpen(false)}
+                    photos={taskDetails.submission_photos}
+                    initialIndex={lightboxIndex}
+                />
+            )}
         </div>
     );
 };

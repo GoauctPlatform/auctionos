@@ -424,7 +424,7 @@ def get_task_for_mediation(
 
         # Get latest submission details
         sub = db.execute(text("""
-            SELECT s.geo_validated, s.distance_meters, s.file_path
+            SELECT s.geo_validated, s.distance_meters, s.file_path, s.checklist_responses, s.notes AS agent_notes
             FROM task_submissions s
             WHERE s.task_id = :task_id
             ORDER BY s.submitted_at DESC
@@ -435,11 +435,15 @@ def get_task_for_mediation(
         if sub:
             task_dict["geo_validated"] = sub.geo_validated
             task_dict["distance_meters"] = sub.distance_meters
+            task_dict["checklist_responses"] = sub.checklist_responses
+            task_dict["agent_notes"] = sub.agent_notes
             photos = sub.file_path.split(",") if sub.file_path else []
             task_dict["submission_photos"] = photos
         else:
             task_dict["geo_validated"] = False
             task_dict["distance_meters"] = 0
+            task_dict["checklist_responses"] = None
+            task_dict["agent_notes"] = None
             task_dict["submission_photos"] = []
 
         return task_dict
