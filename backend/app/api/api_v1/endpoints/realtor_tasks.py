@@ -68,7 +68,7 @@ def get_available_tasks(
         SELECT
             t.id, t.title, t.description, t.task_type, t.status,
             t.address, t.latitude, t.longitude, t.geo_radius_meters,
-            t.min_photos, t.max_photos, CAST(t.reward_points * 0.7 AS INT) AS reward_points,
+            t.min_photos, t.max_photos, CAST(t.reward_points * 0.9 AS INT) AS reward_points,
             t.created_at, t.checklist_requirements, t.gps_photo_reference,
             p.parcel_id, p.state, p.county, p.property_type,
             u.full_name AS investor_name
@@ -101,7 +101,7 @@ def get_my_tasks(
         SELECT
             t.id, t.title, t.description, t.task_type, t.status,
             t.address, t.latitude, t.longitude, t.geo_radius_meters,
-            t.min_photos, t.max_photos, CAST(t.reward_points * 0.7 AS INT) AS reward_points,
+            t.min_photos, t.max_photos, CAST(t.reward_points * 0.9 AS INT) AS reward_points,
             t.created_at, t.deadline, t.claimed_at, t.submitted_at, t.approved_at,
             t.checklist_requirements, t.gps_photo_reference,
             p.parcel_id, p.state, p.county,
@@ -328,7 +328,7 @@ def _approve_task(task_id: int, reward_points: int, realtor_user_id: int, db: Se
         WHERE id = :id
     """), {"id": task_id})
 
-    realtor_points = int(reward_points * 0.7)
+    realtor_points = int(reward_points * 0.9)
     usd_value = realtor_points / 100.0
     db.execute(text("""
         INSERT INTO realtor_commissions
@@ -340,7 +340,7 @@ def _approve_task(task_id: int, reward_points: int, realtor_user_id: int, db: Se
         "task_id": task_id,
         "points": realtor_points,
         "usd": usd_value,
-        "desc": f"Task #{task_id} approved — photo verification (70% cut of {reward_points} pts)",
+        "desc": f"Task #{task_id} approved — photo verification (90% cut of {reward_points} pts)",
     })
 
 

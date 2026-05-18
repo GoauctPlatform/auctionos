@@ -106,7 +106,7 @@ def get_available_geo_tasks(
         SELECT
             t.id, t.title, t.description, t.task_type, t.status,
             t.address, t.latitude, t.longitude, t.geo_radius_meters,
-            t.min_photos, t.max_photos, CAST(t.reward_points * 0.7 AS INT) AS reward_points,
+            t.min_photos, t.max_photos, CAST(t.reward_points * 0.9 AS INT) AS reward_points,
             t.created_at,
             p.parcel_id, p.state, p.county, p.property_type,
             u.full_name AS investor_name
