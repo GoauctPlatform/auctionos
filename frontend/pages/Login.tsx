@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import { API_BASE_URL } from '../services/httpClient';
+import { useAuth } from '../context/AuthContext';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
+  const { login: authLogin } = useAuth();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -32,9 +34,8 @@ export const Login: React.FC = () => {
 
       setIsLoading(true);
       try {
-        localStorage.setItem('token', token);
         const user = await AuthService.getMe();
-        localStorage.setItem('user', JSON.stringify(user));
+        authLogin(token, user);
         
         if (isNew === 'true') {
           navigate('/onboarding');
@@ -75,10 +76,8 @@ export const Login: React.FC = () => {
 
     try {
       const { access_token } = await AuthService.login(email, password);
-      localStorage.setItem('token', access_token);
-
       const user = await AuthService.getMe();
-      localStorage.setItem('user', JSON.stringify(user));
+      authLogin(access_token, user);
       routeAfterLogin(user);
     } catch (err: any) {
       setError(err.message || 'Invalid credentials. Please check your email and password.');

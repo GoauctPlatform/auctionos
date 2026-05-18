@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { CheckCircle, AlertTriangle, Mail, ArrowRight, Loader2 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const VerifyEmail: React.FC = () => {
+    const { login: authLogin } = useAuth();
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [message, setMessage] = useState('');
     const location = useLocation();
@@ -27,10 +29,11 @@ const VerifyEmail: React.FC = () => {
                 
                 // Optional: Update local user state if logged in
                 const userStr = localStorage.getItem('user');
-                if (userStr) {
+                const storedToken = localStorage.getItem('token');
+                if (userStr && storedToken) {
                     const user = JSON.parse(userStr);
                     user.is_verified = true;
-                    localStorage.setItem('user', JSON.stringify(user));
+                    authLogin(storedToken, user);
                 }
 
                 // Redirect after 3 seconds

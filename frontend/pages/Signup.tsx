@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import { API_URL } from '../services/httpClient';
-
-
+import { useAuth } from '../context/AuthContext';
 
 export const Signup: React.FC = () => {
     const navigate = useNavigate();
+    const { login: authLogin } = useAuth();
     const [searchParams] = useSearchParams();
     const defaultRole = (searchParams.get('role') === 'realtor' ? 'realtor' : searchParams.get('role') === 'agent' ? 'agent_due_diligence' : 'client');
 
@@ -53,10 +53,8 @@ export const Signup: React.FC = () => {
 
             // Auto-login after registration
             const { access_token } = await AuthService.login(formData.email, formData.password);
-            localStorage.setItem('token', access_token);
-
             const user = await AuthService.getMe();
-            localStorage.setItem('user', JSON.stringify(user));
+            authLogin(access_token, user);
 
             // Redirect all new users to the onboarding flow
             navigate('/onboarding');
