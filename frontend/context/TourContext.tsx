@@ -13,11 +13,11 @@ interface TourContextType {
   tourActive: boolean;
   activeStep: number;
   steps: TourStep[];
-  startTour: (type: 'investor' | 'live_auctions' | 'property_details') => void;
+  startTour: (type: 'investor' | 'live_auctions' | 'property_details' | 'bpo_missions') => void;
   nextStep: () => void;
   prevStep: () => void;
   endTour: () => void;
-  tourType: 'investor' | 'live_auctions' | 'property_details' | null;
+  tourType: 'investor' | 'live_auctions' | 'property_details' | 'bpo_missions' | null;
 }
 
 const TourContext = createContext<TourContextType | undefined>(undefined);
@@ -169,10 +169,43 @@ export const LIVE_AUCTIONS_TOUR_STEPS: TourStep[] = [
   }
 ];
 
+export const BPO_MISSIONS_TOUR_STEPS: TourStep[] = [
+  {
+    target: '#tour-missions-dashboard',
+    title: 'Welcome to Field Intelligence! 🗺️',
+    content: 'This is your hub for physical property intelligence. When you cannot travel to a property yourself, local agents on the ground act as your eyes and ears.',
+    path: 'any'
+  },
+  {
+    target: '#tour-missions-grid',
+    title: 'Monitor Progress 📈',
+    content: 'Every mission you request appears here. You can track status changes from "Open" to "Review Ready" in real-time as agents accept and complete your tasks.',
+    path: 'any'
+  },
+  {
+    target: '#tour-missions-verification-check',
+    title: 'Telemetry Security 🛰️',
+    content: 'Our system verifies that the agent was physically at the property by matching their photo upload metadata against actual county parcel mapping coordinates.',
+    path: 'any'
+  },
+  {
+    target: '#tour-missions-checklist-review',
+    title: 'Comprehensive Property Grades 📝',
+    content: 'Read detailed item-by-item structural checkups, view photos in high-resolution, and either release payment or request changes based on your findings.',
+    path: 'any'
+  },
+  {
+    target: 'none',
+    title: 'All Set! 🎉',
+    content: 'You are now ready to orchestrate local field runners and perform deep physical due diligence on any distress asset.',
+    path: 'any'
+  }
+];
+
 export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [tourActive, setTourActive] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [tourType, setTourType] = useState<'investor' | 'live_auctions' | 'property_details' | null>(null);
+  const [tourType, setTourType] = useState<'investor' | 'live_auctions' | 'property_details' | 'bpo_missions' | null>(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -180,9 +213,11 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ? LIVE_AUCTIONS_TOUR_STEPS 
     : tourType === 'property_details' 
       ? PROPERTY_DETAILS_TOUR_STEPS 
-      : INVESTOR_TOUR_STEPS;
+      : tourType === 'bpo_missions'
+        ? BPO_MISSIONS_TOUR_STEPS
+        : INVESTOR_TOUR_STEPS;
 
-  const startTour = (type: 'investor' | 'live_auctions' | 'property_details') => {
+  const startTour = (type: 'investor' | 'live_auctions' | 'property_details' | 'bpo_missions') => {
     setTourType(type);
     setActiveStep(0);
     setTourActive(true);
@@ -192,7 +227,9 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ? LIVE_AUCTIONS_TOUR_STEPS[0] 
       : type === 'property_details' 
         ? PROPERTY_DETAILS_TOUR_STEPS[0] 
-        : INVESTOR_TOUR_STEPS[0];
+        : type === 'bpo_missions'
+          ? BPO_MISSIONS_TOUR_STEPS[0]
+          : INVESTOR_TOUR_STEPS[0];
     if (startStep.path !== 'any' && location.pathname !== startStep.path) {
       navigate(startStep.path);
     }
@@ -206,6 +243,8 @@ export const TourProvider: React.FC<{ children: React.ReactNode }> = ({ children
         localStorage.setItem(`goauct_live_auctions_tour_completed_${user.id}`, 'true');
       } else if (tourType === 'property_details') {
         localStorage.setItem(`goauct_property_details_tour_completed_${user.id}`, 'true');
+      } else if (tourType === 'bpo_missions') {
+        localStorage.setItem(`goauct_bpo_missions_tour_completed_${user.id}`, 'true');
       } else {
         localStorage.setItem(`goauct_onboarding_completed_${user.id}`, 'true');
       }

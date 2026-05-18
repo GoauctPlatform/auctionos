@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { CheckCircle, XCircle, Clock, FileText, AlertTriangle, MapPin } from 'lucide-react';
 import { API_BASE_URL } from '../../services/httpClient';
 import { PhotoViewerLightbox } from '../../components/PhotoViewerLightbox';
+import { useTour } from '../../context/TourContext';
 
 interface InvestorTasksDashboardProps {
     onBack?: () => void;
@@ -10,6 +11,7 @@ interface InvestorTasksDashboardProps {
 
 export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ onBack }) => {
     const navigate = useNavigate();
+    const { startTour } = useTour();
     const [tasks, setTasks] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -178,6 +180,13 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white">My Field Missions</h1>
                     <p className="text-slate-500">Track and review BPO Due Diligence requests.</p>
                 </div>
+                <button
+                    onClick={() => startTour('bpo_missions')}
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse"
+                >
+                    <span className="material-symbols-outlined text-[16px]">menu_book</span>
+                    Page Tour
+                </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -223,7 +232,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                 <div className="space-y-8">
                                     {submissions.map((sub, idx) => (
                                         <div key={idx} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
-                                            <div className="bg-slate-50 dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-700 flex flex-wrap gap-3 justify-between items-center">
+                                            <div id="tour-missions-verification-check" className="bg-slate-50 dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-700 flex flex-wrap gap-3 justify-between items-center">
                                                 <div className="flex items-center gap-3">
                                                     <h3 className="font-bold text-slate-800 dark:text-white">Submission by {sub.realtor_name}</h3>
                                                     {sub.review_status === 'pending' && (
@@ -289,7 +298,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
 
                                                 {/* Checklist */}
                                                 {sub.checklist_responses && (
-                                                    <div className="space-y-4">
+                                                    <div id="tour-missions-checklist-review" className="space-y-4">
                                                         <h4 className="font-bold mb-2 flex items-center gap-2 text-slate-800 dark:text-white"><CheckCircle size={16}/> Checklist Responses</h4>
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             {Object.entries(JSON.parse(sub.checklist_responses)).map(([catId, items]: [string, any]) => (
