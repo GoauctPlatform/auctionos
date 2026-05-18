@@ -266,6 +266,18 @@ export const Onboarding: React.FC = () => {
                                     color: "text-cyan-500 bg-cyan-50 dark:bg-cyan-950/30"
                                 },
                                 {
+                                    title: "Auto-Enrichment & Custom Views",
+                                    description: "Auto-enrich missing details instantly via ATTOM APIs. Override physical attributes and tax assessments to personalize property folders for your team.",
+                                    icon: "auto_fix_high",
+                                    color: "text-teal-500 bg-teal-50 dark:bg-teal-950/30"
+                                },
+                                {
+                                    title: "BPO Secondary Media Marketplace",
+                                    description: "Buy visual inspection logs completed by other agents. Instantly unlock S3 high-res photo packs, GPS validation markers, and hazard checklists.",
+                                    icon: "shopping_bag",
+                                    color: "text-indigo-500 bg-indigo-50 dark:bg-indigo-950/30"
+                                },
+                                {
                                     title: "Watchlist Folder Silos",
                                     description: "Organize distress assets by US state and county automatically. Access official municipal registers, write private notes, and view state silhouettes.",
                                     icon: "folder_open",
