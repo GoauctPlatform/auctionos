@@ -550,8 +550,46 @@ def resolve_support_ticket(
                     LIMIT 1
                 )
             """), {"notes": payload.notes, "task_id": task_id})
+
+            # 3. Process Stripe Refund
+            from app.core.config import settings
+            if settings.STRIPE_SECRET_KEY and task.stripe_charge_id:
+                try:
+                    from app.api.api_v1.endpoints.billing import get_stripe
+                    stripe = get_stripe()
+                    # Retrieve Checkout Session to get Payment Intent ID
+                    session = stripe.checkout.Session.retrieve(task.stripe_charge_id)
+                    if session.payment_intent:
+                        stripe.Refund.create(
+                            payment_intent=session.payment_intent,
+                            reason="requested_by_customer"
+                        )
+                except Exception as stripe_err:
+                    print(f"Stripe Refund failed: {stripe_err}")
         else:
             raise HTTPException(status_code=400, detail="Invalid decision type")
+
+        # 4. Insert Audit History into activity_logs
+        import json
+        metadata_log = {
+            "ticket_id": ticket_id,
+            "task_id": task_id,
+            "decision": payload.decision,
+            "admin_notes": payload.notes,
+            "investor_id": task.investor_user_id,
+            "realtor_id": task.realtor_user_id,
+            "amount_points": task.reward_points
+        }
+        db.execute(text("""
+            INSERT INTO activity_logs (user_id, action, entity_type, entity_id, details, metadata_json, created_at)
+            VALUES (:uid, :act, 'support_ticket', :ticket_id, :det, :meta, NOW())
+        """), {
+            "uid": current_user.id,
+            "act": "task_mediation_resolution",
+            "ticket_id": str(ticket_id),
+            "det": f"Admin resolved mediation ticket #{ticket_id} for task #{task_id}. Decision: {payload.decision}.",
+            "meta": json.dumps(metadata_log)
+        })
 
         # Update Support Ticket status
         db.execute(text("""
