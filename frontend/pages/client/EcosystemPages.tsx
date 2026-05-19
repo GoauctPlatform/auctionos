@@ -21,12 +21,12 @@ const PlaceholderPage: React.FC<{
 );
 
 const VIDEOS = [
-  { title: "Introduction to AuctionOS", length: "05:30", id: "intro_sys", desc: "Welcome to the central intelligence platform." },
+  { title: "Introduction to GoAuct", length: "05:30", id: "intro_sys", desc: "Welcome to the central intelligence platform." },
   { title: "Live Auction & Properties", length: "14:20", id: "live_auction", desc: "How to consult an auction and its properties in real time." },
   { title: "Property Search & Details", length: "10:15", id: "prop_search", desc: "How to search precisely and access full property documents/comps." },
   { title: "My Lists & Organization", length: "08:45", id: "my_lists", desc: "How to access, create, organize, and preview your pipelines." },
   { title: "Due Diligence Consulting", length: "18:00", id: "dd_consulting", desc: "How our partners assist you in closing the deal safely." },
-  { title: "Meet the Team", length: "04:10", id: "meet_team", desc: "Behind the scenes at AuctionOS." }
+  { title: "Meet the Team", length: "04:10", id: "meet_team", desc: "Behind the scenes at GoAuct." }
 ];
 
 export const TrainingPage: React.FC = () => {
@@ -232,7 +232,7 @@ const NEWS_UPDATES = [
         tag: "Market Update",
         title: "Florida Tax Deed Surplus Laws Under Review",
         content: "Governor's office is currently reviewing a new bill that could significantly accelerate the surplus claims process after tax deed auctions. We urge investors looking at Orange and Miami-Dade counties to monitor the timeline. We will integrate any changes into our Yield estimator immediately.",
-        author: "AuctionOS Admin"
+        author: "GoAuct Admin"
     },
     {
         id: 2,
@@ -247,7 +247,7 @@ const NEWS_UPDATES = [
         date: "April 02, 2026",
         tag: "Strategy",
         title: "Navigating Indiana Commissioner Sales",
-        content: "A major influx of commissioner sale properties is expected next month in Marion County. Unlike traditional tax sales, these properties are cleared of all taxes and sold free and clear at highly discounted minimum bids. Ensure your search filters in AuctionOS are set to capture 'Commissioner Sale' tags.",
+        content: "A major influx of commissioner sale properties is expected next month in Marion County. Unlike traditional tax sales, these properties are cleared of all taxes and sold free and clear at highly discounted minimum bids. Ensure your search filters in GoAuct are set to capture 'Commissioner Sale' tags.",
         author: "Investment Strategy Team"
     }
 ];
@@ -260,7 +260,7 @@ export const CommunityPage: React.FC = () => (
             </div>
             <div>
                 <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Community & Updates</h1>
-                <p className="text-sm text-slate-500 font-medium">Real-estate news, system updates, and strategies directly from the AuctionOS team.</p>
+                <p className="text-sm text-slate-500 font-medium">Real-estate news, system updates, and strategies directly from the GoAuct team.</p>
             </div>
         </div>
 
@@ -292,7 +292,7 @@ const GROUPS_TESTIMONIALS = [
         name: "Marcus T.",
         role: "Institutional Fund Manager",
         social: "@marcus_invests",
-        content: "AuctionOS completely changed our scaling model. We were manually tracking 12 counties in Florida and taking 3 days to calculate yields. Now we track 80 counties instantly."
+        content: "GoAuct completely changed our scaling model. We were manually tracking 12 counties in Florida and taking 3 days to calculate yields. Now we track 80 counties instantly."
     },
     {
         name: "Sarah K.",
@@ -315,7 +315,7 @@ export const GroupsPage: React.FC = () => (
             <div>
                 <h1 className="text-3xl sm:text-4xl font-black mb-3 text-white tracking-tight">Join the Inner Circle</h1>
                 <p className="text-blue-200 max-w-lg mb-6 leading-relaxed">
-                    Connect with over 2,500 active distress property investors. Get access to exclusive mastermind groups, daily deal breakdowns, and direct support from the AuctionOS team.
+                    Connect with over 2,500 active distress property investors. Get access to exclusive mastermind groups, daily deal breakdowns, and direct support from the GoAuct team.
                 </p>
                 <div className="flex gap-4">
                     <a href="#" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-4 py-2 rounded-xl text-sm font-bold backdrop-blur-sm border border-white/10">
@@ -367,7 +367,7 @@ export const GroupsPage: React.FC = () => (
         {/* Pro Mastermind Teaser */}
         <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center max-w-2xl mx-auto">
             <span className="material-symbols-outlined text-4xl text-amber-500 mb-3 block">workspace_premium</span>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">AuctionOS Platinum Mastermind</h3>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">GoAuct Platinum Mastermind</h3>
             <p className="text-slate-500 text-sm mb-6">Applications for our Q4 Mastermind cohort will open soon. This is reserved for enterprise and high-volume independent investors.</p>
             <button disabled className="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed">
                 Applications Closed
