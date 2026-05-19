@@ -31,7 +31,8 @@ async def reconcile_statuses():
                 FROM property_auction_history pah
                 WHERE p.property_id = pah.property_id
                   AND pah.auction_date < :current_date
-                  AND p.availability_status = 'available';
+                  AND p.availability_status = 'available'
+                  AND COALESCE(p.property_category, '') != 'tax_lien';
             """)
             
             result = conn.execute(query, {"current_date": current_date})
@@ -46,6 +47,7 @@ async def reconcile_statuses():
                     JOIN property_auction_history pah ON p.property_id = pah.property_id
                     WHERE pah.auction_date < :current_date
                       AND p.availability_status = 'unavailable'
+                      AND COALESCE(p.property_category, '') != 'tax_lien'
                       AND NOT EXISTS (
                           SELECT 1 FROM property_availability_history pah2 
                           WHERE pah2.property_id = p.property_id 
