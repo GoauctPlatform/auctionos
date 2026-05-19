@@ -6,6 +6,7 @@ import { AuctionEvent, Property } from '../../types';
 import { AuthService } from '../../services/auth.service';
 import { useCompany } from '../../context/CompanyContext';
 import { recommendProperties, rankAuctions } from '../../intelligence/rankingEngine';
+import { useTour } from '../../context/TourContext';
 import { calculateDealScore } from '../../intelligence/scoringEngine';
 import { getTopScoredProperties, getStateStats, StateStat } from '../../services/scores.service';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
@@ -527,6 +528,7 @@ const ClientDashboard: React.FC = () => {
   const [showWelcomeModal, setShowWelcomeModal] = useState(searchParams.get('welcome') === 'true');
   const user = AuthService.getCurrentUser();
   const { activeCompany } = useCompany();
+  const { startTour } = useTour();
   const formatName = (str?: string) => {
     if (!str) return 'There';
     const base = str.split('@')[0];
@@ -764,9 +766,18 @@ const ClientDashboard: React.FC = () => {
             Here's your investment intelligence dashboard.
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-          <span className="material-symbols-outlined text-[16px]">schedule</span>
-          {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => startTour('investor')}
+            className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse"
+          >
+            <span className="material-symbols-outlined text-[16px]">menu_book</span>
+            Page Tour
+          </button>
+          <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+            <span className="material-symbols-outlined text-[16px]">schedule</span>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+          </div>
         </div>
       </div>
 

@@ -7,6 +7,7 @@ import { RedemptionIntelligenceBoard } from '../../components/property/Redemptio
 
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useTour } from '../../context/TourContext';
 
 const ClientAuctions: React.FC = () => {
     const [filters, setFilters] = useState<AuctionFilterParams>({});
@@ -14,6 +15,7 @@ const ClientAuctions: React.FC = () => {
 
     const { user } = useAuth();
     const navigate = useNavigate();
+    const { startTour } = useTour();
 
     // Trial Plan access barrier
     React.useEffect(() => {
@@ -56,9 +58,18 @@ const ClientAuctions: React.FC = () => {
 
     return (
         <div className="p-6 w-full space-y-6 px-4 sm:px-8 lg:px-12">
-            <Typography variant="h4" className="font-bold text-slate-800 dark:text-white">
-                Live Auctions
-            </Typography>
+            <div className="flex justify-between items-center">
+                <Typography variant="h4" className="font-bold text-slate-800 dark:text-white">
+                    Live Auctions
+                </Typography>
+                <button
+                    onClick={() => startTour('live_auctions')}
+                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse"
+                >
+                    <span className="material-symbols-outlined text-[16px]">menu_book</span>
+                    Page Tour
+                </button>
+            </div>
             
             <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex items-center gap-3">
                 <span className="material-symbols-outlined text-blue-500">info</span>
