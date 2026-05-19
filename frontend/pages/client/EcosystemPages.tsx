@@ -145,7 +145,7 @@ export const TrainingPage: React.FC = () => {
 const TAX_CHAPTERS = [
   {
     title: "1. The Property Tax Engine",
-    content: "Property taxes (equivalent to local IPTU) are decentralized and set at city/county level, financing vital public services like schools, infrastructure, and safety. The annual tax is calculated by multiplying the Assessed Value by the local Mill Rate (ex: exceeding 2% in NJ vs minimal rates in Alabama or Nevada). Non-payment triggers municipal debt that county authorities must recover rapidly through tax lien certificates, redeemable deeds, or direct tax deed sales. GoAuct assists you in filtering this property universe using FEMA flood zone reports, inventory logs, and GIS mapping."
+    content: "Property taxes are decentralized and set at city/county level, financing vital public services like schools, infrastructure, and safety. The annual tax is calculated by multiplying the Assessed Value by the local Mill Rate (ex: exceeding 2% in NJ vs minimal rates in Alabama or Nevada). Non-payment triggers municipal debt that county authorities must recover rapidly through tax lien certificates, redeemable deeds, or direct tax deed sales. GoAuct assists you in filtering this property universe using FEMA flood zone reports, inventory logs, and GIS mapping."
   },
   {
     title: "2. Mortgage Foreclosure vs Tax Sales",
@@ -165,15 +165,15 @@ const TAX_CHAPTERS = [
   },
   {
     title: "6. Federal & Commercial Property APIs",
-    content: "Integrating leilões data is a massive technical advantage. For federal properties, the GSA Auctions API provides public JSON/XML feeds, supported by Realestatesales.gov and the Federal Real Property Public Data Set. For commercial, pre-foreclosure, and local county tax sales, industry-grade APIs like BatchData (24-48h Notice of Trustee Sale updates), TitleFlex (lien data), or Apify scrapers offer direct registry updates. GoAuct leverages these robust data streams to provide a definitive technical moat."
+    content: "Integrating auction data is a massive technical advantage. For federal properties, the GSA Auctions API provides public JSON/XML feeds, supported by Realestatesales.gov and the Federal Real Property Public Data Set. For commercial, pre-foreclosure, and local county tax sales, industry-grade APIs like BatchData (24-48h Notice of Trustee Sale updates), TitleFlex (lien data), or Apify scrapers offer direct registry updates. GoAuct leverages these robust data streams to provide a definitive technical moat."
   },
   {
     title: "7. Title Cleansing (Quiet Title vs Quit Claim)",
-    content: "Because tax deeds do not come with title insurance guarantees ('warranty deeds'), the title is considered 'clouded'. Investors must file a Quiet Title Action in court to clear claims, which takes months. A faster, highly strategic shortcut is using a Quit Claim Deed: locate the previous owners or herdeiros and offer a small fee ($500-$1000) for them to sign a document renouncing all property rights, clearing title clouds instantly."
+    content: "Because tax deeds do not come with title insurance guarantees ('warranty deeds'), the title is considered 'clouded'. Investors must file a Quiet Title Action in court to clear claims, which takes months. A faster, highly strategic shortcut is using a Quit Claim Deed: locate the previous owners or heirs and offer a small fee ($500-$1000) for them to sign a document renouncing all property rights, clearing title clouds instantly."
   },
   {
     title: "8. Marketing & Direct Sourcing Matrix",
-    content: "To acquire properties pre-auction, professional investors utilize a triple marketing approach: 1. Hand-written 'Yellow Letters' sent via Direct Mail to owners in pre-foreclosure, showing empathy. 2. Skip Tracing software to retrieve phone contacts of vacant home herdeiros. 3. Presencial 'Door Knocking' visits to offer immediate cash exits before leilão foreclosure occurs."
+    content: "To acquire properties pre-auction, professional investors utilize a triple marketing approach: 1. Hand-written 'Yellow Letters' sent via Direct Mail to owners in pre-foreclosure, showing empathy. 2. Skip Tracing software to retrieve phone contacts of vacant home heirs. 3. In-person 'Door Knocking' visits to offer immediate cash exits before auction foreclosure occurs."
   },
   {
     title: "9. LLC Structuring & Contract Defensibility",
