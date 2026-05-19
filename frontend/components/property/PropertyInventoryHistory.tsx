@@ -13,16 +13,20 @@ export const PropertyInventoryHistory: React.FC<PropertyInventoryHistoryProps> =
     const isSold = status.toLowerCase().includes('sold');
     const isPurchased = status.toLowerCase().includes('purchased');
     
+    const d = property.details || (property as any);
+    const lastSaleDate = property.last_sale_date || d.last_sale_date;
+    const inventoryDate = property.state_inventory_entered_date || d.state_inventory_entered_date;
+
     const events = [
         {
-            date: property.state_inventory_entered_date ? new Date(property.state_inventory_entered_date).toISOString().split('T')[0] : 'Historical',
+            date: inventoryDate ? new Date(inventoryDate).toISOString().split('T')[0] : 'Historical',
             label: 'Initial Listing',
             desc: 'Property ingested into GoAuct.',
             status: 'completed',
             icon: 'inventory_2'
         },
         {
-            date: property.last_sale_date ? new Date(property.last_sale_date).toISOString().split('T')[0] : 'Data Analyzed',
+            date: lastSaleDate ? new Date(lastSaleDate).toISOString().split('T')[0] : 'Data Analyzed',
             label: 'Recorded Sale / Transfer',
             desc: 'Last recorded public transfer event.',
             status: 'completed',

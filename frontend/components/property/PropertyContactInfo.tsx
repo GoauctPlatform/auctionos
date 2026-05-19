@@ -17,7 +17,7 @@ export const PropertyContactInfo: React.FC<PropertyContactInfoProps> = ({ proper
         },
         {
             label: 'Owner Address',
-            value: detail.owner_address || 'Unavailable',
+            value: detail.owner_address || property.owner_address || 'Unavailable',
             subtitle: 'Last Reported Mailing Address',
             icon: 'home'
         },
