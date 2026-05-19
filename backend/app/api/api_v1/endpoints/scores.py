@@ -135,9 +135,11 @@ def get_top_scores(
     Strictly filters for 'available' status to ensure suggested 
     deals are actionable for the user.
     """
-    # Prefer status stored in property_scores, but fallback to property_details if null
-    # This aligns the dashboard with the user requirement to only show available deals.
-    where_clauses = ["1=1", "LOWER(TRIM(COALESCE(s.status, p.availability_status))) = 'available'"]
+    where_clauses = [
+        "1=1",
+        "LOWER(TRIM(COALESCE(s.status, p.availability_status))) = 'available'",
+        "p.created_by_user_id IS NULL"  # Exclude user-created custom properties
+    ]
     params: dict = {"limit": limit}
 
     if min_score is not None:
@@ -246,7 +248,7 @@ def get_state_stats(
     """
     query = text("""
         SELECT 
-            p.state as state_code,
+            UPPER(TRIM(p.state)) as state_code,
             COUNT(*) as volume,
             AVG(COALESCE(s.deal_score, 0)) as avg_score,
             JSONB_BUILD_OBJECT(
@@ -260,10 +262,12 @@ def get_state_stats(
         LEFT JOIN property_scores s ON p.parcel_id = s.parcel_id
         WHERE LOWER(TRIM(p.availability_status)) = 'available'
           AND p.state IS NOT NULL
+          AND NULLIF(TRIM(p.state), '') IS NOT NULL
+          AND p.created_by_user_id IS NULL -- Exclude user-created custom properties
         GROUP BY 1
         ORDER BY volume DESC
     """)
-
+    
     results = db.execute(query).fetchall()
 
     return [
