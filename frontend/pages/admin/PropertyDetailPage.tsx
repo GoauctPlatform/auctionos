@@ -483,7 +483,14 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         </h3>
                         <p className="text-sm text-indigo-200 mb-4">Request a local field agent to perform a property condition check and take custom photos.</p>
                         <button
-                            onClick={() => setIsBpoOpen(true)}
+                            onClick={() => {
+                                const currentUser = AuthService.getCurrentUser();
+                                if (currentUser?.subscription_tier === 'trial') {
+                                    navigate('/client/trial-limit?feature=tasks');
+                                } else {
+                                    setIsBpoOpen(true);
+                                }
+                            }}
                             className="w-full py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white font-bold rounded-lg transition-colors shadow-sm"
                         >
                             Request Field Mission

@@ -4,6 +4,7 @@ import { CheckCircle, XCircle, Clock, FileText, AlertTriangle, MapPin } from 'lu
 import { API_BASE_URL } from '../../services/httpClient';
 import { PhotoViewerLightbox } from '../../components/PhotoViewerLightbox';
 import { useTour } from '../../context/TourContext';
+import { AuthService } from '../../services/auth.service';
 
 interface InvestorTasksDashboardProps {
     onBack?: () => void;
@@ -26,6 +27,12 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
     const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0);
 
     useEffect(() => {
+        const currentUser = AuthService.getCurrentUser();
+        if (currentUser?.subscription_tier === 'trial') {
+            navigate('/client/trial-limit?feature=tasks', { replace: true });
+            return;
+        }
+
         fetchTasks();
         
         const hashParts = window.location.href.split('?');
