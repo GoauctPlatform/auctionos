@@ -47,13 +47,13 @@ export const TrialLimitPage: React.FC = () => {
 
                 <div className="flex flex-col sm:flex-row gap-4 items-center justify-center pt-6 border-t border-slate-100 dark:border-slate-700">
                     <button
-                        onClick={() => navigate('/billing')}
+                        onClick={() => navigate('/client/billing')}
                         className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-95"
                     >
                         View Upgrade Plans
                     </button>
                     <button
-                        onClick={() => navigate('/dashboard')}
+                        onClick={() => navigate('/client')}
                         className="w-full sm:w-auto px-8 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl border border-slate-200 dark:border-slate-600 transition-all"
                     >
                         Return to Dashboard
