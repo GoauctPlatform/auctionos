@@ -225,19 +225,22 @@ def map_attom_to_db(attom_data: Dict[str, Any], existing_prop: PropertyDetails, 
 
     # ── Skip Tracing JSONB Block — ALWAYS rebuild ────────────────────────────
     # Contains structured data useful for locating the owner (co-owners, corporate flag, etc.)
+    # Also captures absentee status, legal description, and area details from the basic API.
     skip_trace_block = {
+        # Owner identification (from owner block — not always present in basic API)
         "owner1": {
             "full_name": owner1.get("fullName"),
             "first_name": owner1.get("firstName") or owner1.get("firstNameAndMi"),
             "last_name": owner1.get("lastName"),
-        },
+        } if (owner1.get("fullName") or owner1.get("firstName") or owner1.get("lastName")) else None,
         "owner2": {
             "full_name": owner2.get("fullName"),
             "first_name": owner2.get("firstName") or owner2.get("firstNameAndMi"),
             "last_name": owner2.get("lastName"),
-        } if owner2 else None,
+        } if owner2 and (owner2.get("fullName") or owner2.get("firstName")) else None,
         "corporate_indicator": owner.get("corporateIndicator"),
         "owner_occupied": owner.get("ownerOccupied"),
+        # Mailing address (from owner.mailingAddress — not always present in basic API)
         "mailing_address": {
             "one_line": mailing_one_line,
             "street": mailing.get("line1") or mailing.get("address1"),
@@ -245,15 +248,29 @@ def map_attom_to_db(attom_data: Dict[str, Any], existing_prop: PropertyDetails, 
             "state": mailing.get("countrySubd") or mailing.get("state"),
             "zip": mailing.get("postal1") or mailing.get("zip"),
         },
+        # Skip tracing intelligence — from summary block (ALWAYS present in basic API)
+        "absentee_indicator": summary.get("absenteeInd"),
+        "property_class": summary.get("propclass"),
+        "property_subtype": summary.get("propsubtype"),
+        "property_type": summary.get("propertyType") or summary.get("proptype"),
+        # Area / location data — ALWAYS present in basic API
+        "municipality": area.get("munname"),
+        "municipality_code": area.get("muncode"),
+        "county_name": area.get("countrysecsubd"),
+        "subdivision": area.get("subdname"),
+        "tax_code_area": area.get("taxcodearea"),
+        "county_land_use_code": area.get("countyuse1"),
+        # Last transfer data (from sale block — not always present)
         "last_transfer_date": sale.get("saleTransDate"),
         "last_transfer_amount": sale.get("saleAmt"),
     }
     # Remove fully empty sub-blocks
     if skip_trace_block["owner1"] and not any(skip_trace_block["owner1"].values()):
         skip_trace_block["owner1"] = None
-    if skip_trace_block["owner2"] and not any(skip_trace_block["owner2"].values()):
+    if skip_trace_block["owner2"] and not any((skip_trace_block["owner2"] or {}).values()):
         skip_trace_block["owner2"] = None
     update_data["extended_owner_json"] = skip_trace_block
+
 
     return {k: v for k, v in update_data.items() if v is not None}
 
