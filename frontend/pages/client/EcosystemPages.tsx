@@ -33,6 +33,7 @@ const VIDEOS = [
 export const TrainingPage: React.FC = () => {
     const [view, setView] = React.useState<'folders' | 'tax' | 'system'>('folders');
     const [activeVideo, setActiveVideo] = React.useState(VIDEOS[0]);
+    const [showConstructionModal, setShowConstructionModal] = React.useState(false);
 
     if (view === 'folders') {
         return (
@@ -59,11 +60,14 @@ export const TrainingPage: React.FC = () => {
 
                     {/* System Training Folder */}
                     <div 
-                        onClick={() => setView('system')}
-                        className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-emerald-500/50 transition-all cursor-pointer group"
+                        onClick={() => setShowConstructionModal(true)}
+                        className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-amber-500/50 transition-all cursor-pointer group relative overflow-hidden"
                     >
-                        <div className="w-16 h-16 bg-emerald-50 dark:bg-emerald-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <span className="material-symbols-outlined text-3xl text-emerald-600 dark:text-emerald-400">play_circle</span>
+                        <div className="absolute top-4 right-4 bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
+                            <span className="material-symbols-outlined text-[12px] animate-spin-slow">construction</span> Under Construction
+                        </div>
+                        <div className="w-16 h-16 bg-amber-50 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                            <span className="material-symbols-outlined text-3xl text-amber-600 dark:text-amber-400">construction</span>
                         </div>
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Platform Tutorials</h2>
                         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -78,6 +82,43 @@ export const TrainingPage: React.FC = () => {
                     <p className="text-sm text-slate-500 mb-4">Any questions about accessing the platform or due diligence consulting, just send us a message.</p>
                     <a href="mailto:support@goauct.com" className="inline-block px-6 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90">Contact Support</a>
                 </div>
+
+                {showConstructionModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md">
+                        <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl relative overflow-hidden">
+                            {/* Design accents */}
+                            <div className="absolute -top-12 -left-12 size-40 bg-amber-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                            <div className="absolute -bottom-12 -right-12 size-40 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                            <div className="flex flex-col items-center text-center">
+                                <div className="size-20 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
+                                    <span className="material-symbols-outlined text-4xl text-amber-500 animate-bounce">construction</span>
+                                </div>
+                                
+                                <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-extrabold uppercase tracking-widest mb-3 border border-amber-500/20">
+                                    Under Construction
+                                </span>
+
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
+                                    Platform Tutorials
+                                </h3>
+                                
+                                <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
+                                    Our media and engineering teams are currently producing high-fidelity corporate tutorials mapping out the new Enterprise workflows. 
+                                    <br/><br/>
+                                    These modules will cover advanced search engines, GPS runner telemetry, and multi-tenant portfolio switching.
+                                </p>
+
+                                <button 
+                                    onClick={() => setShowConstructionModal(false)}
+                                    className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98]"
+                                >
+                                    Back to Resources
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
