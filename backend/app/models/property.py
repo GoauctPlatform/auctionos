@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime, date
 from sqlalchemy import Column, String, Integer, Float, Boolean, Text, Date, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy.dialects.postgresql import JSONB
 from app.db.base_class import Base
 
 class PropertyDetails(Base):
@@ -100,6 +101,16 @@ class PropertyDetails(Base):
     owner_name = Column(String(255), nullable=True)
     owner_occupied = Column(String(20), nullable=True)
     apn_unformatted = Column(String(100), nullable=True)
+
+    # ATTOM Extended Enrichment — JSONB blocks
+    # Stores: co-owners, corporate indicator, mailing address parts, ownership duration
+    extended_owner_json = Column(JSONB, nullable=True)
+    # Stores: array of {sale_date, sale_amount, buyer, seller, deed_type, recording_date}
+    sales_history_json = Column(JSONB, nullable=True)
+    # Stores: array of {year, assessed_value, land_value, improvement_value, tax_amount}
+    tax_history_json = Column(JSONB, nullable=True)
+    # Stores: array of {permit_date, description, estimated_cost, contractor, status}
+    permits_json = Column(JSONB, nullable=True)
 
 
 

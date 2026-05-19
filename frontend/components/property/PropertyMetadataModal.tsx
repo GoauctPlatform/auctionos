@@ -38,10 +38,12 @@ export const PropertyMetadataModal: React.FC<Props> = ({ property, isOpen, onClo
     };
 
     const assessedValue = property.assessed_value || d.assessed_value || 0;
-    const estimatedValue = d.estimated_value || (assessedValue * 1.5);
+    // AVM: prefer ATTOM-enriched estimated_value over simple assessed_value multiplier
+    const estimatedValue = d.estimated_value || property.estimated_value || (assessedValue > 0 ? assessedValue * 1.5 : 0);
     const amountDue = property.amount_due || 0;
-    const equity = estimatedValue - amountDue;
-    const equityRatio = estimatedValue > 0 ? (equity / estimatedValue) * 100 : 0;
+    const equity = estimatedValue > 0 ? estimatedValue - amountDue : null;
+    const equityRatio = estimatedValue > 0 && equity !== null ? (equity / estimatedValue) * 100 : null;
+    const ltv = equityRatio !== null ? (100 - equityRatio).toFixed(1) : null;
 
     return (
         <Modal isOpen={isOpen} onClose={onClose} title="Extended Decision Framework" size="2xl">
@@ -57,11 +59,13 @@ export const PropertyMetadataModal: React.FC<Props> = ({ property, isOpen, onClo
                     </header>
                     <div className="space-y-0.5">
                         <DataRow label="Assessed Value" value={`$${assessedValue.toLocaleString()}`} />
-                        <DataRow label="Land Value" value={d.land_value ? `$${d.land_value.toLocaleString()}` : null} />
-                        <DataRow label="Improvement Value" value={d.improvement_value ? `$${d.improvement_value.toLocaleString()}` : null} />
-                        <DataRow label="Estimated Equity" value={`$${equity.toLocaleString()}`} highlight={true} />
-                        <DataRow label="LTV Approximation" value={`${(100 - equityRatio).toFixed(1)}%`} highlight={true} />
-                        <DataRow label="Annual Tax Amount" value={d.tax_amount ? `$${d.tax_amount.toLocaleString()}` : null} />
+                        <DataRow label="AVM / Market Value" value={estimatedValue > 0 ? `$${Math.round(estimatedValue).toLocaleString()}` : null} />
+                        <DataRow label="Land Value" value={d.land_value ? `$${Number(d.land_value).toLocaleString()}` : null} />
+                        <DataRow label="Improvement Value" value={d.improvement_value ? `$${Number(d.improvement_value).toLocaleString()}` : null} />
+                        <DataRow label="Estimated Equity" value={equity !== null ? `$${Math.round(equity).toLocaleString()}` : null} highlight={true} />
+                        <DataRow label="LTV Approximation" value={ltv ? `${ltv}%` : null} highlight={true} />
+                        <DataRow label="Annual Tax Amount" value={d.tax_amount ? `$${Number(d.tax_amount).toLocaleString()}` : null} />
+                        <DataRow label="Tax Year" value={d.tax_year} />
                         <DataRow label="Homestead Exempt" value={d.homestead_exemption} />
                     </div>
                 </section>
@@ -94,11 +98,11 @@ export const PropertyMetadataModal: React.FC<Props> = ({ property, isOpen, onClo
                         <h4 className="font-black text-slate-800 dark:text-white uppercase tracking-tight">Ownership & History</h4>
                     </header>
                     <div className="space-y-0.5">
-                        <DataRow label="Owner Name" value={property.owner_name} />
+                        <DataRow label="Owner Name" value={property.owner_name || d.owner_name} />
                         <DataRow label="Mailing Address" value={property.owner_address || d.owner_address} />
-                        <DataRow label="Last Sale Price" value={d.last_sale_price ? `$${d.last_sale_price.toLocaleString()}` : null} />
+                        <DataRow label="Last Sale Price" value={d.last_sale_price ? `$${Number(d.last_sale_price).toLocaleString()}` : null} />
                         <DataRow label="Last Sale Date" value={d.last_sale_date} />
-                        <DataRow label="Ownership Status" value={property.occupancy} />
+                        <DataRow label="Ownership Status" value={property.occupancy || d.owner_occupied} />
                         <DataRow label="Foreclosure Year" value={property.tax_sale_year} />
                     </div>
                 </section>
@@ -118,7 +122,7 @@ export const PropertyMetadataModal: React.FC<Props> = ({ property, isOpen, onClo
                         <DataRow label="C/S Number" value={property.cs_number} />
                         <DataRow label="Flood Zone" value={d.flood_zone_code} />
                         <DataRow label="Opportunity Zone" value={property.is_qoz} />
-                        <DataRow label="ATTOM ID" value={d.attom_id} />
+                        <DataRow label="Public Registry ID" value={d.attom_id} copyable={true} />
                         <DataRow label="APN (Unformatted)" value={d.apn_unformatted} copyable={true} />
                         <DataRow label="APN (Previous)" value={d.apn_previous} />
                     </div>

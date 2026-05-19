@@ -1299,7 +1299,7 @@ def reconcile_auction_properties(
     return result
 
 
-from app.services.attom_enrichment import enrich_property
+from app.services.attom_enrichment import enrich_property, enrich_property_extended
 
 @router.post("/{property_id}/enrich", response_model=dict)
 def enrich_property_endpoint(
@@ -1308,8 +1308,8 @@ def enrich_property_endpoint(
     current_user: User = Depends(deps.get_current_active_user)
 ) -> Any:
     """
-    On-demand API endpoint to enrich property details using ATTOM Property Data.
-    Verifica se existem campos faltando e, se sim, busca na API da ATTOM, usa cache no Redis e salva tudo na base de dados.
+    On-demand endpoint to enrich property details using verified public registry data.
+    Verifies missing fields, calls external data source, caches result, and persists to DB.
     """
     try:
         result = enrich_property(db, property_id)
@@ -1317,6 +1317,30 @@ def enrich_property_endpoint(
     except Exception as e:
         logger.error(f"Erro no endpoint de enriquecimento para {property_id}: {e}")
         return {"status": "error", "message": str(e), "property_id": property_id}
+
+
+@router.post("/{property_id}/enrich-extended", response_model=dict)
+def enrich_property_extended_endpoint(
+    property_id: str,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """
+    Lazy-load extended registry data for a property:
+    - Full Sales/Transfer History (all recorded transactions)
+    - Tax & Assessment History (multi-year valuation trajectory)
+    - Building & Renovation Permits
+
+    Requires basic enrichment to have been run first (to obtain the registry ID).
+    Results are cached for 60 days and persisted in structured JSONB columns.
+    """
+    try:
+        result = enrich_property_extended(db, property_id)
+        return result
+    except Exception as e:
+        logger.error(f"Extended enrichment error for {property_id}: {e}")
+        return {"status": "error", "message": str(e), "property_id": property_id}
+
 
 from app.services.status_updater import transition_past_auctions
 
