@@ -304,13 +304,17 @@ const ClientLayout: React.FC = () => {
                 <CompanySelector compact />
               </div>
 
-              {/* User Info */}
-              <div className="hidden md:flex flex-col items-end max-w-[120px]">
-                <span className="text-sm font-bold text-slate-700 dark:text-slate-200 truncate w-full text-right">{userDisplayName}</span>
-                <span className="text-[10px] font-bold tracking-widest text-slate-500 dark:text-slate-400 capitalize truncate w-full text-right">{role}</span>
-              </div>
-              <div className="size-9 rounded-full bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-primary dark:text-blue-300 font-bold cursor-pointer text-sm">
-                {userInitial}
+              {/* User Info Dropdown Tooltip on Hover */}
+              <div className="relative group flex items-center cursor-pointer">
+                <div className="size-9 rounded-full bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 flex items-center justify-center text-primary dark:text-blue-300 font-bold text-sm">
+                  {userInitial}
+                </div>
+                
+                {/* Popover on Hover */}
+                <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl p-3 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-[60] flex flex-col pointer-events-none">
+                  <span className="text-xs font-bold text-slate-800 dark:text-white truncate">{userDisplayName}</span>
+                  <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5 capitalize">{role}</span>
+                </div>
               </div>
               {/* Notification Bell */}
               <div 
