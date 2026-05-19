@@ -123,6 +123,14 @@ class ImportService:
 
                         dense_parsed = extract_dense_data(validated_data.zoning, validated_data.legal_description)
 
+                        # Auto-resolve FIPS during import
+                        resolved_fips = None
+                        try:
+                            from app.utils.fips_resolver import resolve_county_fips
+                            resolved_fips = resolve_county_fips(validated_data.state_code, validated_data.county)
+                        except Exception as fe:
+                            logger.error(f"FIPS auto-resolve error during import: {fe}")
+
                         # Prepare PropertyDetails map
                         new_avail_status = parse_availability(validated_data.availability)
                         
@@ -133,6 +141,7 @@ class ImportService:
                             "owner_address": validated_data.owner_address,
                             "county": validated_data.county,
                             "state": validated_data.state_code,
+                            "county_fips": resolved_fips,
                             "amount_due": validated_data.amount_due,
                             "occupancy": validated_data.vacancy,
                             "tax_year": int(float(validated_data.tax_sale_year)) if validated_data.tax_sale_year else None,

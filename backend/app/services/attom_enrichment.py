@@ -357,6 +357,20 @@ def enrich_property(db: Session, property_id: str) -> Dict[str, Any]:
         logger.info(f"Property {property_id} já está completa. Nenhum enriquecimento necessário.")
         return {"status": "skipped", "message": "No missing fields", "property_id": property_id}
 
+    # Auto-resolve FIPS code if missing on-the-fly
+    if not getattr(prop, 'county_fips', None):
+        try:
+            from app.utils.fips_resolver import resolve_county_fips
+            resolved_fips = resolve_county_fips(prop.state, prop.county)
+            if resolved_fips:
+                prop.county_fips = resolved_fips
+                db.add(prop)
+                db.commit()
+                db.refresh(prop)
+                logger.info(f"FIPS resolved and saved on-the-fly: {resolved_fips} for {prop.county}, {prop.state}")
+        except Exception as e:
+            logger.error(f"Error resolving FIPS on-the-fly: {e}")
+
     # 3. Monta a chave de Cache e parâmetros de busca
     # PRIORIDADE: 1. attomId, 2. APN (Parcel ID) + County, 3. Address
     query_params = {}

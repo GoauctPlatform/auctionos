@@ -35,6 +35,11 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                                 {property.availability_status}
                             </span>
                         )}
+                        {(property.purchase_option_type || property.auction_type) && (
+                            <span className="bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">
+                                {property.purchase_option_type || property.auction_type}
+                            </span>
+                        )}
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white leading-tight">
                         {property.address || property.parcel_id || 'Unknown Property'}
@@ -87,6 +92,12 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">County / State</label>
                     <p className="text-sm font-bold text-slate-700 dark:text-slate-200">
                         {property.county || property.details?.county || '-'} / {property.state || property.details?.state || '-'}
+                    </p>
+                </div>
+                <div>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Auction Type</label>
+                    <p className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                        {property.purchase_option_type || property.auction_type || '-'}
                     </p>
                 </div>
                 <div>
