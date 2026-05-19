@@ -484,13 +484,19 @@ def _fetch_attom_endpoint(endpoint: str, params: Dict[str, Any]) -> Dict[str, An
 
 def enrich_property_extended(db: Session, property_id: str) -> Dict[str, Any]:
     """
-    Secondary enrichment function that fetches extended ATTOM data:
-    - Sales/Transfer History  (/property/saleshistory)
-    - Tax & Assessment History  (/property/assessmenthistory)
-    - Building Permits  (/property/permit)
+    Secondary enrichment — fetches verified financial + ownership data from
+    dedicated ATTOM endpoints that are not available in the basic /property/detail call.
 
-    Requires the property to have a valid attom_id (captured during basic enrichment).
-    Results stored in JSONB columns: sales_history_json, tax_history_json, permits_json.
+    Endpoints called (in order):
+      1. /property/detailowner  → real mailing address, co-owners, corporate flag
+      2. /avm/detail            → AVM estimated value with confidence range
+      3. /assessment/detail     → assessed value, market value, land, improvement, tax
+      4. /sale/detail           → last sale price/date
+      5. /property/saleshistory → full transfer history list  (→ sales_history_json)
+      6. /assessment/history    → multi-year tax history      (→ tax_history_json)
+      7. /permit                → building permits            (→ permits_json)
+
+    Requires the property to have an attom_id (from basic enrichment).
     """
     prop = db.query(PropertyDetails).filter(PropertyDetails.property_id == property_id).first()
     if not prop:
@@ -502,19 +508,203 @@ def enrich_property_extended(db: Session, property_id: str) -> Dict[str, Any]:
         return {"status": "skipped", "message": "No attom_id. Run basic enrichment first.", "property_id": property_id}
 
     attom_id = prop.attom_id
-    fetched = {}
+    core_updates: Dict[str, Any] = {}   # Written directly to property_details scalar columns
+    jsonb_updates: Dict[str, Any] = {}  # Written to JSONB columns
+    from datetime import datetime as _dt
 
-    # ── 1. Sales History ──────────────────────────────────────────────────────
-    sales_cache_key = f"attom:ext:sales:{attom_id}"
-    sales_data = None
-    if redis_client:
+    def _cache_get(key: str):
+        if redis_client:
+            try:
+                v = redis_client.get(key)
+                if v:
+                    return json.loads(v)
+            except Exception:
+                pass
+        return None
+
+    def _cache_set(key: str, value: Any):
+        if redis_client and value:
+            try:
+                redis_client.setex(key, CACHE_TTL_SECONDS, json.dumps(value, default=str))
+            except Exception:
+                pass
+
+    # ── 1. Owner Details — mailing address, co-owners, corporate flag ─────────
+    owner_cache_key = f"attom:ext:owner:{attom_id}"
+    owner_raw = _cache_get(owner_cache_key)
+    if not owner_raw:
         try:
-            cached = redis_client.get(sales_cache_key)
-            if cached:
-                sales_data = json.loads(cached)
-        except Exception:
-            pass
+            resp = _fetch_attom_endpoint("property/detailowner", {"attomId": attom_id})
+            if resp.get("property"):
+                owner_raw = resp["property"][0].get("owner", {})
+                _cache_set(owner_cache_key, owner_raw)
+        except Exception as e:
+            logger.error(f"Failed to fetch detailowner for {attom_id}: {e}")
+            owner_raw = {}
 
+    if owner_raw:
+        # Mailing address — always write to the scalar column
+        mailing_line = (
+            owner_raw.get("mailingaddressoneline")
+            or owner_raw.get("mailingAddress1")
+            or owner_raw.get("mailingAddressOneLine")
+        )
+        if mailing_line:
+            core_updates["owner_address"] = mailing_line.strip()
+
+        # Primary owner name
+        o1 = owner_raw.get("owner1") or {}
+        owner_name = o1.get("fullname") or o1.get("fullName")
+        if owner_name and not prop.owner_name:
+            core_updates["owner_name"] = owner_name
+
+        # Absentee status from detailowner  (A=Absentee, O=Owner-Occupied, U=Unknown)
+        absentee_raw = owner_raw.get("absenteeownerstatus")
+
+        # Rebuild extended_owner_json with richer detail
+        existing_ej = prop.extended_owner_json or {}
+        extended_owner = {
+            **existing_ej,
+            "owner1": {
+                "full_name": o1.get("fullname") or o1.get("fullName"),
+                "last_name": o1.get("lastname") or o1.get("lastName"),
+                "first_name": o1.get("firstname") or o1.get("firstName") or o1.get("firstnameandmi"),
+            },
+            "owner2": {
+                "full_name": (owner_raw.get("owner2") or {}).get("fullname"),
+                "last_name": (owner_raw.get("owner2") or {}).get("lastname"),
+                "first_name": (owner_raw.get("owner2") or {}).get("firstname"),
+            } if (owner_raw.get("owner2") or {}).get("fullname") else existing_ej.get("owner2"),
+            "owner3": (owner_raw.get("owner3") or {}).get("fullname"),
+            "owner4": (owner_raw.get("owner4") or {}).get("fullname"),
+            "corporate_indicator": owner_raw.get("corporateindicator") or owner_raw.get("corporateIndicator"),
+            "absentee_owner_status": absentee_raw,
+            "absentee_indicator": (
+                "ABSENTEE" if absentee_raw == "A"
+                else "OWNER OCCUPIED" if absentee_raw == "O"
+                else existing_ej.get("absentee_indicator")
+            ),
+            "mailing_address": {
+                "one_line": mailing_line,
+            },
+        }
+        # Clean None-only owner sub-blocks
+        if extended_owner["owner1"] and not any(extended_owner["owner1"].values()):
+            extended_owner["owner1"] = None
+        if extended_owner.get("owner2") and not any((extended_owner["owner2"] or {}).values()):
+            extended_owner["owner2"] = None
+
+        core_updates["extended_owner_json"] = extended_owner
+        jsonb_updates["extended_owner_json"] = extended_owner
+
+    # ── 2. AVM — Estimated market value with confidence band ─────────────────
+    avm_cache_key = f"attom:ext:avm:{attom_id}"
+    avm_raw = _cache_get(avm_cache_key)
+    if not avm_raw:
+        try:
+            resp = _fetch_attom_endpoint("avm/detail", {"attomId": attom_id})
+            if resp.get("property"):
+                avm_raw = resp["property"][0].get("avm", {})
+                _cache_set(avm_cache_key, avm_raw)
+        except Exception as e:
+            logger.error(f"Failed to fetch avm/detail for {attom_id}: {e}")
+            avm_raw = {}
+
+    if avm_raw:
+        avm_amount = avm_raw.get("amount", {})
+        avm_value = avm_amount.get("value")
+        avm_change = avm_raw.get("AVMChange", {})
+        avm_calcs = avm_raw.get("calculations", {})
+
+        if avm_value:
+            core_updates["estimated_value"] = avm_value  # Always overwrite
+
+        # Store enriched AVM block inside JSONB for UI display
+        avm_block = {
+            "value": avm_value,
+            "high": avm_amount.get("high"),
+            "low": avm_amount.get("low"),
+            "confidence_score": avm_amount.get("scr"),
+            "value_range": avm_amount.get("valueRange"),
+            "price_per_sqft": avm_calcs.get("perSizeUnit"),
+            "range_pct_of_value": avm_calcs.get("rangePctOfValue"),
+            "last_month_value": avm_change.get("avmlastmonthvalue"),
+            "change_amount": avm_change.get("avmamountchange"),
+            "change_pct": avm_change.get("avmpercentchange"),
+            "event_date": avm_raw.get("eventDate"),
+            "condition_ranges": avm_raw.get("condition", {}),
+        }
+        # Store in a merged extended_owner_json or a separate approach
+        # We merge the AVM block into extended_owner_json.avm_snapshot for frontend use
+        ej = core_updates.get("extended_owner_json", prop.extended_owner_json or {})
+        ej["avm_snapshot"] = avm_block
+        core_updates["extended_owner_json"] = ej
+
+    # ── 3. Assessment Detail — assessed/market/land/improvement/tax ───────────
+    assess_cache_key = f"attom:ext:assess:{attom_id}"
+    assess_raw = _cache_get(assess_cache_key)
+    if not assess_raw:
+        try:
+            resp = _fetch_attom_endpoint("assessment/detail", {"attomId": attom_id})
+            if resp.get("property"):
+                assess_raw = resp["property"][0].get("assessment", {})
+                _cache_set(assess_cache_key, assess_raw)
+        except Exception as e:
+            logger.error(f"Failed to fetch assessment/detail for {attom_id}: {e}")
+            assess_raw = {}
+
+    if assess_raw:
+        assessed_block = assess_raw.get("assessed", {})
+        market_block = assess_raw.get("market", {})
+        tax_block = assess_raw.get("tax", {})
+        calcs_block = assess_raw.get("calculations", {})
+
+        # Always overwrite with verified registry data
+        if assessed_block.get("assdttlvalue"):
+            core_updates["assessed_value"] = assessed_block["assdttlvalue"]
+        if market_block.get("mktlandvalue"):
+            core_updates["land_value"] = market_block["mktlandvalue"]
+        if market_block.get("mktimprvalue"):
+            core_updates["improvement_value"] = market_block["mktimprvalue"]
+        if tax_block.get("taxamt"):
+            core_updates["tax_amount"] = tax_block["taxamt"]
+        if tax_block.get("taxyear"):
+            core_updates["tax_year"] = tax_block["taxyear"]
+
+        # If no AVM available, use total market value as proxy
+        if not core_updates.get("estimated_value") and calcs_block.get("calcttlvalue"):
+            core_updates["estimated_value"] = calcs_block["calcttlvalue"]
+
+    # ── 4. Sale Detail — last sale price and date ─────────────────────────────
+    sale_cache_key = f"attom:ext:sale:{attom_id}"
+    sale_raw = _cache_get(sale_cache_key)
+    if not sale_raw:
+        try:
+            resp = _fetch_attom_endpoint("sale/detail", {"attomId": attom_id})
+            if resp.get("property"):
+                sale_raw = resp["property"][0].get("sale", {})
+                _cache_set(sale_cache_key, sale_raw)
+        except Exception as e:
+            logger.error(f"Failed to fetch sale/detail for {attom_id}: {e}")
+            sale_raw = {}
+
+    if sale_raw:
+        sale_amount = sale_raw.get("amount", {})
+        sale_price = sale_amount.get("saleamt") or sale_amount.get("saleAmt")
+        sale_date_raw = sale_raw.get("salesearchdate") or sale_raw.get("saleTransDate") or sale_amount.get("saledisclosuretype")
+
+        if sale_price and isinstance(sale_price, (int, float)) and sale_price > 0:
+            core_updates["last_sale_price"] = sale_price
+
+        if isinstance(sale_date_raw, str) and len(sale_date_raw) >= 10:
+            try:
+                core_updates["last_sale_date"] = _dt.strptime(sale_date_raw[:10], "%Y-%m-%d").date()
+            except ValueError:
+                pass
+
+    # ── 5. Sales History — full transfer list ─────────────────────────────────
+    sales_cache_key = f"attom:ext:sales:{attom_id}"
+    sales_data = _cache_get(sales_cache_key)
     if not sales_data:
         try:
             raw = _fetch_attom_endpoint("property/saleshistory", {"attomId": attom_id})
@@ -531,29 +721,15 @@ def enrich_property_extended(db: Session, property_id: str) -> Dict[str, Any]:
                 }
                 for s in sales_list
             ] if sales_list else []
-            if redis_client and sales_data:
-                try:
-                    redis_client.setex(sales_cache_key, CACHE_TTL_SECONDS, json.dumps(sales_data))
-                except Exception:
-                    pass
+            _cache_set(sales_cache_key, sales_data)
         except Exception as e:
             logger.error(f"Failed to fetch sales history for {attom_id}: {e}")
             sales_data = []
+    jsonb_updates["sales_history_json"] = sales_data or []
 
-    if sales_data is not None:
-        fetched["sales_history_json"] = sales_data
-
-    # ── 2. Tax / Assessment History ───────────────────────────────────────────
+    # ── 6. Assessment History — multi-year tax trajectory ─────────────────────
     tax_cache_key = f"attom:ext:taxhistory:{attom_id}"
-    tax_data = None
-    if redis_client:
-        try:
-            cached = redis_client.get(tax_cache_key)
-            if cached:
-                tax_data = json.loads(cached)
-        except Exception:
-            pass
-
+    tax_data = _cache_get(tax_cache_key)
     if not tax_data:
         try:
             raw = _fetch_attom_endpoint("assessment/history", {"attomId": attom_id})
@@ -561,37 +737,23 @@ def enrich_property_extended(db: Session, property_id: str) -> Dict[str, Any]:
             tax_data = [
                 {
                     "year": t.get("taxYear"),
-                    "assessed_value": t.get("assessed", {}).get("assdTtlValue") or t.get("assessedValue"),
-                    "land_value": t.get("assessed", {}).get("assdLandValue"),
-                    "improvement_value": t.get("assessed", {}).get("assdImprValue"),
-                    "tax_amount": t.get("tax", {}).get("taxAmt") or t.get("taxAmount"),
-                    "market_value": t.get("market", {}).get("mktTtlValue"),
+                    "assessed_value": (t.get("assessed") or {}).get("assdTtlValue"),
+                    "land_value": (t.get("assessed") or {}).get("assdLandValue"),
+                    "improvement_value": (t.get("assessed") or {}).get("assdImprValue"),
+                    "tax_amount": (t.get("tax") or {}).get("taxAmt"),
+                    "market_value": (t.get("market") or {}).get("mktTtlValue"),
                 }
                 for t in tax_list
             ] if tax_list else []
-            if redis_client and tax_data:
-                try:
-                    redis_client.setex(tax_cache_key, CACHE_TTL_SECONDS, json.dumps(tax_data))
-                except Exception:
-                    pass
+            _cache_set(tax_cache_key, tax_data)
         except Exception as e:
             logger.error(f"Failed to fetch tax history for {attom_id}: {e}")
             tax_data = []
+    jsonb_updates["tax_history_json"] = tax_data or []
 
-    if tax_data is not None:
-        fetched["tax_history_json"] = tax_data
-
-    # ── 3. Building Permits ───────────────────────────────────────────────────
+    # ── 7. Building Permits ───────────────────────────────────────────────────
     permits_cache_key = f"attom:ext:permits:{attom_id}"
-    permits_data = None
-    if redis_client:
-        try:
-            cached = redis_client.get(permits_cache_key)
-            if cached:
-                permits_data = json.loads(cached)
-        except Exception:
-            pass
-
+    permits_data = _cache_get(permits_cache_key)
     if not permits_data:
         try:
             raw = _fetch_attom_endpoint("permit", {"attomId": attom_id})
@@ -608,24 +770,29 @@ def enrich_property_extended(db: Session, property_id: str) -> Dict[str, Any]:
                 }
                 for p in permits_list
             ] if permits_list else []
-            if redis_client and permits_data:
-                try:
-                    redis_client.setex(permits_cache_key, CACHE_TTL_SECONDS, json.dumps(permits_data))
-                except Exception:
-                    pass
+            _cache_set(permits_cache_key, permits_data)
         except Exception as e:
             logger.error(f"Failed to fetch permits for {attom_id}: {e}")
             permits_data = []
+    jsonb_updates["permits_json"] = permits_data or []
 
-    if permits_data is not None:
-        fetched["permits_json"] = permits_data
+    # ── Persist: merge all updates into one DB write ──────────────────────────
+    all_updates = {**core_updates, **jsonb_updates}
+    # core_updates already has extended_owner_json; jsonb_updates may overwrite — merge carefully
+    if "extended_owner_json" in jsonb_updates:
+        del jsonb_updates["extended_owner_json"]  # already in core_updates
 
-    # ── Persist all fetched extended data ─────────────────────────────────────
-    if fetched:
+    all_updates = {k: v for k, v in {**core_updates, **jsonb_updates}.items() if v is not None}
+
+    if all_updates:
         try:
-            db.query(PropertyDetails).filter(PropertyDetails.id == prop.id).update(fetched)
+            db.query(PropertyDetails).filter(PropertyDetails.id == prop.id).update(all_updates)
             db.commit()
-            logger.info(f"Extended enrichment saved for {property_id}: {list(fetched.keys())}")
+            logger.info(
+                f"Extended enrichment persisted for {property_id}: "
+                f"{[k for k in all_updates if k not in ('extended_owner_json',)]} "
+                f"+ extended_owner_json"
+            )
         except Exception as e:
             db.rollback()
             logger.error(f"Failed to persist extended enrichment for {property_id}: {e}")
@@ -635,5 +802,10 @@ def enrich_property_extended(db: Session, property_id: str) -> Dict[str, Any]:
         "status": "success",
         "property_id": property_id,
         "attom_id": attom_id,
-        "extended_data_fetched": {k: len(v) if isinstance(v, list) else "loaded" for k, v in fetched.items()},
+        "fields_updated": list(all_updates.keys()),
+        "avm_value": core_updates.get("estimated_value"),
+        "assessed_value": core_updates.get("assessed_value"),
+        "tax_amount": core_updates.get("tax_amount"),
+        "mailing_address": core_updates.get("owner_address"),
     }
+
