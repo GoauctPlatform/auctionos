@@ -75,7 +75,7 @@ export const TrainingPage: React.FC = () => {
                     <span className="material-symbols-outlined text-slate-400 mb-2">support_agent</span>
                     <h3 className="font-bold text-slate-800 dark:text-white mb-1">Need help? Email us.</h3>
                     <p className="text-sm text-slate-500 mb-4">Any questions about accessing the platform or due diligence consulting, just send us a message.</p>
-                    <a href="mailto:support@auctionos.com" className="inline-block px-6 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90">Contact Support</a>
+                    <a href="mailto:support@goauct.com" className="inline-block px-6 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90">Contact Support</a>
                 </div>
             </div>
         );
@@ -144,28 +144,40 @@ export const TrainingPage: React.FC = () => {
 
 const TAX_CHAPTERS = [
   {
-    title: "1. The Foundation of Property Taxes",
-    content: "Unlike many countries with centralized property tax systems, the United States relies heavily on local governance. Property taxes are the primary financial engine for local municipalities (schools, police, infrastructure). Property taxes are calculated using Assessed Value and Mill Rates."
+    title: "1. The Property Tax Engine",
+    content: "Property taxes (equivalent to local IPTU) are decentralized and set at city/county level, financing vital public services like schools, infrastructure, and safety. The annual tax is calculated by multiplying the Assessed Value by the local Mill Rate (ex: exceeding 2% in NJ vs minimal rates in Alabama or Nevada). Non-payment triggers municipal debt that county authorities must recover rapidly through tax lien certificates, redeemable deeds, or direct tax deed sales. GoAuct assists you in filtering this property universe using FEMA flood zone reports, inventory logs, and GIS mapping."
   },
   {
-    title: "2. Foreclosures vs Tax Sales",
-    content: "Mortgage Foreclosure occurs when an owner defaults on a private loan. Tax Foreclosure occurs when an owner defaults on local taxes. The government holds the supreme lien position, often wiping out mortgages."
+    title: "2. Mortgage Foreclosure vs Tax Sales",
+    content: "A Mortgage Foreclosure is initiated by private financial institutions (banks) when loans default, and bank liens are subordinate to local government tax claims. A Tax Sale is initiated by the government county to recover public delinquent property tax. Because the government holds supreme lien precedence, a tax foreclosure sale typically wipes out existing mortgage balances and junior private liens."
   },
   {
-    title: "3. The Tax Lien System (Yields)",
-    content: "The county sells the tax debt as a certificate. Investors pay the debt, and the county guarantees a statutory interest rate (8% to 36%). If unredeemed, investors can foreclose to take ownership."
+    title: "3. Tax Lien Certificates (Passive Yields)",
+    content: "In Tax Lien states (e.g., Alabama, Arizona, Colorado, Iowa, Kentucky, Mississippi, Missouri, Montana, Nebraska, New Jersey, Vermont, Wyoming), the county does not sell the property directly. Instead, they sell a Tax Lien Certificate. The investor pays off the tax debt and earns a guaranteed interest return (ranging from 12% in AL, 16% in AZ, up to 24% in IA or 36% depending on county laws). During the redemption period (typically 1 to 3 years), the owner can repay the debt + interest. If they fail to do so, the investor can foreclose to assume full property ownership. To mitigate risk, 'Deep Pocket' investors acquire small liens in bulk."
   },
   {
-    title: "4. The Tax Deed System (Direct)",
-    content: "The county directly forecloses and auctions the deed to the property to the highest bidder. Immediate ownership is acquired, but investors inherit the property 'as-is' and face title clouds."
+    title: "4. Tax Deed Sales (Direct Acquisition)",
+    content: "In Tax Deed states (e.g., Alaska, Arkansas, California, Idaho, Kansas, Maine, Michigan, Nevada, New Mexico, North Carolina, North Dakota, Oklahoma, Oregon, Utah, Virginia, Washington, Wisconsin), the county seizes the delinquent property and auctions the deed directly at a fraction of market value. The winning bidder gets immediate ownership but inherits the property entirely 'as-is, where-is'. Title searches are critical since environmental hazards, utility code violations, or federal IRS liens might survive. Wholesaling (selling the contract to developers) or neighbors marketing are highly profitable exits."
   },
   {
-    title: "5. Redeemable Deeds (Hybrid)",
-    content: "States like Texas and Georgia sell the deed, but the original owner retains a redemption right for a specific period, paying a massive flat penalty rate (e.g., 25% in TX) to redeem."
+    title: "5. Hybrid Systems & Redeemable Deeds",
+    content: "Hybrid states (e.g., Texas, Georgia, Florida, Connecticut, Delaware, Hawaii, Illinois, Indiana, Louisiana, New York, Ohio, Pennsylvania, Rhode Island, South Dakota, Tennessee, West Virginia) sell the deed at auction, but the original owner retains a right of redemption for a short period (6 months to 2 years). If the owner redeems the property, they must pay the investor the winning bid plus a fixed penalty flat return (e.g., a massive 25% fixed return in Texas from day one). If the redemption period expires, the investor's deed ownership becomes absolute."
   },
   {
-    title: "6. Leveraging GoAuct Data",
-    content: "With over 3,000 counties in the U.S., compiling auction lists manually is impossible. GoAuct tracks 500,000+ properties across 47 states, identifying high-probability targets with integrated data."
+    title: "6. Federal & Commercial Property APIs",
+    content: "Integrating leilões data is a massive technical advantage. For federal properties, the GSA Auctions API provides public JSON/XML feeds, supported by Realestatesales.gov and the Federal Real Property Public Data Set. For commercial, pre-foreclosure, and local county tax sales, industry-grade APIs like BatchData (24-48h Notice of Trustee Sale updates), TitleFlex (lien data), or Apify scrapers offer direct registry updates. GoAuct leverages these robust data streams to provide a definitive technical moat."
+  },
+  {
+    title: "7. Title Cleansing (Quiet Title vs Quit Claim)",
+    content: "Because tax deeds do not come with title insurance guarantees ('warranty deeds'), the title is considered 'clouded'. Investors must file a Quiet Title Action in court to clear claims, which takes months. A faster, highly strategic shortcut is using a Quit Claim Deed: locate the previous owners or herdeiros and offer a small fee ($500-$1000) for them to sign a document renouncing all property rights, clearing title clouds instantly."
+  },
+  {
+    title: "8. Marketing & Direct Sourcing Matrix",
+    content: "To acquire properties pre-auction, professional investors utilize a triple marketing approach: 1. Hand-written 'Yellow Letters' sent via Direct Mail to owners in pre-foreclosure, showing empathy. 2. Skip Tracing software to retrieve phone contacts of vacant home herdeiros. 3. Presencial 'Door Knocking' visits to offer immediate cash exits before leilão foreclosure occurs."
+  },
+  {
+    title: "9. LLC Structuring & Contract Defensibility",
+    content: "Inspired by defensive corporate plays (such as 'The Founder' movie), investors must isolate liabilities. We focus on acquiring real estate inside specialized LLCs, which can have multiple members and an Administrator. By drafting strict contract clauses, partnership liabilities are locked exclusively to the single acquired property, ensuring that partnership disputes or lawsuits never expose the global personal assets of either side of the deal."
   }
 ];
 
