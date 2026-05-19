@@ -1,4 +1,5 @@
 import React from 'react';
+import { API_BASE_URL } from '../../services/httpClient';
 
 const PlaceholderPage: React.FC<{
   icon: string;
@@ -105,10 +106,17 @@ export const TrainingPage: React.FC = () => {
             <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden">
                 {/* Main Video Area */}
                 <div className="flex-1 flex flex-col overflow-y-auto">
-                    <div className="w-full aspect-video bg-slate-900 rounded-2xl flex items-center justify-center relative shadow-md border border-slate-700/50 group">
-                    <span className="material-symbols-outlined text-6xl text-white/50 group-hover:text-emerald-500 transition-colors cursor-pointer group-hover:scale-110 drop-shadow-xl z-10 transition-transform">play_circle</span>
-                    <div className="absolute inset-0 bg-emerald-500/10 opacity-0 group-hover:opacity-100 transition-opacity z-0 pointer-events-none"></div>
-                    <div className="absolute bottom-4 left-4 text-white font-mono text-sm bg-black/60 px-2 py-1 rounded">00:00 / {activeVideo.length}</div>
+                    <div className="w-full aspect-video bg-slate-900 rounded-2xl overflow-hidden relative shadow-md border border-slate-700/50 group">
+                        <video 
+                            key={activeVideo.id}
+                            src={`${API_BASE_URL}/static/videos/${activeVideo.id}.mp4`}
+                            controls
+                            className="w-full h-full object-cover"
+                            poster="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200"
+                        />
+                        <div className="absolute top-4 right-4 bg-slate-950/80 backdrop-blur text-[10px] text-slate-300 font-mono px-3 py-1 rounded-full border border-white/10 pointer-events-none">
+                            Local Path: backend/data/videos/{activeVideo.id}.mp4
+                        </div>
                     </div>
                     <div className="mt-6 px-2">
                         <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">{activeVideo.title}</h2>

@@ -163,9 +163,10 @@ app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 
-# Ensure static directory exists
+# Ensure static directory exists and contains videos subfolder
 static_dir = os.path.join(os.getcwd(), "data")
 os.makedirs(static_dir, exist_ok=True)
+os.makedirs(os.path.join(static_dir, "videos"), exist_ok=True)
 
 import uuid
 from fastapi import Request
