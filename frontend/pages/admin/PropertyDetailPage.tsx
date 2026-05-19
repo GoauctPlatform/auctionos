@@ -27,9 +27,11 @@ import { CountyContactCard } from '../../components/property/CountyContactCard';
 import { PropertyInventoryHistory } from '../../components/property/PropertyInventoryHistory';
 import { PropertyFinancialsModal } from '../../components/property/PropertyFinancialsModal';
 import { PropertyMetadataModal } from '../../components/property/PropertyMetadataModal';
+import { PropertyExtendedTabs } from '../../components/property/PropertyExtendedTabs';
 import { useCompany } from '../../context/CompanyContext';
 import { CreateTaskForm } from '../../components/property/CreateTaskForm';
 import { useTour } from '../../context/TourContext';
+
 
 interface PropertyDetailPageProps {
     readOnly?: boolean;
@@ -422,6 +424,8 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                             />
                         </div>
                     </div>
+
+                    <PropertyExtendedTabs property={property} />
 
                     <PropertyRedemptionCard stateCode={property.state} auctionType={property.auction_type} />
 
