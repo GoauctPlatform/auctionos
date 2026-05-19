@@ -75,10 +75,10 @@ const QuickActions: React.FC = () => {
       color: 'from-blue-500 to-blue-600',
     },
     {
-      icon: 'campaign',
-      label: 'Live Auctions',
-      desc: 'Browse upcoming auctions',
-      path: '/client/auctions',
+      icon: 'real_estate_agent',
+      label: 'Field Missions',
+      desc: 'Track due diligence',
+      path: '/client/tasks',
       color: 'from-indigo-500 to-indigo-600',
     },
     {
