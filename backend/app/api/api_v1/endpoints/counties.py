@@ -15,7 +15,7 @@ STATE_ABBREVIATIONS = {
     'new mexico': 'nm', 'new york': 'ny', 'north carolina': 'nc', 'north dakota': 'nd', 'ohio': 'oh', 'oklahoma': 'ok',
     'oregon': 'or', 'pennsylvania': 'pa', 'rhode island': 'ri', 'south carolina': 'sc', 'south dakota': 'sd',
     'tennessee': 'tn', 'texas': 'tx', 'utah': 'ut', 'vermont': 'vt', 'virginia': 'va', 'washington': 'wa',
-    'west virginia': 'wv', 'wisconsin': 'wi', 'wyoming': 'wy'
+    'west virginia': 'wv', 'wisconsin': 'wi', 'wyoming': 'wy', 'district of columbia': 'dc'
 }
 
 @router.get("/{state}/counties", response_model=List[str])
