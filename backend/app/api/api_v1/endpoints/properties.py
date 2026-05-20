@@ -258,6 +258,7 @@ def read_properties(
             COALESCE(ps.deal_score, NULL) as deal_score,
             COALESCE(ps.rating, NULL) as deal_rating,
             COALESCE(pah.listed_as, ae_lookup.tax_status, p.property_category) as property_category,
+            COALESCE(pah.listed_as, ae_lookup.tax_status) as auction_type,
             p.market_land_value,
             p.market_improvement_value,
             p.owner_occupied
@@ -347,9 +348,10 @@ def read_properties(
             "deal_score": float(r[38]) if r[38] is not None else None,
             "deal_rating": r[39],
             "property_category": r[40],
-            "market_land_value": r[41],
-            "market_improvement_value": r[42],
-            "owner_occupied": r[43],
+            "auction_type": r[41],
+            "market_land_value": r[42],
+            "market_improvement_value": r[43],
+            "owner_occupied": r[44],
         }
         for r in result
     ]

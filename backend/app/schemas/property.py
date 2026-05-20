@@ -152,6 +152,15 @@ class PropertyDashboardSchema(BaseModel):
     is_processed: Optional[bool] = None
     map_link: Optional[str] = None
 
+    # Deal metrics and derived categories
+    deal_score: Optional[float] = None
+    deal_rating: Optional[str] = None
+    property_category: Optional[str] = None
+    auction_type: Optional[str] = None
+    market_land_value: Optional[float] = None
+    market_improvement_value: Optional[float] = None
+    owner_occupied: Optional[str] = None
+
 class PaginatedPropertyResponse(BaseModel):
     items: List[PropertyDashboardSchema]
     total: int

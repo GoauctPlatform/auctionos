@@ -204,6 +204,38 @@ const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, 
         },
         { field: 'address', headerName: 'Address', width: 180 },
         { field: 'auction_name', headerName: 'Next Auction', width: 220, valueGetter: (value) => value || 'None Scheduled' },
+        {
+            field: 'auction_type',
+            headerName: 'Auction Type',
+            width: 130,
+            renderCell: (params) => {
+                const type = params.value || '';
+                const typeColors: Record<string, string> = {
+                    'Tax Lien': 'bg-blue-100 text-blue-700',
+                    'Tax Deed': 'bg-purple-100 text-purple-700',
+                    'Foreclosure': 'bg-red-100 text-red-700',
+                    'Tax Sale': 'bg-amber-100 text-amber-700',
+                    'Over the Counter': 'bg-emerald-100 text-emerald-700',
+                    'Sealed Bid': 'bg-slate-100 text-slate-700'
+                };
+                // Fallback matching logic for similar names (e.g. "Deed" -> "Tax Deed")
+                let matchedColor = 'bg-slate-100 text-slate-500';
+                if (type) {
+                    if (type.includes('Deed')) matchedColor = typeColors['Tax Deed'];
+                    else if (type.includes('Lien')) matchedColor = typeColors['Tax Lien'];
+                    else if (type.includes('Foreclosure')) matchedColor = typeColors['Foreclosure'];
+                    else if (type.includes('Sale')) matchedColor = typeColors['Tax Sale'];
+                    else if (type.includes('OTC') || type.includes('Counter')) matchedColor = typeColors['Over the Counter'];
+                    else if (typeColors[type]) matchedColor = typeColors[type];
+                }
+
+                return type ? (
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${matchedColor}`}>
+                        {type}
+                    </span>
+                ) : <span className="text-slate-300">—</span>;
+            }
+        },
         { 
             field: 'occupancy', 
             headerName: 'Occupancy', 
