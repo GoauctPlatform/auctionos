@@ -19,7 +19,7 @@ PLAN_LIMITS = {
         "exports": False
     },
     "advanced": {
-        "views": 2000,
+        "views": 1000,
         "companies": 1,
         "managers": 0,
         "agents": 0,
@@ -29,7 +29,7 @@ PLAN_LIMITS = {
         "exports": True
     },
     "pro": {
-        "views": 5000,
+        "views": 2000,
         "companies": 2,
         "managers": 1,
         "agents": 1,
@@ -39,7 +39,7 @@ PLAN_LIMITS = {
         "exports": True
     },
     "enterprise": {
-        "views": float('inf'),
+        "views": 10000,
         "companies": 4,
         "managers": 2,
         "agents": 3,

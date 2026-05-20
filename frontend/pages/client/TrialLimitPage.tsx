@@ -38,7 +38,7 @@ export const TrialLimitPage: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                     {[
                         'Real-time Live Auctions Access',
-                        'Up to 2,000+ Property Views',
+                        'Up to 1,000+ Property Views',
                         'Advanced Due Diligence Tasks',
                         'Priority Customer Support',
                         'Add Team Managers & Agents',

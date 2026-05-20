@@ -75,8 +75,9 @@ const ClientSupportPage: React.FC = () => {
 
   const limitMap: Record<string, number> = {
     'trial': 5,
-    'pro': 5000,
-    'enterprise': 999999
+    'advanced': 1000,
+    'pro': 2000,
+    'enterprise': 10000
   };
 
   return (
@@ -256,14 +257,14 @@ const ClientSupportPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
             <div className="border border-slate-200 dark:border-slate-700 p-4 rounded-xl">
                 <h3 className="font-bold text-slate-800 dark:text-white text-lg">Pro Plan</h3>
-                <p className="text-slate-500 text-sm mt-1 mb-4">5,000 property searches per month and dedicated cloud storage.</p>
+                <p className="text-slate-500 text-sm mt-1 mb-4">2,000 property searches per month and dedicated cloud storage.</p>
                 <div className="text-2xl font-black text-slate-800 dark:text-white mb-4">$130 <span className="text-sm font-medium text-slate-500">/mo</span></div>
                 <button className="w-full py-2 bg-blue-50 text-blue-600 font-bold rounded-lg hover:bg-blue-100 transition-colors">Upgrade to Pro</button>
             </div>
             <div className="border-2 border-blue-500 dark:border-blue-600 bg-blue-50/30 dark:bg-blue-900/10 p-4 rounded-xl relative">
                 <span className="absolute -top-3 right-4 bg-blue-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">Recommended</span>
                 <h3 className="font-bold text-slate-800 dark:text-white text-lg">Enterprise</h3>
-                <p className="text-slate-500 text-sm mt-1 mb-4">Unlimited searches, priority support, and team features.</p>
+                <p className="text-slate-500 text-sm mt-1 mb-4">10,000 searches, priority support, and team features.</p>
                 <div className="text-2xl font-black text-slate-800 dark:text-white mb-4">$350 <span className="text-sm font-medium text-slate-500">/mo</span></div>
                 <button className="w-full py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">Upgrade to Enterprise</button>
             </div>

@@ -571,7 +571,7 @@ export const Landing: React.FC = () => {
                                 </div>
                                 <p className="text-slate-500 text-xs mb-6">Individual Power Plan</p>
                                 <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-sm">
-                                    <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 2,000 Property Views</li>
+                                    <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 1,000 Property Views</li>
                                     <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Customizations</li>
                                     <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Live Auctions & Calendar</li>
                                     <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Tasks & Data Exports</li>
@@ -588,7 +588,7 @@ export const Landing: React.FC = () => {
                                 <div className="text-3xl font-black mb-1">$130<span className="text-sm font-medium opacity-80">/mo</span></div>
                                 <p className="text-blue-200 text-xs mb-6">For growing teams</p>
                                 <ul className="space-y-4 mb-8 text-sm">
-                                    <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> 5,000 Property Views</li>
+                                    <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> 2,000 Property Views</li>
                                     <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> 2 Companies • 1 Mgr • 1 Agent</li>
                                     <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> Unlimited Customizations</li>
                                     <li className="flex items-center gap-2"><span className="material-symbols-outlined text-blue-300 text-sm">check_circle</span> Community, Tasks & Exports</li>
@@ -604,7 +604,7 @@ export const Landing: React.FC = () => {
                                 <div className="text-3xl font-black text-slate-900 dark:text-white mb-1">$350<span className="text-sm font-medium text-slate-500">/mo</span></div>
                                 <p className="text-slate-500 text-xs mb-6">For high-volume teams</p>
                                 <ul className="space-y-4 mb-8 text-slate-600 dark:text-slate-400 text-sm">
-                                    <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Property Views</li>
+                                    <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 10,000 Property Views</li>
                                     <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> 4 Companies • 2 Mgrs • 3 Agents</li>
                                     <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Unlimited Customizations</li>
                                     <li className="flex items-center gap-2"><span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span> Priority 24/7 Support</li>

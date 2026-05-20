@@ -222,7 +222,7 @@ const BillingPage: React.FC = () => {
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 2,000 property details views</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 1,000 property details views</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 1 Company · 0 Managers · 0 Agents</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties (Public/Private)</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Calendar, Auctions, Tasks & Exports</li>
@@ -261,7 +261,7 @@ const BillingPage: React.FC = () => {
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 5,000 property details views</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 2,000 property details views</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 2 Companies · 1 Manager · 1 Agent</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties (Public/Private)</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Community access, due diligence & exports</li>
@@ -303,7 +303,7 @@ const BillingPage: React.FC = () => {
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited property views</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 10,000 property views</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 4 Companies · 2 Managers · 3 Agents</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties (Public/Private)</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Priority exclusive 24/7 support</li>

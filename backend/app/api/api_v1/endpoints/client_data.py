@@ -65,7 +65,7 @@ class ClientAttachmentResponse(BaseModel):
     created_at: datetime
 
 class CustomPropertyCreate(BaseModel):
-    visibility: Optional[str] = "private"
+    visibility: Optional[str] = "public"
     parcel_id: Optional[str] = None
     address: Optional[str] = None
     city: Optional[str] = None
@@ -262,7 +262,8 @@ def create_custom_property(
 
     # Require company isolation for private properties
     if property_in.visibility == "private" and not current_user.active_company_id:
-        raise HTTPException(status_code=400, detail="User must belong to a company to create private custom properties.")
+        # Bypassed since we default to public/global visibility (company_id = None)
+        pass
 
     # Prevent Trial users from creating custom properties (public or private)
     from app.services.permission_service import PermissionService
@@ -386,6 +387,10 @@ def create_custom_property(
                 "status": "already_exists"
             }
 
+    # Synchronously resolve FIPS
+    from app.utils.fips_resolver import resolve_county_fips
+    resolved_fips = resolve_county_fips(property_in.state, property_in.county)
+
     # ── New Property — standard creation path ─────────────────────────────────
     prop_id = str(uuid.uuid4())
     new_prop = PropertyDetails(
@@ -394,6 +399,7 @@ def create_custom_property(
         address=full_address.strip(),
         state=property_in.state,
         county=property_in.county,
+        county_fips=resolved_fips,
         description=property_in.description,
         bedrooms=property_in.bedrooms,
         bathrooms=property_in.bathrooms,
@@ -411,7 +417,7 @@ def create_custom_property(
         legal_description=property_in.legal_description,
         zoning=property_in.zoning,
         num_units=property_in.num_units,
-        company_id=current_user.active_company_id if property_in.visibility == "private" else None,
+        company_id=None,
         created_by_user_id=current_user.id
     )
 

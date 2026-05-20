@@ -452,6 +452,57 @@ def enrich_property(db: Session, property_id: str) -> Dict[str, Any]:
             logger.error(f"Erro inesperado durante enriquecimento: {e}")
             return {"status": "error", "message": "Unexpected error during enrichment", "error": str(e)}
 
+    # Fallback to Address Search if APN search returned empty/no results
+    if not attom_data and "apn" in query_params and prop.address:
+        logger.info(f"APN Search returned empty for APN '{prop.parcel_id}' in county '{prop.county_fips}'. Trying Address Search fallback for '{prop.address}'...")
+        try:
+            import re
+            addr = prop.address.strip()
+            if len(addr) > 3:
+                match = re.search(r'^(.*?)\s+([A-Za-z]{2})(?:\s+(\d{5}(?:-\d{4})?))?$', addr)
+                if match:
+                    addr1 = match.group(1).strip()
+                    state_code = match.group(2).upper()
+                    zip_code = match.group(3) or ""
+                    addr2 = f"{state_code} {zip_code}".strip()
+                else:
+                    addr1 = addr
+                    addr2 = f"{prop.county or ''} {prop.state or ''}".strip()
+                
+                fallback_params = {
+                    "address1": addr1,
+                    "address2": addr2
+                }
+                
+                # Check cache first for this fallback address query
+                fallback_cache_key = None
+                if redis_client:
+                    full_address = f"{addr1} {addr2}".strip().lower()
+                    addr_hash = hashlib.md5(full_address.encode('utf-8')).hexdigest()
+                    fallback_cache_key = f"attom:property:addr:{addr_hash}"
+                    try:
+                        cached_fallback = redis_client.get(fallback_cache_key)
+                        if cached_fallback:
+                            logger.info(f"Cache hit for fallback address: {fallback_cache_key}")
+                            attom_data = json.loads(cached_fallback)
+                    except Exception as e:
+                        logger.error(f"Erro ao ler do Redis para fallback: {e}")
+                
+                if not attom_data:
+                    logger.info(f"Cache miss for fallback. Querying ATTOM with: {fallback_params}")
+                    attom_data = fetch_attom_data_sync(fallback_params)
+                    
+                    if redis_client and attom_data:
+                        try:
+                            # Save to both address cache and APN cache to avoid redundant API queries
+                            redis_client.setex(cache_key, CACHE_TTL_SECONDS, json.dumps(attom_data))
+                            if fallback_cache_key:
+                                redis_client.setex(fallback_cache_key, CACHE_TTL_SECONDS, json.dumps(attom_data))
+                        except Exception as e:
+                            logger.error(f"Erro ao gravar no Redis para fallback: {e}")
+        except Exception as e:
+            logger.error(f"Error during Address Search fallback: {e}")
+
     # 6. Mapeamento dos dados retornados e UPSERT
     if attom_data:
         update_data = map_attom_to_db(attom_data, prop, missing_fields)

@@ -1061,14 +1061,6 @@ const ClientLists: React.FC = () => {
                                         {isTrial && <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>}
                                     </div>
                                 </div>
-                                <div
-                                    onClick={() => { setViewMode('my_properties'); setSelectedListId(null); setSelectedStateName(null); setSelectedCountyName(null); }}
-                                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 
-                                        ${viewMode === 'my_properties' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
-                                >
-                                    <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_properties' ? 'text-white' : 'text-emerald-500'}`}>real_estate_agent</span>
-                                    <span className="flex-1 text-sm font-medium truncate">My Properties</span>
-                                </div>
                             </div>
                         </div>
 
