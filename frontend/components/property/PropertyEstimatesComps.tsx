@@ -304,38 +304,22 @@ export const PropertyEstimatesComps: React.FC<Props> = ({ property }) => {
                     {/* ARV Card */}
                     <button 
                         onClick={() => setArvOpen(true)}
-                        className="flex flex-col items-start p-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all text-left group h-full relative"
+                        className="flex flex-col items-start p-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all text-left group h-full"
                     >
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Estimated ARV</span>
                         <span className="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
                             {hasData ? `$${arvEstimate.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : 'N/A'}
-                        </span>
-                        <div className="mt-1 flex items-center gap-2">
-                            <ConfidenceBadge confidence={arvEstimate.confidence} />
-                        </div>
-                        <span className="text-xs text-slate-400 mt-auto pt-4 flex items-center gap-1">
-                            View Comp Logic <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                         </span>
                     </button>
 
                     {/* Rent Card */}
                     <button 
                         onClick={() => setRentOpen(true)}
-                        className="flex flex-col items-start p-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all text-left group h-full relative"
+                        className="flex flex-col items-start p-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all text-left group h-full"
                     >
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Estimated Rent</span>
                         <span className="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
                             {rentEstimate.monthlyRent > 0 ? `$${rentEstimate.monthlyRent.toLocaleString()}/mo` : 'N/A'}
-                        </span>
-                        <div className="mt-1 flex items-center gap-2">
-                            {rentEstimate.yieldPercentage > 0 && (
-                                <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">
-                                    {rentEstimate.yieldPercentage.toFixed(1)}% Yield
-                                </span>
-                            )}
-                        </div>
-                        <span className="text-xs text-slate-400 mt-auto pt-4 flex items-center gap-1">
-                            View Rent Report <span className="material-symbols-outlined text-[14px]">arrow_forward</span>
                         </span>
                     </button>
                 </div>
@@ -348,35 +332,92 @@ export const PropertyEstimatesComps: React.FC<Props> = ({ property }) => {
                             const ej: any = d.extended_owner_json || {};
                             const avm = ej.avm_snapshot || {};
                             const avmVal = d.estimated_value || avm.value;
+                            if (!avmVal) return null;
+
                             const avmLow = avm.low;
                             const avmHigh = avm.high;
                             const avmScore = avm.confidence_score;
                             const avmChange = avm.change_pct;
+                            const avmChangeAmt = avm.change_amount;
                             const pricePerSqft = avm.price_per_sqft;
-                            return avmVal ? (
-                                <div className="mb-4 p-3 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-100 dark:border-violet-800">
-                                    <div className="flex items-start justify-between gap-4 mb-1.5">
+                            const rangePct = avm.range_pct_of_value;
+                            const rangeSpread = avm.value_range;
+                            const lastMonthVal = avm.last_month_value;
+                            const valDate = avm.event_date;
+
+                            return (
+                                <div className="mb-6 p-5 rounded-2xl bg-gradient-to-br from-violet-50/80 to-indigo-50/30 dark:from-violet-950/20 dark:to-indigo-950/5 border border-violet-100/80 dark:border-violet-900/40 shadow-sm space-y-4">
+                                    <div className="flex items-start justify-between gap-4 border-b border-violet-100/50 dark:border-violet-900/20 pb-3">
                                         <div>
-                                            <p className="text-[10px] text-violet-500 uppercase font-black tracking-wider mb-0.5">Verified Market Value (AVM)</p>
-                                            <p className="text-xl font-black text-violet-700 dark:text-violet-300">${Math.round(avmVal).toLocaleString()}</p>
+                                            <p className="text-[10px] text-violet-600 dark:text-violet-400 uppercase font-black tracking-wider mb-0.5">Verified Market Value (AVM)</p>
+                                            <p className="text-2xl font-black text-violet-800 dark:text-violet-300">${Math.round(avmVal).toLocaleString()}</p>
                                         </div>
                                         <div className="text-right">
-                                            {avmScore && <span className="text-[9px] font-black uppercase bg-violet-100 dark:bg-violet-900/40 text-violet-600 px-2 py-0.5 rounded-full block mb-1">Score: {avmScore}/100</span>}
-                                            {avmChange !== undefined && avmChange !== null && (
-                                                <span className={`text-[10px] font-black ${avmChange >= 0 ? 'text-emerald-600' : 'text-rose-500'}`}>
-                                                    {avmChange >= 0 ? '▲' : '▼'} {Math.abs(avmChange)}% vs last mo.
+                                            {avmScore && (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-black uppercase bg-violet-100 dark:bg-violet-900/50 text-violet-700 dark:text-violet-300 px-2.5 py-1 rounded-full">
+                                                    <span className="material-symbols-outlined text-[12px]">verified</span>
+                                                    Confidence: {avmScore}/100
                                                 </span>
+                                            )}
+                                            {valDate && (
+                                                <p className="text-[9px] text-slate-400 mt-1.5 font-bold">Valuation Date: {new Date(valDate).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</p>
                                             )}
                                         </div>
                                     </div>
-                                    {(avmLow || avmHigh) && (
-                                        <p className="text-[10px] text-violet-400 mt-1">
-                                            Range: {avmLow ? `$${Math.round(avmLow).toLocaleString()}` : '?'} – {avmHigh ? `$${Math.round(avmHigh).toLocaleString()}` : '?'}
-                                            {pricePerSqft ? ` · $${pricePerSqft.toFixed(0)}/sqft` : ''}
-                                        </p>
-                                    )}
+
+                                    {/* AVM Detailed Stats Grid */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3.5 text-xs">
+                                        {/* Range */}
+                                        {(avmLow || avmHigh) && (
+                                            <div>
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-0.5">Valuation Range</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200">
+                                                    {avmLow ? `$${Math.round(avmLow).toLocaleString()}` : '?'} – {avmHigh ? `$${Math.round(avmHigh).toLocaleString()}` : '?'}
+                                                </span>
+                                            </div>
+                                        )}
+                                        {/* Price / SqFt */}
+                                        {pricePerSqft && (
+                                            <div>
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-0.5">Est. Price / SqFt</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200">${Number(pricePerSqft).toFixed(0)}/sqft</span>
+                                            </div>
+                                        )}
+                                        {/* Value Range Spread */}
+                                        {rangeSpread && (
+                                            <div>
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-0.5">Range Spread</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200">${Math.abs(rangeSpread).toLocaleString()}</span>
+                                            </div>
+                                        )}
+                                        {/* Range Pct of Value */}
+                                        {rangePct && (
+                                            <div>
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-0.5">Range Variance</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200">{rangePct}% of value</span>
+                                            </div>
+                                        )}
+                                        {/* Previous Month Value */}
+                                        {lastMonthVal && (
+                                            <div>
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-0.5">Previous Month</span>
+                                                <span className="font-bold text-slate-700 dark:text-slate-200">${Math.round(lastMonthVal).toLocaleString()}</span>
+                                            </div>
+                                        )}
+                                        {/* Volatility Change */}
+                                        {avmChange !== undefined && avmChange !== null && (
+                                            <div>
+                                                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 block mb-0.5">Monthly Volatility</span>
+                                                <span className={`font-bold inline-flex items-center gap-0.5 ${avmChange >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-500'}`}>
+                                                    <span className="material-symbols-outlined text-[14px]">{avmChange >= 0 ? 'trending_up' : 'trending_down'}</span>
+                                                    {avmChange >= 0 ? '+' : '-'}{Math.abs(avmChange)}% 
+                                                    {avmChangeAmt ? ` ($${Math.abs(avmChangeAmt).toLocaleString()})` : ''}
+                                                </span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
-                            ) : null;
+                            );
                         })()}
                         <div className="grid grid-cols-4 gap-4 text-center">
                             <div>

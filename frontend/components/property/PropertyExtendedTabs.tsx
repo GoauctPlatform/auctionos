@@ -354,43 +354,6 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
                     </div>
                 </div>
 
-                {/* AVM Snapshot Analytics */}
-                {ownerJson.avm_snapshot && (
-                    <div>
-                        <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[14px]">analytics</span>
-                            Automated Valuation Model (AVM) Analytics
-                        </h4>
-                        <div className="bg-violet-50/50 dark:bg-violet-900/10 rounded-xl p-4 border border-violet-100 dark:border-violet-800/50 space-y-3">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <span className="text-[9px] font-black uppercase tracking-wider text-violet-400 dark:text-violet-500">AVM Estimate</span>
-                                    <p className="text-lg font-black text-violet-700 dark:text-violet-300">{fmt(ownerJson.avm_snapshot.value) || '—'}</p>
-                                </div>
-                                <div className="text-right">
-                                    <span className="text-[9px] font-black uppercase tracking-wider text-violet-400 dark:text-violet-500">Confidence Score</span>
-                                    <p className="text-lg font-black text-violet-700 dark:text-violet-300">{ownerJson.avm_snapshot.confidence_score ? `${ownerJson.avm_snapshot.confidence_score}/100` : '—'}</p>
-                                </div>
-                            </div>
-                            <div className="border-t border-violet-100/50 dark:border-violet-800/30 pt-2 space-y-1">
-                                <DataRow label="Value Range" value={ownerJson.avm_snapshot.low && ownerJson.avm_snapshot.high ? `${fmt(ownerJson.avm_snapshot.low)} – ${fmt(ownerJson.avm_snapshot.high)}` : null} />
-                                <DataRow label="Price per SqFt" value={ownerJson.avm_snapshot.price_per_sqft ? `$${Number(ownerJson.avm_snapshot.price_per_sqft).toFixed(0)}` : null} />
-                                <DataRow label="Range Pct of Value" value={ownerJson.avm_snapshot.range_pct_of_value ? `${ownerJson.avm_snapshot.range_pct_of_value}%` : null} />
-                                <DataRow label="Value Range Spread" value={ownerJson.avm_snapshot.value_range ? fmt(Math.abs(ownerJson.avm_snapshot.value_range)) : null} />
-                                <DataRow label="Previous Month Value" value={fmt(ownerJson.avm_snapshot.last_month_value)} />
-                                <DataRow 
-                                    label="Monthly Change" 
-                                    value={
-                                        ownerJson.avm_snapshot.change_pct !== undefined && ownerJson.avm_snapshot.change_pct !== null
-                                            ? `${ownerJson.avm_snapshot.change_pct >= 0 ? '▲ +' : '▼ -'}${Math.abs(ownerJson.avm_snapshot.change_pct)}% (${fmt(Math.abs(ownerJson.avm_snapshot.change_amount || 0))})`
-                                            : null
-                                    } 
-                                />
-                                <DataRow label="Valuation Date" value={fmtDate(ownerJson.avm_snapshot.event_date)} />
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 {/* Mailing Address */}
                 <div>
