@@ -527,9 +527,28 @@ def enrich_property(db: Session, property_id: str) -> Dict[str, Any]:
         except Exception as ext_err:
             logger.error(f"Error during automatic extended enrichment: {ext_err}")
 
+    # Mark as processed to prevent future API calls on subsequent accesses
+    try:
+        prop.is_processed = True
+        db.add(prop)
+        db.commit()
+        db.refresh(prop)
+    except Exception as process_err:
+        logger.error(f"Error marking property as processed: {process_err}")
+
+    # Serialize all columns from PropertyDetails database model, converting dates/datetimes to ISO strings
+    from datetime import date
+    refreshed_fields = {}
+    for column in prop.__table__.columns:
+        val = getattr(prop, column.name)
+        if isinstance(val, (date, datetime)):
+            refreshed_fields[column.name] = val.isoformat()
+        else:
+            refreshed_fields[column.name] = val
+
     return {
         "status": "success",
-        "enriched_fields": update_data if 'update_data' in locals() else {},
+        "enriched_fields": refreshed_fields,
         "missing_fields_before": missing_fields,
         "property_id": property_id
     }

@@ -58,7 +58,7 @@ const PropertyDetails: React.FC = () => {
                 setProperty(data);
 
                 // Background Check: Auto-Enrich via ATTOM if crucial details are missing.
-                const checkMissing = !data.year_built || !data.bedrooms || !data.owner_name || !data.assessed_value;
+                const checkMissing = !data.is_processed;
                 if (checkMissing && data.property_id) {
                     AdminService.enrichProperty(data.property_id)
                         .then(res => {
@@ -292,7 +292,7 @@ const PropertyDetails: React.FC = () => {
                         </div>
                     )}
 
-                    <PropertyExtendedTabs property={property} onUpdate={(updated) => setProperty(updated)} />
+                    <PropertyExtendedTabs property={property} />
 
                     <div id="tour-property-maps" className="glass-card rounded-xl p-1 h-[400px] overflow-hidden mt-6">
                         <PropertyMap property={property} />

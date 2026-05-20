@@ -5,7 +5,6 @@ import { API_BASE_URL } from '../../services/httpClient';
 
 interface Props {
     property: Property;
-    onUpdate?: (updatedProperty: any) => void;
 }
 
 // ─── Shared sub-components ───────────────────────────────────────────────────
@@ -40,84 +39,22 @@ const fmtDate = (d: string | null | undefined) => {
 
 type Tab = 'structure' | 'parcel' | 'sales' | 'taxes' | 'permits' | 'owner';
 
-export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) => {
+export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
     const activeTabKey = `active_tab_${property.property_id}`;
-    const extTriggeredKey = `ext_triggered_${property.property_id}`;
 
     const [activeTab, setActiveTab] = useState<Tab>(() => {
         return (sessionStorage.getItem(activeTabKey) as Tab) || 'structure';
     });
-    const [extLoading, setExtLoading] = useState(false);
-    const [extTriggered, setExtTriggered] = useState(() => {
-        return sessionStorage.getItem(extTriggeredKey) === 'true';
-    });
-    const [syncing, setSyncing] = useState(false);
     const d = property.details || (property as any);
 
-    // Sync tabs and enrichment triggers if property changes
+    // Sync tabs if property changes
     useEffect(() => {
-        setExtTriggered(sessionStorage.getItem(extTriggeredKey) === 'true');
-        setExtLoading(false);
         setActiveTab((sessionStorage.getItem(activeTabKey) as Tab) || 'structure');
     }, [property.property_id]);
-
-    // Lazy-load extended ATTOM data once, when the user first clicks an extended tab
-    const extendedTabs: Tab[] = ['sales', 'taxes', 'permits', 'owner'];
-
-    const triggerExtendedEnrichment = async () => {
-        if (extTriggered || !property.property_id) return;
-        if (!d.attom_id) return; // no registry ID available yet
-        setExtTriggered(true);
-        sessionStorage.setItem(extTriggeredKey, 'true');
-        setExtLoading(true);
-        try {
-            await fetch(`${API_BASE_URL}/api/v1/properties/${property.property_id}/enrich-extended`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            // Automatically reload the page to cleanly render the newly acquired county records
-            setTimeout(() => {
-                window.location.reload();
-            }, 800);
-        } catch (e) {
-            console.debug('Extended enrichment fetch skipped:', e);
-        } finally {
-            setExtLoading(false);
-        }
-    };
-
-    const handleManualSync = async () => {
-        if (!property.property_id) return;
-        setSyncing(true);
-        sessionStorage.setItem(extTriggeredKey, 'true');
-        try {
-            await fetch(`${API_BASE_URL}/api/v1/properties/${property.property_id}/enrich-extended`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            // Automatically reload the page to cleanly render the newly acquired county records
-            setTimeout(() => {
-                window.location.reload();
-            }, 800);
-        } catch (e) {
-            console.error('Manual registry sync failed:', e);
-            alert('Failed to sync property registry records.');
-            setSyncing(false);
-        }
-    };
 
     const handleTabClick = (tab: Tab) => {
         setActiveTab(tab);
         sessionStorage.setItem(activeTabKey, tab);
-        if (extendedTabs.includes(tab)) {
-            triggerExtendedEnrichment();
-        }
     };
 
     const tabClass = (tab: Tab, color: string) =>
@@ -173,8 +110,6 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) =>
     // ── Sales History renderer ────────────────────────────────────────────────
     const renderSalesHistory = () => {
         const sales: any[] = d.sales_history_json || [];
-        if (extLoading) return <EmptyState icon="sync" message="Loading transfer history..." />;
-        if (!d.attom_id) return <EmptyState icon="lock" message="Registry ID required. Run basic enrichment first." />;
         if (sales.length === 0) return <EmptyState icon="history" message="No recorded sales or transfers found for this parcel." />;
 
         return (
@@ -206,8 +141,6 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) =>
     // ── Tax History renderer ──────────────────────────────────────────────────
     const renderTaxHistory = () => {
         const taxes: any[] = d.tax_history_json || [];
-        if (extLoading) return <EmptyState icon="sync" message="Loading assessment history..." />;
-        if (!d.attom_id) return <EmptyState icon="lock" message="Registry ID required. Run basic enrichment first." />;
         if (taxes.length === 0) return <EmptyState icon="receipt_long" message="No tax assessment history found." />;
 
         return (
@@ -240,8 +173,6 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) =>
     // ── Permits renderer ─────────────────────────────────────────────────────
     const renderPermits = () => {
         const permits: any[] = d.permits_json || [];
-        if (extLoading) return <EmptyState icon="sync" message="Loading permit records..." />;
-        if (!d.attom_id) return <EmptyState icon="lock" message="Registry ID required. Run basic enrichment first." />;
         if (permits.length === 0) return <EmptyState icon="construction" message="No building permits found for this parcel." />;
 
         return (
@@ -284,8 +215,7 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) =>
         const mailing = ownerJson.mailing_address || {};
 
         const hasData = o1.full_name || o2 || ownerJson.owner3 || ownerJson.owner4 || mailing.one_line || d.owner_name;
-        if (extLoading) return <EmptyState icon="sync" message="Loading owner profile..." />;
-        if (!hasData) return <EmptyState icon="person_search" message="Owner profile data not yet available. Trigger enrichment to load." />;
+        if (!hasData) return <EmptyState icon="person_search" message="Owner profile data not yet available." />;
 
         return (
             <div className="p-6 space-y-6">
@@ -442,33 +372,6 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) =>
 
     return (
         <div className="space-y-4 mt-6">
-            {/* Real-Time Registry Integration Banner */}
-            {property.property_id && d.attom_id && (
-                <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-slate-900/60 dark:to-slate-800/40 rounded-xl p-4 border border-violet-100/80 dark:border-violet-950/30 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all">
-                    <div className="flex items-start gap-3">
-                        <div className="p-2 bg-violet-100 dark:bg-violet-950/50 rounded-lg text-violet-600 dark:text-violet-400 mt-0.5">
-                            <span className="material-symbols-outlined text-[20px] block">verified_user</span>
-                        </div>
-                        <div>
-                            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                                Real-Time Property Registry Integration
-                            </h4>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5 max-w-2xl">
-                                Syncing verifies official registry records to retrieve the latest valuations, transactions, and building permits, automatically updating and refreshing all dashboard modules with real-time live data.
-                            </p>
-                        </div>
-                    </div>
-                    <button 
-                        onClick={handleManualSync}
-                        disabled={syncing}
-                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider bg-violet-600 hover:bg-violet-500 dark:bg-violet-600 dark:hover:bg-violet-500 text-white shadow-sm shadow-violet-500/10 hover:shadow-md transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
-                    >
-                        <span className={`material-symbols-outlined text-[16px] ${syncing ? 'animate-spin' : ''}`}>sync</span>
-                        {syncing ? 'Syncing...' : 'Sync Registry'}
-                    </button>
-                </div>
-            )}
-
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 {/* Tab Header */}
                 <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20 px-4 overflow-x-auto gap-4">

@@ -90,7 +90,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
             setError(null);
 
             // Background Check: Auto-Enrich via ATTOM if crucial details are missing
-            const checkMissing = !data.year_built || !data.bedrooms || !data.owner_name || !data.assessed_value;
+            const checkMissing = !data.is_processed;
             if (checkMissing && data.property_id) {
                 const token = localStorage.getItem('token');
                 fetch(`${API_BASE_URL}/api/v1/properties/${data.property_id}/enrich`, {
@@ -426,7 +426,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         </div>
                     </div>
 
-                    <PropertyExtendedTabs property={property} onUpdate={(updated) => setProperty(updated)} />
+                    <PropertyExtendedTabs property={property} />
 
                     <PropertyRedemptionCard stateCode={property.state} auctionType={property.auction_type} />
 
