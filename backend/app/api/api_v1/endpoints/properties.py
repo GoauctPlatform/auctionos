@@ -1299,11 +1299,16 @@ def reconcile_auction_properties(
     return result
 
 
+import logging
+from fastapi import BackgroundTasks
 from app.services.attom_enrichment import enrich_property, enrich_property_extended
+
+logger = logging.getLogger(__name__)
 
 @router.post("/{property_id}/enrich", response_model=dict)
 def enrich_property_endpoint(
     property_id: str,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ) -> Any:
@@ -1312,7 +1317,7 @@ def enrich_property_endpoint(
     Verifies missing fields, calls external data source, caches result, and persists to DB.
     """
     try:
-        result = enrich_property(db, property_id)
+        result = enrich_property(db, property_id, background_tasks=background_tasks)
         return result
     except Exception as e:
         logger.error(f"Erro no endpoint de enriquecimento para {property_id}: {e}")
