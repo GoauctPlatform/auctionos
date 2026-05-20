@@ -317,24 +317,11 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                                     onChange={(e) => handleChange('auction_name', e.target.value)}
                                 />
 
-                                <TextField
-                                    label="Added Since (Date)"
-                                    type="date"
-                                    size="small"
-                                    fullWidth
-                                    InputLabelProps={{ shrink: true }}
-                                    value={filters.added_since || ''}
-                                    onChange={(e) => handleChange('added_since', e.target.value)}
-                                />
-
-                                <TextField
-                                    label="Located Within (Miles)"
-                                    type="number"
-                                    size="small"
-                                    fullWidth
-                                    value={filters.located_within || ''}
-                                    onChange={(e) => handleChange('located_within', e.target.value)}
-                                />
+                                {/* 
+                                    TODO: Re-enable once backend API supports these filters
+                                    <TextField label="Added Since (Date)" ... />
+                                    <TextField label="Located Within (Miles)" ... /> 
+                                */}
 
                                 <FormControlLabel
                                     className="col-span-2"
