@@ -149,6 +149,7 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
                             {s.buyer_name && <p className="text-xs text-slate-600 dark:text-slate-400"><span className="font-black text-slate-400">Buyer: </span>{s.buyer_name}</p>}
                             {s.seller_name && <p className="text-xs text-slate-600 dark:text-slate-400"><span className="font-black text-slate-400">Seller: </span>{s.seller_name}</p>}
                             {s.deed_type && <p className="text-xs text-slate-600 dark:text-slate-400"><span className="font-black text-slate-400">Deed: </span>{s.deed_type}</p>}
+                            {s.recording_date && <p className="text-xs text-slate-600 dark:text-slate-400"><span className="font-black text-slate-400">Recorded: </span>{fmtDate(s.recording_date)}</p>}
                             {s.document_number && <p className="text-xs text-slate-600 dark:text-slate-400"><span className="font-black text-slate-400">Doc #: </span>{s.document_number}</p>}
                         </div>
                     </div>
@@ -237,7 +238,7 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
         const o2 = ownerJson.owner2;
         const mailing = ownerJson.mailing_address || {};
 
-        const hasData = o1.full_name || o2 || mailing.one_line || d.owner_name;
+        const hasData = o1.full_name || o2 || ownerJson.owner3 || ownerJson.owner4 || mailing.one_line || d.owner_name;
         if (extLoading) return <EmptyState icon="sync" message="Loading owner profile..." />;
         if (!hasData) return <EmptyState icon="person_search" message="Owner profile data not yet available. Trigger enrichment to load." />;
 
@@ -269,6 +270,124 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
                             <DataRow label="Full Name" value={o2.full_name} />
                             <DataRow label="First Name" value={o2.first_name} />
                             <DataRow label="Last Name" value={o2.last_name} />
+                        </div>
+                    </div>
+                )}
+
+                {/* Owner 3 */}
+                {ownerJson.owner3 && (
+                    <div>
+                        <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[14px]">group</span>
+                            Owner 3
+                        </h4>
+                        <div className="space-y-0.5">
+                            <DataRow label="Full Name" value={typeof ownerJson.owner3 === 'object' ? ownerJson.owner3.full_name : ownerJson.owner3} />
+                            {typeof ownerJson.owner3 === 'object' && (
+                                <>
+                                    <DataRow label="First Name" value={ownerJson.owner3.first_name} />
+                                    <DataRow label="Last Name" value={ownerJson.owner3.last_name} />
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Owner 4 */}
+                {ownerJson.owner4 && (
+                    <div>
+                        <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[14px]">group</span>
+                            Owner 4
+                        </h4>
+                        <div className="space-y-0.5">
+                            <DataRow label="Full Name" value={typeof ownerJson.owner4 === 'object' ? ownerJson.owner4.full_name : ownerJson.owner4} />
+                            {typeof ownerJson.owner4 === 'object' && (
+                                <>
+                                    <DataRow label="First Name" value={ownerJson.owner4.first_name} />
+                                    <DataRow label="Last Name" value={ownerJson.owner4.last_name} />
+                                </>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Skip Tracing & Marketing Intelligence */}
+                <div>
+                    <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                        <span className="material-symbols-outlined text-[14px]">psychology</span>
+                        Skip Tracing & Marketing Intelligence
+                    </h4>
+                    <div className="space-y-0.5">
+                        <DataRow label="County Name" value={ownerJson.county_name} />
+                        <DataRow label="Subdivision" value={ownerJson.subdivision || d.subdivision} />
+                        <DataRow label="Municipality" value={ownerJson.municipality} />
+                        <DataRow label="Property Type" value={ownerJson.property_type} />
+                        <DataRow label="Property Class" value={ownerJson.property_class} />
+                        <DataRow label="Property Subtype" value={ownerJson.property_subtype} />
+                        <DataRow 
+                            label="Absentee Owner Status" 
+                            value={
+                                ownerJson.absentee_owner_status === 'A' || ownerJson.absentee_indicator === 'ABSENTEE'
+                                    ? 'Absentee Owner (High Lead Priority)' 
+                                    : ownerJson.absentee_owner_status === 'O' 
+                                    ? 'Owner Occupied' 
+                                    : ownerJson.absentee_owner_status === 'U'
+                                    ? 'Unknown'
+                                    : ownerJson.absentee_indicator || null
+                            } 
+                        />
+                        <DataRow label="Absentee Type" value={ownerJson.absentee_indicator} />
+                        <DataRow 
+                            label="Corporate Indicator" 
+                            value={
+                                ownerJson.corporate_indicator === 'Y' || ownerJson.corporate_indicator === true 
+                                    ? 'Yes — Corporate Owned' 
+                                    : ownerJson.corporate_indicator === 'N' || ownerJson.corporate_indicator === false 
+                                    ? 'No — Individual Owned' 
+                                    : null
+                            } 
+                        />
+                        <DataRow label="Tax Code Area" value={ownerJson.tax_code_area} />
+                        <DataRow label="Municipality Code" value={ownerJson.municipality_code} />
+                        <DataRow label="County Land Use Code" value={ownerJson.county_land_use_code} />
+                    </div>
+                </div>
+
+                {/* AVM Snapshot Analytics */}
+                {ownerJson.avm_snapshot && (
+                    <div>
+                        <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-[14px]">analytics</span>
+                            Automated Valuation Model (AVM) Analytics
+                        </h4>
+                        <div className="bg-violet-50/50 dark:bg-violet-900/10 rounded-xl p-4 border border-violet-100 dark:border-violet-800/50 space-y-3">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <span className="text-[9px] font-black uppercase tracking-wider text-violet-400 dark:text-violet-500">AVM Estimate</span>
+                                    <p className="text-lg font-black text-violet-700 dark:text-violet-300">{fmt(ownerJson.avm_snapshot.value) || '—'}</p>
+                                </div>
+                                <div className="text-right">
+                                    <span className="text-[9px] font-black uppercase tracking-wider text-violet-400 dark:text-violet-500">Confidence Score</span>
+                                    <p className="text-lg font-black text-violet-700 dark:text-violet-300">{ownerJson.avm_snapshot.confidence_score ? `${ownerJson.avm_snapshot.confidence_score}/100` : '—'}</p>
+                                </div>
+                            </div>
+                            <div className="border-t border-violet-100/50 dark:border-violet-800/30 pt-2 space-y-1">
+                                <DataRow label="Value Range" value={ownerJson.avm_snapshot.low && ownerJson.avm_snapshot.high ? `${fmt(ownerJson.avm_snapshot.low)} – ${fmt(ownerJson.avm_snapshot.high)}` : null} />
+                                <DataRow label="Price per SqFt" value={ownerJson.avm_snapshot.price_per_sqft ? `$${Number(ownerJson.avm_snapshot.price_per_sqft).toFixed(0)}` : null} />
+                                <DataRow label="Range Pct of Value" value={ownerJson.avm_snapshot.range_pct_of_value ? `${ownerJson.avm_snapshot.range_pct_of_value}%` : null} />
+                                <DataRow label="Value Range Spread" value={ownerJson.avm_snapshot.value_range ? fmt(Math.abs(ownerJson.avm_snapshot.value_range)) : null} />
+                                <DataRow label="Previous Month Value" value={fmt(ownerJson.avm_snapshot.last_month_value)} />
+                                <DataRow 
+                                    label="Monthly Change" 
+                                    value={
+                                        ownerJson.avm_snapshot.change_pct !== undefined && ownerJson.avm_snapshot.change_pct !== null
+                                            ? `${ownerJson.avm_snapshot.change_pct >= 0 ? '▲ +' : '▼ -'}${Math.abs(ownerJson.avm_snapshot.change_pct)}% (${fmt(Math.abs(ownerJson.avm_snapshot.change_amount || 0))})`
+                                            : null
+                                    } 
+                                />
+                                <DataRow label="Valuation Date" value={fmtDate(ownerJson.avm_snapshot.event_date)} />
+                            </div>
                         </div>
                     </div>
                 )}
