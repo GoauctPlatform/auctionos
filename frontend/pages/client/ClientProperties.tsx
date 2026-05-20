@@ -189,7 +189,6 @@ const ClientProperties: React.FC = () => {
                             getOptionLabel={(option) => option}
                             value={selectedCounty}
                             onChange={(_, newValue) => setSelectedCounty(newValue)}
-                            disabled={!selectedState}
                             renderInput={(params) => (
                                 <TextField {...params} variant="outlined" size="small" label="Select County *" className="bg-white dark:bg-slate-800 rounded-lg" />
                             )}
