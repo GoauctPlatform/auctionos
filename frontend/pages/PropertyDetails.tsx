@@ -292,7 +292,7 @@ const PropertyDetails: React.FC = () => {
                         </div>
                     )}
 
-                    <PropertyExtendedTabs property={property} />
+                    <PropertyExtendedTabs property={property} onUpdate={(updated) => setProperty(updated)} />
 
                     <div id="tour-property-maps" className="glass-card rounded-xl p-1 h-[400px] overflow-hidden mt-6">
                         <PropertyMap property={property} />

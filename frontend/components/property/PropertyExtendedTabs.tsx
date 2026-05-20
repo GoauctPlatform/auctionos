@@ -5,6 +5,7 @@ import { API_BASE_URL } from '../../services/httpClient';
 
 interface Props {
     property: Property;
+    onUpdate?: (updatedProperty: any) => void;
 }
 
 // ─── Shared sub-components ───────────────────────────────────────────────────
@@ -39,15 +40,40 @@ const fmtDate = (d: string | null | undefined) => {
 
 type Tab = 'structure' | 'parcel' | 'sales' | 'taxes' | 'permits' | 'owner';
 
-export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
+export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) => {
     const [activeTab, setActiveTab] = useState<Tab>('structure');
     const [extLoading, setExtLoading] = useState(false);
     const [extTriggered, setExtTriggered] = useState(false);
     const [syncing, setSyncing] = useState(false);
     const d = property.details || (property as any);
 
+    // Reset tabs and enrichment triggers if property changes
+    useEffect(() => {
+        setExtTriggered(false);
+        setExtLoading(false);
+        setActiveTab('structure');
+    }, [property.property_id]);
+
     // Lazy-load extended ATTOM data once, when the user first clicks an extended tab
     const extendedTabs: Tab[] = ['sales', 'taxes', 'permits', 'owner'];
+
+    const fetchUpdatedProperty = async () => {
+        if (!property.property_id || !onUpdate) return;
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/v1/properties/${property.property_id}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (response.ok) {
+                const updated = await response.json();
+                onUpdate(updated);
+            }
+        } catch (err) {
+            console.error('Failed to fetch updated property:', err);
+        }
+    };
 
     const triggerExtendedEnrichment = async () => {
         if (extTriggered || !property.property_id) return;
@@ -62,10 +88,8 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
                     'Content-Type': 'application/json',
                 },
             });
-            // Automatically reload the page to cleanly render the newly acquired county records
-            setTimeout(() => {
-                window.location.reload();
-            }, 800);
+            // Fetch updated property data asynchronously to update state instead of refreshing the browser
+            await fetchUpdatedProperty();
         } catch (e) {
             console.debug('Extended enrichment fetch skipped:', e);
         } finally {
@@ -84,13 +108,12 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
                     'Content-Type': 'application/json',
                 },
             });
-            // Brief timeout to ensure database transactional commits have fully processed
-            setTimeout(() => {
-                window.location.reload();
-            }, 800);
+            // Fetch updated property data asynchronously to update state instead of refreshing the browser
+            await fetchUpdatedProperty();
         } catch (e) {
             console.error('Manual registry sync failed:', e);
             alert('Failed to sync property registry records.');
+        } finally {
             setSyncing(false);
         }
     };

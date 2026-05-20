@@ -426,7 +426,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         </div>
                     </div>
 
-                    <PropertyExtendedTabs property={property} />
+                    <PropertyExtendedTabs property={property} onUpdate={(updated) => setProperty(updated)} />
 
                     <PropertyRedemptionCard stateCode={property.state} auctionType={property.auction_type} />
 
