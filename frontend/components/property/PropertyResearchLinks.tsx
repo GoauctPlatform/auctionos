@@ -12,6 +12,12 @@ export const PropertyResearchLinks: React.FC<Props> = ({ property }) => {
     const fullQuery = encodeURIComponent(`${property.address || property.parcel_address || ''} ${property.city || ''} ${property.state || ''}`);
     const ownerNameFallback = property.owner_name || property.details?.owner_name || '';
 
+    // Advanced Formatting Variables for robust linking
+    const cityFormatted = property.city ? property.city.replace(/ /g, '_') : '';
+    const cityStateQuery = property.city && property.state ? `${cityFormatted}_${property.state}` : property.city || '';
+    const nsCity = property.city ? property.city.toLowerCase().replace(/ /g, '-') : '';
+    const nsState = property.state ? property.state.toLowerCase() : '';
+
     const categories = [
         {
             title: 'Official Auction Portal',
@@ -50,26 +56,26 @@ export const PropertyResearchLinks: React.FC<Props> = ({ property }) => {
                 { label: 'Regrid Property Map', url: `https://app.regrid.com/us?q=${fullQuery}` },
                 { label: 'EPA EnviroFacts', url: `https://www.epa.gov/enviro/myenvironment` },
                 { label: 'FEMA Flood Maps', url: `https://msc.fema.gov/portal/search?AddressQuery=${encodeURIComponent(property.address || '')}` },
-                { label: 'Google Earth', url: `https://earth.google.com/web/search/${addressQuery}` }
+                { label: 'Google Earth', url: `https://earth.google.com/web/search/${fullQuery}` }
             ]
         },
         {
             title: 'Comparables',
             icon: 'compare_arrows',
             links: [
-                { label: 'Realtor.com Comps', url: `https://www.realtor.com/realestateandhomes-search/${encodeURIComponent(property.zip_code || property.city || '')}` },
-                { label: 'Redfin Estimator', url: property.redfin_url || `https://www.redfin.com/city/${encodeURIComponent(property.city || '')}/${property.state}` },
-                { label: 'Trulia Local Comps', url: `https://www.trulia.com/${property.state}/${encodeURIComponent(property.city || '')}/` },
-                { label: 'Zillow Recently Sold', url: `https://www.zillow.com/homes/${encodeURIComponent(property.zip_code || property.city || '')}_rb/` }
+                { label: 'Realtor.com Comps', url: `https://www.realtor.com/realestateandhomes-search/${encodeURIComponent(property.zip_code || cityStateQuery)}/show-recently-sold` },
+                { label: 'Redfin Estimator', url: property.redfin_url || (property.zip_code ? `https://www.redfin.com/zipcode/${property.zip_code}` : `https://www.redfin.com/city/${encodeURIComponent(property.city || '')}/${property.state}`) },
+                { label: 'Trulia Local Comps', url: `https://www.trulia.com/${property.state}/${encodeURIComponent(cityFormatted)}/` },
+                { label: 'Zillow Recently Sold', url: `https://www.zillow.com/homes/recently_sold/${encodeURIComponent(property.zip_code || cityStateQuery)}_rb/` }
             ]
         },
         {
             title: 'Local Market',
             icon: 'trending_up',
             links: [
-                { label: 'Market Overview', url: `https://www.realtor.com/realestateandhomes-search/${encodeURIComponent(property.zip_code || property.city || '')}/overview` },
+                { label: 'Market Overview', url: `https://www.realtor.com/realestateandhomes-search/${encodeURIComponent(property.zip_code || cityStateQuery)}/overview` },
                 { label: 'Redfin Insights', url: `https://www.redfin.com/city/${encodeURIComponent(property.city || '')}/${property.state}/housing-market` },
-                { label: 'Neighborhood Scout', url: `https://www.neighborhoodscout.com/${property.state}/${encodeURIComponent(property.city || '')}/rates` },
+                { label: 'Neighborhood Scout', url: `https://www.neighborhoodscout.com/${nsState}/${encodeURIComponent(nsCity)}` },
                 { label: 'Local News Crime', url: `https://www.google.com/search?q=${encodeURIComponent(property.city || '')}+${property.state}+crime+rates` }
             ]
         }
