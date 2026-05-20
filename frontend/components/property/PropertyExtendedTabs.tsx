@@ -90,7 +90,7 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
             }, 800);
         } catch (e) {
             console.error('Manual registry sync failed:', e);
-            alert('Falha ao sincronizar registro da propriedade.');
+            alert('Failed to sync property registry records.');
             setSyncing(false);
         }
     };
@@ -454,7 +454,7 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
                         className="flex items-center gap-1.5 px-3 py-1.5 my-2 rounded-lg text-[10px] font-black uppercase tracking-wider bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/50 text-violet-600 dark:text-violet-400 border border-violet-100 dark:border-violet-900/30 transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
                     >
                         <span className={`material-symbols-outlined text-[15px] ${syncing ? 'animate-spin' : ''}`}>sync</span>
-                        {syncing ? 'Sincronizando...' : 'Sincronizar Registro'}
+                        {syncing ? 'Syncing...' : 'Sync Registry'}
                     </button>
                 )}
             </div>
