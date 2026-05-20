@@ -28,6 +28,7 @@ import { PropertyInventoryHistory } from '../../components/property/PropertyInve
 import { PropertyFinancialsModal } from '../../components/property/PropertyFinancialsModal';
 import { PropertyMetadataModal } from '../../components/property/PropertyMetadataModal';
 import { PropertyExtendedTabs } from '../../components/property/PropertyExtendedTabs';
+import { PropertyOwnerCard } from '../../components/property/PropertyOwnerCard';
 import { useCompany } from '../../context/CompanyContext';
 import { CreateTaskForm } from '../../components/property/CreateTaskForm';
 import { useTour } from '../../context/TourContext';
@@ -258,7 +259,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         }
     };
 
-    const ownerNameFallback = property.owner_address ? property.owner_address.split('\n')[0] : 'UNKNOWN OWNER';
+    const ownerNameFallback = property.owner_name || (property.owner_address ? property.owner_address.split('\n')[0] : 'UNKNOWN OWNER');
 
     /** Merges saved overrides into local state without a full page reload. */
     const handleOverrideSaved = (savedFields: Record<string, any>) => {
@@ -453,6 +454,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
                 {/* Sidebar Column (Right) */}
                 <div className="space-y-8 mt-0">
+                    <PropertyOwnerCard property={property} />
                     <div id="tour-property-research-links">
                         <PropertyResearchLinks property={property} />
                     </div>

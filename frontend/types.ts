@@ -304,6 +304,10 @@ export interface PropertyDetails {
   other_rooms?: any;
   amenities?: any;
   flooring_types?: string[];
+  sales_history_json?: any[];
+  tax_history_json?: any[];
+  permits_json?: any[];
+  extended_owner_json?: any;
   // ========================== //
 
   // Runtime client data
