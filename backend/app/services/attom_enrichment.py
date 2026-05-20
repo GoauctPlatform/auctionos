@@ -518,6 +518,15 @@ def enrich_property(db: Session, property_id: str) -> Dict[str, Any]:
         else:
             logger.info("ATTOM não retornou dados relevantes adicionais.")
 
+    # Automatically trigger extended enrichment if attom_id is resolved or available
+    if prop.attom_id:
+        try:
+            logger.info(f"Triggering automatic extended enrichment for property {property_id} with attom_id {prop.attom_id}...")
+            enrich_property_extended(db, property_id)
+            db.refresh(prop)
+        except Exception as ext_err:
+            logger.error(f"Error during automatic extended enrichment: {ext_err}")
+
     return {
         "status": "success",
         "enriched_fields": update_data if 'update_data' in locals() else {},
