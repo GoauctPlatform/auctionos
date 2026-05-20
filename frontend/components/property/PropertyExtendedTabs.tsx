@@ -43,6 +43,7 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
     const [activeTab, setActiveTab] = useState<Tab>('structure');
     const [extLoading, setExtLoading] = useState(false);
     const [extTriggered, setExtTriggered] = useState(false);
+    const [syncing, setSyncing] = useState(false);
     const d = property.details || (property as any);
 
     // Lazy-load extended ATTOM data once, when the user first clicks an extended tab
@@ -61,10 +62,36 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
                     'Content-Type': 'application/json',
                 },
             });
+            // Automatically reload the page to cleanly render the newly acquired county records
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
         } catch (e) {
             console.debug('Extended enrichment fetch skipped:', e);
         } finally {
             setExtLoading(false);
+        }
+    };
+
+    const handleManualSync = async () => {
+        if (!property.property_id) return;
+        setSyncing(true);
+        try {
+            await fetch(`${API_BASE_URL}/api/v1/properties/${property.property_id}/enrich-extended`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            // Brief timeout to ensure database transactional commits have fully processed
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
+        } catch (e) {
+            console.error('Manual registry sync failed:', e);
+            alert('Falha ao sincronizar registro da propriedade.');
+            setSyncing(false);
         }
     };
 
@@ -398,25 +425,38 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property }) => {
     return (
         <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mt-6">
             {/* Tab Header */}
-            <div className="flex border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20 overflow-x-auto">
-                <button onClick={() => handleTabClick('structure')} className={tabClass('structure', 'blue')}>
-                    <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">architecture</span>Structure</span>
-                </button>
-                <button onClick={() => handleTabClick('parcel')} className={tabClass('parcel', 'emerald')}>
-                    <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">landscape</span>Parcel</span>
-                </button>
-                <button onClick={() => handleTabClick('sales')} className={tabClass('sales', 'violet')}>
-                    <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">swap_horiz</span>Sales</span>
-                </button>
-                <button onClick={() => handleTabClick('taxes')} className={tabClass('taxes', 'amber')}>
-                    <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">receipt_long</span>Taxes</span>
-                </button>
-                <button onClick={() => handleTabClick('permits')} className={tabClass('permits', 'rose')}>
-                    <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">construction</span>Permits</span>
-                </button>
-                <button onClick={() => handleTabClick('owner')} className={tabClass('owner', 'indigo')}>
-                    <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">person_search</span>Owner</span>
-                </button>
+            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20 px-4 overflow-x-auto gap-4">
+                <div className="flex flex-1 overflow-x-auto">
+                    <button onClick={() => handleTabClick('structure')} className={tabClass('structure', 'blue')}>
+                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">architecture</span>Structure</span>
+                    </button>
+                    <button onClick={() => handleTabClick('parcel')} className={tabClass('parcel', 'emerald')}>
+                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">landscape</span>Parcel</span>
+                    </button>
+                    <button onClick={() => handleTabClick('sales')} className={tabClass('sales', 'violet')}>
+                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">swap_horiz</span>Sales</span>
+                    </button>
+                    <button onClick={() => handleTabClick('taxes')} className={tabClass('taxes', 'amber')}>
+                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">receipt_long</span>Taxes</span>
+                    </button>
+                    <button onClick={() => handleTabClick('permits')} className={tabClass('permits', 'rose')}>
+                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">construction</span>Permits</span>
+                    </button>
+                    <button onClick={() => handleTabClick('owner')} className={tabClass('owner', 'indigo')}>
+                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">person_search</span>Owner</span>
+                    </button>
+                </div>
+
+                {property.property_id && d.attom_id && (
+                    <button 
+                        onClick={handleManualSync}
+                        disabled={syncing}
+                        className="flex items-center gap-1.5 px-3 py-1.5 my-2 rounded-lg text-[10px] font-black uppercase tracking-wider bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/50 text-violet-600 dark:text-violet-400 border border-violet-100 dark:border-violet-900/30 transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+                    >
+                        <span className={`material-symbols-outlined text-[15px] ${syncing ? 'animate-spin' : ''}`}>sync</span>
+                        {syncing ? 'Sincronizando...' : 'Sincronizar Registro'}
+                    </button>
+                )}
             </div>
 
             {/* Tab Content */}
