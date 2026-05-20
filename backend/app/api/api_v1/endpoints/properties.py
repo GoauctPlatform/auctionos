@@ -223,7 +223,7 @@ def read_properties(
             p.amount_due, 
             p.assessed_value,
             COALESCE(pah.auction_date, p.next_auction_date) as auction_date, 
-            TO_CHAR(p.next_auction_date, 'MM/DD/YYYY') as auction_name,
+            COALESCE(pah.auction_name, ae_lookup.name, TO_CHAR(COALESCE(pah.auction_date, p.next_auction_date), 'MM/DD/YYYY')) as auction_name,
             p.cs_number,
             p.account_number,
             p.owner_address,
@@ -257,7 +257,7 @@ def read_properties(
             p.map_link,
             COALESCE(ps.deal_score, NULL) as deal_score,
             COALESCE(ps.rating, NULL) as deal_rating,
-            p.property_category,
+            COALESCE(pah.listed_as, ae_lookup.tax_status, p.property_category) as property_category,
             p.market_land_value,
             p.market_improvement_value,
             p.owner_occupied
