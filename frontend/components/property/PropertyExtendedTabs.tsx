@@ -41,44 +41,34 @@ const fmtDate = (d: string | null | undefined) => {
 type Tab = 'structure' | 'parcel' | 'sales' | 'taxes' | 'permits' | 'owner';
 
 export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) => {
-    const [activeTab, setActiveTab] = useState<Tab>('structure');
+    const activeTabKey = `active_tab_${property.property_id}`;
+    const extTriggeredKey = `ext_triggered_${property.property_id}`;
+
+    const [activeTab, setActiveTab] = useState<Tab>(() => {
+        return (sessionStorage.getItem(activeTabKey) as Tab) || 'structure';
+    });
     const [extLoading, setExtLoading] = useState(false);
-    const [extTriggered, setExtTriggered] = useState(false);
+    const [extTriggered, setExtTriggered] = useState(() => {
+        return sessionStorage.getItem(extTriggeredKey) === 'true';
+    });
     const [syncing, setSyncing] = useState(false);
     const d = property.details || (property as any);
 
-    // Reset tabs and enrichment triggers if property changes
+    // Sync tabs and enrichment triggers if property changes
     useEffect(() => {
-        setExtTriggered(false);
+        setExtTriggered(sessionStorage.getItem(extTriggeredKey) === 'true');
         setExtLoading(false);
-        setActiveTab('structure');
+        setActiveTab((sessionStorage.getItem(activeTabKey) as Tab) || 'structure');
     }, [property.property_id]);
 
     // Lazy-load extended ATTOM data once, when the user first clicks an extended tab
     const extendedTabs: Tab[] = ['sales', 'taxes', 'permits', 'owner'];
 
-    const fetchUpdatedProperty = async () => {
-        if (!property.property_id || !onUpdate) return;
-        try {
-            const response = await fetch(`${API_BASE_URL}/api/v1/properties/${property.property_id}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    'Content-Type': 'application/json',
-                },
-            });
-            if (response.ok) {
-                const updated = await response.json();
-                onUpdate(updated);
-            }
-        } catch (err) {
-            console.error('Failed to fetch updated property:', err);
-        }
-    };
-
     const triggerExtendedEnrichment = async () => {
         if (extTriggered || !property.property_id) return;
         if (!d.attom_id) return; // no registry ID available yet
         setExtTriggered(true);
+        sessionStorage.setItem(extTriggeredKey, 'true');
         setExtLoading(true);
         try {
             await fetch(`${API_BASE_URL}/api/v1/properties/${property.property_id}/enrich-extended`, {
@@ -88,8 +78,10 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) =>
                     'Content-Type': 'application/json',
                 },
             });
-            // Fetch updated property data asynchronously to update state instead of refreshing the browser
-            await fetchUpdatedProperty();
+            // Automatically reload the page to cleanly render the newly acquired county records
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
         } catch (e) {
             console.debug('Extended enrichment fetch skipped:', e);
         } finally {
@@ -100,6 +92,7 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) =>
     const handleManualSync = async () => {
         if (!property.property_id) return;
         setSyncing(true);
+        sessionStorage.setItem(extTriggeredKey, 'true');
         try {
             await fetch(`${API_BASE_URL}/api/v1/properties/${property.property_id}/enrich-extended`, {
                 method: 'POST',
@@ -108,18 +101,20 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) =>
                     'Content-Type': 'application/json',
                 },
             });
-            // Fetch updated property data asynchronously to update state instead of refreshing the browser
-            await fetchUpdatedProperty();
+            // Automatically reload the page to cleanly render the newly acquired county records
+            setTimeout(() => {
+                window.location.reload();
+            }, 800);
         } catch (e) {
             console.error('Manual registry sync failed:', e);
             alert('Failed to sync property registry records.');
-        } finally {
             setSyncing(false);
         }
     };
 
     const handleTabClick = (tab: Tab) => {
         setActiveTab(tab);
+        sessionStorage.setItem(activeTabKey, tab);
         if (extendedTabs.includes(tab)) {
             triggerExtendedEnrichment();
         }
@@ -446,70 +441,88 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) =>
     };
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mt-6">
-            {/* Tab Header */}
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20 px-4 overflow-x-auto gap-4">
-                <div className="flex flex-1 overflow-x-auto">
-                    <button onClick={() => handleTabClick('structure')} className={tabClass('structure', 'blue')}>
-                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">architecture</span>Structure</span>
-                    </button>
-                    <button onClick={() => handleTabClick('parcel')} className={tabClass('parcel', 'emerald')}>
-                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">landscape</span>Parcel</span>
-                    </button>
-                    <button onClick={() => handleTabClick('sales')} className={tabClass('sales', 'violet')}>
-                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">swap_horiz</span>Sales</span>
-                    </button>
-                    <button onClick={() => handleTabClick('taxes')} className={tabClass('taxes', 'amber')}>
-                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">receipt_long</span>Taxes</span>
-                    </button>
-                    <button onClick={() => handleTabClick('permits')} className={tabClass('permits', 'rose')}>
-                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">construction</span>Permits</span>
-                    </button>
-                    <button onClick={() => handleTabClick('owner')} className={tabClass('owner', 'indigo')}>
-                        <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">person_search</span>Owner</span>
-                    </button>
-                </div>
-
-                {property.property_id && d.attom_id && (
+        <div className="space-y-4 mt-6">
+            {/* Real-Time Registry Integration Banner */}
+            {property.property_id && d.attom_id && (
+                <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-slate-900/60 dark:to-slate-800/40 rounded-xl p-4 border border-violet-100/80 dark:border-violet-950/30 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all">
+                    <div className="flex items-start gap-3">
+                        <div className="p-2 bg-violet-100 dark:bg-violet-950/50 rounded-lg text-violet-600 dark:text-violet-400 mt-0.5">
+                            <span className="material-symbols-outlined text-[20px] block">verified_user</span>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                                Real-Time Property Registry Integration
+                            </h4>
+                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5 max-w-2xl">
+                                Syncing verifies official registry records to retrieve the latest valuations, transactions, and building permits, automatically updating and refreshing all dashboard modules with real-time live data.
+                            </p>
+                        </div>
+                    </div>
                     <button 
                         onClick={handleManualSync}
                         disabled={syncing}
-                        className="flex items-center gap-1.5 px-3 py-1.5 my-2 rounded-lg text-[10px] font-black uppercase tracking-wider bg-violet-50 hover:bg-violet-100 dark:bg-violet-950/40 dark:hover:bg-violet-900/50 text-violet-600 dark:text-violet-400 border border-violet-100 dark:border-violet-900/30 transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
+                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider bg-violet-600 hover:bg-violet-500 dark:bg-violet-600 dark:hover:bg-violet-500 text-white shadow-sm shadow-violet-500/10 hover:shadow-md transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
                     >
-                        <span className={`material-symbols-outlined text-[15px] ${syncing ? 'animate-spin' : ''}`}>sync</span>
+                        <span className={`material-symbols-outlined text-[16px] ${syncing ? 'animate-spin' : ''}`}>sync</span>
                         {syncing ? 'Syncing...' : 'Sync Registry'}
                     </button>
-                )}
-            </div>
+                </div>
+            )}
 
-            {/* Tab Content */}
-            <div>
-                {activeTab === 'structure' && (
-                    <PropertyStructureCard property={property} isTabContent={true} />
-                )}
-
-                {activeTab === 'parcel' && (
-                    <div className="p-6">
-                        <div className="space-y-0.5">
-                            <DataRow label="Legal Description" value={d.legal_description} />
-                            <DataRow label="Land Use (Std Category)" value={d.standardized_land_use_category} />
-                            <DataRow label="Land Use (Std Type)" value={d.standardized_land_use_type} />
-                            <DataRow label="County Land Use Code" value={d.county_land_use_code} />
-                            <DataRow label="County Land Use Desc" value={d.county_land_use_description} />
-                            <DataRow label="Subdivision / Tract" value={d.subdivision} />
-                            <DataRow label="Lot Number" value={d.lot_number} />
-                            <DataRow label="Municipality" value={d.municipality} />
-                            <DataRow label="Township / Range" value={d.section_township_range} />
-                            <DataRow label="Zoning" value={d.zoning || property.zoning} />
-                        </div>
-                        {renderAmenities()}
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+                {/* Tab Header */}
+                <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20 px-4 overflow-x-auto gap-4">
+                    <div className="flex flex-1 overflow-x-auto">
+                        <button onClick={() => handleTabClick('structure')} className={tabClass('structure', 'blue')}>
+                            <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">architecture</span>Structure</span>
+                        </button>
+                        <button onClick={() => handleTabClick('parcel')} className={tabClass('parcel', 'emerald')}>
+                            <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">landscape</span>Parcel</span>
+                        </button>
+                        <button onClick={() => handleTabClick('sales')} className={tabClass('sales', 'violet')}>
+                            <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">swap_horiz</span>Sales</span>
+                        </button>
+                        <button onClick={() => handleTabClick('taxes')} className={tabClass('taxes', 'amber')}>
+                            <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">receipt_long</span>Taxes</span>
+                        </button>
+                        <button onClick={() => handleTabClick('permits')} className={tabClass('permits', 'rose')}>
+                            <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">construction</span>Permits</span>
+                        </button>
+                        <button onClick={() => handleTabClick('owner')} className={tabClass('owner', 'indigo')}>
+                            <span className="flex items-center justify-center gap-1"><span className="material-symbols-outlined text-[14px]">person_search</span>Owner</span>
+                        </button>
                     </div>
-                )}
+                </div>
 
-                {activeTab === 'sales' && renderSalesHistory()}
-                {activeTab === 'taxes' && renderTaxHistory()}
-                {activeTab === 'permits' && renderPermits()}
-                {activeTab === 'owner' && renderOwnerProfile()}
+                {/* Tab Content */}
+                <div>
+                    {activeTab === 'structure' && (
+                        <PropertyStructureCard property={property} isTabContent={true} />
+                    )}
+
+                    {activeTab === 'parcel' && (
+                        <div className="p-6">
+                            <div className="space-y-0.5">
+                                <DataRow label="Legal Description" value={d.legal_description} />
+                                <DataRow label="Land Use (Std Category)" value={d.standardized_land_use_category} />
+                                <DataRow label="Land Use (Std Type)" value={d.standardized_land_use_type} />
+                                <DataRow label="County Land Use Code" value={d.county_land_use_code} />
+                                <DataRow label="County Land Use Desc" value={d.county_land_use_description} />
+                                <DataRow label="Subdivision / Tract" value={d.subdivision} />
+                                <DataRow label="Lot Number" value={d.lot_number} />
+                                <DataRow label="Municipality" value={d.municipality} />
+                                <DataRow label="Township / Range" value={d.section_township_range} />
+                                <DataRow label="Zoning" value={d.zoning || property.zoning} />
+                            </div>
+                            {renderAmenities()}
+                        </div>
+                    )}
+
+                    {activeTab === 'sales' && renderSalesHistory()}
+                    {activeTab === 'taxes' && renderTaxHistory()}
+                    {activeTab === 'permits' && renderPermits()}
+                    {activeTab === 'owner' && renderOwnerProfile()}
+                </div>
             </div>
         </div>
     );
