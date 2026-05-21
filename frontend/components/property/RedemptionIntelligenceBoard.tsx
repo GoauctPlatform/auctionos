@@ -114,20 +114,55 @@ export const RedemptionIntelligenceBoard: React.FC = () => {
                     <Box sx={{ p: 3, borderTop: '1px solid', borderColor: 'divider' }} className="bg-white/40 dark:bg-slate-900/20">
                         <Box sx={{ mb: 4, maxWidth: '450px' }}>
                             <FormControl fullWidth size="small">
-                                <InputLabel id="state-select-label" sx={{ fontWeight: 500 }}>Choose a State to View Rules</InputLabel>
+                                <InputLabel 
+                                    id="state-select-label" 
+                                    className="text-slate-600 dark:text-slate-300"
+                                    sx={{ 
+                                        fontWeight: 500,
+                                        '&.Mui-focused': { color: 'var(--brand-blue, #0a84ff)' }
+                                    }}
+                                >
+                                    Choose a State to View Rules
+                                </InputLabel>
                                 <Select
                                     labelId="state-select-label"
                                     value={selectedState}
                                     displayEmpty
                                     label="Choose a State to View Rules"
                                     onChange={(e) => setSelectedState(e.target.value)}
-                                    className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-md"
-                                    sx={{ borderRadius: '12px' }}
+                                    className="bg-white/50 dark:bg-slate-800/50 backdrop-blur-md text-slate-800 dark:text-slate-200"
+                                    sx={{ 
+                                        borderRadius: '12px',
+                                        '& .MuiSelect-select': {
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                        },
+                                        '& .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'rgba(0, 0, 0, 0.1)',
+                                        },
+                                        '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'rgba(0, 0, 0, 0.2)',
+                                        },
+                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'var(--brand-blue, #0a84ff)',
+                                        },
+                                    }}
+                                    MenuProps={{
+                                        PaperProps: {
+                                            className: "bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg"
+                                        }
+                                    }}
                                     startAdornment={<FilterIcon fontSize="small" sx={{ mr: 1, color: 'primary.main' }} />}
                                 >
-                                    <MenuItem value="" disabled>Select a State...</MenuItem>
+                                    <MenuItem value="" disabled className="text-slate-400 dark:text-slate-500">Select a State...</MenuItem>
                                     {uniqueStates.map(s => (
-                                        <MenuItem key={s} value={s}>{s}</MenuItem>
+                                        <MenuItem 
+                                            key={s} 
+                                            value={s}
+                                            className="text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                                        >
+                                            {s}
+                                        </MenuItem>
                                     ))}
                                 </Select>
                             </FormControl>
@@ -202,17 +237,17 @@ export const RedemptionIntelligenceBoard: React.FC = () => {
                                         </Box>
                                         
                                         {selectedState === 'all' && (
-                                            <Typography variant="caption" className="text-slate-500">
+                                            <Typography variant="caption" className="text-slate-500 dark:text-slate-400">
                                                 {item.auction}
                                             </Typography>
                                         )}
                                         
-                                        <Box sx={{ mt: 'auto', pt: 1.5, display: 'flex', gap: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                                        <Box sx={{ mt: 'auto', pt: 1.5, display: 'flex', gap: 2, borderTop: '1px solid', borderColor: 'divider' }} className="border-slate-100 dark:border-slate-800">
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                 <InterestIcon sx={{ fontSize: 16, color: 'success.main' }} />
                                                 <Box>
-                                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 600 }}>Interest</Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                                                    <Typography variant="caption" className="text-slate-500 dark:text-slate-400" sx={{ display: 'block', fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 600 }}>Interest</Typography>
+                                                    <Typography variant="body2" className="text-slate-800 dark:text-slate-200" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
                                                         {item.max_interest !== '-' ? item.max_interest : '0%'}
                                                     </Typography>
                                                 </Box>
@@ -220,8 +255,8 @@ export const RedemptionIntelligenceBoard: React.FC = () => {
                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                                 <TimerIcon sx={{ fontSize: 16, color: 'warning.main' }} />
                                                 <Box>
-                                                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 600 }}>Period</Typography>
-                                                    <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                                                    <Typography variant="caption" className="text-slate-500 dark:text-slate-400" sx={{ display: 'block', fontSize: '0.65rem', textTransform: 'uppercase', fontWeight: 600 }}>Period</Typography>
+                                                    <Typography variant="body2" className="text-slate-800 dark:text-slate-200" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
                                                         {item.redemption_months !== '0' ? `${item.redemption_months} mo` : 'Final'}
                                                     </Typography>
                                                 </Box>
@@ -232,7 +267,7 @@ export const RedemptionIntelligenceBoard: React.FC = () => {
                             ))}
                         </Grid>
                         
-                        <Typography variant="caption" sx={{ mt: 4, display: 'block', fontStyle: 'italic', px: 1, textAlign: 'center', opacity: 0.6 }}>
+                        <Typography variant="caption" className="text-slate-500 dark:text-slate-400" sx={{ mt: 4, display: 'block', fontStyle: 'italic', px: 1, textAlign: 'center', opacity: 0.6 }}>
                             * Disclaimer: Rules are general state guidelines. Verification with specific county officials is required.
                         </Typography>
                     </Box>
