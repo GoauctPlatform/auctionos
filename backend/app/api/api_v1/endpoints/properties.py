@@ -56,9 +56,12 @@ def read_properties(
     where_clauses = ["1=1"]
     params = {"skip": skip, "limit": limit}
     
+    # Always include current user's ID and company ID for priority sorting
+    params["uid"] = current_user.id if current_user else None
+    params["cid"] = (current_user.company_id or current_user.active_company_id) if current_user else None
+    
     if current_user and not current_user.is_superuser:
         where_clauses.append("(p.company_id IS NULL OR p.visibility = 'public' OR p.company_id = :cid)")
-        params["cid"] = current_user.company_id or current_user.active_company_id
 
     if county:
         where_clauses.append("p.county ILIKE :county")
@@ -299,6 +302,10 @@ def read_properties(
         safe_col = sort_map[sort_field]
         safe_dir = "DESC" if sort_order and sort_order.lower() == "desc" else "ASC"
         order_by_clause = f"{safe_col} {safe_dir} NULLS LAST, p.parcel_id ASC"
+    else:
+        # Prioritize custom properties created by the current user or their company in default list
+        priority_sort = "CASE WHEN p.created_by_user_id = :uid OR (p.company_id = :cid AND p.company_id IS NOT NULL) THEN 0 ELSE 1 END ASC"
+        order_by_clause = f"{priority_sort}, pah.auction_date ASC NULLS LAST, p.parcel_id ASC"
 
     # Format the query with the safe order_by_clause
     items_query = items_query.format(order_by_clause=order_by_clause)
@@ -463,6 +470,8 @@ def create_property(
 
     # ── New Property — standard creation path ─────────────────────────────────
     create_data = property_in.dict(exclude_unset=True)
+    if "state" in create_data and create_data["state"]:
+        create_data["state"] = normalize_state(create_data["state"])
     
     # Extract auction data to link history
     auction_date = create_data.pop("auction_date", None)
@@ -527,6 +536,8 @@ def update_property(
 ) -> Any:
     # Build dynamic update query
     update_data = property_in.dict(exclude_unset=True)
+    if "state" in update_data and update_data["state"]:
+        update_data["state"] = normalize_state(update_data["state"])
     auction_date = update_data.pop("auction_date", None)
     auction_name = update_data.pop("auction_name", None)
     

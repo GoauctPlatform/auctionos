@@ -259,6 +259,11 @@ def create_custom_property(
     """Create a private custom property linked to a client's company and assign it to a list."""
     import uuid
     from app.models.property import PropertyDetails
+    from app.utils.state_mapper import normalize_state
+
+    # Standardize/normalize state abbreviation (e.g. "Texas" -> "TX")
+    if property_in.state:
+        property_in.state = normalize_state(property_in.state)
 
     # Require company isolation for private properties
     if property_in.visibility == "private" and not current_user.active_company_id:
