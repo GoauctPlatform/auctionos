@@ -1198,7 +1198,7 @@ const ClientLists: React.FC = () => {
                     {selectedStateName && (() => {
                         const contactInfo = stateContacts.find(c => c.state === selectedStateName);
                         const stateCode = STATE_CODE_MAP[selectedStateName] || 'FL'; // Default to FL fallback if missing
-                        const silhouetteUrl = `https://static.simplemaps.com/resources/svg-library/us/${stateCode.toLowerCase()}.svg`;
+                        const silhouetteUrl = `https://raw.githubusercontent.com/ahuseyn/state-icons/master/icons/${stateCode}.svg`;
 
                         // Aggregate auction links from all properties in the selected folder
                         const filteredForLinks = selectedCountyName 
@@ -1315,7 +1315,7 @@ const ClientLists: React.FC = () => {
                                             <img
                                                 src={silhouetteUrl}
                                                 alt={`${selectedStateName} silhouette`}
-                                                className="w-full h-full object-contain opacity-50 dark:opacity-60 group-hover/silhouette:opacity-80 dark:group-hover/silhouette:opacity-90 transition-all duration-700 pointer-events-none drop-shadow-sm"
+                                                className="w-full h-full object-contain opacity-30 dark:opacity-20 group-hover/silhouette:opacity-50 dark:group-hover/silhouette:opacity-40 transition-all duration-700 pointer-events-none drop-shadow-sm dark:brightness-0 dark:invert"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).style.display = 'none';
                                                 }}
