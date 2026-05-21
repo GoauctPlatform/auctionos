@@ -379,6 +379,10 @@ class PropertyUpdateRequest(BaseModel):
     occupancy: Optional[str] = None
     availability_status: Optional[str] = None
     
+    # Intercepted Auction fields (not in property_details)
+    auction_date: Optional[str] = None
+    auction_name: Optional[str] = None
+    
     # New Extended Detail Fields
     alternate_owner_address: Optional[str] = None
     state_inventory_entered_date: Optional[date] = None
@@ -459,6 +463,17 @@ def create_property(
 
     # ── New Property — standard creation path ─────────────────────────────────
     create_data = property_in.dict(exclude_unset=True)
+    
+    # Extract auction data to link history
+    auction_date = create_data.pop("auction_date", None)
+    auction_name = create_data.pop("auction_name", None)
+    
+    # Clean empty strings
+    if auction_date == "":
+        auction_date = None
+    if auction_name == "":
+        auction_name = None
+    
     prop_id = str(uuid.uuid4())
     create_data["property_id"] = prop_id
     
@@ -487,6 +502,16 @@ def create_property(
             {"prop_id": prop_id, "status": create_data["availability_status"]}
         )
         
+        # Link auction history to fix sorting visibility
+        if auction_date or auction_name:
+            db.execute(
+                text("""
+                    INSERT INTO property_auction_history (property_id, auction_date, auction_name, created_at)
+                    VALUES (:pid, :adate, :aname, NOW())
+                """),
+                {"pid": prop_id, "adate": auction_date, "aname": auction_name}
+            )
+        
         db.commit()
     except Exception as e:
         db.rollback()
@@ -502,7 +527,16 @@ def update_property(
 ) -> Any:
     # Build dynamic update query
     update_data = property_in.dict(exclude_unset=True)
-    if not update_data:
+    auction_date = update_data.pop("auction_date", None)
+    auction_name = update_data.pop("auction_name", None)
+    
+    # Clean empty strings
+    if auction_date == "":
+        auction_date = None
+    if auction_name == "":
+        auction_name = None
+    
+    if not update_data and auction_date is None and auction_name is None:
         raise HTTPException(status_code=400, detail="No updates provided")
         
     if "availability_status" in update_data:
@@ -523,14 +557,38 @@ def update_property(
                 {"prop_id": old_prop[0], "prev": old_status, "new": new_status}
             )
 
-    set_clause = ", ".join([f"{k} = :{k}" for k in update_data.keys()])
-    query = text(f"UPDATE property_details SET {set_clause} WHERE parcel_id = :parcel_id RETURNING property_id")
-    params = {**update_data, "parcel_id": parcel_id}
-    
-    result = db.execute(query, params).fetchone()
-    if not result:
-        raise HTTPException(status_code=404, detail="Property not found")
+    if update_data:
+        set_clause = ", ".join([f"{k} = :{k}" for k in update_data.keys()])
+        query = text(f"UPDATE property_details SET {set_clause} WHERE parcel_id = :parcel_id RETURNING property_id")
+        params = {**update_data, "parcel_id": parcel_id}
         
+        result = db.execute(query, params).fetchone()
+        if not result:
+            raise HTTPException(status_code=404, detail="Property not found")
+            
+        pid = result[0]
+    else:
+        pid_res = db.execute(text("SELECT property_id FROM property_details WHERE parcel_id = :pid"), {"pid": parcel_id}).fetchone()
+        if not pid_res:
+            raise HTTPException(status_code=404, detail="Property not found")
+        pid = pid_res[0]
+
+    # Update auction history if provided
+    if auction_date or auction_name:
+        existing_pah = db.execute(text("SELECT id FROM property_auction_history WHERE property_id = :pid ORDER BY id DESC LIMIT 1"), {"pid": pid}).fetchone()
+        if existing_pah:
+            db.execute(text("""
+                UPDATE property_auction_history 
+                SET auction_date = COALESCE(:adate, auction_date), 
+                    auction_name = COALESCE(:aname, auction_name)
+                WHERE id = :id
+            """), {"adate": auction_date, "aname": auction_name, "id": existing_pah[0]})
+        else:
+            db.execute(text("""
+                INSERT INTO property_auction_history (property_id, auction_date, auction_name, created_at)
+                VALUES (:pid, :adate, :aname, NOW())
+            """), {"pid": pid, "adate": auction_date, "aname": auction_name})
+            
     db.commit()
     return {"message": "Property updated successfully", "parcel_id": parcel_id}
 
