@@ -311,14 +311,68 @@ const ClientLists: React.FC = () => {
     };
 
     useEffect(() => {
-        // Always reload when company changes and reset folder selection
-        setSelectedListId(null);
-        setSelectedStateName(null);
-        setSelectedCountyName(null);
+        if (!activeCompany?.id) return;
+        const companyId = activeCompany.id;
+
+        // Retrieve saved values from sessionStorage
+        const savedViewMode = sessionStorage.getItem(`auctionos_client_lists_${companyId}_viewMode`) as any;
+        const savedListId = sessionStorage.getItem(`auctionos_client_lists_${companyId}_selectedListId`);
+        const savedStateName = sessionStorage.getItem(`auctionos_client_lists_${companyId}_selectedStateName`);
+        const savedCountyName = sessionStorage.getItem(`auctionos_client_lists_${companyId}_selectedCountyName`);
+        const savedExpanded = sessionStorage.getItem(`auctionos_client_lists_${companyId}_expandedStates`);
+
+        if (savedViewMode) {
+            setViewMode(savedViewMode);
+        } else {
+            setViewMode('folders');
+        }
+
+        if (savedListId !== null && savedListId !== undefined) {
+            const listIdNum = savedListId === 'null' ? null : Number(savedListId);
+            setSelectedListId(listIdNum);
+        } else {
+            setSelectedListId(null);
+        }
+
+        if (savedStateName !== null && savedStateName !== undefined) {
+            setSelectedStateName(savedStateName === 'null' ? null : savedStateName);
+        } else {
+            setSelectedStateName(null);
+        }
+
+        if (savedCountyName !== null && savedCountyName !== undefined) {
+            setSelectedCountyName(savedCountyName === 'null' ? null : savedCountyName);
+        } else {
+            setSelectedCountyName(null);
+        }
+
+        if (savedExpanded) {
+            try {
+                setExpandedStates(JSON.parse(savedExpanded));
+            } catch (e) {
+                setExpandedStates({});
+            }
+        } else {
+            setExpandedStates({});
+        }
+
         setSelectedListProperties([]);
         loadLists();
         StatesService.getContacts().then(setStateContacts).catch(() => { });
     }, [activeCompany?.id]);
+
+    // Sync states to sessionStorage on change
+    useEffect(() => {
+        if (!activeCompany?.id) return;
+        const companyId = activeCompany.id;
+        
+        sessionStorage.setItem(`auctionos_client_lists_${companyId}_viewMode`, viewMode);
+        sessionStorage.setItem(`auctionos_client_lists_${companyId}_selectedListId`, selectedListId !== null ? String(selectedListId) : 'null');
+        sessionStorage.setItem(`auctionos_client_lists_${companyId}_selectedStateName`, selectedStateName !== null ? selectedStateName : 'null');
+        sessionStorage.setItem(`auctionos_client_lists_${companyId}_selectedCountyName`, selectedCountyName !== null ? selectedCountyName : 'null');
+        sessionStorage.setItem(`auctionos_client_lists_${companyId}_expandedStates`, JSON.stringify(expandedStates));
+    }, [viewMode, selectedListId, selectedStateName, selectedCountyName, expandedStates, activeCompany?.id]);
+
 
     useEffect(() => {
         if (selectedState) {
@@ -419,10 +473,20 @@ const ClientLists: React.FC = () => {
                 console.error("Failed to load favorites for priority:", favErr);
             }
 
-            if (data.length > 0 && !selectedListId && !selectedStateName) {
+            const companyId = activeCompany?.id || 'default';
+            const savedListId = sessionStorage.getItem(`auctionos_client_lists_${companyId}_selectedListId`);
+            const savedStateName = sessionStorage.getItem(`auctionos_client_lists_${companyId}_selectedStateName`);
+
+            const currentOrSavedListId = selectedListId !== null ? selectedListId : (savedListId && savedListId !== 'null' ? Number(savedListId) : null);
+            const currentOrSavedStateName = selectedStateName !== null ? selectedStateName : (savedStateName && savedStateName !== 'null' ? savedStateName : null);
+
+            if (data.length > 0 && !currentOrSavedListId && !currentOrSavedStateName) {
                 // Select favorites by default if available, otherwise stay at 'Select a Folder'
                 const fav = data.find(l => l.is_favorite_list);
-                if (fav) setSelectedListId(fav.id);
+                if (fav) {
+                    setSelectedListId(fav.id);
+                    sessionStorage.setItem(`auctionos_client_lists_${companyId}_selectedListId`, String(fav.id));
+                }
             }
         } catch (err: any) {
             console.error('Error loading lists:', err);
