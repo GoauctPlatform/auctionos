@@ -442,32 +442,7 @@ export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) =>
 
     return (
         <div className="space-y-4 mt-6">
-            {/* Real-Time Registry Integration Banner */}
-            {property.property_id && d.attom_id && (
-                <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-slate-900/60 dark:to-slate-800/40 rounded-xl p-4 border border-violet-100/80 dark:border-violet-950/30 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all">
-                    <div className="flex items-start gap-3">
-                        <div className="p-2 bg-violet-100 dark:bg-violet-950/50 rounded-lg text-violet-600 dark:text-violet-400 mt-0.5">
-                            <span className="material-symbols-outlined text-[20px] block">verified_user</span>
-                        </div>
-                        <div>
-                            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                                Real-Time Property Registry Integration
-                            </h4>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed mt-0.5 max-w-2xl">
-                                Syncing verifies official registry records to retrieve the latest valuations, transactions, and building permits, automatically updating and refreshing all dashboard modules with real-time live data.
-                            </p>
-                        </div>
-                    </div>
-                    <button 
-                        onClick={handleManualSync}
-                        disabled={syncing}
-                        className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg text-xs font-black uppercase tracking-wider bg-violet-600 hover:bg-violet-500 dark:bg-violet-600 dark:hover:bg-violet-500 text-white shadow-sm shadow-violet-500/10 hover:shadow-md transition-all cursor-pointer whitespace-nowrap disabled:opacity-50"
-                    >
-                        <span className={`material-symbols-outlined text-[16px] ${syncing ? 'animate-spin' : ''}`}>sync</span>
-                        {syncing ? 'Syncing...' : 'Sync Registry'}
-                    </button>
-                </div>
-            )}
+
 
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                 {/* Tab Header */}
