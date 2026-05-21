@@ -1228,7 +1228,21 @@ const ClientLists: React.FC = () => {
                                     <div className="flex-1 p-3 md:p-4 flex flex-col gap-3 md:gap-4">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">public</span>
+                                                {/* Mini silhouette for mobile only */}
+                                                <div className="relative w-8 h-8 md:hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center p-1 shrink-0">
+                                                    <img
+                                                        src={silhouetteUrl}
+                                                        alt={`${selectedStateName} silhouette`}
+                                                        className="w-full h-full object-contain opacity-50 dark:opacity-40 dark:brightness-0 dark:invert"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).style.display = 'none';
+                                                        }}
+                                                    />
+                                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                                                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-tighter opacity-50">{stateCode}</span>
+                                                    </div>
+                                                </div>
+                                                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 hidden md:inline">public</span>
                                                 <Typography className="text-sm font-bold text-slate-700 dark:text-slate-200">
                                                     {selectedStateName} Official Info
                                                 </Typography>
@@ -1256,16 +1270,16 @@ const ClientLists: React.FC = () => {
                                                         <div key={idx} className="bg-white dark:bg-slate-800/80 p-2 rounded-lg border border-slate-100 dark:border-slate-700 flex flex-col gap-1 shadow-xs">
                                                             <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 truncate">{link.name}</span>
                                                             <div className="flex gap-2">
-                                                                {link.register && (
+                                                                 {link.register && (
                                                                     <a href={link.register} target="_blank" rel="noreferrer" className="text-[9px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5 font-bold">
-                                                                        <span className="material-symbols-outlined text-[10px]">app_registration</span> Registration / Instructions
+                                                                        <span className="material-symbols-outlined text-[10px]">app_registration</span> Registration
                                                                     </a>
-                                                                )}
-                                                                {link.list && (
+                                                                 )}
+                                                                 {link.list && (
                                                                     <a href={link.list} target="_blank" rel="noreferrer" className="text-[9px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-0.5 font-bold">
-                                                                        <span className="material-symbols-outlined text-[10px]">list_alt</span> Auction List
+                                                                        <span className="material-symbols-outlined text-[10px]">list_alt</span> List
                                                                     </a>
-                                                                )}
+                                                                 )}
                                                             </div>
                                                         </div>
                                                     ))
@@ -1311,7 +1325,7 @@ const ClientLists: React.FC = () => {
 
                                     {/* Right Side: State Silhouette */}
                                     {!selectedCountyName && (
-                                        <div className="w-full md:w-48 h-full bg-white dark:bg-slate-900 flex items-center justify-center p-6 shrink-0 group/silhouette overflow-hidden relative">
+                                        <div className="hidden md:flex w-full md:w-48 h-full bg-white dark:bg-slate-900 items-center justify-center p-6 shrink-0 group/silhouette overflow-hidden relative">
                                             <img
                                                 src={silhouetteUrl}
                                                 alt={`${selectedStateName} silhouette`}
