@@ -11,8 +11,8 @@ from app.models.county_contact import CountyContact
 def main():
     db = SessionLocal()
     try:
-        # 1. Check & Insert District of Columbia state contact
-        state_name = "District of Columbia"
+        # 1. Check & Insert Washington, D.C. state contact
+        state_name = "Washington, D.C."
         state_contact = db.query(StateContact).filter(StateContact.state == state_name).first()
         if not state_contact:
             print(f"Creating StateContact for '{state_name}'...")

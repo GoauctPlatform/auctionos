@@ -50,6 +50,10 @@ STATE_MAPPING = {
     "wisconsin": "WI",
     "wyoming": "WY",
     "district of columbia": "DC",
+    "washington, d.c.": "DC",
+    "washington,d.c.": "DC",
+    "washington d.c.": "DC",
+    "washington dc": "DC",
     "puerto rico": "PR"
 }
 

@@ -21,7 +21,7 @@ import { CreateTaskForm } from '../../components/property/CreateTaskForm';
 // Helper to map state names to codes for the SVG silhouette
 const STATE_CODE_MAP: Record<string, string> = {
     'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
-    'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'District of Columbia': 'DC', 'Florida': 'FL', 'Georgia': 'GA',
+    'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'District of Columbia': 'DC', 'Washington, D.C.': 'DC', 'Florida': 'FL', 'Georgia': 'GA',
     'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
     'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
     'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
@@ -1228,21 +1228,20 @@ const ClientLists: React.FC = () => {
                                     <div className="flex-1 p-3 md:p-4 flex flex-col gap-3 md:gap-4">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                {/* Mini silhouette for mobile only */}
-                                                <div className="relative w-8 h-8 md:hidden bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center p-1 shrink-0">
+                                                {/* Mini state silhouette badge for all screen sizes */}
+                                                <div className="relative w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center p-1.5 shrink-0 shadow-sm transition-all duration-300 hover:scale-105">
                                                     <img
                                                         src={silhouetteUrl}
                                                         alt={`${selectedStateName} silhouette`}
-                                                        className="w-full h-full object-contain opacity-50 dark:opacity-40 dark:brightness-0 dark:invert"
+                                                        className="w-full h-full object-contain opacity-60 dark:opacity-50 dark:brightness-0 dark:invert transition-all duration-300"
                                                         onError={(e) => {
                                                             (e.target as HTMLImageElement).style.display = 'none';
                                                         }}
                                                     />
                                                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-tighter opacity-50">{stateCode}</span>
+                                                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-tighter opacity-40">{stateCode}</span>
                                                     </div>
                                                 </div>
-                                                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 hidden md:inline">public</span>
                                                 <Typography className="text-sm font-bold text-slate-700 dark:text-slate-200">
                                                     {selectedStateName} Official Info
                                                 </Typography>
@@ -1323,19 +1322,19 @@ const ClientLists: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Right Side: State Silhouette */}
+                                    {/* Right Side: State Silhouette with Premium Styling & Micro-interactions */}
                                     {!selectedCountyName && (
-                                        <div className="hidden md:flex w-full md:w-48 h-full bg-white dark:bg-slate-900 items-center justify-center p-6 shrink-0 group/silhouette overflow-hidden relative">
+                                        <div className="hidden md:flex w-full md:w-48 self-stretch bg-gradient-to-br from-slate-50/50 via-white to-slate-100/30 dark:from-slate-900/50 dark:via-slate-950/40 dark:to-slate-900/30 items-center justify-center p-6 shrink-0 group/silhouette overflow-hidden relative">
                                             <img
                                                 src={silhouetteUrl}
                                                 alt={`${selectedStateName} silhouette`}
-                                                className="w-full h-full object-contain opacity-30 dark:opacity-20 group-hover/silhouette:opacity-50 dark:group-hover/silhouette:opacity-40 transition-all duration-700 pointer-events-none drop-shadow-sm dark:brightness-0 dark:invert"
+                                                className="w-full h-full object-contain opacity-35 dark:opacity-25 group-hover/silhouette:opacity-55 dark:group-hover/silhouette:opacity-45 transition-all duration-700 ease-out pointer-events-none drop-shadow-md dark:brightness-0 dark:invert group-hover/silhouette:scale-110 group-hover/silhouette:-translate-y-1"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).style.display = 'none';
                                                 }}
                                             />
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                <span className="text-4xl font-black text-slate-200 dark:text-slate-800 tracking-tighter opacity-50">{stateCode}</span>
+                                                <span className="text-5xl font-black text-slate-200/50 dark:text-slate-800/40 tracking-wider transition-all duration-700 ease-out group-hover/silhouette:scale-105 group-hover/silhouette:tracking-widest">{stateCode}</span>
                                             </div>
                                         </div>
                                     )}
