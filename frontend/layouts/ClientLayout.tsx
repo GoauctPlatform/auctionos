@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Outlet, NavLink, useNavigate, Link } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, Link, useLocation } from 'react-router-dom';
 import { Footer } from '../components/Footer';
 import { AuthService } from '../services/auth.service';
 import { ClientDataService } from '../services/property.service';
@@ -14,6 +14,7 @@ import { TourOverlay } from '../components/TourOverlay';
 const ClientLayout: React.FC = () => {
   const { user, logout: authLogout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const { startTour, tourActive } = useTour();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
@@ -172,6 +173,7 @@ const ClientLayout: React.FC = () => {
 
   let navItems: NavItem[] = [
     { icon: 'home', label: 'Home', path: '/client', end: true },
+    { icon: 'science', label: 'Dashboard V2', path: '/client/dashboard-v2' },
     { icon: 'campaign', label: 'Live Auctions', path: '/client/auctions' },
     { icon: 'location_on', label: 'Property Search', path: '/client/properties' },
     { icon: 'list_alt', label: 'My Lists', path: '/client/lists' },
@@ -210,6 +212,8 @@ const ClientLayout: React.FC = () => {
     label: 'Account Settings',
     dropdown: accountDropdown,
   });
+
+  const isMainDashboard = location.pathname === '/client' || location.pathname === '/client/';
 
   return (
     <div className="min-h-screen w-full bg-slate-50 dark:bg-[#0f172a] font-display flex flex-col relative">
@@ -479,6 +483,27 @@ const ClientLayout: React.FC = () => {
       {/* Main Content Area */}
       <main className="flex-1 w-full flex flex-col min-w-0 overflow-hidden">
         <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 flex flex-col">
+          {isMainDashboard && (
+            <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12 mt-6 w-full shrink-0">
+              <div className="glass-card p-4 flex flex-col sm:flex-row justify-between items-center gap-4 border border-blue-500/25 bg-blue-50/50 dark:bg-blue-950/10 text-slate-800 dark:text-slate-100">
+                <div className="flex items-center gap-3">
+                  <div className="size-10 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                    <span className="material-symbols-outlined text-[20px] animate-pulse">science</span>
+                  </div>
+                  <div className="text-left">
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-950 dark:text-white">Try the new Experimental Layout (Beta)</h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Explore a modern, multi-column modular dashboard designed for high-performance analytical and yield analysis.</p>
+                  </div>
+                </div>
+                <Link
+                  to="/client/dashboard-v2"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                >
+                  Switch to V2 Layout
+                </Link>
+              </div>
+            </div>
+          )}
           <Outlet />
         </div>
       </main>
