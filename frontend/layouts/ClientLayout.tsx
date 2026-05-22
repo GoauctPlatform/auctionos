@@ -20,7 +20,28 @@ const ClientLayout: React.FC = () => {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [upcomingAuctions, setUpcomingAuctions] = useState<number>(0);
-  
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('goauct_sidebar_collapsed') === 'true';
+  });
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => {
+      const next = !prev;
+      localStorage.setItem('goauct_sidebar_collapsed', String(next));
+      window.dispatchEvent(new CustomEvent('goauct-main-sidebar-collapsed', { detail: next }));
+      return next;
+    });
+  };
+
+  React.useEffect(() => {
+    const handleToggle = () => {
+      toggleSidebar();
+    };
+    window.addEventListener('goauct-toggle-main-sidebar', handleToggle);
+    return () => {
+      window.removeEventListener('goauct-toggle-main-sidebar', handleToggle);
+    };
+  }, []);
 
   React.useEffect(() => {
     // If verified user hasn't completed onboarding tour, start the interactive tour!
@@ -222,21 +243,48 @@ const ClientLayout: React.FC = () => {
       <div className="fixed inset-0 bg-mesh-gradient pointer-events-none z-0" />
 
       {/* Beautiful Left Sidebar (desktop only) */}
-      <aside className="hidden md:flex flex-col w-64 shrink-0 bg-white/95 dark:bg-[#1a2634]/95 border-r border-[#e7ecf3] dark:border-slate-700/50 backdrop-blur-md z-30 select-none min-h-screen sticky top-0">
+      <aside className={`hidden md:flex flex-col shrink-0 bg-white/95 dark:bg-[#1a2634]/95 border-r border-[#e7ecf3] dark:border-slate-700/50 backdrop-blur-md z-30 select-none min-h-screen sticky top-0 transition-all duration-300 ${sidebarCollapsed ? 'w-0 overflow-hidden border-r-0' : 'w-64'}`}>
         {/* Sidebar Brand Header */}
-        <div className="h-16 flex items-center gap-2 px-6 border-b border-[#e7ecf3] dark:border-slate-700/50">
-          <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md">
-            <span className="material-symbols-outlined text-[20px] text-white">gavel</span>
-          </div>
-          <span className="text-[#0d131b] dark:text-white text-base font-black tracking-wider">
-            GoAuct OS
-          </span>
+        <div className={`h-16 flex items-center border-b border-[#e7ecf3] dark:border-slate-700/50 ${sidebarCollapsed ? 'justify-center px-2' : 'justify-between px-6'}`}>
+          {!sidebarCollapsed && (
+            <>
+              <div className="flex items-center gap-2">
+                <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-sm shadow-md shrink-0">
+                  <span className="material-symbols-outlined text-[20px] text-white">gavel</span>
+                </div>
+                <span className="text-[#0d131b] dark:text-white text-base font-black tracking-wider">
+                  GoAuct OS
+                </span>
+              </div>
+              <button
+                onClick={toggleSidebar}
+                title="Collapse Sidebar"
+                className="p-2 text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900/40"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-chevron-left" aria-hidden="true">
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+              </button>
+            </>
+          )}
         </div>
 
         {/* Sidebar Navigation */}
         <div className="flex-grow overflow-y-auto px-4 py-6 space-y-1.5 scrollbar-thin">
           {navItems.map((item) => {
             if (item.dropdown) {
+              if (sidebarCollapsed) {
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => setSidebarCollapsed(false)}
+                    title={`Expand for ${item.label}`}
+                    className="w-full flex items-center justify-center p-2.5 rounded-xl text-slate-400 hover:text-slate-750 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all mb-1"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
+                  </button>
+                );
+              }
               return (
                 <div key={item.label} className="space-y-1 pt-3 first:pt-0">
                   <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-3 block mb-1.5">
@@ -246,6 +294,19 @@ const ClientLayout: React.FC = () => {
                     <NavLink
                       key={dropItem.path}
                       to={dropItem.path}
+                      onClick={(e) => {
+                        if (location.pathname.startsWith('/client/workbench')) {
+                          let widgetId = '';
+                          if (dropItem.path === '/client/settings') widgetId = 'settings';
+                          else if (dropItem.path === '/client/team') widgetId = 'team';
+                          else if (dropItem.path === '/client/billing') widgetId = 'billings';
+                          
+                          if (widgetId) {
+                            e.preventDefault();
+                            window.dispatchEvent(new CustomEvent('open-workbench-widget', { detail: { widgetId } }));
+                          }
+                        }
+                      }}
                       className={({ isActive }) =>
                         `flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all ${
                           isActive
@@ -267,8 +328,25 @@ const ClientLayout: React.FC = () => {
                 key={item.label}
                 to={item.path!}
                 end={item.end}
+                title={sidebarCollapsed ? item.label : undefined}
+                onClick={(e) => {
+                  if (location.pathname.startsWith('/client/workbench') && item.path) {
+                    let widgetId = '';
+                    if (item.path === '/client/auctions') widgetId = 'live_auctions';
+                    else if (item.path === '/client/properties') widgetId = 'property_search';
+                    else if (item.path === '/client/lists') widgetId = 'my_lists';
+                    else if (item.path === '/client/tasks') widgetId = 'field_missions';
+                    
+                    if (widgetId) {
+                      e.preventDefault();
+                      window.dispatchEvent(new CustomEvent('open-workbench-widget', { detail: { widgetId } }));
+                    }
+                  }
+                }}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-black transition-all ${
+                  `flex items-center rounded-xl text-xs font-black transition-all ${
+                    sidebarCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3.5 py-2.5'
+                  } ${
                     isActive
                       ? 'bg-blue-50 text-primary dark:bg-blue-900/40 dark:text-blue-300 shadow-sm'
                       : 'text-slate-650 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800'
@@ -276,33 +354,45 @@ const ClientLayout: React.FC = () => {
                 }
               >
                 <span className="material-symbols-outlined text-[18px]">{item.icon}</span>
-                <span>{item.label}</span>
+                {!sidebarCollapsed && <span>{item.label}</span>}
               </NavLink>
             );
           })}
         </div>
 
         {/* Bottom User / Plan card & Actions */}
-        <div className="p-4 border-t border-[#e7ecf3] dark:border-slate-700/50 space-y-3">
-          <div className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80">
-            <span className={`w-2 h-2 rounded-full ${user?.subscription_tier === 'enterprise' ? 'bg-purple-500 animate-pulse' : user?.subscription_tier === 'pro' ? 'bg-blue-500' : 'bg-emerald-500'}`}></span>
-            <span className="text-[11px] font-black text-slate-850 dark:text-slate-200 capitalize leading-none">{user?.subscription_tier || 'Trial'} Plan</span>
-            {user?.subscription_tier === 'trial' && (
-              <Link
-                to="/client/billing"
-                className="ml-auto text-[8px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-lg hover:bg-indigo-500 hover:text-white transition-all"
-              >
-                Upgrade
-              </Link>
-            )}
-          </div>
+        <div className={`p-4 border-t border-[#e7ecf3] dark:border-slate-700/50 ${sidebarCollapsed ? 'space-y-2 px-2' : 'space-y-3'}`}>
+          {sidebarCollapsed ? (
+            <div 
+              title={`${user?.subscription_tier || 'Trial'} Plan`} 
+              className="flex items-center justify-center p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80"
+            >
+              <span className={`w-2 h-2 rounded-full ${user?.subscription_tier === 'enterprise' ? 'bg-purple-500 animate-pulse' : user?.subscription_tier === 'pro' ? 'bg-blue-500' : 'bg-emerald-500'}`}></span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 px-2.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800/80">
+              <span className={`w-2 h-2 rounded-full ${user?.subscription_tier === 'enterprise' ? 'bg-purple-500 animate-pulse' : user?.subscription_tier === 'pro' ? 'bg-blue-500' : 'bg-emerald-500'}`}></span>
+              <span className="text-[11px] font-black text-slate-850 dark:text-slate-200 capitalize leading-none">{user?.subscription_tier || 'Trial'} Plan</span>
+              {user?.subscription_tier === 'trial' && (
+                <Link
+                  to="/client/billing"
+                  className="ml-auto text-[8px] font-black uppercase tracking-widest text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-lg hover:bg-indigo-500 hover:text-white transition-all"
+                >
+                  Upgrade
+                </Link>
+              )}
+            </div>
+          )}
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 text-xs font-black text-red-600 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 dark:border-red-500/20 rounded-xl transition-all active:scale-[0.98]"
+            title={sidebarCollapsed ? "Sign Out" : undefined}
+            className={`flex items-center justify-center text-xs font-black text-red-600 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 dark:border-red-500/20 rounded-xl transition-all active:scale-[0.98] ${
+              sidebarCollapsed ? 'p-2.5 w-full' : 'w-full gap-2 px-4 py-2'
+            }`}
           >
             <span className="material-symbols-outlined text-[16px]">logout</span>
-            <span>Sign Out</span>
+            {!sidebarCollapsed && <span>Sign Out</span>}
           </button>
         </div>
       </aside>
@@ -314,6 +404,17 @@ const ClientLayout: React.FC = () => {
           <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12">
             <div className="flex justify-between h-16">
               <div className="flex">
+                {sidebarCollapsed && (
+                  <button
+                    onClick={toggleSidebar}
+                    title="Expand Sidebar"
+                    className="hidden md:flex items-center justify-center p-2 text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900/40 mr-3 self-center transition-all duration-200"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-chevron-right" aria-hidden="true">
+                      <path d="m9 18 6-6-6-6" />
+                    </svg>
+                  </button>
+                )}
                 {/* Brand Logo - Visible only on mobile/tablet */}
                 <div
                   className="flex-shrink-0 flex items-center gap-2 cursor-pointer md:hidden"
@@ -349,7 +450,7 @@ const ClientLayout: React.FC = () => {
 
                 {/* Notification Bell */}
                 <div 
-                    className="relative cursor-pointer mr-2 flex items-center justify-center p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors" 
+                    className="relative cursor-pointer mr-2 flex items-center justify-center p-1.5 text-slate-400 hover:text-slate-650 dark:hover:text-slate-300 transition-colors" 
                     title="Notifications" 
                     onClick={() => setNotificationsOpen(!notificationsOpen)}
                 >
@@ -404,7 +505,7 @@ const ClientLayout: React.FC = () => {
                 <div className="flex items-center gap-1 hidden md:flex">
                     <button
                       onClick={handleLogout}
-                      className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                      className="p-1.5 text-slate-400 hover:text-red-650 dark:hover:text-red-400 transition-colors"
                       title="Sign Out"
                     >
                       <span className="material-symbols-outlined text-[22px]">logout</span>
@@ -433,7 +534,7 @@ const ClientLayout: React.FC = () => {
                       <>
                         <button
                           onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
-                          className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-md text-base font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                          className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-md text-base font-medium text-slate-650 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                         >
                           <div className="flex items-center gap-3">
                             <span className="material-symbols-outlined">{item.icon}</span>
@@ -449,13 +550,28 @@ const ClientLayout: React.FC = () => {
                               <NavLink
                                 key={dropItem.path}
                                 to={dropItem.path}
+                                onClick={(e) => {
+                                  if (location.pathname.startsWith('/client/workbench')) {
+                                    let widgetId = '';
+                                    if (dropItem.path === '/client/settings') widgetId = 'settings';
+                                    else if (dropItem.path === '/client/team') widgetId = 'team';
+                                    else if (dropItem.path === '/client/billing') widgetId = 'billings';
+                                    
+                                    if (widgetId) {
+                                      e.preventDefault();
+                                      setMobileMenuOpen(false);
+                                      window.dispatchEvent(new CustomEvent('open-workbench-widget', { detail: { widgetId } }));
+                                    }
+                                  } else {
+                                    setMobileMenuOpen(false);
+                                  }
+                                }}
                                 className={({ isActive }) =>
                                   `block px-3 py-2 rounded-md text-sm font-medium ${isActive
                                     ? 'bg-blue-50 text-primary dark:bg-blue-900/40 dark:text-blue-300'
                                     : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800'
                                   }`
                                 }
-                                onClick={() => setMobileMenuOpen(false)}
                               >
                                 {dropItem.label}
                               </NavLink>
@@ -467,20 +583,36 @@ const ClientLayout: React.FC = () => {
                       <NavLink
                         to={item.path!}
                         end={item.end}
+                        onClick={(e) => {
+                          if (location.pathname.startsWith('/client/workbench') && item.path) {
+                            let widgetId = '';
+                            if (item.path === '/client/auctions') widgetId = 'live_auctions';
+                            else if (item.path === '/client/properties') widgetId = 'property_search';
+                            else if (item.path === '/client/lists') widgetId = 'my_lists';
+                            else if (item.path === '/client/tasks') widgetId = 'field_missions';
+                            
+                            if (widgetId) {
+                              e.preventDefault();
+                              setMobileMenuOpen(false);
+                              window.dispatchEvent(new CustomEvent('open-workbench-widget', { detail: { widgetId } }));
+                            }
+                          } else {
+                            setMobileMenuOpen(false);
+                          }
+                        }}
                         className={({ isActive }) =>
                           `flex items-center gap-3 px-3 py-2.5 rounded-md text-base font-medium transition-colors ${isActive
                             ? 'bg-blue-50 text-primary dark:bg-blue-900/40 dark:text-blue-300'
-                            : 'text-slate-650 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
+                            : 'text-slate-655 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
                         }`
                         }
-                        onClick={() => setMobileMenuOpen(false)}
                       >
                         <span className="material-symbols-outlined">{item.icon}</span>
                         {item.label}
                       </NavLink>
                     )}
                   </div>
-                ))}
+                ))}))}
                 {/* Upgrade CTA mobile */}
                 {user?.subscription_tier === 'trial' && (
                   <Link

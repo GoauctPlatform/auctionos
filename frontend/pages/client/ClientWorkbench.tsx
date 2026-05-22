@@ -70,10 +70,29 @@ const StateSilhouetteBadge: React.FC<{ stateCode: string; size?: number }> = ({ 
   );
 };
 
+const fallbackContacts: Record<string, any[]> = {
+  'miami-dade': [
+    { name: 'Miami-Dade Property Appraiser', phone: '305-375-4786', url: 'https://www.miamidade.gov/pa/' },
+    { name: 'Miami-Dade Tax Collector', phone: '305-270-4916', url: 'https://www.miamidade.gov/taxcollector/' },
+    { name: 'Clerk of Courts (Foreclosures & Tax Deeds)', phone: '305-275-1155', url: 'https://www.miamidade.clerk.org/' }
+  ],
+  'broward': [
+    { name: 'Broward County Property Appraiser', phone: '954-357-6830', url: 'https://www.bcpa.net/' },
+    { name: 'Broward County Revenue Collector', phone: '954-831-4000', url: 'https://www.broward.org/recordstaxes/' },
+    { name: 'Clerk of Circuit Court', phone: '954-831-6565', url: 'https://www.browardclerk.org/' }
+  ],
+  'orange': [
+    { name: 'Orange County Property Appraiser', phone: '407-836-5044', url: 'https://www.ocpafl.org/' },
+    { name: 'Orange County Tax Collector', phone: '407-836-2700', url: 'https://www.octaxcol.com/' },
+    { name: 'Orange County Clerk of Courts', phone: '407-836-2000', url: 'https://www.myorangeclerk.com/' }
+  ]
+};
+
 interface Widget {
   id: string;
   type: 'shortcuts' | 'metrics_deed' | 'metrics_foreclosure' | 'metrics_lien' | 'map' | 'recommended_deals' | 'live_auctions' | 'property_search' | 'chart' | 'dossier' | 'yield' |
-        'my_lists' | 'field_missions' | 'connect' | 'settings' | 'profile' | 'team' | 'logs' | 'billings' | 'company' | 'notifications' | 'property_details' | 'create_task' | 'support_center';
+        'my_lists' | 'field_missions' | 'connect' | 'settings' | 'profile' | 'team' | 'logs' | 'billings' | 'company' | 'notifications' | 'property_details' | 'create_task' | 'support_center' |
+        'node_canvas' | 'rehab_calc' | 'property_comparator' | 'contacts_search';
   title: string;
   x: number; // left offset in pixels
   y: number; // top offset in pixels
@@ -112,6 +131,12 @@ const DEFAULT_WIDGETS: Widget[] = [
   // New V5.0 Real-Logic Widgets
   { id: 'create_task', type: 'create_task', title: '⚔️ Create Mission Task', x: 2080, y: 1040, w: 360, h: 420, visible: true, zIndex: 32 },
   { id: 'support_center', type: 'support_center', title: '💬 Support & Help Center', x: 2460, y: 1040, w: 380, h: 420, visible: true, zIndex: 33 },
+
+  // V5.1 Premium Interactive Real Estate Widgets
+  { id: 'node_canvas', type: 'node_canvas', title: '🧬 Deal Flow Node Engine', x: 2080, y: 1480, w: 420, h: 420, visible: true, zIndex: 34 },
+  { id: 'rehab_calc', type: 'rehab_calc', title: '🔨 Rehab & ROI Calculator', x: 2520, y: 1480, w: 380, h: 420, visible: true, zIndex: 35 },
+  { id: 'property_comparator', type: 'property_comparator', title: '📊 Property Compare Matrix', x: 2920, y: 1480, w: 400, h: 420, visible: true, zIndex: 36 },
+  { id: 'contacts_search', type: 'contacts_search', title: '📞 State & County Registrar Directory', x: 3340, y: 1480, w: 380, h: 420, visible: true, zIndex: 37 }
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -263,6 +288,203 @@ export const ClientWorkbench: React.FC = () => {
   const [ticketsLoading, setTicketsLoading] = useState(false);
   const [ticketSubmitting, setTicketSubmitting] = useState(false);
   const [supportWidgetTab, setSupportWidgetTab] = useState<'new' | 'history'>('new');
+
+  // --- MAIN SIDEBAR SYNC ---
+  const [mainSidebarCollapsed, setMainSidebarCollapsed] = useState(() => {
+    return localStorage.getItem('goauct_sidebar_collapsed') === 'true';
+  });
+
+  useEffect(() => {
+    const handleMainSidebarEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<boolean>;
+      setMainSidebarCollapsed(customEvent.detail);
+    };
+    window.addEventListener('goauct-main-sidebar-collapsed', handleMainSidebarEvent as EventListener);
+    return () => {
+      window.removeEventListener('goauct-main-sidebar-collapsed', handleMainSidebarEvent as EventListener);
+    };
+  }, []);
+
+  const toggleMainSidebar = () => {
+    window.dispatchEvent(new CustomEvent('goauct-toggle-main-sidebar'));
+  };
+
+  // --- MDI EVENT LISTENER ---
+  useEffect(() => {
+    const handleOpenWidget = (e: Event) => {
+      const customEvent = e as CustomEvent<{ widgetId: string }>;
+      const { widgetId } = customEvent.detail;
+      
+      let targetWidgetId = widgetId;
+      // Map shortcut names to correct widget IDs
+      if (widgetId === 'live_auctions') targetWidgetId = 'live_auctions';
+      else if (widgetId === 'property_search') targetWidgetId = 'property_search';
+      else if (widgetId === 'my_lists') targetWidgetId = 'my_lists';
+      else if (widgetId === 'field_missions') targetWidgetId = 'field_missions';
+      else if (widgetId === 'settings') targetWidgetId = 'settings';
+      else if (widgetId === 'team') targetWidgetId = 'team';
+      else if (widgetId === 'billings') targetWidgetId = 'billings';
+
+      setWidgets(prev => {
+        const found = prev.find(w => w.id === targetWidgetId);
+        if (!found) return prev;
+        
+        const nextZ = highestZIndex + 1;
+        setHighestZIndex(nextZ);
+        
+        return prev.map(w => 
+          w.id === targetWidgetId 
+            ? { ...w, visible: true, zIndex: nextZ } 
+            : w
+        );
+      });
+      
+      const target = widgets.find(w => w.id === targetWidgetId);
+      if (target) {
+        const targetX = -target.x + (window.innerWidth - target.w) / 2;
+        const targetY = -target.y + (window.innerHeight - target.h) / 2;
+        
+        setPanX(targetX);
+        setPanY(targetY);
+        setZoomScale(1.0);
+        
+        logConsoleActivity(`Focused and centered on widget: "${target.title}"`);
+      }
+    };
+    
+    window.addEventListener('open-workbench-widget', handleOpenWidget as EventListener);
+    return () => {
+      window.removeEventListener('open-workbench-widget', handleOpenWidget as EventListener);
+    };
+  }, [widgets, highestZIndex, logConsoleActivity]);
+
+  // --- DEAL FLOW ENGINE STATES & HANDLERS ---
+  interface NodeFlow {
+    id: string;
+    label: string;
+    status: 'pending' | 'active' | 'completed';
+    x: number;
+    y: number;
+  }
+  
+  const [dealFlowNodes, setDealFlowNodes] = useState<NodeFlow[]>([
+    { id: '1', label: 'Lead Intake', status: 'completed', x: 40, y: 150 },
+    { id: '2', label: 'Underwrite', status: 'completed', x: 170, y: 80 },
+    { id: '3', label: 'Inspection', status: 'active', x: 170, y: 220 },
+    { id: '4', label: 'GIS Registry', status: 'pending', x: 300, y: 80 },
+    { id: '5', label: 'Bid Execution', status: 'pending', x: 300, y: 220 },
+    { id: '6', label: 'Closed Deal', status: 'pending', x: 420, y: 150 },
+  ]);
+  const [draggingNodeId, setDraggingNodeId] = useState<string | null>(null);
+
+  const handleAutoLayoutDealFlow = () => {
+    setDealFlowNodes([
+      { id: '1', label: 'Lead Intake', status: 'completed', x: 40, y: 180 },
+      { id: '2', label: 'Underwrite', status: 'completed', x: 160, y: 90 },
+      { id: '3', label: 'Inspection', status: 'active', x: 160, y: 270 },
+      { id: '4', label: 'GIS Registry', status: 'pending', x: 280, y: 90 },
+      { id: '5', label: 'Bid Execution', status: 'pending', x: 280, y: 270 },
+      { id: '6', label: 'Closed Deal', status: 'pending', x: 400, y: 180 },
+    ]);
+    logConsoleActivity('Auto-aligned Deal Flow node geometric hierarchy.');
+  };
+
+  const handleNodeClick = (nodeId: string) => {
+    setDealFlowNodes(prev =>
+      prev.map(n => {
+        if (n.id === nodeId) {
+          const nextStatus: Record<string, 'pending' | 'active' | 'completed'> = {
+            'pending': 'active',
+            'active': 'completed',
+            'completed': 'pending'
+          };
+          const updated = nextStatus[n.status];
+          logConsoleActivity(`Updated node "${n.label}" to status: ${updated.toUpperCase()}`);
+          return { ...n, status: updated };
+        }
+        return n;
+      })
+    );
+  };
+
+  const drawBezier = (from: { x: number; y: number }, to: { x: number; y: number }) => {
+    const dx = to.x - from.x;
+    const cx1 = from.x + dx / 2;
+    const cy1 = from.y;
+    const cx2 = from.x + dx / 2;
+    const cy2 = to.y;
+    return `M ${from.x} ${from.y} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${to.x} ${to.y}`;
+  };
+
+  const handleSvgMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    if (!draggingNodeId) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = Math.round(e.clientX - rect.left);
+    const y = Math.round(e.clientY - rect.top);
+    
+    const boundX = Math.max(20, Math.min(380, x));
+    const boundY = Math.max(20, Math.min(380, y));
+
+    setDealFlowNodes(prev =>
+      prev.map(n => n.id === draggingNodeId ? { ...n, x: boundX, y: boundY } : n)
+    );
+  };
+
+  // --- REHAB & ROI ESTIMATOR STATES ---
+  const [rehabPurchasePrice, setRehabPurchasePrice] = useState<number>(250000);
+  const [rehabCost, setRehabCost] = useState<number>(45000);
+  const [rehabTaxes, setRehabTaxes] = useState<number>(8000);
+  const [rehabARV, setRehabARV] = useState<number>(380000);
+  const [rehabGrossRent, setRehabGrossRent] = useState<number>(2500);
+
+  // --- PROPERTY COMPARATOR STATES ---
+  const [compareProp1, setCompareProp1] = useState<Property | null>(null);
+  const [compareProp2, setCompareProp2] = useState<Property | null>(null);
+  const [compareProp3, setCompareProp3] = useState<Property | null>(null);
+
+  useEffect(() => {
+    if (dbTopDeals.length >= 3) {
+      setCompareProp1(dbTopDeals[0]);
+      setCompareProp2(dbTopDeals[1]);
+      setCompareProp3(dbTopDeals[2]);
+    } else if (dbTopDeals.length > 0) {
+      setCompareProp1(dbTopDeals[0]);
+      if (dbTopDeals[1]) setCompareProp2(dbTopDeals[1]);
+    }
+  }, [dbTopDeals]);
+
+  // --- REGISTRAR DIRECTORY STATES ---
+  const [contactsSearchState, setContactsSearchState] = useState<string>('FL');
+  const [contactsSearchCounty, setContactsSearchCounty] = useState<string>('Miami-Dade');
+  const [contactsSearchList, setContactsSearchList] = useState<any[]>([]);
+  const [contactsCountyList, setContactsCountyList] = useState<string[]>([]);
+  const [contactsQuery, setContactsQuery] = useState<string>('');
+
+  useEffect(() => {
+    if (contactsSearchState) {
+      countyService.getCounties(contactsSearchState).then(setContactsCountyList).catch(() => setContactsCountyList([]));
+    } else {
+      setContactsCountyList([]);
+    }
+  }, [contactsSearchState]);
+
+  const handleFetchCountyContacts = useCallback(async () => {
+    if (!contactsSearchState || !contactsSearchCounty) {
+      setContactsSearchList([]);
+      return;
+    }
+    try {
+      const res = await countyService.getContacts(contactsSearchState, contactsSearchCounty);
+      setContactsSearchList(res);
+    } catch (e) {
+      console.error(e);
+      setContactsSearchList([]);
+    }
+  }, [contactsSearchState, contactsSearchCounty]);
+
+  useEffect(() => {
+    handleFetchCountyContacts();
+  }, [handleFetchCountyContacts]);
 
   // Fetch static preferences & contacts on startup
   useEffect(() => {
@@ -1230,7 +1452,17 @@ export const ClientWorkbench: React.FC = () => {
             })}
           </div>
 
-          <div className="flex flex-col gap-4 items-center w-full">
+          <div className="flex flex-col gap-4 items-center w-full border-t border-slate-100 dark:border-slate-800/85 pt-4">
+            {/* Toggle Main Layout Sidebar */}
+            <button
+              onClick={toggleMainSidebar}
+              title={mainSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
+              className="p-2 text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900/40"
+            >
+              {mainSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
+
+            {/* Toggle Workbench Drawer */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               title={sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
@@ -1289,6 +1521,12 @@ export const ClientWorkbench: React.FC = () => {
                           {w.type === 'company' && <Briefcase size={13} />}
                           {w.type === 'notifications' && <Bell size={13} />}
                           {w.type === 'property_details' && <Info size={13} />}
+                          {w.type === 'create_task' && <Plus size={13} />}
+                          {w.type === 'support_center' && <HelpCircle size={13} />}
+                          {w.type === 'node_canvas' && <Layers size={13} />}
+                          {w.type === 'rehab_calc' && <Activity size={13} />}
+                          {w.type === 'property_comparator' && <LayoutGrid size={13} />}
+                          {w.type === 'contacts_search' && <Smartphone size={13} />}
                           <span className="truncate max-w-[130px]">{w.title}</span>
                         </div>
                         {w.visible ? <Eye size={12} /> : <EyeOff size={12} />}
@@ -3240,6 +3478,468 @@ export const ClientWorkbench: React.FC = () => {
                       )}
                     </div>
                   )}
+
+                  {/* Deal Flow Node Engine (node_canvas) */}
+                  {w.type === 'node_canvas' && (
+                    <div className="size-full flex flex-col justify-between">
+                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2 shrink-0 justify-between items-center select-none">
+                        <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                          <Layers size={11} className="text-violet-500" /> Deal Flow Pipeline Node Engine
+                        </span>
+                        <button
+                          onClick={handleAutoLayoutDealFlow}
+                          className="px-2 py-1 bg-violet-600/10 hover:bg-violet-600/20 text-violet-600 dark:text-violet-400 border border-violet-500/20 text-[8px] font-black uppercase tracking-wider rounded-lg transition-all active:scale-95"
+                          title="Snap nodes back to perfect alignment"
+                        >
+                          Auto Layout
+                        </button>
+                      </div>
+
+                      {/* SVG Mini Workspace */}
+                      <div className="flex-1 min-h-0 relative bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-850 rounded-xl overflow-hidden select-none">
+                        <svg
+                          className="absolute inset-0 size-full"
+                          onMouseMove={handleSvgMouseMove}
+                          onMouseUp={() => setDraggingNodeId(null)}
+                          onMouseLeave={() => setDraggingNodeId(null)}
+                        >
+                          <defs>
+                            <linearGradient id="activeGlowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.8" />
+                              <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
+                            </linearGradient>
+                            <linearGradient id="completedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="#10B981" stopOpacity="0.8" />
+                              <stop offset="100%" stopColor="#059669" stopOpacity="0.8" />
+                            </linearGradient>
+                          </defs>
+
+                          {/* Connections */}
+                          {dealFlowNodes.map((n, i) => {
+                            if (i === 0) return null;
+                            const prev = dealFlowNodes[i - 1];
+                            const isActive = n.status !== 'pending' && prev.status !== 'pending';
+                            const isCompleted = n.status === 'completed' && prev.status === 'completed';
+                            return (
+                              <g key={`path-${prev.id}-${n.id}`}>
+                                <path
+                                  d={drawBezier(prev, n)}
+                                  stroke={isCompleted ? 'url(#completedGrad)' : isActive ? 'url(#activeGlowGrad)' : '#94A3B8'}
+                                  strokeWidth={isActive ? 2.5 : 1.5}
+                                  fill="none"
+                                  strokeDasharray={isActive && !isCompleted ? '5,5' : 'none'}
+                                  className={isActive && !isCompleted ? 'animate-pulse' : ''}
+                                  opacity={n.status === 'pending' ? 0.4 : 1}
+                                />
+                              </g>
+                            );
+                          })}
+
+                          {/* Nodes rendered as SVG foreignObjects for rich HTML rendering */}
+                          {dealFlowNodes.map(n => {
+                            const isDragging = draggingNodeId === n.id;
+                            const borderClass =
+                              n.status === 'completed' ? 'border-emerald-500/80 bg-emerald-50/50 dark:bg-emerald-955/20 text-emerald-700 dark:text-emerald-450' :
+                              n.status === 'active' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-955/20 text-blue-700 dark:text-blue-400 ring-2 ring-blue-500/20' :
+                              'border-slate-350 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400';
+
+                            return (
+                              <foreignObject
+                                key={n.id}
+                                x={n.x - 60}
+                                y={n.y - 22}
+                                width={120}
+                                height={44}
+                                className="overflow-visible"
+                              >
+                                <div
+                                  onMouseDown={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    setDraggingNodeId(n.id);
+                                  }}
+                                  onClick={() => handleNodeClick(n.id)}
+                                  className={`px-2 py-1 border rounded-xl flex flex-col items-center justify-center cursor-grab active:cursor-grabbing text-center shadow-md select-none transition-all duration-75 hover:scale-102 ${borderClass} ${isDragging ? 'shadow-lg scale-105 opacity-90 ring-4 ring-indigo-500/20' : ''}`}
+                                  style={{ height: '40px' }}
+                                >
+                                  <span className="text-[9px] font-black tracking-tight leading-tight truncate w-full">{n.label}</span>
+                                  <span className="text-[6.5px] font-black uppercase tracking-widest leading-none mt-0.5 opacity-80">
+                                    {n.status}
+                                  </span>
+                                </div>
+                              </foreignObject>
+                            );
+                          })}
+                        </svg>
+
+                        {/* Interactive Drag & Change Instruction Overlay */}
+                        <div className="absolute bottom-2 left-2 right-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-1.5 rounded-lg border border-slate-200 dark:border-slate-800/80 text-[7px] font-bold text-slate-500 text-center pointer-events-none uppercase tracking-widest">
+                          💡 Drag nodes to rearrange · Click nodes to cycle status
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Rehab & ROI Calculator (rehab_calc) */}
+                  {w.type === 'rehab_calc' && (() => {
+                    const totalBasis = rehabPurchasePrice + rehabCost + rehabTaxes;
+                    const profit = rehabARV - totalBasis;
+                    const roi = totalBasis > 0 ? (profit / totalBasis) * 100 : 0;
+                    const capRate = totalBasis > 0 ? ((rehabGrossRent * 12 * 0.8) / totalBasis) * 100 : 0;
+
+                    return (
+                      <div className="size-full flex flex-col justify-between">
+                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2.5 shrink-0 justify-between items-center select-none">
+                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                            <Activity size={11} className="text-emerald-500" /> Rehab & ROI Yield Calculator
+                          </span>
+                        </div>
+
+                        {/* Interactive Sliders & Inputs */}
+                        <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 min-h-0 scrollbar-thin text-[9.5px]">
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between font-bold text-slate-700 dark:text-slate-350">
+                              <span>Acquisition Price</span>
+                              <span className="font-extrabold text-slate-900 dark:text-white">${rehabPurchasePrice.toLocaleString()}</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={50000}
+                              max={1000000}
+                              step={5000}
+                              value={rehabPurchasePrice}
+                              onChange={(e) => setRehabPurchasePrice(Number(e.target.value))}
+                              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                            />
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <div className="flex justify-between font-bold text-slate-700 dark:text-slate-350">
+                              <span>Estimated Rehab Cost</span>
+                              <span className="font-extrabold text-slate-900 dark:text-white">${rehabCost.toLocaleString()}</span>
+                            </div>
+                            <input
+                              type="range"
+                              min={0}
+                              max={200000}
+                              step={2500}
+                              value={rehabCost}
+                              onChange={(e) => setRehabCost(Number(e.target.value))}
+                              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-3 gap-2">
+                            <div>
+                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Taxes / Closing</label>
+                              <input
+                                type="number"
+                                value={rehabTaxes}
+                                onChange={(e) => setRehabTaxes(Number(e.target.value))}
+                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Target Resale (ARV)</label>
+                              <input
+                                type="number"
+                                value={rehabARV}
+                                onChange={(e) => setRehabARV(Number(e.target.value))}
+                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Est. Monthly Rent</label>
+                              <input
+                                type="number"
+                                value={rehabGrossRent}
+                                onChange={(e) => setRehabGrossRent(Number(e.target.value))}
+                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Dynamic Yield Dash */}
+                          <div className="pt-3.5 border-t border-slate-200/50 dark:border-slate-800/50 space-y-2">
+                            <div className="grid grid-cols-2 gap-2 text-center">
+                              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-250/20 dark:border-slate-800">
+                                <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest block">Total Basis</span>
+                                <span className="text-xs font-black text-slate-900 dark:text-white">${totalBasis.toLocaleString()}</span>
+                              </div>
+                              <div className={`p-2 rounded-xl border ${profit >= 0 ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/5 border-rose-500/20 text-rose-600 dark:text-rose-400'}`}>
+                                <span className="text-[7.5px] font-black uppercase tracking-widest block opacity-70">Resale Profit</span>
+                                <span className="text-xs font-black">${profit.toLocaleString()}</span>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-center">
+                              <div className="p-2.5 rounded-xl bg-blue-500/5 dark:bg-blue-955/10 border border-blue-500/20 text-blue-600 dark:text-blue-400">
+                                <span className="text-[7.5px] font-black uppercase tracking-widest block">Resale ROI %</span>
+                                <span className="text-base font-extrabold">{roi.toFixed(1)}%</span>
+                              </div>
+                              <div className="p-2.5 rounded-xl bg-amber-500/5 dark:bg-amber-955/10 border border-amber-500/20 text-amber-600 dark:text-amber-400">
+                                <span className="text-[7.5px] font-black uppercase tracking-widest block">Rental Cap Rate</span>
+                                <span className="text-base font-extrabold">{capRate.toFixed(1)}%</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Property Compare Matrix (property_comparator) */}
+                  {w.type === 'property_comparator' && (() => {
+                    const props = [compareProp1, compareProp2, compareProp3].filter(Boolean) as Property[];
+                    
+                    // Determine Top Pick based on yield_score or max capitalization
+                    let topPickId = '';
+                    if (props.length > 0) {
+                      let maxScore = -1;
+                      props.forEach(p => {
+                        const score = p.yield_score || 0;
+                        if (score > maxScore) {
+                          maxScore = score;
+                          topPickId = p.id as any;
+                        }
+                      });
+                    }
+
+                    return (
+                      <div className="size-full flex flex-col justify-between">
+                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2 shrink-0 justify-between items-center select-none">
+                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                            <LayoutGrid size={11} className="text-indigo-500" /> Real Estate Compare Matrix
+                          </span>
+                        </div>
+
+                        {/* Comparative Matrix Table */}
+                        <div className="flex-1 overflow-x-auto overflow-y-auto pr-1 space-y-3 min-h-0 scrollbar-thin text-[9.5px]">
+                          {props.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 select-none py-10">
+                              <LayoutGrid size={24} className="opacity-30 mb-2" />
+                              <p className="text-[10px] font-bold">No active properties compared</p>
+                              <p className="text-[8px] text-slate-500 mt-0.5 text-center">Add properties to watchlists or search to load details.</p>
+                            </div>
+                          ) : (
+                            <table className="w-full text-left border-collapse select-text">
+                              <thead>
+                                <tr className="border-b border-slate-200 dark:border-slate-800 text-[8px] uppercase tracking-wider text-slate-400">
+                                  <th className="py-2 pr-2 font-bold w-1/4">Metric</th>
+                                  {props.map((p, idx) => (
+                                    <th key={p.id || idx} className="py-2 px-2 font-bold text-center w-1/4 truncate max-w-[80px]">
+                                      {p.address ? p.address.split(',')[0] : `Prop ${idx+1}`}
+                                    </th>
+                                  ))}
+                                </tr>
+                              </thead>
+                              <tbody>
+                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Top Pick</td>
+                                  {props.map((p, idx) => (
+                                    <td key={p.id || idx} className="py-2 px-2 text-center">
+                                      {(p.id as any) === topPickId ? (
+                                        <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                          🏆 Top Pick
+                                        </span>
+                                      ) : (
+                                        <span className="text-slate-400 dark:text-slate-600">—</span>
+                                      )}
+                                    </td>
+                                  ))}
+                                </tr>
+                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">County</td>
+                                  {props.map((p, idx) => (
+                                    <td key={p.id || idx} className="py-2 px-2 text-center text-slate-600 dark:text-slate-400 font-bold truncate max-w-[80px]">
+                                      {p.county || 'N/A'}
+                                    </td>
+                                  ))}
+                                </tr>
+                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Yield Score</td>
+                                  {props.map((p, idx) => (
+                                    <td key={p.id || idx} className="py-2 px-2 text-center font-extrabold text-indigo-500">
+                                      {p.yield_score ? `${p.yield_score.toFixed(1)}/100` : 'N/A'}
+                                    </td>
+                                  ))}
+                                </tr>
+                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Opening Bid</td>
+                                  {props.map((p, idx) => (
+                                    <td key={p.id || idx} className="py-2 px-2 text-center text-slate-900 dark:text-white font-extrabold">
+                                      {p.opening_bid ? `$${p.opening_bid.toLocaleString()}` : 'N/A'}
+                                    </td>
+                                  ))}
+                                </tr>
+                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Assessed Value</td>
+                                  {props.map((p, idx) => (
+                                    <td key={p.id || idx} className="py-2 px-2 text-center text-slate-600 dark:text-slate-400 font-bold">
+                                      {p.assessed_value ? `$${p.assessed_value.toLocaleString()}` : 'N/A'}
+                                    </td>
+                                  ))}
+                                </tr>
+                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Property Type</td>
+                                  {props.map((p, idx) => (
+                                    <td key={p.id || idx} className="py-2 px-2 text-center text-slate-500 capitalize">
+                                      {p.use_code || 'Residential'}
+                                    </td>
+                                  ))}
+                                </tr>
+                              </tbody>
+                            </table>
+                          )}
+
+                          {/* Quick selectors dropdown if multiple dbTopDeals are loaded */}
+                          {dbTopDeals.length > 0 && (
+                            <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/50 space-y-1.5">
+                              <span className="text-[7.5px] font-black uppercase text-slate-400 tracking-wider">Compare Quick Selectors</span>
+                              <div className="grid grid-cols-3 gap-1">
+                                <select
+                                  value={compareProp1?.id || ''}
+                                  onChange={(e) => setCompareProp1(dbTopDeals.find(p => p.id === e.target.value) || null)}
+                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
+                                >
+                                  <option value="">Slot 1...</option>
+                                  {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
+                                </select>
+                                <select
+                                  value={compareProp2?.id || ''}
+                                  onChange={(e) => setCompareProp2(dbTopDeals.find(p => p.id === e.target.value) || null)}
+                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
+                                >
+                                  <option value="">Slot 2...</option>
+                                  {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
+                                </select>
+                                <select
+                                  value={compareProp3?.id || ''}
+                                  onChange={(e) => setCompareProp3(dbTopDeals.find(p => p.id === e.target.value) || null)}
+                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
+                                >
+                                  <option value="">Slot 3...</option>
+                                  {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
+                                </select>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* State & County Contacts Search (contacts_search) */}
+                  {w.type === 'contacts_search' && (() => {
+                    const filteredList = contactsSearchList.filter(item => {
+                      if (!contactsQuery) return true;
+                      const q = contactsQuery.toLowerCase();
+                      return (
+                        (item.name && item.name.toLowerCase().includes(q)) ||
+                        (item.category && item.category.toLowerCase().includes(q)) ||
+                        (item.phone && item.phone.toLowerCase().includes(q))
+                      );
+                    });
+
+                    return (
+                      <div className="size-full flex flex-col justify-between">
+                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2 shrink-0 justify-between items-center select-none">
+                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                            <Smartphone size={11} className="text-amber-500" /> County Registrar Directory
+                          </span>
+                        </div>
+
+                        {/* Search & State Filter Input */}
+                        <div className="flex flex-col gap-2 mb-2.5 shrink-0 select-none">
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <div>
+                              <label className="block text-[7.5px] font-black uppercase text-slate-400 mb-0.5">Select State</label>
+                              <select
+                                value={contactsSearchState}
+                                onChange={(e) => setContactsSearchState(e.target.value)}
+                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[9px] focus:outline-none"
+                              >
+                                <option value="FL">Florida</option>
+                                <option value="AL">Alabama</option>
+                                <option value="GA">Georgia</option>
+                                <option value="TX">Texas</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-[7.5px] font-black uppercase text-slate-400 mb-0.5">Select County</label>
+                              <select
+                                value={contactsSearchCounty}
+                                onChange={(e) => setContactsSearchCounty(e.target.value)}
+                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[9px] focus:outline-none"
+                              >
+                                {contactsCountyList.map(c => <option key={c} value={c}>{c}</option>)}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={contactsQuery}
+                              onChange={(e) => setContactsQuery(e.target.value)}
+                              placeholder="Search appraiser, GIS, collectors..."
+                              className="w-full pl-7 pr-2.5 py-1.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg text-[9.5px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none"
+                            />
+                            <Search className="absolute left-2.5 top-2.5 text-slate-400" size={10} />
+                          </div>
+                        </div>
+
+                        {/* Contacts Results Scroll Feed */}
+                        <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0 scrollbar-thin text-[9.5px]">
+                          {filteredList.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 select-none py-10">
+                              <Smartphone className="opacity-30 mb-1.5" size={20} />
+                              <p className="text-[10px] font-bold">No contacts found</p>
+                              <p className="text-[8px] text-slate-500">Refine query filters or change selection.</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-1.5">
+                              {filteredList.map((contact, idx) => (
+                                <div key={idx} className="p-2.5 bg-slate-50/50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-850 rounded-xl flex items-center justify-between gap-3">
+                                  <div className="min-w-0">
+                                    <div className="flex items-center gap-1.5">
+                                      <span className="text-[9px] font-extrabold text-slate-900 dark:text-white truncate max-w-[130px]">{contact.name || 'Official Agency'}</span>
+                                      {contact.category && (
+                                        <span className="bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-[6px] font-black px-1 py-0.25 rounded uppercase leading-none">{contact.category}</span>
+                                      )}
+                                    </div>
+                                    <p className="text-[7.5px] text-slate-455 font-bold mt-0.5">{contact.phone || 'No Phone Directory'}</p>
+                                  </div>
+                                  <div className="flex gap-1 shrink-0">
+                                    {contact.phone && (
+                                      <a
+                                        href={`tel:${contact.phone}`}
+                                        className="size-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg flex items-center justify-center border border-slate-200/50 dark:border-slate-700/50 transition-all"
+                                        title={`Call ${contact.name}`}
+                                      >
+                                        📞
+                                      </a>
+                                    )}
+                                    {contact.url && (
+                                      <a
+                                        href={contact.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[8px] font-extrabold uppercase tracking-wider rounded-lg transition-all flex items-center justify-center shadow-sm"
+                                        title="Open official County portal"
+                                      >
+                                        Visit
+                                      </a>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                 </div>
 
