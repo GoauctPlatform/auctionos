@@ -194,23 +194,100 @@ export const Settings: React.FC = () => {
                                 />
                             </div>
 
-                            {/* Theme */}
-                            <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Theme</label>
-                                <div className="flex gap-2">
-                                    {['light', 'dark', 'system'].map((t) => (
-                                        <button
-                                            key={t}
-                                            onClick={() => handleThemeChange(t)}
-                                            className={`px-4 py-2 rounded-lg border capitalize text-sm font-medium transition-colors ${
-                                                theme === t
-                                                    ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'
-                                                    : 'border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                                            }`}
-                                        >
-                                            <span className="mr-1">{t === 'light' ? '☀️' : t === 'dark' ? '🌙' : '💻'}</span>{t}
-                                        </button>
-                                    ))}
+                            {/* Theme Visual Selector */}
+                            <div className="space-y-3 pt-2">
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Appearance</label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                    {[
+                                        {
+                                            key: 'light',
+                                            label: 'Corporate Clean',
+                                            icon: 'light_mode',
+                                            desc: 'Bright, high-contrast crisp light corporate aesthetic.',
+                                            previewClass: 'bg-white border border-slate-200',
+                                            previewAccent: 'bg-[#00b8d9]',
+                                            previewText: 'text-slate-800'
+                                        },
+                                        {
+                                            key: 'dark',
+                                            label: 'Cyberpunk Tech',
+                                            icon: 'dark_mode',
+                                            desc: 'Premium dark mode with neon cyan highlights.',
+                                            previewClass: 'bg-[#0a0f1c] border border-slate-800',
+                                            previewAccent: 'bg-[#00e5e5]',
+                                            previewText: 'text-slate-100'
+                                        },
+                                        {
+                                            key: 'system',
+                                            label: 'System Preference',
+                                            icon: 'desktop_windows',
+                                            desc: 'Syncs automatically with your operating system display.',
+                                            previewClass: 'bg-gradient-to-r from-white to-[#0a0f1c] border border-slate-300 dark:border-slate-700',
+                                            previewAccent: 'bg-blue-500',
+                                            previewText: 'text-blue-500'
+                                        }
+                                    ].map((t) => {
+                                        const isSelected = theme === t.key;
+                                        return (
+                                            <button
+                                                key={t.key}
+                                                type="button"
+                                                onClick={() => handleThemeChange(t.key)}
+                                                className={`flex flex-col text-left p-3.5 rounded-xl border transition-all duration-300 relative group overflow-hidden ${
+                                                    isSelected
+                                                        ? 'border-blue-500 bg-blue-50/40 dark:bg-blue-900/10 shadow-md shadow-blue-500/5 ring-1 ring-blue-500/20'
+                                                        : 'border-slate-200 dark:border-slate-700 bg-slate-50/20 dark:bg-slate-800/10 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50/60 dark:hover:bg-slate-800/30'
+                                                }`}
+                                            >
+                                                {isSelected && (
+                                                    <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 animate-pulse" />
+                                                )}
+                                                
+                                                {/* Mini Mock Dashboard UI Preview inside Card */}
+                                                <div className={`w-full h-14 rounded-lg ${t.previewClass} mb-3 p-1.5 flex flex-col justify-between overflow-hidden relative shadow-inner select-none pointer-events-none`}>
+                                                    <div className="flex justify-between items-center">
+                                                        <div className="flex gap-0.5 items-center">
+                                                            <div className={`w-1 h-1 rounded-full ${t.previewAccent}`} />
+                                                            <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-700/80" />
+                                                        </div>
+                                                        <div className={`w-2 h-1 rounded-full ${t.previewAccent} opacity-80`} />
+                                                    </div>
+                                                    <div className="flex gap-1 items-end">
+                                                        <div className="flex-1 space-y-0.5">
+                                                            <div className="w-8 h-1 rounded bg-slate-300 dark:bg-slate-700" />
+                                                            <div className="w-6 h-1 rounded bg-slate-200 dark:bg-slate-800" />
+                                                        </div>
+                                                        <div className="flex gap-0.5 items-end h-6">
+                                                            <div className={`w-0.5 h-2 rounded-full ${t.previewAccent} opacity-60`} />
+                                                            <div className={`w-0.5 h-4 rounded-full ${t.previewAccent}`} />
+                                                            <div className={`w-0.5 h-3 rounded-full ${t.previewAccent} opacity-80`} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex items-center gap-1.5 mb-1 w-full">
+                                                    <span className={`material-symbols-outlined text-[16px] ${
+                                                        isSelected ? 'text-blue-500 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
+                                                    }`}>
+                                                        {t.icon}
+                                                    </span>
+                                                    <span className={`text-xs font-bold transition-colors ${
+                                                        isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
+                                                    }`}>
+                                                        {t.label}
+                                                    </span>
+                                                    {isSelected && (
+                                                        <span className="ml-auto material-symbols-outlined text-blue-500 dark:text-blue-400 text-sm font-bold">
+                                                            check_circle
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-normal font-normal">
+                                                    {t.desc}
+                                                </p>
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
 
@@ -239,22 +316,100 @@ export const Settings: React.FC = () => {
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Preferences</h3>
 
-                        {/* Appearance */}
-                        <div className="pb-6 border-b border-slate-200 dark:border-slate-700">
-                            <h4 className="text-md font-semibold text-slate-900 dark:text-white mb-2">Appearance</h4>
-                            <div className="flex gap-4">
-                                {['light', 'dark', 'system'].map((t) => (
-                                    <button
-                                        key={t}
-                                        onClick={() => handleThemeChange(t)}
-                                        className={`px-4 py-2 rounded-lg border capitalize ${theme === t
-                                            ? 'border-primary bg-primary/5 text-primary'
-                                            : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                        {/* Appearance Premium Selector */}
+                        <div className="pb-6 border-b border-slate-200 dark:border-slate-700 space-y-4">
+                            <div>
+                                <h4 className="text-md font-semibold text-slate-900 dark:text-white">Appearance</h4>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Customize the workspace design and interface themes.</p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {[
+                                    {
+                                        key: 'light',
+                                        label: 'Corporate Clean',
+                                        icon: 'light_mode',
+                                        desc: 'Bright, high-contrast crisp light corporate aesthetic.',
+                                        previewClass: 'bg-white border border-slate-200',
+                                        previewAccent: 'bg-[#00b8d9]'
+                                    },
+                                    {
+                                        key: 'dark',
+                                        label: 'Cyberpunk Tech',
+                                        icon: 'dark_mode',
+                                        desc: 'Premium dark mode with neon cyan highlights.',
+                                        previewClass: 'bg-[#0a0f1c] border border-slate-800',
+                                        previewAccent: 'bg-[#00e5e5]'
+                                    },
+                                    {
+                                        key: 'system',
+                                        label: 'System Preference',
+                                        icon: 'desktop_windows',
+                                        desc: 'Syncs automatically with your operating system display.',
+                                        previewClass: 'bg-gradient-to-r from-white to-[#0a0f1c] border border-slate-300 dark:border-slate-700',
+                                        previewAccent: 'bg-blue-500'
+                                    }
+                                ].map((t) => {
+                                    const isSelected = theme === t.key;
+                                    return (
+                                        <button
+                                            key={t.key}
+                                            type="button"
+                                            onClick={() => handleThemeChange(t.key)}
+                                            className={`flex flex-col text-left p-3.5 rounded-xl border transition-all duration-300 relative group overflow-hidden ${
+                                                isSelected
+                                                    ? 'border-blue-500 bg-blue-50/40 dark:bg-blue-900/10 shadow-md shadow-blue-500/5 ring-1 ring-blue-500/20'
+                                                    : 'border-slate-200 dark:border-slate-700 bg-slate-50/20 dark:bg-slate-800/10 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50/60 dark:hover:bg-slate-800/30'
                                             }`}
-                                    >
-                                        {t}
-                                    </button>
-                                ))}
+                                        >
+                                            {isSelected && (
+                                                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 animate-pulse" />
+                                            )}
+                                            
+                                            {/* Mini Mock Dashboard UI Preview inside Card */}
+                                            <div className={`w-full h-14 rounded-lg ${t.previewClass} mb-3 p-1.5 flex flex-col justify-between overflow-hidden relative shadow-inner select-none pointer-events-none`}>
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex gap-0.5 items-center">
+                                                        <div className={`w-1 h-1 rounded-full ${t.previewAccent}`} />
+                                                        <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-700/80" />
+                                                    </div>
+                                                    <div className={`w-2 h-1 rounded-full ${t.previewAccent} opacity-80`} />
+                                                </div>
+                                                <div className="flex gap-1 items-end">
+                                                    <div className="flex-1 space-y-0.5">
+                                                        <div className="w-8 h-1 rounded bg-slate-300 dark:bg-slate-700" />
+                                                        <div className="w-6 h-1 rounded bg-slate-200 dark:bg-slate-800" />
+                                                    </div>
+                                                    <div className="flex gap-0.5 items-end h-6">
+                                                        <div className={`w-0.5 h-2 rounded-full ${t.previewAccent} opacity-60`} />
+                                                        <div className={`w-0.5 h-4 rounded-full ${t.previewAccent}`} />
+                                                        <div className={`w-0.5 h-3 rounded-full ${t.previewAccent} opacity-80`} />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-1.5 mb-1 w-full">
+                                                <span className={`material-symbols-outlined text-[16px] ${
+                                                    isSelected ? 'text-blue-500 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
+                                                }`}>
+                                                    {t.icon}
+                                                </span>
+                                                <span className={`text-xs font-bold transition-colors ${
+                                                    isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
+                                                }`}>
+                                                    {t.label}
+                                                </span>
+                                                {isSelected && (
+                                                    <span className="ml-auto material-symbols-outlined text-blue-500 dark:text-blue-400 text-sm font-bold">
+                                                        check_circle
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-normal font-normal">
+                                                {t.desc}
+                                            </p>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                         <div className="p-6 border-b border-slate-200 dark:border-slate-700">

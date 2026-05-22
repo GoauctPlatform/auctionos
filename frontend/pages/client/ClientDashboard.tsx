@@ -45,16 +45,16 @@ const StateSilhouetteBadge: React.FC<{ stateCode: string; size?: number }> = ({ 
   return (
     <div
       style={{ width: size, height: size }}
-      className="relative bg-white/10 border border-white/20 rounded-lg flex items-center justify-center p-1 shrink-0 shadow-sm"
+      className="relative bg-slate-100 dark:bg-white/10 border border-slate-200 dark:border-white/20 rounded-lg flex items-center justify-center p-1 shrink-0 shadow-sm"
     >
       <img
         src={url}
         alt={stateCode}
-        className="w-full h-full object-contain opacity-70 brightness-0 invert"
+        className="w-full h-full object-contain opacity-70 dark:brightness-0 dark:invert"
         onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
       />
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <span className="text-[8px] font-black text-white/30 tracking-tighter">{stateCode}</span>
+        <span className="text-[8px] font-black text-slate-800/30 dark:text-white/30 tracking-tighter">{stateCode}</span>
       </div>
     </div>
   );
@@ -150,43 +150,35 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, monthlyStat
   return (
     <div
       id="tour-auction-trends"
-      className="w-full flex flex-col"
+      className="w-full flex flex-col glass-card border border-theme shadow-theme transition-theme"
       style={{
         minHeight: 520,
-        background: 'rgba(15,23,42,0.60)',
-        backdropFilter: 'blur(24px)',
-        WebkitBackdropFilter: 'blur(24px)',
-        border: '1px solid rgba(148,163,184,0.12)',
-        borderRadius: 20,
-        boxShadow: '0 8px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.05)',
         overflow: 'hidden',
-        transition: 'all 0.3s ease',
       }}
     >
-      <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(148,163,184,0.10)', background: 'rgba(15,23,42,0.50)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+      <div className="flex items-center justify-between gap-3 px-5 py-4 border-b border-theme bg-theme-tertiary/20 flex-shrink-0 flex-wrap sm:flex-nowrap">
         <div className="flex items-center gap-2.5">
           {activeCode ? (
             <div style={{ transition: 'all 0.3s ease' }}>
               <StateSilhouetteBadge stateCode={activeCode} size={28} />
             </div>
           ) : (
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#818CF8' }}>stacked_line_chart</span>
+            <div className="size-7 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
+              <span className="material-symbols-outlined text-[16px] text-indigo-500 dark:text-indigo-400">stacked_line_chart</span>
             </div>
           )}
           <div>
-            <h2 className="text-sm font-bold uppercase tracking-widest" style={{ color: 'rgba(203,213,225,0.85)', lineHeight: 1.2 }}>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-slate-900 dark:text-white" style={{ lineHeight: 1.2 }}>
               {isFocused ? selectedState : 'State Auction Trends'}
             </h2>
-            <p className="text-[9px] font-bold uppercase tracking-widest mt-0.5" style={{ color: 'rgba(148,163,184,0.4)' }}>
+            <p className="text-[9px] font-bold uppercase tracking-widest mt-0.5 text-slate-400 dark:text-slate-500">
               {isFocused ? 'Monthly history · current year' : 'All states · monthly volume'}
             </p>
           </div>
           {isFocused && (
             <button
               onClick={() => onStateClick('')}
-              className="ml-1 flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest transition-all hover:scale-105"
-              style={{ color: 'rgba(148,163,184,0.5)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: 6, padding: '2px 7px' }}
+              className="ml-1.5 flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest transition-all hover:scale-105 px-2 py-0.5 rounded bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
             >
               <span className="material-symbols-outlined" style={{ fontSize: 10 }}>close</span>
               All States
@@ -195,7 +187,7 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, monthlyStat
         </div>
         <div className="flex items-center gap-1.5 flex-wrap justify-end">
           {[{ key: 'deed', label: 'Tax Deeds', color: CHART_COLORS.deed }, { key: 'lien', label: 'Tax Liens', color: CHART_COLORS.lien }, { key: 'foreclosure', label: 'Foreclosures', color: CHART_COLORS.foreclosure }].map(item => (
-            <div key={item.key} className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: `${item.color}18`, border: `1px solid ${item.color}40` }}>
+            <div key={item.key} className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: `${item.color}18`, border: `1px solid ${item.color}35` }}>
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: item.color }} />
               <span className="text-[10px] font-bold" style={{ color: item.color }}>{item.label}</span>
             </div>
@@ -204,12 +196,12 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, monthlyStat
       </div>
 
       {isFocused && focusedTotals && (
-        <div style={{ padding: '10px 20px 0', display: 'flex', gap: 12, flexShrink: 0, flexWrap: 'wrap' }}>
+        <div className="px-5 pt-3.5 flex gap-3 flex-shrink-0 flex-wrap">
           {focusedTotals.map(item => (
-            <div key={item.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg" style={{ background: `${item.color}12`, border: `1px solid ${item.color}30` }}>
+            <div key={item.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border transition-colors border-slate-200/50 dark:border-white/5" style={{ background: `${item.color}08`, borderColor: `${item.color}25` }}>
               <div className="w-2 h-2 rounded-full" style={{ background: item.color, boxShadow: `0 0 5px ${item.color}80` }} />
               <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: item.color }}>{item.label}</span>
-              <span className="text-xs font-black ml-1" style={{ color: 'rgba(203,213,225,0.9)' }}>{item.value.toLocaleString()}</span>
+              <span className="text-xs font-black ml-1 text-slate-900 dark:text-slate-100">{item.value.toLocaleString()}</span>
             </div>
           ))}
         </div>
@@ -218,11 +210,11 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, monthlyStat
       <div className="flex-1 w-full" style={{ padding: '16px 8px 8px', minHeight: 340 }}>
         {loading ? (
           <div className="h-full flex items-center justify-center">
-            <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid rgba(99,102,241,0.2)', borderTopColor: '#818CF8', animation: 'spin 0.8s linear infinite' }} />
+            <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid var(--border)', borderTopColor: 'var(--accent)', animation: 'spin 0.8s linear infinite' }} />
           </div>
         ) : isEmpty ? (
-          <div className="h-full flex flex-col items-center justify-center" style={{ color: 'rgba(148,163,184,0.5)' }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 48, marginBottom: 12, opacity: 0.3 }}>stacked_line_chart</span>
+          <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
+            <span className="material-symbols-outlined text-4xl mb-3 opacity-40">stacked_line_chart</span>
             <p className="text-sm font-bold">No monthly data yet</p>
             <p className="text-xs mt-1 opacity-60">Auction events with dates will appear here as monthly trends.</p>
           </div>
@@ -232,44 +224,44 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, monthlyStat
               data={monthlyStats}
               margin={{ top: 8, right: 16, left: -8, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.08)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.25} />
               <XAxis
                 dataKey="month_label"
-                tick={{ fill: 'rgba(148,163,184,0.7)', fontSize: 10, fontWeight: 700 }}
-                axisLine={{ stroke: 'rgba(148,163,184,0.12)' }}
+                tick={{ fill: 'var(--text-muted)', fontSize: 10, fontWeight: 700 }}
+                axisLine={{ stroke: 'var(--border)', strokeOpacity: 0.3 }}
                 tickLine={false}
               />
               <YAxis
-                tick={{ fill: 'rgba(148,163,184,0.6)', fontSize: 9 }}
+                tick={{ fill: 'var(--text-muted)', fontSize: 9 }}
                 axisLine={false}
                 tickLine={false}
                 width={36}
                 allowDecimals={false}
-                label={{ value: 'Auctions', angle: -90, position: 'insideLeft', offset: 14, style: { fill: 'rgba(148,163,184,0.25)', fontSize: 9, fontWeight: 700 } }}
+                label={{ value: 'Auctions', angle: -90, position: 'insideLeft', offset: 14, style: { fill: 'var(--text-muted)', opacity: 0.5, fontSize: 9, fontWeight: 700 } }}
               />
               <RechartsTooltip
                 content={({ active, payload, label }) => {
                   if (!active || !payload?.length) return null;
                   return (
-                    <div style={{ backdropFilter: 'blur(20px)', background: 'rgba(15,23,42,0.88)', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 12, padding: '10px 14px', minWidth: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+                    <div className="glass-card p-3.5 min-w-[160px] shadow-xl border border-theme">
                       <div className="flex items-center gap-2 mb-2">
                         {activeCode && <StateSilhouetteBadge stateCode={activeCode} size={20} />}
-                        <span className="text-white font-black text-xs tracking-wide">{label}</span>
-                        {isFocused && <span className="text-[9px] font-bold" style={{ color: 'rgba(148,163,184,0.4)' }}>{selectedState}</span>}
+                        <span className="text-slate-900 dark:text-white font-black text-xs tracking-wide">{label}</span>
+                        {isFocused && <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">{selectedState}</span>}
                       </div>
                       {payload.map((entry: any) => (
                         <div key={entry.name} className="flex items-center justify-between gap-4 mb-0.5">
                           <div className="flex items-center gap-1.5">
                             <div className="w-1.5 h-1.5 rounded-full" style={{ background: entry.color }} />
-                            <span className="text-slate-300 text-xs">{entry.name}</span>
+                            <span className="text-slate-600 dark:text-slate-300 text-xs">{entry.name}</span>
                           </div>
-                          <span className="text-white font-bold text-xs">{entry.value}</span>
+                          <span className="text-slate-900 dark:text-white font-bold text-xs">{entry.value}</span>
                         </div>
                       ))}
                     </div>
                   );
                 }}
-                cursor={{ stroke: 'rgba(148,163,184,0.15)', strokeWidth: 1 }}
+                cursor={{ stroke: 'var(--border)', strokeOpacity: 0.3, strokeWidth: 1 }}
               />
               <Line
                 type="monotone" dataKey="deed" name="Tax Deeds"
@@ -294,8 +286,8 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, monthlyStat
         )}
       </div>
 
-      <div style={{ padding: '8px 20px 14px', flexShrink: 0 }}>
-        <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(148,163,184,0.28)' }}>
+      <div className="px-5 pb-3.5 pt-1 flex-shrink-0">
+        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-600">
           {isFocused
             ? `${selectedState} · monthly auction history · click "All States" to compare`
             : 'Click heatmap or chart line to drill into a state · Jan–Dec current year'}
