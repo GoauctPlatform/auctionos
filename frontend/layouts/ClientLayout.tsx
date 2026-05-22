@@ -212,12 +212,12 @@ const ClientLayout: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 dark:bg-[#0f172a] font-display flex flex-col relative">
+    <div className="min-h-screen w-full bg-slate-50 dark:bg-[#080B11] font-display flex flex-col relative">
       {/* Dynamic Background Layer */}
       <div className="fixed inset-0 bg-mesh-gradient pointer-events-none z-0" />
 
       {/* Header Navigation */}
-      <header className="bg-white/70 dark:bg-[#1a2634]/70 backdrop-blur-md border-b border-[#e7ecf3] dark:border-slate-700/50 sticky top-0 z-50">
+      <header className="bg-white/70 dark:bg-[#0E131F]/70 backdrop-blur-md border-b border-[#e7ecf3] dark:border-slate-800/50 sticky top-0 z-50">
         <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12">
           <div className="flex justify-between h-16">
             <div className="flex">
@@ -478,7 +478,7 @@ const ClientLayout: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 w-full flex flex-col min-w-0 overflow-hidden">
-        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 flex flex-col">
+        <div className="flex-1 overflow-auto bg-slate-50 dark:bg-[#080B11] flex flex-col">
           <Outlet />
         </div>
       </main>

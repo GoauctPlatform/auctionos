@@ -280,7 +280,12 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6 mb-20 animate-in fade-in duration-700">
             {/* Header */}
             <div className="flex items-center justify-between gap-4 mb-2">
-                <Button variant="text" startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} className="text-slate-500 hover:text-slate-700 normal-case">
+                <Button 
+                    variant="text" 
+                    startIcon={<ArrowBackIcon />} 
+                    onClick={() => navigate(-1)} 
+                    className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white normal-case font-bold transition-colors"
+                >
                     Back to Inventory
                 </Button>
 
@@ -288,13 +293,13 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => startTour('property_details')}
-                        className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse"
+                        className="flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 bg-[#0D8BFF] hover:bg-blue-600 hover:shadow-[0_0_20px_rgba(13,139,255,0.4)] text-white border-0 outline-none hover:scale-[1.02]"
                     >
                         <span className="material-symbols-outlined text-[16px]">menu_book</span>
                         Page Tour
                     </button>
                     {(property as any).has_overrides && !isEditing && (
-                        <span className="flex items-center gap-1 text-[10px] font-black px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full uppercase tracking-wider">
+                        <span className="flex items-center gap-1.5 text-[10px] font-black px-2.5 py-1.5 bg-amber-100/80 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl uppercase tracking-wider border border-amber-200/30 dark:border-amber-800/40">
                             <PencilLine size={10} />
                             Customized View
                         </span>
@@ -302,10 +307,10 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                     <button
                         id="btn-customize-property-view"
                         onClick={() => setIsEditing(prev => !prev)}
-                        className={`flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm ${
+                        className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold rounded-xl transition-all duration-300 border-0 outline-none ${
                             isEditing
-                                ? 'bg-amber-500 text-white hover:bg-amber-400'
-                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:border-amber-300 hover:text-amber-600 dark:hover:border-amber-500 dark:hover:text-amber-400'
+                                ? 'bg-amber-500 text-white hover:bg-amber-400 hover:shadow-[0_0_20px_rgba(245,158,11,0.4)] hover:scale-[1.02]'
+                                : 'bg-white dark:bg-[#131926]/40 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-800/80 hover:border-amber-300 hover:text-amber-600 dark:hover:border-amber-500 dark:hover:text-amber-400 hover:scale-[1.02]'
                         }`}
                     >
                         <PencilLine size={13} />
@@ -324,7 +329,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
             )}
 
             {/* Zillow-style Street View Hero */}
-            <div className="relative w-full h-[300px] sm:h-[450px] bg-slate-100 dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg group">
+            <div className="relative w-full h-[300px] sm:h-[450px] bg-slate-100 dark:bg-[#0F131C] rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-800/80 shadow-2xl group">
                 {getStreetViewUrl(property) && !streetViewError ? (
                     <img 
                         src={getStreetViewUrl(property)!} 
@@ -338,7 +343,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         style={{ backgroundImage: `url('${property.imageUrl || '/placeholder.png'}')` }}
                     >
                         {!property.imageUrl && (
-                            <div className="text-slate-400 flex flex-col items-center gap-2">
+                            <div className="text-slate-400 dark:text-slate-500 flex flex-col items-center gap-2 animate-pulse">
                                 <span className="material-symbols-outlined text-4xl">image_not_supported</span>
                                 <span className="text-xs font-bold uppercase tracking-widest">No Preview Available</span>
                             </div>
@@ -353,7 +358,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         href={property.map_link} 
                         target="_blank" 
                         rel="noreferrer"
-                        className="absolute bottom-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-full shadow-xl flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-white hover:bg-primary hover:text-white transition-all transform hover:scale-105"
+                        className="absolute bottom-4 right-4 bg-white/90 dark:bg-[#131926]/90 backdrop-blur-md border border-slate-100/50 dark:border-slate-800/80 px-4 py-2.5 rounded-full shadow-xl flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-white hover:bg-[#0D8BFF] hover:text-white hover:shadow-[0_0_15px_rgba(13,139,255,0.4)] transition-all duration-300 transform hover:scale-105"
                     >
                         <span className="material-symbols-outlined text-[18px]">map</span>
                         View on Google Maps
@@ -372,27 +377,27 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 </div>
             )}
 
-            <div className="flex items-baseline justify-between border-b border-slate-100 dark:border-slate-800 pb-6">
+            <div className="flex items-baseline justify-between border-b border-slate-100 dark:border-slate-800/80 pb-6">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-800 dark:text-slate-100 uppercase tracking-tight">
+                    <h1 className="text-3xl font-black text-slate-800 dark:text-white uppercase tracking-tight">
                         {ownerNameFallback !== 'UNKNOWN OWNER' ? ownerNameFallback : (property.parcel_address || property.parcel_id)}
                     </h1>
                     <div className="flex items-center gap-3 mt-2">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{property.county} County, {property.state}</span>
-                        <div className="w-1 h-1 rounded-full bg-slate-300"></div>
-                        <span className="text-xs font-mono font-bold text-blue-500">ID: {property.parcel_id}</span>
+                        <span className="text-xs font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{property.county} County, {property.state}</span>
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+                        <span className="text-xs font-mono font-bold text-[#0D8BFF] drop-shadow-[0_0_10px_rgba(13,139,255,0.15)]">ID: {property.parcel_id}</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     {property.is_qoz && (
-                        <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-amber-200 dark:border-amber-800">Opportunity Zone</span>
+                        <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-800 dark:text-amber-400 text-[10px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest border border-amber-200/30 dark:border-amber-800/60 shadow-[0_0_15px_rgba(245,158,11,0.05)]">Opportunity Zone</span>
                     )}
                     {!readOnly && (
                         <Button
                             variant="outlined"
                             size="small"
                             onClick={() => navigate(`/admin/properties/${property.parcel_id}/edit`)}
-                            className="normal-case font-bold text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
+                            className="normal-case font-bold text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-[#0D8BFF] hover:text-[#0D8BFF] rounded-xl px-4 py-1.5 transition-all duration-300"
                         >
                             Edit
                         </Button>
@@ -435,18 +440,18 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                     </div>
 
                     {/* Preserved Raw Data Block */}
-                    <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-                        <div className="bg-slate-50 dark:bg-slate-900/50 p-4 px-6 font-bold text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-slate-400 text-lg">database</span>
+                    <div className="bg-white dark:bg-[#131926]/40 rounded-2xl shadow-2xl border border-slate-200/50 dark:border-slate-800/80 overflow-hidden backdrop-blur-md">
+                        <div className="bg-slate-50 dark:bg-slate-900/40 p-4 px-6 font-bold text-slate-700 dark:text-white border-b border-slate-100/50 dark:border-slate-800/60 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[#0D8BFF] text-lg">database</span>
                             Full Parcel Features
                         </div>
                         <div className="p-6 px-7">
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-6 gap-x-8 text-sm text-slate-700 dark:text-slate-300">
-                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">Zoning</span> {property.zoning || 'Residential (Default)'}</div>
-                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">Subdivision</span> {property.subdivision || 'Unrecorded'}</div>
-                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">Sewer Type</span> {property.sewer_type || 'Public'}</div>
-                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">Water Type</span> {property.water_type || 'Municipal'}</div>
-                                <div className="col-span-2"><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">Property Type Detail</span> {property.property_type_detail || property.description || 'Single Family Residence'}</div>
+                                <div><span className="font-bold text-slate-400 dark:text-slate-500 uppercase text-[10px] tracking-widest block mb-1">Zoning</span> {property.zoning || 'Residential (Default)'}</div>
+                                <div><span className="font-bold text-slate-400 dark:text-slate-500 uppercase text-[10px] tracking-widest block mb-1">Subdivision</span> {property.subdivision || 'Unrecorded'}</div>
+                                <div><span className="font-bold text-slate-400 dark:text-slate-500 uppercase text-[10px] tracking-widest block mb-1">Sewer Type</span> {property.sewer_type || 'Public'}</div>
+                                <div><span className="font-bold text-slate-400 dark:text-slate-500 uppercase text-[10px] tracking-widest block mb-1">Water Type</span> {property.water_type || 'Municipal'}</div>
+                                <div className="col-span-2"><span className="font-bold text-slate-400 dark:text-slate-500 uppercase text-[10px] tracking-widest block mb-1">Property Type Detail</span> {property.property_type_detail || property.description || 'Single Family Residence'}</div>
                             </div>
                         </div>
                     </div>
@@ -482,12 +487,13 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                     </div>
 
                     {/* BPO Due Diligence Marketplace */}
-                    <div className="bg-indigo-900 rounded-xl p-6 shadow-sm border border-indigo-800 text-white">
+                    <div className="relative overflow-hidden bg-gradient-to-br from-indigo-900/60 to-purple-900/60 dark:from-[#131926]/60 dark:to-[#1a1738]/60 p-6 rounded-2xl shadow-2xl border border-indigo-500/20 dark:border-slate-800/80 text-white backdrop-blur-md">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
                         <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                            <span className="material-symbols-outlined">real_estate_agent</span>
+                            <span className="material-symbols-outlined text-[#0D8BFF]">real_estate_agent</span>
                             BPO Due Diligence
                         </h3>
-                        <p className="text-sm text-indigo-200 mb-4">Request a local field agent to perform a property condition check and take custom photos.</p>
+                        <p className="text-sm text-indigo-200/90 dark:text-slate-300 mb-5 leading-relaxed">Request a local field agent to perform a property condition check and capture custom visual assets.</p>
                         <button
                             onClick={() => {
                                 const currentUser = AuthService.getCurrentUser();
@@ -497,7 +503,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                                     setIsBpoOpen(true);
                                 }
                             }}
-                            className="w-full py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white font-bold rounded-lg transition-colors shadow-sm"
+                            className="w-full py-3 bg-[#0D8BFF] hover:bg-blue-600 hover:shadow-[0_0_20px_rgba(13,139,255,0.4)] text-white font-bold rounded-xl transition-all duration-300 transform active:scale-95 border-0 outline-none"
                         >
                             Request Field Mission
                         </button>
@@ -514,8 +520,8 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
                     {/* Admin Actions - Preserved/Minimized */}
                     {!readOnly && (
-                        <div className="bg-slate-50 dark:bg-slate-900/30 rounded-2xl p-6 border border-slate-100 dark:border-slate-800">
-                            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-1">System Administration</h3>
+                        <div className="bg-slate-50 dark:bg-[#131926]/40 rounded-2xl p-6 border border-slate-100/50 dark:border-slate-800/80 shadow-2xl backdrop-blur-md">
+                            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-4 px-1">System Administration</h3>
                             <div className="space-y-3">
                                 <button
                                     onClick={async () => {
@@ -531,9 +537,9 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                                         }
                                     }}
                                     disabled={actionLoading}
-                                    className="w-full py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 font-bold text-xs transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-2.5 bg-white dark:bg-[#080B11]/60 border border-slate-200/50 dark:border-slate-800/80 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 font-bold text-xs transition-all flex items-center justify-center gap-2 border-0 outline-none hover:scale-[1.02] shadow-sm"
                                 >
-                                    <span className="material-symbols-outlined text-[16px]">verified</span>
+                                    <span className="material-symbols-outlined text-[16px] text-[#0D8BFF]">verified</span>
                                     Force GSI Validation
                                 </button>
                             </div>

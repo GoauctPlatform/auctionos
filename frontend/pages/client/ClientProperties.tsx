@@ -93,13 +93,13 @@ const ClientProperties: React.FC = () => {
     return (
         <div className="p-6 w-full space-y-6 px-4 sm:px-8 lg:px-12">
             <div className="flex justify-between items-center">
-                <Typography variant="h4" className="font-bold text-slate-800 dark:text-white">
-                    Property Search
+                <Typography variant="h4" className="font-black text-slate-800 dark:text-white tracking-tight flex items-center gap-3">
+                    <span className="bg-gradient-to-r from-[#0D8BFF] to-[#13B8B5] bg-clip-text text-transparent">Property</span> Search
                 </Typography>
                 <Button 
                     variant="contained" 
                     color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
-                    className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-600'} rounded-lg shadow-none`}
+                    className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-[#0D8BFF] hover:bg-blue-600 dark:hover:bg-blue-500 hover:shadow-[0_0_20px_rgba(13,139,255,0.4)] text-white'} rounded-xl px-5 py-2.5 font-bold shadow-none transition-all duration-300 border-0`}
                     onClick={() => {
                         if (user?.subscription_tier === 'trial') {
                             alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
@@ -112,7 +112,7 @@ const ClientProperties: React.FC = () => {
                     Create Custom Property
                 </Button>
             </div>
-            <div id="tour-properties-filters" className="sticky top-0 z-40 pt-2 pb-1 bg-[#F8FAFC] dark:bg-slate-950/80 backdrop-blur-md -mx-4 px-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
+            <div id="tour-properties-filters" className="sticky top-0 z-40 pt-2 pb-1 bg-[#F8FAFC]/90 dark:bg-[#080B11]/85 backdrop-blur-md -mx-4 px-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12 border-b border-slate-200/50 dark:border-slate-800/60">
                 <PropertyFilters 
                     onFilterChange={setFilters} 
                     readOnly={true} 
@@ -121,7 +121,7 @@ const ClientProperties: React.FC = () => {
             </div>
             
             {hasActiveFilters ? (
-                <div className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl h-[calc(100vh-250px)] flex flex-col">
+                <div className="w-full bg-white dark:bg-[#131926]/40 border border-slate-200/50 dark:border-slate-800/80 shadow-2xl rounded-2xl backdrop-blur-md overflow-hidden h-[calc(100vh-250px)] flex flex-col relative">
                     <PropertyList 
                         filters={filters} 
                         readOnly={true} 
@@ -143,46 +143,82 @@ const ClientProperties: React.FC = () => {
                     />
                 </div>
             ) : (
-                <div className="w-full h-[400px] bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-slate-500">
-                    <span className="material-symbols-outlined text-6xl mb-4 text-slate-300 dark:text-slate-700">search</span>
-                    <Typography variant="h6" className="font-semibold text-slate-600 dark:text-slate-400">Search Properties</Typography>
-                    <Typography variant="body2" className="mt-1">Use the filters above to find what you are looking for.</Typography>
+                <div className="w-full h-[400px] bg-slate-50 dark:bg-[#131926]/20 rounded-3xl border-2 border-dashed border-slate-200 dark:border-slate-800/50 flex flex-col items-center justify-center text-slate-500 dark:text-slate-400 backdrop-blur-sm relative overflow-hidden">
+                    <div className="absolute inset-0 bg-radial-gradient opacity-10 pointer-events-none" />
+                    <div className="size-16 rounded-full bg-slate-100 dark:bg-[#0D8BFF]/10 text-slate-400 dark:text-[#0D8BFF] flex items-center justify-center mb-4 border border-transparent dark:border-[#0D8BFF]/20 shadow-[0_0_20px_rgba(13,139,255,0.05)] animate-pulse">
+                        <span className="material-symbols-outlined text-3xl">search</span>
+                    </div>
+                    <Typography variant="h6" className="font-bold text-slate-700 dark:text-white">Search Properties</Typography>
+                    <Typography variant="body2" className="mt-1 text-slate-400 dark:text-slate-400 max-w-sm text-center">Use the filters above to explore properties, analyze market trends, and identify foreclosure or tax deed opportunities.</Typography>
                 </div>
-            )}            {/* Create Custom Property Modal */}
-            <Dialog open={isCreateModalOpen} onClose={() => setCreateModalOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-                <Typography variant="h6" className="font-bold mb-4 text-slate-800 dark:text-white">Create Custom Property</Typography>
+            )}
+
+            {/* Create Custom Property Modal */}
+            <Dialog 
+                open={isCreateModalOpen} 
+                onClose={() => setCreateModalOpen(false)} 
+                maxWidth="sm" 
+                fullWidth 
+                PaperProps={{ 
+                    className: "rounded-3xl p-6 bg-white dark:bg-[#131926] border border-slate-100 dark:border-slate-800/80 shadow-2xl text-slate-800 dark:text-white"
+                }}
+            >
+                <Typography variant="h6" className="font-bold mb-5 text-slate-800 dark:text-white tracking-tight">
+                    Create Custom Property
+                </Typography>
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <TextField 
                             label="Parcel ID" 
                             fullWidth size="small" 
                             value={createForm.parcel_id} 
-                            onChange={e => setCreateForm(p => ({...p, parcel_id: e.target.value}))} 
+                            onChange={e => setCreateForm(p => ({...p, parcel_id: e.target.value}))}
+                            InputProps={{
+                                className: "dark:text-white rounded-xl dark:bg-[#080B11]/50"
+                            }}
+                            InputLabelProps={{
+                                className: "dark:text-slate-400"
+                            }}
                         />
                         <TextField 
                             label="Owner Name" 
                             fullWidth size="small" 
                             value={createForm.owner_name} 
-                            onChange={e => setCreateForm(p => ({...p, owner_name: e.target.value}))} 
+                            onChange={e => setCreateForm(p => ({...p, owner_name: e.target.value}))}
+                            InputProps={{
+                                className: "dark:text-white rounded-xl dark:bg-[#080B11]/50"
+                            }}
+                            InputLabelProps={{
+                                className: "dark:text-slate-400"
+                            }}
                         />
                     </div>
                     <TextField 
                         label="Address" 
                         fullWidth size="small" 
                         value={createForm.address} 
-                        onChange={e => setCreateForm(p => ({...p, address: e.target.value}))} 
+                        onChange={e => setCreateForm(p => ({...p, address: e.target.value}))}
+                        InputProps={{
+                            className: "dark:text-white rounded-xl dark:bg-[#080B11]/50"
+                        }}
+                        InputLabelProps={{
+                            className: "dark:text-slate-400"
+                        }}
                     />
-                    <div className="flex flex-col gap-3 mb-4 mt-2">
+                    <div className="flex flex-col gap-3.5 mb-4 mt-2">
                         <Autocomplete
                             options={stateContacts}
                             getOptionLabel={(option) => option.state}
                             value={selectedState}
                             onChange={(_, newValue) => setSelectedState(newValue)}
                             renderInput={(params) => (
-                                <TextField {...params} variant="outlined" size="small" label="Select State *" className="bg-white dark:bg-slate-800 rounded-lg" />
+                                <TextField {...params} variant="outlined" size="small" label="Select State *" className="bg-white dark:bg-[#080B11]/50 rounded-xl" InputLabelProps={{ className: "dark:text-slate-400" }} />
                             )}
                             fullWidth
                             disablePortal
+                            classes={{
+                                paper: "dark:bg-[#131926] dark:text-white dark:border dark:border-slate-800"
+                            }}
                         />
                         <Autocomplete
                             options={availableCounties}
@@ -190,20 +226,27 @@ const ClientProperties: React.FC = () => {
                             value={selectedCounty}
                             onChange={(_, newValue) => setSelectedCounty(newValue)}
                             renderInput={(params) => (
-                                <TextField {...params} variant="outlined" size="small" label="Select County *" className="bg-white dark:bg-slate-800 rounded-lg" />
+                                <TextField {...params} variant="outlined" size="small" label="Select County *" className="bg-white dark:bg-[#080B11]/50 rounded-xl" InputLabelProps={{ className: "dark:text-slate-400" }} />
                             )}
                             fullWidth
                             disablePortal
+                            classes={{
+                                paper: "dark:bg-[#131926] dark:text-white dark:border dark:border-slate-800"
+                            }}
                         />
                     </div>
                 </div>
-                <div className="flex justify-end gap-2 mt-6">
-                    <Button onClick={() => setCreateModalOpen(false)} color="inherit">Cancel</Button>
+                <div className="flex justify-end gap-3 mt-8">
+                    <Button 
+                        onClick={() => setCreateModalOpen(false)} 
+                        className="text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-bold px-4 py-2"
+                    >
+                        Cancel
+                    </Button>
                     <Button 
                         variant="contained" 
-                        color="primary" 
                         disabled={isSubmitting || !createForm.address || !selectedState || !selectedCounty}
-                        className="bg-blue-600 rounded-lg shadow-none"
+                        className={`${(isSubmitting || !createForm.address || !selectedState || !selectedCounty) ? 'bg-slate-300 dark:bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-[#0D8BFF] hover:bg-blue-600 hover:shadow-[0_0_20px_rgba(13,139,255,0.4)] text-white'} rounded-xl px-5 py-2 font-bold shadow-none transition-all border-0`}
                         onClick={async () => {
                             setIsSubmitting(true);
                             try {

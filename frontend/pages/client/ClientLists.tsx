@@ -861,18 +861,22 @@ const ClientLists: React.FC = () => {
         }
     }, [filteredProperties, activePropertyId]);
 
+    const activeProperty = React.useMemo(() => {
+        return filteredProperties.find(p => p.id === activePropertyId) || null;
+    }, [filteredProperties, activePropertyId]);
+
     const selectedList = lists.find(l => l.id === selectedListId) || broadcastedLists.find(l => l.id === selectedListId);
 
     if (loading && !lists.length && !broadcastedLists.length) {
         return (
-            <div className="h-full flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+            <div className="h-full flex items-center justify-center bg-slate-50 dark:bg-[#080B11]">
                 <CircularProgress size={24} />
             </div>
         );
     }
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-slate-50 dark:bg-slate-950 border-x border-slate-200 dark:border-slate-800">
+        <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-slate-50 dark:bg-[#080B11] border-x border-slate-200 dark:border-slate-800">
             {/* Left Sidebar */}
             <div id="tour-lists-sidebar" className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-xl overflow-hidden shrink-0`}>
                 <div className="p-4 flex justify-between items-center w-64">
@@ -1212,7 +1216,7 @@ const ClientLists: React.FC = () => {
             </div>
 
             {/* Main Content Area */}
-            <div id="tour-lists-grid" className="flex-1 flex flex-col bg-white dark:bg-slate-950">
+            <div id="tour-lists-grid" className="flex-1 flex flex-col bg-white dark:bg-[#080B11]">
                 {viewMode === 'my_tasks' ? (
                     <InvestorTasksDashboard onBack={() => setViewMode('folders')} />
                 ) : viewMode === 'my_exports' ? (
@@ -1760,7 +1764,7 @@ const ClientLists: React.FC = () => {
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className="flex items-center gap-1.5 mb-1">
                                                                         <h4 className="font-extrabold text-slate-100 group-hover:text-white truncate text-xs">
-                                                                            {prop.owner_address ? prop.owner_address.split('\n')[0] : (prop.title || 'Untitled Property')}
+                                                                            {prop.owner_address && typeof prop.owner_address === 'string' ? prop.owner_address.split('\n')[0] : (prop.title || 'Untitled Property')}
                                                                         </h4>
                                                                         <Chip
                                                                             label={prop.availability_status || 'available'}
@@ -1884,7 +1888,7 @@ const ClientLists: React.FC = () => {
                                 {/* ── RIGHT COLUMN (lg:col-span-6) - Deep Property Intelligence Workspace Console ── */}
                                 <div className="lg:col-span-6 space-y-6 animate-fadeIn" style={{ animationDelay: '200ms' }}>
                                     {activeProperty ? (() => {
-                                        const baseVal = activeProperty.amount_due ? Math.max(activeProperty.amount_due, 85000) : 125000;
+                                        const baseVal = activeProperty?.amount_due ? Math.max(activeProperty.amount_due, 85000) : 125000;
                                         const mockTaxData = [
                                             { year: '2021', assessment: baseVal * 0.85, rate: 1.15 },
                                             { year: '2022', assessment: baseVal * 0.90, rate: 1.18 },
@@ -1899,7 +1903,7 @@ const ClientLists: React.FC = () => {
                                             { source: 'GoAuct', valuation: baseVal * 1.18, confidence: 96 },
                                         ];
 
-                                        const activePropertyCoords = geocodedProperties[activeProperty.id] || { lat: 25.7617, lng: -80.1918 };
+                                        const activePropertyCoords = (activeProperty?.id ? geocodedProperties[activeProperty.id] : null) || { lat: 25.7617, lng: -80.1918 };
 
                                         return (
                                             <div className="space-y-6 bg-[#131926]/40 border border-slate-800/80 rounded-3xl p-5 shadow-2xl relative overflow-hidden backdrop-blur-md">
@@ -1914,11 +1918,11 @@ const ClientLists: React.FC = () => {
                                                         <div>
                                                             <div className="flex items-center gap-2">
                                                                 <h3 className="text-sm font-black text-white uppercase tracking-widest truncate max-w-[240px]">
-                                                                    {activeProperty.owner_address ? activeProperty.owner_address.split('\n')[0] : (activeProperty.title || 'Property Intelligence console')}
+                                                                    {activeProperty?.owner_address && typeof activeProperty.owner_address === 'string' ? activeProperty.owner_address.split('\n')[0] : (activeProperty?.title || 'Property Intelligence console')}
                                                                 </h3>
                                                                 <span className="text-[8px] font-mono bg-emerald-950/60 border border-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">CONNECTED</span>
                                                             </div>
-                                                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{activeProperty.parcel_id} | {activeProperty.address || 'No address registered'}</p>
+                                                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{activeProperty?.parcel_id || 'N/A'} | {activeProperty?.address || 'No address registered'}</p>
                                                         </div>
                                                     </div>
 
@@ -1927,7 +1931,7 @@ const ClientLists: React.FC = () => {
                                                             variant="contained"
                                                             size="small"
                                                             className="bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-[10px] shadow-none capitalize"
-                                                            onClick={() => setPreviewPropertyId(activeProperty.parcel_id || activeProperty.id)}
+                                                            onClick={() => activeProperty && setPreviewPropertyId(activeProperty.parcel_id || activeProperty.id)}
                                                         >
                                                             Inspect Details
                                                         </Button>
@@ -2045,23 +2049,23 @@ const ClientLists: React.FC = () => {
                                                         </div>
 
                                                         <div className="col-span-2 grid grid-cols-2 gap-2">
-                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Zoning Code</p>
-                                                                <p className="text-xs font-black text-white mt-0.5">{activeProperty.zoning || 'Zoning R-2'}</p>
-                                                            </div>
-                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Setback Limit</p>
-                                                                <p className="text-xs font-black text-slate-300 mt-0.5">20 Feet Front</p>
-                                                            </div>
-                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Lot Size Area</p>
-                                                                <p className="text-xs font-black text-slate-300 mt-0.5">{activeProperty.lot_acres ? `${(activeProperty.lot_acres * 43560).toLocaleString(undefined, {maximumFractionDigits:0})} sqft` : '7,500 sqft'}</p>
-                                                            </div>
-                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Max Coverage</p>
-                                                                <p className="text-xs font-black text-slate-300 mt-0.5">35% Allowed</p>
-                                                            </div>
-                                                        </div>
+                                                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
+                                                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Zoning Code</p>
+                                                                                                <p className="text-xs font-black text-white mt-0.5">{activeProperty?.zoning || 'Zoning R-2'}</p>
+                                                                                            </div>
+                                                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
+                                                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Setback Limit</p>
+                                                                                                <p className="text-xs font-black text-slate-300 mt-0.5">20 Feet Front</p>
+                                                                                            </div>
+                                                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
+                                                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Lot Size Area</p>
+                                                                                                <p className="text-xs font-black text-slate-300 mt-0.5">{activeProperty?.lot_acres ? `${(activeProperty.lot_acres * 43560).toLocaleString(undefined, {maximumFractionDigits:0})} sqft` : '7,500 sqft'}</p>
+                                                                                            </div>
+                                                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
+                                                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Max Coverage</p>
+                                                                                                <p className="text-xs font-black text-slate-300 mt-0.5">35% Allowed</p>
+                                                                                            </div>
+                                                                                        </div>
                                                     </div>
                                                 </div>
 
@@ -2074,9 +2078,9 @@ const ClientLists: React.FC = () => {
 
                                                     <div className="flex flex-col gap-2 p-1 font-mono">
                                                         <div className="flex justify-between text-[9px] py-1 border-b border-slate-900/60">
-                                                            <span className="text-slate-500 uppercase">Distress Type:</span>
-                                                            <span className="text-red-400 font-bold uppercase">{activeProperty.foreclosure_stage || 'Pre-foreclosure filing'}</span>
-                                                        </div>
+                                                                                            <span className="text-slate-500 uppercase">Distress Type:</span>
+                                                                                            <span className="text-red-400 font-bold uppercase">{activeProperty?.foreclosure_stage || 'Pre-foreclosure filing'}</span>
+                                                                                        </div>
                                                         <div className="flex justify-between text-[9px] py-1 border-b border-slate-900/60">
                                                             <span className="text-slate-500 uppercase">Filing Timeline:</span>
                                                             <span className="text-slate-300">Recorded 2026-04-12</span>
@@ -2102,7 +2106,7 @@ const ClientLists: React.FC = () => {
                                                             </svg>
                                                         </div>
                                                         <p className="font-mono text-[9.5px] leading-relaxed text-slate-400 whitespace-pre-wrap break-words">
-                                                            {activeProperty.legal_description || 'LOT 24 IN BLOCK 5 OF SILVER LAKE SUBDIVISION, RECORDED IN PLAT BOOK 12, PAGE 88 OF THE PUBLIC RECORDS OF DADE COUNTY, FLORIDA. TOGETHER WITH ALL IMPROVEMENTS LOCATED THEREON AND SUBJECT TO EASEMENTS AND COVENANTS OF RECORD.'}
+                                                            {activeProperty?.legal_description || 'LOT 24 IN BLOCK 5 OF SILVER LAKE SUBDIVISION, RECORDED IN PLAT BOOK 12, PAGE 88 OF THE PUBLIC RECORDS OF DADE COUNTY, FLORIDA. TOGETHER WITH ALL IMPROVEMENTS LOCATED THEREON AND SUBJECT TO EASEMENTS AND COVENANTS OF RECORD.'}
                                                         </p>
                                                     </div>
                                                 </div>
