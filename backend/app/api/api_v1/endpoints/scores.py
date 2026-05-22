@@ -361,7 +361,7 @@ def get_monthly_stats(
     if is_sqlite:
         query = text(f"""
             SELECT
-                CAST(strftime('%m', pah.auction_date) AS INTEGER) as month_num,
+                CAST(strftime('%m', COALESCE(pah.auction_date, ae.auction_date)) AS INTEGER) as month_num,
                 SUM(CASE WHEN (
                     LOWER(COALESCE(ae.tax_status, '')) LIKE '%deed%' OR
                     LOWER(COALESCE(ae.tax_status, '')) LIKE '%sheriff%' OR
@@ -381,7 +381,7 @@ def get_monthly_stats(
             FROM property_auction_history pah
             LEFT JOIN property_details p ON p.property_id = pah.property_id
             LEFT JOIN auction_events ae ON ae.id = pah.auction_id
-            WHERE pah.auction_date IS NOT NULL
+            WHERE COALESCE(pah.auction_date, ae.auction_date) IS NOT NULL
               AND p.created_by_user_id IS NULL
               {state_filter}
             GROUP BY month_num
@@ -390,7 +390,7 @@ def get_monthly_stats(
     else:
         query = text(f"""
             SELECT
-                EXTRACT(MONTH FROM pah.auction_date)::INTEGER as month_num,
+                EXTRACT(MONTH FROM COALESCE(pah.auction_date, ae.auction_date))::INTEGER as month_num,
                 COUNT(*) FILTER (WHERE (
                     ae.tax_status ILIKE '%deed%' OR ae.tax_status ILIKE '%sheriff%' OR
                     pah.auction_name ILIKE '%deed%' OR pah.auction_name ILIKE '%sheriff%'
@@ -406,7 +406,7 @@ def get_monthly_stats(
             FROM property_auction_history pah
             LEFT JOIN property_details p ON p.property_id = pah.property_id
             LEFT JOIN auction_events ae ON ae.id = pah.auction_id
-            WHERE pah.auction_date IS NOT NULL
+            WHERE COALESCE(pah.auction_date, ae.auction_date) IS NOT NULL
               AND p.created_by_user_id IS NULL
               {state_filter}
             GROUP BY month_num
