@@ -761,27 +761,43 @@ const ClientDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Welcome Header */}
-      <div id="tour-welcome-header" className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Welcome back, <span className="text-primary">{userName}</span>
+      {/* Redesigned Premium Header Banner */}
+      <div id="tour-welcome-header" className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-4 border-b border-slate-200/50 dark:border-slate-800/40">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="h-2 w-2 rounded-full bg-[#13B8B5] animate-ping" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#13B8B5] font-mono">Operations Active // US Core Registry</span>
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+            Multi-County Acquisition Infrastructure
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-            Here's your investment intelligence dashboard.
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Centralize distressed property intelligence across the United States.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => startTour('investor')}
-            className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse"
-          >
-            <span className="material-symbols-outlined text-[16px]">menu_book</span>
-            Page Tour
-          </button>
-          <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-            <span className="material-symbols-outlined text-[16px]">schedule</span>
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+
+        {/* Powered By GoAuct widget */}
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="text-right hidden sm:block">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Operator Console</p>
+            <p className="text-xs font-mono text-[#0D8BFF] font-bold mt-0.5">Welcome back, {userName}</p>
+          </div>
+
+          <div className="p-3 bg-white dark:bg-[#131926]/60 border border-slate-200 dark:border-slate-800/80 rounded-2xl flex items-center gap-3 shadow-lg hover:border-[#0D8BFF]/40 transition-colors relative group">
+            <div className="absolute inset-0 bg-[#0D8BFF]/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="text-left relative z-10">
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block">System Engine</span>
+              <span className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-widest font-mono">POWERED BY</span>
+            </div>
+            <div className="size-9 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-center relative z-10 shrink-0">
+              {/* Glowing SVG GoAuct Icon */}
+              <svg className="w-5 h-5 text-[#0D8BFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
+                <polyline points="9 22 9 12 15 12 15 22" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 2v20" stroke="rgba(19,184,181,0.3)" strokeDasharray="2 2" />
+                <path d="M17 14l-5-5-5 5" stroke="#13B8B5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
           </div>
         </div>
       </div>
@@ -853,104 +869,166 @@ const ClientDashboard: React.FC = () => {
       {/* ─── 3-Column Desktop Grid Layout ─── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
-        {/* LEFT COLUMN: Analytics & Live Counts (col-span-3) */}
+        {/* LEFT COLUMN: Portfolio Status & Foreclosure Analytics (col-span-3) */}
         <div className="lg:col-span-3 space-y-6 flex flex-col">
           
-          {/* 1. Tax Deed Analytics (Area Chart) */}
+          {/* 1. Portfolio Status Panel */}
           <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
             <div>
-              <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#0D8BFF] text-[18px]">analytics</span>
-                Tax Deed Analytics
-              </h3>
-              <p className="text-[10px] text-slate-400 mt-1">Lien value & bid-to-value performance</p>
-            </div>
-            
-            <div className="h-32 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={analyticsData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0D8BFF" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#0D8BFF" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="month" stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
-                  <RechartsTooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#0f172a', 
-                      border: '1px solid rgba(255,255,255,0.1)', 
-                      borderRadius: '8px',
-                      fontSize: '10px',
-                      color: '#fff'
-                    }} 
-                  />
-                  <Area type="monotone" dataKey="value" stroke="#0D8BFF" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#0D8BFF] text-[18px]">folder_special</span>
+                  Portfolio Status
+                </h3>
+                <span className="text-[8px] font-black text-[#13B8B5] font-mono tracking-widest bg-[#13B8B5]/10 px-1.5 py-0.5 rounded">Active</span>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">Operational asset tracking & values</p>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-800/80">
-              <div className="text-center">
-                <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Lien Values</p>
-                <p className="text-xs font-extrabold text-slate-800 dark:text-[#0D8BFF]">$499.3M</p>
+            {/* Asset Telemetry Stats */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between p-2.5 bg-slate-50/50 dark:bg-[#0f1626]/40 border border-slate-100 dark:border-slate-800/60 rounded-xl">
+                <div>
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">A-Grade Assets</span>
+                  <span className="text-lg font-black text-slate-900 dark:text-white">27</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Value (M)</span>
+                  <span className="text-sm font-extrabold text-[#13B8B5]">$29.2M</span>
+                </div>
               </div>
-              <div className="text-center border-x border-slate-200/50 dark:border-slate-800/80 px-1">
-                <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Bid-To-Val</p>
-                <p className="text-xs font-extrabold text-[#13B8B5]">19.2%</p>
+
+              <div className="flex items-center justify-between p-2.5 bg-slate-50/50 dark:bg-[#0f1626]/40 border border-slate-100 dark:border-slate-800/60 rounded-xl">
+                <div>
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">B-Grade Assets</span>
+                  <span className="text-lg font-black text-slate-900 dark:text-white">166</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Value (M)</span>
+                  <span className="text-sm font-extrabold text-[#0D8BFF]">$455.5M</span>
+                </div>
               </div>
-              <div className="text-center">
-                <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">Deeds</p>
-                <p className="text-xs font-extrabold text-slate-800 dark:text-slate-100">{stats.deed}</p>
+
+              <div className="flex items-center justify-between p-2.5 bg-slate-50/50 dark:bg-[#0f1626]/40 border border-slate-100 dark:border-slate-800/60 rounded-xl">
+                <div>
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Assets</span>
+                  <span className="text-lg font-black text-slate-900 dark:text-white">243</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Vol</span>
+                  <span className="text-sm font-extrabold text-purple-400">1,542</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Vertical Bar Chart (State-wise volume) */}
+            <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/80">
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 font-mono">State-wise Inventory Volume</span>
+              <div className="h-32 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
+                    <RechartsTooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#0f172a', 
+                        border: '1px solid rgba(255,255,255,0.1)', 
+                        borderRadius: '8px',
+                        fontSize: '10px',
+                        color: '#fff'
+                      }} 
+                    />
+                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                      {barData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               </div>
             </div>
           </div>
 
-          {/* 2. Foreclosure Opportunity Indicators (Bar Chart) */}
+          {/* 2. Foreclosure Analytics Widget */}
           <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
             <div>
               <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">bar_chart</span>
-                Foreclosure Indicators
+                <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">trending_up</span>
+                Foreclosure Analytics
               </h3>
-              <p className="text-[10px] text-slate-400 mt-1">Distressed opportunities by asset class</p>
+              <p className="text-[10px] text-slate-400 mt-1">Lien volume & filing performance trackers</p>
             </div>
 
-            <div className="h-32 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={barData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <XAxis dataKey="name" stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
-                  <RechartsTooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#0f172a', 
-                      border: '1px solid rgba(255,255,255,0.1)', 
-                      borderRadius: '8px',
-                      fontSize: '10px',
-                      color: '#fff'
-                    }} 
-                  />
-                  <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                    {barData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+            {/* Indicator Range Bars */}
+            <div className="space-y-3 pt-1">
+              <div>
+                <div className="flex justify-between text-[9px] font-black text-slate-400 mb-1">
+                  <span>FILINGS</span>
+                  <span className="text-[#0D8BFF]">59 Active</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-600 to-[#0D8BFF] rounded-full" style={{ width: '65%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[9px] font-black text-slate-400 mb-1">
+                  <span>DEFAULT RATE</span>
+                  <span className="text-[#13B8B5]">3.09%</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-teal-500 to-[#13B8B5] rounded-full" style={{ width: '45%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[9px] font-black text-slate-400 mb-1">
+                  <span>MARKET VOLUME</span>
+                  <span className="text-purple-400">3.60M</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-purple-600 to-purple-400 rounded-full" style={{ width: '80%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[9px] font-black text-slate-400 mb-1">
+                  <span>MARKET TRENDS</span>
+                  <span className="text-emerald-400">+3.56%</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: '70%' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Sub-counters grid */}
+            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 text-center font-mono">
+              <div>
+                <span className="text-[14px] font-black text-slate-900 dark:text-white">233</span>
+                <span className="text-[7px] text-slate-500 uppercase font-bold block mt-0.5">FILINGS</span>
+              </div>
+              <div className="border-x border-slate-200/50 dark:border-slate-800/80 px-1">
+                <span className="text-[14px] font-black text-slate-900 dark:text-white">114</span>
+                <span className="text-[7px] text-slate-500 uppercase font-bold block mt-0.5">TOTALS</span>
+              </div>
+              <div>
+                <span className="text-[14px] font-black text-slate-900 dark:text-white">20</span>
+                <span className="text-[7px] text-slate-500 uppercase font-bold block mt-0.5">MARKETS</span>
+              </div>
             </div>
           </div>
 
-          {/* 3. Property Intelligence Dashboards (High-Potential Counties / States) */}
+          {/* 3. High-Potential Regions */}
           <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
             <div>
               <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <span className="material-symbols-outlined text-indigo-500 text-[18px]">verified</span>
+                <span className="material-symbols-outlined text-[#0D8BFF] text-[18px]">public</span>
                 High-Potential Regions
               </h3>
-              <p className="text-[10px] text-slate-400 mt-1">States ranked by average opportunity score</p>
+              <p className="text-[10px] text-slate-400 mt-1">Average yield performance indicators</p>
             </div>
-            
+
             <div className="space-y-2 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
               {stateStats.slice(0, 5).map((s) => {
                 const score = Math.round(s.average_score);
@@ -961,7 +1039,7 @@ const ClientDashboard: React.FC = () => {
                     : 'text-amber-500';
                 
                 return (
-                  <div key={s.state_code} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/50 dark:bg-slate-900/40 border border-slate-100/50 dark:border-slate-800/40">
+                  <div key={s.state_code} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/50 dark:bg-[#0f1626]/30 border border-slate-100/50 dark:border-slate-800/40">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-black text-slate-800 dark:text-slate-200 bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded">
                         {s.state_code.toUpperCase()}
@@ -985,30 +1063,360 @@ const ClientDashboard: React.FC = () => {
               )}
             </div>
           </div>
-
         </div>
 
-        {/* CENTER COLUMN: Heatmap & Search (col-span-5) */}
+        {/* CENTER COLUMN: Interactive US Operations Map & Pipelines (col-span-5) */}
         <div className="lg:col-span-5 space-y-6 flex flex-col">
           
-          {/* 1. National Yield Heatmap Card */}
-          <div id="tour-yield-heatmap" className="glass-card-premium rounded-2xl overflow-hidden flex flex-col p-5" style={{ minHeight: '440px' }}>
-            <InvestmentHeatmap
-              stats={stateStats}
-              selectedState={selectedState}
-              onStateClick={(s) => setSelectedState(s)}
-            />
+          {/* 1. US Operations Map Widget */}
+          <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4 relative overflow-hidden" style={{ minHeight: '440px' }}>
+            <div className="flex items-center justify-between z-10">
+              <div>
+                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">satellite_alt</span>
+                  US Operations Map
+                </h3>
+                <span className="text-[8px] font-bold text-[#13B8B5] font-mono tracking-widest mt-1 block">
+                  QUERY ID: <span className="text-slate-300">GA-MC-773</span> // SYSTEM: ACTIVE
+                </span>
+              </div>
+
+              {/* State drop-down selector built matching mockup design */}
+              <select
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
+                className="text-[10px] font-bold px-2 py-1 bg-slate-900/60 border border-slate-800 rounded-lg text-slate-350 focus:outline-none focus:ring-1 focus:ring-[#0D8BFF]"
+              >
+                <option value="">🇺🇸 Global Operations</option>
+                {stateStats.map(s => (
+                  <option key={s.state_code} value={s.state_code}>
+                    {s.state_code.toUpperCase()} ({s.volume})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* US SVG Map overlay layout */}
+            <div className="flex-1 min-h-[220px] bg-[#070b12] rounded-2xl border border-slate-900 flex flex-col items-center justify-center relative overflow-hidden group">
+              
+              {/* Monospace overlay HUD grid */}
+              <div className="absolute top-2 left-3 font-mono text-[7px] text-[#0D8BFF] opacity-60 tracking-wider flex items-center gap-1.5">
+                <span className="size-1 bg-[#0D8BFF] rounded-full animate-ping" />
+                <span>GEO-LOCK: [FL, TX, CA, PA, OH, NY]</span>
+              </div>
+              <div className="absolute bottom-2 right-3 font-mono text-[7px] text-slate-500 opacity-60">
+                LAT: 28.5383° // LON: -81.3792°
+              </div>
+              <div className="absolute bottom-2 left-3 font-mono text-[7px] text-[#13B8B5] opacity-60">
+                LATENCY: 12ms // STABILITY: 99.8%
+              </div>
+
+              {/* Breathtaking stylized SVG outline map of USA with county nodes and connecting links */}
+              <svg className="w-full h-full p-4" viewBox="0 0 600 320" fill="none">
+                {/* Tech Radar Sweeper Circles */}
+                <circle cx="300" cy="160" r="140" stroke="rgba(19, 184, 181, 0.03)" strokeWidth="1" strokeDasharray="3 3" />
+                <circle cx="300" cy="160" r="90" stroke="rgba(13, 139, 255, 0.03)" strokeWidth="1" />
+                <circle cx="300" cy="160" r="40" stroke="rgba(19, 184, 181, 0.05)" strokeWidth="1.5" />
+                
+                {/* Coordinate Crosshairs */}
+                <line x1="300" y1="0" x2="300" y2="320" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+                <line x1="0" y1="160" x2="600" y2="160" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+
+                {/* Stylized US Outline path representation */}
+                <path 
+                  d="M 50 120 L 75 75 L 120 70 L 170 50 L 260 50 L 320 65 L 420 55 L 485 30 L 515 50 L 525 85 L 560 110 L 550 170 L 510 205 L 460 215 L 440 250 L 400 240 L 350 265 L 305 285 L 245 280 L 195 240 L 180 240 L 170 205 L 115 190 L 70 195 L 40 180 Z" 
+                  fill="rgba(13, 139, 255, 0.02)" 
+                  stroke="rgba(13, 139, 255, 0.15)" 
+                  strokeWidth="1.5" 
+                  strokeDasharray="4 2" 
+                />
+
+                {/* Regional highlighted state polygons (CA, TX, FL) */}
+                {/* CA Highlight */}
+                <path d="M 50 120 L 75 75 L 85 90 L 95 145 L 85 185 Z" fill="rgba(19, 184, 181, 0.06)" stroke="rgba(19, 184, 181, 0.3)" strokeWidth="1" />
+                {/* TX Highlight */}
+                <path d="M 215 190 L 260 190 L 285 245 L 245 280 L 210 235 Z" fill="rgba(19, 184, 181, 0.08)" stroke="rgba(19, 184, 181, 0.4)" strokeWidth="1" />
+                {/* FL Highlight */}
+                <path d="M 460 215 L 480 215 L 510 265 L 490 260 Z" fill="rgba(19, 184, 181, 0.1)" stroke="rgba(19, 184, 181, 0.5)" strokeWidth="1" />
+
+                {/* Dashed Connecting Line System simulating operational coordinate flows */}
+                <path d="M 75 130 L 240 220 L 485 240 L 460 115 L 400 95 L 370 115" stroke="rgba(19, 184, 181, 0.2)" strokeWidth="1.2" strokeDasharray="3 3" />
+                <path d="M 240 220 L 400 95 L 485 240" stroke="rgba(13, 139, 255, 0.15)" strokeWidth="1" strokeDasharray="1 3" />
+
+                {/* Glowing County/State Radar Nodes */}
+                {/* 1. CA Node */}
+                <circle cx="75" cy="130" r="14" fill="rgba(19,184,181,0.06)" className="animate-pulse" />
+                <circle cx="75" cy="130" r="8" fill="rgba(19,184,181,0.12)" />
+                <circle cx="75" cy="130" r="3.5" fill="#13B8B5" />
+                <text x="65" y="112" fill="#13B8B5" fontSize="7" fontFamily="monospace" fontWeight="bold">CA [LOCK]</text>
+
+                {/* 2. TX Node */}
+                <circle cx="240" cy="220" r="16" fill="rgba(19,184,181,0.06)" />
+                <circle cx="240" cy="220" r="9" fill="rgba(19,184,181,0.15)" />
+                <circle cx="240" cy="220" r="4" fill="#13B8B5" />
+                <text x="225" y="202" fill="#13B8B5" fontSize="7" fontFamily="monospace" fontWeight="bold">TX [ACTIVE]</text>
+
+                {/* 3. FL Node */}
+                <circle cx="485" cy="240" r="20" fill="rgba(13,139,255,0.08)" className="animate-pulse" />
+                <circle cx="485" cy="240" r="12" fill="rgba(19,184,181,0.2)" />
+                <circle cx="485" cy="240" r="5" fill="#13B8B5" />
+                <text x="470" y="222" fill="#13B8B5" fontSize="7" fontFamily="monospace" fontWeight="bold">FL [98% MATCH]</text>
+
+                {/* 4. NY Node */}
+                <circle cx="460" cy="115" r="12" fill="rgba(13,139,255,0.05)" />
+                <circle cx="460" cy="115" r="3" fill="#0D8BFF" />
+                <text x="450" y="100" fill="#0D8BFF" fontSize="7" fontFamily="monospace" fontWeight="bold">NY [SYNC]</text>
+
+                {/* 5. PA Node */}
+                <circle cx="400" cy="95" r="10" fill="rgba(13,139,255,0.05)" />
+                <circle cx="400" cy="95" r="3" fill="#0D8BFF" />
+                <text x="390" y="80" fill="#0D8BFF" fontSize="7" fontFamily="monospace" fontWeight="bold">PA</text>
+
+                {/* 6. OH Node */}
+                <circle cx="370" cy="115" r="10" fill="rgba(13,139,255,0.05)" />
+                <circle cx="370" cy="115" r="3" fill="#0D8BFF" />
+                <text x="360" y="132" fill="#0D8BFF" fontSize="7" fontFamily="monospace" fontWeight="bold">OH</text>
+              </svg>
+
+              {/* Active selected state radar crosshair overlay */}
+              {selectedState && (
+                <div className="absolute inset-0 bg-[#13B8B5]/5 border-2 border-[#13B8B5]/30 backdrop-blur-[0.5px] p-4 flex flex-col justify-end pointer-events-none animate-in fade-in duration-300">
+                  <div className="p-3 bg-slate-950/95 border border-[#13B8B5]/40 rounded-xl max-w-[240px] pointer-events-auto">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-black text-white uppercase tracking-widest">{selectedState.toUpperCase()} Core Intel</span>
+                      <span className="text-[7px] font-mono text-[#13B8B5] bg-[#13B8B5]/10 px-1 rounded">LOCKED</span>
+                    </div>
+                    {(() => {
+                      const stat = stateStats.find(s => s.state_code === selectedState);
+                      if (!stat) return <p className="text-[9px] text-slate-500">Querying registry...</p>;
+                      return (
+                        <div className="space-y-1 text-[9px] font-mono text-slate-400">
+                          <p>OPPORTUNITY MATCH: <span className="text-[#13B8B5] font-bold">{Math.round(stat.average_score)}%</span></p>
+                          <p>TOTAL INVENTORY: <span className="text-white font-bold">{stat.volume} Properties</span></p>
+                          <p>STATUS CODE: <span className="text-[#0D8BFF]">200 OK</span></p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Tax Deed Intelligence / County Intel table */}
+            <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/80">
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 font-mono flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[#13B8B5] text-[14px]">grid_on</span>
+                Tax Deed Intelligence Registry
+              </span>
+              
+              <div className="overflow-x-auto rounded-lg border border-slate-200/40 dark:border-slate-800/60 bg-slate-50/30 dark:bg-[#070b12]/50 font-mono text-[8px] text-slate-350">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-100 dark:bg-slate-900/60 text-slate-450 uppercase font-black tracking-wider border-b border-slate-200/60 dark:border-slate-800/60">
+                      <th className="p-2">Lien Data</th>
+                      <th className="p-2 text-right">Tax History</th>
+                      <th className="p-2 text-right">Auction Date</th>
+                      <th className="p-2 text-right">Risk Score</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200/40 dark:divide-slate-800/40">
+                    <tr className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                      <td className="p-2 text-slate-200">#FL-ORL-2026</td>
+                      <td className="p-2 text-right text-[#13B8B5] font-extrabold">$163,337</td>
+                      <td className="p-2 text-right">May 24, 2026</td>
+                      <td className="p-2 text-right text-emerald-450">98% Match</td>
+                    </tr>
+                    <tr className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                      <td className="p-2 text-slate-200">#TX-HAR-2026</td>
+                      <td className="p-2 text-right text-[#13B8B5] font-extrabold">$8,355</td>
+                      <td className="p-2 text-right">Jun 02, 2026</td>
+                      <td className="p-2 text-right text-emerald-450">95% Match</td>
+                    </tr>
+                    <tr className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                      <td className="p-2 text-slate-200">#CA-LA-2026</td>
+                      <td className="p-2 text-right text-[#13B8B5] font-extrabold">$38,565</td>
+                      <td className="p-2 text-right">Jun 14, 2026</td>
+                      <td className="p-2 text-right text-blue-450">84% Match</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Horizontal Acquisition Pipeline flowchart */}
+          <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
+            <div>
+              <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">account_tree</span>
+                Real Estate Acquisition Pipelines
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Multi-county operational workflow pipeline connections</p>
+            </div>
+
+            {/* Pipeline flowchart */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-[#070b12] rounded-xl border border-slate-800/60 relative overflow-hidden">
+              
+              {/* Connecting pipeline line */}
+              <div className="absolute top-1/2 left-8 right-8 h-[1.5px] bg-gradient-to-r from-[#0D8BFF]/40 via-[#13B8B5]/40 to-emerald-500/40 -translate-y-1/2 hidden md:block" />
+
+              {/* Node 1 */}
+              <div className="flex flex-col items-center gap-1.5 relative z-10 w-full md:w-auto">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg group hover:border-[#0D8BFF]/50 transition-colors">
+                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#0D8BFF] text-base transition-colors">database</span>
+                </div>
+                <div className="text-center font-mono">
+                  <p className="text-[8px] font-black text-slate-200 uppercase tracking-wider">Data Intake</p>
+                  <span className="text-[6px] text-slate-500 uppercase font-bold">100% Sync</span>
+                </div>
+              </div>
+
+              <span className="material-symbols-outlined text-slate-700 text-sm rotate-90 md:rotate-0">arrow_forward</span>
+
+              {/* Node 2 */}
+              <div className="flex flex-col items-center gap-1.5 relative z-10 w-full md:w-auto">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg group hover:border-[#13B8B5]/50 transition-colors">
+                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#13B8B5] text-base transition-colors">document_scanner</span>
+                </div>
+                <div className="text-center font-mono">
+                  <p className="text-[8px] font-black text-slate-200 uppercase tracking-wider">Due Diligence</p>
+                  <span className="text-[6px] text-[#13B8B5] uppercase font-bold animate-pulse">Running</span>
+                </div>
+              </div>
+
+              <span className="material-symbols-outlined text-slate-700 text-sm rotate-90 md:rotate-0">arrow_forward</span>
+
+              {/* Node 3 */}
+              <div className="flex flex-col items-center gap-1.5 relative z-10 w-full md:w-auto">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg group hover:border-[#0D8BFF]/50 transition-colors">
+                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#0D8BFF] text-base transition-colors">memory</span>
+                </div>
+                <div className="text-center font-mono">
+                  <p className="text-[8px] font-black text-slate-200 uppercase tracking-wider">Bid Strategy</p>
+                  <span className="text-[6px] text-slate-500 uppercase font-bold">Ready</span>
+                </div>
+              </div>
+
+              <span className="material-symbols-outlined text-slate-700 text-sm rotate-90 md:rotate-0">arrow_forward</span>
+
+              {/* Node 4 */}
+              <div className="flex flex-col items-center gap-1.5 relative z-10 w-full md:w-auto">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 border border-[#10B981]/50 flex items-center justify-center shadow-lg relative group">
+                  <div className="absolute inset-0 bg-[#10B981]/10 blur-xs rounded-xl" />
+                  <span className="material-symbols-outlined text-[#10B981] text-base relative z-10">verified</span>
+                </div>
+                <div className="text-center font-mono">
+                  <p className="text-[8px] font-black text-slate-200 uppercase tracking-wider">Acquisition</p>
+                  <span className="text-[6px] text-[#10B981] uppercase font-bold">Target Locked</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Field Operation Coordination & Search (col-span-4) */}
+        <div className="lg:col-span-4 space-y-6 flex flex-col">
+          
+          {/* 1. Field Operation Coordination */}
+          <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
+            <div>
+              <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">badge</span>
+                Field Operation Coordination
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Geospatial verification & agent locking tracker</p>
+            </div>
+
+            {/* Agent Grid Tracker */}
+            <div className="space-y-3">
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-mono">On-site Agents Telemetry</span>
+              
+              <div className="grid grid-cols-2 gap-2 text-[9px] font-mono text-slate-350">
+                <div className="p-2.5 bg-slate-50/50 dark:bg-[#070b12]/50 border border-slate-200/40 dark:border-slate-800/60 rounded-xl flex flex-col justify-between h-20">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-200">Agent Alpha</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[8px]">LOC: Orlando, FL</p>
+                    <p className="text-[#13B8B5] text-[8px] font-bold mt-0.5">GEO-LOCK: SUCCESS</p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-slate-50/50 dark:bg-[#070b12]/50 border border-slate-200/40 dark:border-slate-800/60 rounded-xl flex flex-col justify-between h-20">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-200">Agent Beta</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[8px]">LOC: Houston, TX</p>
+                    <p className="text-[#13B8B5] text-[8px] font-bold mt-0.5">GEO-LOCK: SUCCESS</p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-slate-50/50 dark:bg-[#070b12]/50 border border-slate-200/40 dark:border-slate-800/60 rounded-xl flex flex-col justify-between h-20">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-200">Agent Gamma</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#0D8BFF] animate-pulse" />
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[8px]">LOC: Los Angeles, CA</p>
+                    <p className="text-[#0D8BFF] text-[8px] font-bold mt-0.5">IN TRANSIT</p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-slate-50/50 dark:bg-[#070b12]/50 border border-slate-200/40 dark:border-slate-800/60 rounded-xl flex flex-col justify-between h-20">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#94a3b8]">Agent Delta</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-750" />
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[8px]">LOC: Philadelphia, PA</p>
+                    <p className="text-slate-500 text-[8px] font-bold mt-0.5">STANDBY</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pending Inspections queue */}
+            <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/80">
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 font-mono flex items-center justify-between">
+                <span>Pending Field Inspections</span>
+                <span className="text-[#13B8B5]">3 Queue</span>
+              </span>
+
+              <div className="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-thin">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-[#070b12]/50 border border-slate-900 font-mono text-[8px]">
+                  <div>
+                    <p className="font-bold text-slate-200">#FL-440263-AP</p>
+                    <p className="text-slate-500 text-[7px] mt-0.5">Orange County, FL // Drive-by SOP</p>
+                  </div>
+                  <span className="text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded uppercase tracking-wider">Pending</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-lg bg-[#070b12]/50 border border-slate-900 font-mono text-[8px]">
+                  <div>
+                    <p className="font-bold text-slate-200">#TX-118490-DE</p>
+                    <p className="text-slate-500 text-[7px] mt-0.5">Harris County, TX // Photos required</p>
+                  </div>
+                  <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider">Scheduled</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-lg bg-[#070b12]/50 border border-slate-900 font-mono text-[8px]">
+                  <div>
+                    <p className="font-bold text-slate-200">#CA-889312-LA</p>
+                    <p className="text-slate-500 text-[7px] mt-0.5">Los Angeles, CA // Occupancy check</p>
+                  </div>
+                  <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider">Scheduled</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* 2. Sleek and Modern Auction Search */}
           <AuctionSearch />
 
-        </div>
-
-        {/* RIGHT COLUMN: Featured Spotlight & Trends (col-span-4) */}
-        <div className="lg:col-span-4 space-y-6 flex flex-col">
-          
-          {/* 1. Featured High-Potential Property Spotlight Card */}
+          {/* 3. Featured Property spotlight select / details */}
           {featuredProperty ? (() => {
             const score = calculateDealScore(featuredProperty);
             const displayRating = (featuredProperty as any).deal_rating || score.rating;
@@ -1026,7 +1434,7 @@ const ClientDashboard: React.FC = () => {
               >
                 <div className="flex justify-between items-start">
                   <div className="min-w-0 flex-1">
-                    <span className="text-[8px] font-black text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                    <span className="text-[8px] font-black text-[#13B8B5] bg-[#13B8B5]/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
                       Featured Opportunity
                     </span>
                     <h3 className="text-sm font-bold text-slate-805 dark:text-white group-hover:text-[#0D8BFF] transition-colors mt-2 leading-tight truncate pr-1">
@@ -1041,47 +1449,6 @@ const ClientDashboard: React.FC = () => {
                     <span className="text-sm">{displayRating}</span>
                     <span className="text-[8px] opacity-80">{Math.round(displayScore)}%</span>
                   </div>
-                </div>
-
-                {/* Blueprint Wireframe Area */}
-                <div className="relative overflow-hidden rounded-xl">
-                  <svg className="w-full h-36 bg-slate-950/90 border border-slate-850 rounded-xl" viewBox="0 0 400 140">
-                    <rect width="100%" height="100%" fill="#0a0e17" />
-                    <pattern id="grid-spot" width="16" height="16" patternUnits="userSpaceOnUse">
-                      <path d="M 16 0 L 0 0 0 16" fill="none" stroke="rgba(13, 139, 255, 0.05)" strokeWidth="1" />
-                    </pattern>
-                    <rect width="100%" height="100%" fill="url(#grid-spot)" />
-                    
-                    {/* Dynamic radar rings */}
-                    <circle cx="200" cy="70" r="50" fill="none" stroke="rgba(19, 184, 181, 0.05)" strokeWidth="1" />
-                    <circle cx="200" cy="70" r="30" fill="none" stroke="rgba(19, 184, 181, 0.08)" strokeWidth="1" />
-                    
-                    {/* House Wireframe */}
-                    <path 
-                      d="M 140 105 L 140 70 L 200 35 L 260 70 L 260 105 Z M 140 70 L 260 70" 
-                      fill="none" 
-                      stroke="#0D8BFF" 
-                      strokeWidth="2" 
-                      strokeDasharray="4 2" 
-                      opacity="0.8" 
-                      className="animate-pulse" 
-                    />
-                    <path 
-                      d="M 180 105 L 180 82 L 220 82 L 220 105 Z" 
-                      fill="none" 
-                      stroke="#13B8B5" 
-                      strokeWidth="1.5" 
-                      opacity="0.9" 
-                    />
-                    
-                    {/* UI Indicators */}
-                    <text x="15" y="20" fill="#0D8BFF" fontSize="7" fontFamily="monospace" letterSpacing="1" opacity="0.7">TARGET: DISTRESSED RESIDENTIAL</text>
-                    <text x="15" y="125" fill="#13B8B5" fontSize="7" fontFamily="monospace" letterSpacing="1" opacity="0.7">AI OPPORTUNITY GRADIENT MATCH: {Math.round(displayScore)}%</text>
-                    
-                    <circle cx="200" cy="35" r="3.5" fill="#0D8BFF" />
-                    <circle cx="140" cy="70" r="2.5" fill="#13B8B5" />
-                    <circle cx="260" cy="70" r="2.5" fill="#13B8B5" />
-                  </svg>
                 </div>
 
                 {/* Tabular Stripe-style Metrics Block */}
@@ -1119,47 +1486,8 @@ const ClientDashboard: React.FC = () => {
               <p className="text-sm font-bold">No featured properties found</p>
             </div>
           )}
-
-          {/* 2. Market Trend Charts (Predictive Line) */}
-          <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
-            <div>
-              <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">show_chart</span>
-                Market Trend Chart
-              </h3>
-              <p className="text-[10px] text-slate-400 mt-1">Quarterly opportunity volume (Q1:21 - Q4:34)</p>
-            </div>
-
-            <div className="h-32 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={trendsData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorOpportunities" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#13B8B5" stopOpacity={0.3}/>
-                      <stop offset="95%" stopColor="#13B8B5" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="quarter" stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
-                  <RechartsTooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#0f172a', 
-                      border: '1px solid rgba(255,255,255,0.1)', 
-                      borderRadius: '8px',
-                      fontSize: '10px',
-                      color: '#fff'
-                    }} 
-                  />
-                  <Area type="monotone" dataKey="opportunities" stroke="#13B8B5" strokeWidth={2} fillOpacity={1} fill="url(#colorOpportunities)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
-
         </div>
-
       </div>
-
       {/* ─── Secondary Carousel Slider below the grid ─── */}
       <div id="tour-suggested-deals" className="w-full">
         <SuggestedDeals
