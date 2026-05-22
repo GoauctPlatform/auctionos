@@ -11,6 +11,11 @@ import { AuthService } from '../../services/auth.service';
 import { AuctionEvent, Property } from '../../types';
 import { useCompany } from '../../context/CompanyContext';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
+
+// Original rich page modules for IDE-style floating windows
+import ClientAuctions from './ClientAuctions';
+import ClientProperties from './ClientProperties';
+import ClientLists from './ClientLists';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, PieChart, Pie, Cell
@@ -109,14 +114,17 @@ const DEFAULT_WIDGETS: Widget[] = [
   { id: 'metrics_lien', type: 'metrics_lien', title: 'Tax Liens Total', x: 920, y: 20, w: 260, h: 140, visible: true, zIndex: 13 },
   { id: 'map', type: 'map', title: 'National Yield Heatmap', x: 360, y: 180, w: 820, h: 430, visible: true, zIndex: 14 },
   { id: 'recommended_deals', type: 'recommended_deals', title: 'Top Recommended Deals', x: 1200, y: 20, w: 450, h: 590, visible: true, zIndex: 15 },
-  { id: 'live_auctions', type: 'live_auctions', title: 'Live Auctions Finder', x: 20, y: 520, w: 450, h: 500, visible: true, zIndex: 16 },
-  { id: 'property_search', type: 'property_search', title: 'Property Search & Listing', x: 490, y: 630, w: 695, h: 390, visible: true, zIndex: 17 },
+  
+  // Expanded full-page geometries for IDE-style floating windows
+  { id: 'live_auctions', type: 'live_auctions', title: '📅 Live Auctions Finder', x: 20, y: 520, w: 1050, h: 680, visible: true, zIndex: 16 },
+  { id: 'property_search', type: 'property_search', title: '🔍 Property Search & Listing', x: 490, y: 1220, w: 1100, h: 700, visible: true, zIndex: 17 },
+  { id: 'my_lists', type: 'my_lists', title: '📂 Saved Lists & Folders', x: 1610, y: 1220, w: 1050, h: 680, visible: true, zIndex: 21 },
+
   { id: 'chart', type: 'chart', title: 'Monthly Auction Trends', x: 1200, y: 630, w: 450, h: 390, visible: true, zIndex: 18 },
   { id: 'dossier', type: 'dossier', title: 'Featured Property Dossier', x: 1670, y: 20, w: 380, h: 590, visible: true, zIndex: 19 },
   { id: 'yield', type: 'yield', title: 'Yield Breakdown Analytics', x: 1670, y: 630, w: 380, h: 390, visible: true, zIndex: 20 },
   
   // 11 New V4.0 absolute widgets sequentially mapped to the right-hand canvas quadrants (2080px to 3800px)
-  { id: 'my_lists', type: 'my_lists', title: '📂 Saved Lists & Folders', x: 2080, y: 20, w: 360, h: 480, visible: true, zIndex: 21 },
   { id: 'field_missions', type: 'field_missions', title: '⚔️ Field Task Missions', x: 2080, y: 520, w: 360, h: 500, visible: true, zIndex: 22 },
   { id: 'connect', type: 'connect', title: '🔗 API Integrations Hub', x: 2460, y: 20, w: 380, h: 480, visible: true, zIndex: 23 },
   { id: 'settings', type: 'settings', title: '⚙️ Workbench Settings', x: 2460, y: 520, w: 380, h: 500, visible: true, zIndex: 24 },
@@ -133,10 +141,10 @@ const DEFAULT_WIDGETS: Widget[] = [
   { id: 'support_center', type: 'support_center', title: '💬 Support & Help Center', x: 2460, y: 1040, w: 380, h: 420, visible: true, zIndex: 33 },
 
   // V5.1 Premium Interactive Real Estate Widgets
-  { id: 'node_canvas', type: 'node_canvas', title: '🧬 Deal Flow Node Engine', x: 2080, y: 1480, w: 420, h: 420, visible: true, zIndex: 34 },
-  { id: 'rehab_calc', type: 'rehab_calc', title: '🔨 Rehab & ROI Calculator', x: 2520, y: 1480, w: 380, h: 420, visible: true, zIndex: 35 },
-  { id: 'property_comparator', type: 'property_comparator', title: '📊 Property Compare Matrix', x: 2920, y: 1480, w: 400, h: 420, visible: true, zIndex: 36 },
-  { id: 'contacts_search', type: 'contacts_search', title: '📞 State & County Registrar Directory', x: 3340, y: 1480, w: 380, h: 420, visible: true, zIndex: 37 }
+  { id: 'node_canvas', type: 'node_canvas', title: '🧬 Node-based Canvas with Auto Layout and Edge Connections', x: 2080, y: 1480, w: 520, h: 480, visible: true, zIndex: 34 },
+  { id: 'rehab_calc', type: 'rehab_calc', title: '🔨 Rehab & ROI Calculator', x: 2620, y: 1480, w: 380, h: 420, visible: true, zIndex: 35 },
+  { id: 'property_comparator', type: 'property_comparator', title: '📊 Property Compare Matrix', x: 3020, y: 1480, w: 400, h: 420, visible: true, zIndex: 36 },
+  { id: 'contacts_search', type: 'contacts_search', title: '📞 State & County Registrar Directory', x: 3440, y: 1480, w: 380, h: 420, visible: true, zIndex: 37 }
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -1446,8 +1454,8 @@ export const ClientWorkbench: React.FC = () => {
       <div className="flex-1 flex w-full overflow-hidden relative">
 
         {/* ─── SIDEBAR 1: Primary VS Code Ribbon (64px) ─── */}
-        <div className="w-16 bg-white dark:bg-slate-950 border-r border-slate-200/80 dark:border-slate-800/60 flex flex-col justify-between py-4 items-center shrink-0 z-40">
-          <div className="flex flex-col gap-4 w-full items-center">
+        <div className="w-16 bg-white dark:bg-slate-950 border-r border-slate-200/80 dark:border-slate-800/60 flex flex-col justify-between py-4 items-center shrink-0 z-40 overflow-y-auto no-scrollbar scrollbar-none">
+          <div className="flex flex-col gap-3 w-full items-center">
             {[
               { id: 'explorer', icon: Layers, label: 'Workspace Explorer' },
               { id: 'presets', icon: LayoutGrid, label: 'Layout Presets' },
@@ -1469,14 +1477,73 @@ export const ClientWorkbench: React.FC = () => {
                   }}
                   className={`relative p-2.5 rounded-xl transition-all ${
                     active
-                      ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/10 shadow-sm'
+                      ? 'bg-blue-50 dark:bg-blue-955/20 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/10 shadow-sm'
                       : 'text-slate-400 dark:text-slate-650 hover:text-slate-700 dark:hover:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900/40'
                   }`}
                 >
                   {active && (
                     <div className="absolute left-0 top-1/4 bottom-1/4 w-0.75 bg-blue-500 rounded-r" />
                   )}
-                  <Icon size={20} />
+                  <Icon size={18} />
+                </button>
+              );
+            })}
+
+            {/* Separator line for direct window shortcuts */}
+            <div className="w-8 h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
+
+            {[
+              { id: 'shortcuts', icon: Smartphone, label: '📱 Quick Access Tools' },
+              { id: 'live_auctions', icon: Calendar, label: '📅 Live Auctions Finder' },
+              { id: 'property_search', icon: Search, label: '🔍 Property Search & Listing' },
+              { id: 'my_lists', icon: Folder, label: '📂 Saved Lists & Folders' },
+              { id: 'node_canvas', icon: Layers, label: '🧬 Node-based Canvas with Auto Layout and Edge Connections' },
+              { id: 'rehab_calc', icon: Activity, label: '🔨 Rehab & ROI Calculator' },
+              { id: 'property_comparator', icon: LayoutGrid, label: '📊 Property Compare Matrix' },
+              { id: 'contacts_search', icon: Users, label: '📞 Registrar Directory' },
+              { id: 'settings', icon: Settings, label: '⚙️ Workbench Settings' },
+              { id: 'logs', icon: Terminal, label: '💻 Activity Console Logs' }
+            ].map(shortcut => {
+              const Icon = shortcut.icon;
+              const widget = widgets.find(w => w.id === shortcut.id);
+              const isVisible = widget?.visible;
+              return (
+                <button
+                  key={shortcut.id}
+                  title={shortcut.label}
+                  onClick={() => {
+                    setWidgets(prev => {
+                      const match = prev.find(w => w.id === shortcut.id);
+                      const nextZ = highestZIndex + 1;
+                      setHighestZIndex(nextZ);
+                      
+                      return prev.map(w => 
+                        w.id === shortcut.id 
+                          ? { ...w, visible: true, zIndex: nextZ } 
+                          : w
+                      );
+                    });
+                    
+                    const match = widgets.find(w => w.id === shortcut.id);
+                    if (match) {
+                      const targetX = -match.x + (window.innerWidth - match.w) / 2;
+                      const targetY = -match.y + (window.innerHeight - match.h) / 2;
+                      setPanX(targetX);
+                      setPanY(targetY);
+                      setZoomScale(1.0);
+                      logConsoleActivity(`Focused and centered on widget: "${match.title}"`);
+                    }
+                  }}
+                  className={`relative p-2 rounded-xl transition-all ${
+                    isVisible
+                      ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-955/10 border border-indigo-500/10'
+                      : 'text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900/40'
+                  }`}
+                >
+                  {isVisible && (
+                    <div className="absolute right-1 bottom-1 size-1.5 rounded-full bg-emerald-500 shadow-sm border border-white dark:border-slate-950" />
+                  )}
+                  <Icon size={16} />
                 </button>
               );
             })}
@@ -1522,6 +1589,9 @@ export const ClientWorkbench: React.FC = () => {
                   <div>
                     <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Workspace Explorer</h3>
                     <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Toggle widgets on canvas</p>
+                    <p className="text-[8.5px] text-slate-500 dark:text-slate-400 mt-2 bg-blue-500/5 dark:bg-blue-955/10 border border-blue-500/10 p-2 rounded-lg font-bold leading-normal">
+                      Clique nos ícones para abrir janelas internas flutuantes dentro do GoAuct. Organize sua área de trabalho como preferir.
+                    </p>
                   </div>
 
                   <div className="flex flex-col space-y-1.5">
@@ -2014,191 +2084,15 @@ export const ClientWorkbench: React.FC = () => {
 
                   {/* Widget 4: Live Auctions Finder */}
                   {w.type === 'live_auctions' && (
-                    <div className="size-full flex flex-col">
-                      <div className="flex gap-2 mb-3 shrink-0">
-                        <div className="relative flex-1">
-                          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
-                          <input
-                            type="text"
-                            value={auctionQuery}
-                            onChange={(e) => setAuctionQuery(e.target.value)}
-                            placeholder="Search live auctions by state, county..."
-                            className="w-full pl-8 pr-3 py-1.5 text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                          />
-                        </div>
-                        {selectedCalendarDate && (
-                          <button
-                            onClick={() => setSelectedCalendarDate('')}
-                            className="px-2 py-1 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-500/20 text-indigo-500 text-[9px] font-extrabold uppercase rounded-lg shrink-0"
-                          >
-                            Clear Date
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Small visual interactive calendar row */}
-                      <div className="mb-3 border border-slate-200/60 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-800/30 p-2 rounded-xl shrink-0">
-                        <div className="flex items-center gap-1 justify-between mb-1.5">
-                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><Calendar size={9} /> Mini Datepicker</span>
-                          <span className="text-[8px] font-bold text-indigo-500">{selectedCalendarDate || 'Show All Days'}</span>
-                        </div>
-                        <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-thin">
-                          {[-3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7].map(offset => {
-                            const d = new Date();
-                            d.setDate(d.getDate() + offset);
-                            const dayStr = d.toISOString().split('T')[0];
-                            const active = selectedCalendarDate === dayStr;
-                            const isToday = offset === 0;
-                            return (
-                              <button
-                                key={offset}
-                                onClick={() => setSelectedCalendarDate(dayStr)}
-                                className={`flex flex-col items-center p-1.5 min-w-[32px] rounded-lg border transition-all ${
-                                  active
-                                    ? 'bg-indigo-500 text-white border-indigo-600'
-                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-indigo-400'
-                                }`}
-                              >
-                                <span className="text-[7px] uppercase font-semibold">{d.toLocaleDateString([], { weekday: 'short' })}</span>
-                                <span className="text-[10px] font-black">{d.getDate()}</span>
-                                {isToday && <span className="size-1 rounded-full bg-cyan-400 mt-0.5" />}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Auctions search results */}
-                      <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-                        {auctionsLoading ? (
-                          <div className="flex items-center justify-center py-10"><RefreshCw className="animate-spin text-indigo-500" size={18} /></div>
-                        ) : filteredAuctions.length === 0 ? (
-                          <p className="text-center text-[10px] text-slate-400 py-10">No upcoming auctions matching query.</p>
-                        ) : (
-                          filteredAuctions.map(a => {
-                            const s = (a.tax_status || '').toLowerCase();
-                            const isDeed = s.includes('deed');
-                            const isLien = s.includes('lien');
-                            return (
-                              <div
-                                key={a.id}
-                                className="p-2.5 bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-center hover:border-slate-350 dark:hover:border-slate-700 transition-all"
-                              >
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className={`text-[7px] font-black px-1.5 py-0.25 rounded uppercase ${
-                                      isDeed
-                                        ? 'bg-purple-100 dark:bg-purple-955/20 text-purple-600 dark:text-purple-400'
-                                        : isLien
-                                          ? 'bg-amber-100 dark:bg-amber-955/20 text-amber-600 dark:text-amber-400'
-                                          : 'bg-red-100 dark:bg-red-955/20 text-red-600 dark:text-red-400'
-                                    }`}>{a.tax_status || 'Auction'}</span>
-                                    {a.parcels_count && <span className="text-[7.5px] font-bold text-slate-400">{a.parcels_count} parcels</span>}
-                                  </div>
-                                  <p className="text-[10px] font-extrabold text-slate-900 dark:text-white truncate mt-1">{a.name}</p>
-                                  <p className="text-[8px] text-slate-455 font-semibold mt-0.5">
-                                    {a.county}, {a.state} · {a.auction_date ? new Date(a.auction_date).toLocaleDateString() : 'Continuous'}
-                                  </p>
-                                </div>
-                                <button
-                                  onClick={() => navigate(`/client/auctions?name=${encodeURIComponent(a.name || '')}`)}
-                                  className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-indigo-500 rounded-lg shrink-0 ml-2"
-                                  title="Expand in Main Page"
-                                >
-                                  <ArrowRight size={13} />
-                                </button>
-                              </div>
-                            );
-                          })
-                        )}
-                      </div>
+                    <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900 rounded-lg no-scrollbar scrollbar-none">
+                      <ClientAuctions />
                     </div>
                   )}
 
                   {/* Widget 5: Property Search */}
                   {w.type === 'property_search' && (
-                    <div className="size-full flex flex-col">
-                      <div className="grid grid-cols-3 gap-2 mb-3 shrink-0">
-                        {/* State selector */}
-                        <select
-                          value={propStateSelect}
-                          onChange={(e) => setPropStateSelect(e.target.value)}
-                          className="px-2.5 py-1.5 text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-350 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                        >
-                          <option value="">All States</option>
-                          {stateList.map(st => (
-                            <option key={st.state} value={st.state}>{st.state}</option>
-                          ))}
-                        </select>
-
-                        {/* County selector */}
-                        <select
-                          value={propCountySelect}
-                          onChange={(e) => setPropCountySelect(e.target.value)}
-                          disabled={!propStateSelect}
-                          className="px-2.5 py-1.5 text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-350 focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-50"
-                        >
-                          <option value="">All Counties</option>
-                          {countyList.map(c => (
-                            <option key={c} value={c}>{c}</option>
-                          ))}
-                        </select>
-
-                        {/* Search keyword input */}
-                        <div className="relative">
-                          <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400" size={11} />
-                          <input
-                            type="text"
-                            value={propSearchQuery}
-                            onChange={(e) => setPropSearchQuery(e.target.value)}
-                            placeholder="Keyword ID..."
-                            className="w-full pl-6 pr-2 py-1.5 text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white focus:outline-none"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Properties results high density table */}
-                      <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-                        {propsLoading ? (
-                          <div className="flex items-center justify-center py-10"><RefreshCw className="animate-spin text-indigo-500" size={18} /></div>
-                        ) : propertyResults.length === 0 ? (
-                          <p className="text-center text-[10px] text-slate-400 py-10">No properties found matching criteria.</p>
-                        ) : (
-                          <div className="border border-slate-200 dark:border-slate-855 rounded-xl overflow-hidden bg-white dark:bg-slate-900/40">
-                            <table className="w-full text-left text-[9px] border-collapse">
-                              <thead>
-                                <tr className="bg-slate-50/70 dark:bg-slate-850/50 border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-black tracking-wider">
-                                  <th className="p-2">Parcel ID</th>
-                                  <th className="p-2">Address</th>
-                                  <th className="p-2">County</th>
-                                  <th className="p-2 text-right">Value</th>
-                                  <th className="p-2 text-center">Score</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-100 dark:divide-slate-850">
-                                {propertyResults.map(p => (
-                                  <tr
-                                    key={p.id}
-                                    onClick={() => {
-                                      setSelectedProperty(p);
-                                      focusWidget('dossier');
-                                    }}
-                                    className="hover:bg-slate-50 dark:hover:bg-slate-800/40 cursor-pointer transition-colors"
-                                  >
-                                    <td className="p-2 font-bold text-slate-900 dark:text-white truncate max-w-[80px]">{p.parcel_id || 'N/A'}</td>
-                                    <td className="p-2 truncate max-w-[140px] text-slate-600 dark:text-slate-355">{p.address || 'Certified FEMA Zone'}</td>
-                                    <td className="p-2 text-slate-500 font-semibold">{p.county}, {p.state}</td>
-                                    <td className="p-2 text-right font-extrabold text-emerald-500">${(p.assessed_value || 240000).toLocaleString()}</td>
-                                    <td className="p-2 text-center">
-                                      <span className="px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-955/20 text-blue-600 dark:text-blue-450 font-black">{p.deal_score || 82}</span>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        )}
-                      </div>
+                    <div className="size-full overflow-auto bg-[#F8FAFC] dark:bg-slate-955/80 rounded-lg no-scrollbar scrollbar-none">
+                      <ClientProperties />
                     </div>
                   )}
 
@@ -2369,106 +2263,8 @@ export const ClientWorkbench: React.FC = () => {
 
                   {/* My Lists (Saved Lists & Folders) */}
                   {w.type === 'my_lists' && (
-                    <div className="size-full flex flex-col justify-between space-y-3">
-                      {/* Create watchlist folder inline form */}
-                      <form onSubmit={handleCreateFolder} className="flex gap-1.5 shrink-0">
-                        <input
-                          id="new-folder-input"
-                          type="text"
-                          value={newFolderName}
-                          onChange={(e) => setNewFolderName(e.target.value)}
-                          placeholder="New folder name..."
-                          className="flex-1 px-2.5 py-1 text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                        />
-                        <button
-                          id="create-folder-btn"
-                          type="submit"
-                          className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-lg flex items-center gap-1 transition-colors"
-                        >
-                          <Plus size={10} /> Add
-                        </button>
-                      </form>
-
-                      {/* Folder selectors & lists */}
-                      <div className="flex-1 flex flex-col min-h-0 space-y-3 overflow-hidden">
-                        {foldersLoading ? (
-                          <div className="flex-1 flex items-center justify-center"><RefreshCw className="animate-spin text-indigo-500" size={16} /></div>
-                        ) : folderLists.length === 0 ? (
-                          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-6">
-                            <Folder className="opacity-30 mb-1.5" size={24} />
-                            <p className="text-[10px] font-semibold">No folders created yet</p>
-                          </div>
-                        ) : (
-                          <div className="flex-1 flex flex-col min-h-0 space-y-2.5">
-                            {/* Horizontal pill list for folders */}
-                            <div className="flex gap-1 overflow-x-auto pb-1.5 shrink-0 scrollbar-thin">
-                              {folderLists.map(folder => (
-                                <div key={folder.id} className="flex items-center shrink-0">
-                                  <button
-                                    id={`select-folder-${folder.id}`}
-                                    onClick={() => setSelectedFolderId(folder.id)}
-                                    className={`px-3 py-1 text-[9px] font-extrabold uppercase rounded-lg border transition-all ${
-                                      selectedFolderId === folder.id
-                                        ? 'bg-indigo-500 text-white border-indigo-600 shadow-sm'
-                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-400'
-                                    }`}
-                                  >
-                                    {folder.name}
-                                  </button>
-                                  <button
-                                    id={`delete-folder-${folder.id}`}
-                                    onClick={() => handleDeleteFolder(folder.id)}
-                                    className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-slate-400 shrink-0 ml-0.5"
-                                    title="Delete Folder"
-                                  >
-                                    <Trash2 size={10} />
-                                  </button>
-                                </div>
-                              ))}
-                            </div>
-
-                            {/* Properties in active folder */}
-                            <div className="flex-1 overflow-y-auto min-h-0 space-y-2 pr-1 scrollbar-thin">
-                              {folderPropertiesLoading ? (
-                                <div className="flex items-center justify-center py-6"><RefreshCw className="animate-spin text-indigo-500" size={16} /></div>
-                              ) : selectedFolderProperties.length === 0 ? (
-                                <div className="text-center text-[9px] text-slate-400 py-6">This folder is currently empty. Add properties from Search/Recommended.</div>
-                              ) : (
-                                selectedFolderProperties.map((p: any) => (
-                                  <div
-                                    key={p.id}
-                                    className="p-2.5 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 rounded-xl flex items-center justify-between transition-all group"
-                                  >
-                                    <div
-                                      onClick={() => {
-                                        setSelectedProperty(p);
-                                        focusWidget('property_details');
-                                      }}
-                                      className="min-w-0 flex-1 cursor-pointer"
-                                    >
-                                      <span className="text-[7.5px] font-black text-indigo-500 bg-indigo-500/10 px-1.5 py-0.25 rounded uppercase">Score: {p.deal_score || 85}</span>
-                                      <p className="text-[10px] font-bold text-slate-900 dark:text-white truncate mt-1 group-hover:text-indigo-500 transition-colors">
-                                        {p.address || 'Certified FEMA Zone'}
-                                      </p>
-                                      <p className="text-[8px] text-slate-455 truncate">
-                                        {p.parcel_id} · {p.county}, {p.state}
-                                      </p>
-                                    </div>
-                                    <button
-                                      id={`remove-prop-${p.id}`}
-                                      onClick={() => handleRemovePropertyFromFolder(selectedFolderId!, p.id)}
-                                      className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg shrink-0 ml-2"
-                                      title="Remove from List"
-                                    >
-                                      <Trash2 size={11} />
-                                    </button>
-                                  </div>
-                                ))
-                              )}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                    <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900 rounded-lg no-scrollbar scrollbar-none">
+                      <ClientLists />
                     </div>
                   )}
 
@@ -3519,9 +3315,14 @@ export const ClientWorkbench: React.FC = () => {
                   {w.type === 'node_canvas' && (
                     <div className="size-full flex flex-col justify-between">
                       <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2 shrink-0 justify-between items-center select-none">
-                        <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
-                          <Layers size={11} className="text-violet-500" /> Deal Flow Pipeline Node Engine
-                        </span>
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                            <Layers size={11} className="text-violet-500" /> Node-based Canvas with Auto Layout and Edge Connections
+                          </span>
+                          <span className="text-[8px] text-slate-500 dark:text-slate-400 font-medium pl-4">
+                            Organize seus dashboards com widgets conectáveis e Auto Layout inteligente.
+                          </span>
+                        </div>
                         <button
                           onClick={handleAutoLayoutDealFlow}
                           className="px-2 py-1 bg-violet-600/10 hover:bg-violet-600/20 text-violet-600 dark:text-violet-400 border border-violet-500/20 text-[8px] font-black uppercase tracking-wider rounded-lg transition-all active:scale-95"
