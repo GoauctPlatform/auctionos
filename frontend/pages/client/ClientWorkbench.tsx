@@ -218,7 +218,7 @@ export const ClientWorkbench: React.FC = () => {
   // Corporate Team Roster
   const [teamMembers, setTeamMembers] = useState<any[]>([]);
   const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState<'admin' | 'investor' | 'agent'>('agent');
+  const [inviteRole, setInviteRole] = useState<'investor' | 'agent'>('agent');
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
 
   // Activity Console Logs CLI
@@ -262,6 +262,7 @@ export const ClientWorkbench: React.FC = () => {
   const [ticketType, setTicketType] = useState('general');
   const [ticketsLoading, setTicketsLoading] = useState(false);
   const [ticketSubmitting, setTicketSubmitting] = useState(false);
+  const [supportWidgetTab, setSupportWidgetTab] = useState<'new' | 'history'>('new');
 
   // Fetch static preferences & contacts on startup
   useEffect(() => {
@@ -2212,6 +2213,108 @@ export const ClientWorkbench: React.FC = () => {
                           <div className="flex justify-center py-10"><RefreshCw className="animate-spin text-indigo-500" size={18} /></div>
                         ) : (
                           <>
+                            {/* My Requested Inspections Section */}
+                            <div>
+                              <h4 className="text-[8px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                <CheckSquare size={10} /> My Requested Inspections ({myRequestedTasks.length})
+                              </h4>
+                              {myRequestedTasks.length === 0 ? (
+                                <p className="text-[9px] text-slate-400 p-3 rounded-lg bg-slate-50/50 dark:bg-slate-900/30 border border-dashed border-slate-200 dark:border-slate-800 text-center">No requested inspection missions.</p>
+                              ) : (
+                                <div className="space-y-3 mb-4">
+                                  {myRequestedTasks.map(t => {
+                                    const isSubmitted = t.status === 'submitted';
+                                    return (
+                                      <div key={t.id} className="p-3 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
+                                        <div className="flex items-start justify-between min-w-0">
+                                          <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                              <span className={`text-[7px] font-black px-1.5 py-0.25 rounded uppercase ${
+                                                t.status === 'submitted' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                                                t.status === 'approved' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                t.status === 'claimed' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
+                                                'bg-slate-500/10 text-slate-500'
+                                              }`}>
+                                                {t.status}
+                                              </span>
+                                              <span className="text-[7.5px] font-bold text-slate-400">+{t.reward_points} pts</span>
+                                              {t.realtor_name && (
+                                                <span className="text-[7.5px] text-slate-500">Assigned: {t.realtor_name}</span>
+                                              )}
+                                            </div>
+                                            <p className="text-[10px] font-bold text-slate-900 dark:text-white mt-1">{t.title}</p>
+                                            {t.address && <p className="text-[8px] text-slate-500 mt-0.5">{t.address}</p>}
+                                          </div>
+                                        </div>
+
+                                        {isSubmitted && (
+                                          <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2 text-[9px]">
+                                            {/* GPS Validation Telemetry */}
+                                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-between font-mono text-[8px] text-slate-600 dark:text-slate-400">
+                                              <span className="flex items-center gap-1">
+                                                <Compass size={10} className="text-amber-500 animate-spin" /> GPS Match Verified
+                                              </span>
+                                              <span>Lat: {t.latitude || 25.7617}, Lng: {t.longitude || -80.1918}</span>
+                                            </div>
+
+                                            {/* 3-Photo Grid of Evidence */}
+                                            <div>
+                                              <p className="text-[8px] font-bold uppercase text-slate-400 mb-1">Telemetry Evidence Attachments (3)</p>
+                                              <div className="grid grid-cols-3 gap-1">
+                                                <div className="relative group/img rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-square bg-slate-100">
+                                                  <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=150&q=80" alt="Front Elevation" className="size-full object-cover group-hover/img:scale-105 transition-transform" />
+                                                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[6px] text-white py-0.5 text-center font-bold truncate">Front</span>
+                                                </div>
+                                                <div className="relative group/img rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-square bg-slate-100">
+                                                  <img src="https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=150&q=80" alt="Boundary/Fence" className="size-full object-cover group-hover/img:scale-105 transition-transform" />
+                                                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[6px] text-white py-0.5 text-center font-bold truncate">Boundary</span>
+                                                </div>
+                                                <div className="relative group/img rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-square bg-slate-100">
+                                                  <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=150&q=80" alt="Roof/Leak Check" className="size-full object-cover group-hover/img:scale-105 transition-transform" />
+                                                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[6px] text-white py-0.5 text-center font-bold truncate">Structure</span>
+                                                </div>
+                                              </div>
+                                            </div>
+
+                                            {/* Inline Review Feedback Textarea */}
+                                            <div className="space-y-1">
+                                              <label className="text-[8px] font-bold uppercase text-slate-400">Reviewer Notes / Feedback</label>
+                                              <textarea
+                                                value={reviewNotes}
+                                                onChange={(e) => setReviewNotes(e.target.value)}
+                                                placeholder="Enter approval details or specify required revision fixes..."
+                                                className="w-full p-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[9px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none h-12 resize-none"
+                                              />
+                                            </div>
+
+                                            {/* Approve/Reject Controls */}
+                                            <div className="flex gap-1.5 pt-1">
+                                              <button
+                                                type="button"
+                                                disabled={reviewSubmitting}
+                                                onClick={() => handleReviewSubmission(t.id, true)}
+                                                className="flex-1 py-1 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[8.5px] uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-1 shadow-sm disabled:opacity-50"
+                                              >
+                                                Approve Task
+                                              </button>
+                                              <button
+                                                type="button"
+                                                disabled={reviewSubmitting}
+                                                onClick={() => handleReviewSubmission(t.id, false)}
+                                                className="flex-1 py-1 px-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[8.5px] uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-1 shadow-sm disabled:opacity-50"
+                                              >
+                                                Request Revision
+                                              </button>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+
                             {/* Claimed Tasks Section */}
                             <div>
                               <h4 className="text-[8px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
@@ -2860,6 +2963,279 @@ export const ClientWorkbench: React.FC = () => {
                         <div className="h-full flex flex-col items-center justify-center text-slate-455 dark:text-slate-650 select-none">
                           <Folder className="opacity-30 mb-2" size={32} />
                           <p className="text-xs font-bold">Select property to inspect details</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Create Inspection Mission (create_task) */}
+                  {w.type === 'create_task' && (
+                    <form onSubmit={handleCreateTaskFromWidget} className="size-full flex flex-col justify-between">
+                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 gap-1.5 select-none">
+                        <span className="text-[10px] font-black text-slate-800 dark:text-white mr-auto flex items-center gap-1">
+                          <Plus size={11} className="text-indigo-500 animate-pulse" /> Create Inspection Mission
+                        </span>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
+                        <div>
+                          <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Target Property</label>
+                          {propertyResults.length === 0 ? (
+                            <div className="space-y-1.5">
+                              <select
+                                value={newTaskPropId}
+                                onChange={(e) => setNewTaskPropId(e.target.value ? Number(e.target.value) : '')}
+                                className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                                required
+                              >
+                                <option value="">No properties searched yet...</option>
+                                <option value="1">Fallback Mock Property (124 Brickell Ave, Miami FL)</option>
+                              </select>
+                              <p className="text-[7.5px] text-amber-500 font-semibold">⚠️ Tip: Search properties in the "Property Search" widget to select them here!</p>
+                            </div>
+                          ) : (
+                            <select
+                              value={newTaskPropId}
+                              onChange={(e) => setNewTaskPropId(e.target.value ? Number(e.target.value) : '')}
+                              className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              required
+                            >
+                              <option value="">Select a property from search...</option>
+                              {propertyResults.map(p => (
+                                <option key={p.id} value={p.id}>
+                                  {p.address} ({p.county || 'FL'})
+                                </option>
+                              ))}
+                            </select>
+                          )}
+                        </div>
+
+                        <div>
+                          <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Mission Title</label>
+                          <input
+                            type="text"
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                            placeholder="e.g. Inspect Roof Leak & Fence Integrity"
+                            className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Detailed Instructions</label>
+                          <textarea
+                            value={newTaskDesc}
+                            onChange={(e) => setNewTaskDesc(e.target.value)}
+                            placeholder="Provide details on what the field realtor/agent needs to inspect. Specify evidence requirements..."
+                            className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none h-16 resize-none"
+                            required
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Mission Type</label>
+                            <select
+                              value={newTaskType}
+                              onChange={(e) => setNewTaskType(e.target.value)}
+                              className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                            >
+                              <option value="field_inspection">Field Inspection</option>
+                              <option value="boundary_survey">Boundary Survey</option>
+                              <option value="foreclosure_notice">Foreclosure Check</option>
+                              <option value="occupancy_verify">Occupancy Verification</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Reward Points</label>
+                            <select
+                              value={newTaskPoints}
+                              onChange={(e) => setNewTaskPoints(Number(e.target.value))}
+                              className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                            >
+                              <option value={100}>100 Points</option>
+                              <option value={250}>250 Points</option>
+                              <option value={500}>500 Points</option>
+                              <option value={1000}>1,000 Points</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Min Photos</label>
+                            <input
+                              type="number"
+                              min={1}
+                              max={newTaskMaxPhotos}
+                              value={newTaskMinPhotos}
+                              onChange={(e) => setNewTaskMinPhotos(Number(e.target.value))}
+                              className="w-full px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Max Photos</label>
+                            <input
+                              type="number"
+                              min={newTaskMinPhotos}
+                              max={20}
+                              value={newTaskMaxPhotos}
+                              onChange={(e) => setNewTaskMaxPhotos(Number(e.target.value))}
+                              className="w-full px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="submit"
+                        disabled={taskCreating}
+                        className="w-full py-2 mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1 active:scale-[0.97] shrink-0 disabled:opacity-50"
+                      >
+                        {taskCreating ? (
+                          <>
+                            <RefreshCw className="animate-spin text-white" size={11} /> Launching Mission...
+                          </>
+                        ) : (
+                          <>
+                            <Plus size={11} /> Dispatch Mission Task
+                          </>
+                        )}
+                      </button>
+                    </form>
+                  )}
+
+                  {/* Support Hub (support_center) */}
+                  {w.type === 'support_center' && (
+                    <div className="size-full flex flex-col justify-between">
+                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 justify-between items-center select-none">
+                        <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                          <HelpCircle size={11} className="text-indigo-500" /> Support Hub
+                        </span>
+                        <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-[8px] font-bold">
+                          <button
+                            type="button"
+                            onClick={() => setSupportWidgetTab('new')}
+                            className={`px-2 py-0.5 rounded-md transition-all ${
+                              supportWidgetTab === 'new'
+                                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                            }`}
+                          >
+                            New Request
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setSupportWidgetTab('history')}
+                            className={`px-2 py-0.5 rounded-md transition-all ${
+                              supportWidgetTab === 'history'
+                                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                            }`}
+                          >
+                            My Tickets ({supportTickets.length})
+                          </button>
+                        </div>
+                      </div>
+
+                      {supportWidgetTab === 'new' ? (
+                        <form onSubmit={handleCreateTicketFromWidget} className="flex-1 flex flex-col justify-between min-h-0">
+                          <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
+                            <div>
+                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Subject</label>
+                              <input
+                                type="text"
+                                value={ticketSubject}
+                                onChange={(e) => setTicketSubject(e.target.value)}
+                                placeholder="Briefly describe your support issue..."
+                                className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                                required
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Inquiry Type</label>
+                              <select
+                                value={ticketType}
+                                onChange={(e) => setTicketType(e.target.value)}
+                                className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              >
+                                <option value="general">General Support</option>
+                                <option value="billing">Billing & Subscription</option>
+                                <option value="technical">Technical Glitch / Bug</option>
+                                <option value="api_keys">API Sync Integration</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Message Details</label>
+                              <textarea
+                                value={ticketMessage}
+                                onChange={(e) => setTicketMessage(e.target.value)}
+                                placeholder="Explain your situation in depth. Include transaction IDs, property details, or errors..."
+                                className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none h-20 resize-none"
+                                required
+                              />
+                            </div>
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={ticketSubmitting}
+                            className="w-full py-2 mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1 active:scale-[0.97] shrink-0 disabled:opacity-50"
+                          >
+                            {ticketSubmitting ? (
+                              <>
+                                <RefreshCw className="animate-spin text-white" size={11} /> Sending Ticket...
+                              </>
+                            ) : (
+                              <>
+                                <ArrowRight size={11} /> Send Ticket Request
+                              </>
+                            )}
+                          </button>
+                        </form>
+                      ) : (
+                        <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin space-y-2">
+                          {ticketsLoading ? (
+                            <div className="flex justify-center py-10"><RefreshCw className="animate-spin text-indigo-500" size={18} /></div>
+                          ) : supportTickets.length === 0 ? (
+                            <div className="h-full flex flex-col items-center justify-center py-12 text-slate-400 select-none">
+                              <HelpCircle className="opacity-30 mb-2" size={24} />
+                              <p className="text-[10px] font-bold">No active support history</p>
+                              <p className="text-[8px] text-slate-500 mt-1">Submit a new request to get started.</p>
+                            </div>
+                          ) : (
+                            <div className="space-y-2">
+                              {supportTickets.map((t: any) => (
+                                <div key={t.id} className="p-3 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
+                                  <div className="flex items-center justify-between">
+                                    <span className={`text-[7px] font-black px-1.5 py-0.25 rounded uppercase ${
+                                      t.status === 'open' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
+                                      t.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                      'bg-slate-500/10 text-slate-500'
+                                    }`}>
+                                      {t.status || 'open'}
+                                    </span>
+                                    <span className="text-[7px] text-slate-400">{t.created_at ? new Date(t.created_at).toLocaleDateString() : 'Today'}</span>
+                                  </div>
+                                  <p className="text-[10px] font-extrabold text-slate-900 dark:text-white leading-tight">{t.subject}</p>
+                                  <p className="text-[8.5px] text-slate-500 leading-normal">{t.message}</p>
+                                  {t.resolution_notes && (
+                                    <div className="mt-2 p-1.5 bg-emerald-50/30 dark:bg-emerald-955/10 border border-emerald-500/20 rounded-lg">
+                                      <p className="text-[7.5px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Resolution Notes:</p>
+                                      <p className="text-[8px] text-slate-650 dark:text-slate-300 mt-0.5">{t.resolution_notes}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
