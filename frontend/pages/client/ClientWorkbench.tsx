@@ -146,8 +146,47 @@ export const ClientWorkbench: React.FC = () => {
 
   // States
   const [widgets, setWidgets] = useState<Widget[]>(() => {
-    const saved = localStorage.getItem('goauct_workbench_widgets_v40');
-    return saved ? JSON.parse(saved) : DEFAULT_WIDGETS;
+    try {
+      const saved = localStorage.getItem('goauct_workbench_widgets_v40');
+      if (!saved) return DEFAULT_WIDGETS;
+      
+      const parsed = JSON.parse(saved);
+      if (!Array.isArray(parsed) || parsed.length === 0) {
+        return DEFAULT_WIDGETS;
+      }
+      
+      // Self-healing: if ALL saved widgets are marked invisible, fallback to default layouts
+      const hasVisible = parsed.some((w: any) => w.visible);
+      if (!hasVisible) {
+        console.warn('ClientWorkbench: All saved widgets were invisible, falling back to default layout visibility.');
+        return DEFAULT_WIDGETS;
+      }
+      
+      // Self-healing: if any DEFAULT_WIDGETS are missing from the saved ones, merge them.
+      const savedMap = new Map(parsed.map((w: any) => [w.id, w]));
+      const merged = DEFAULT_WIDGETS.map(def => {
+        const savedWidget = savedMap.get(def.id);
+        if (savedWidget) {
+          // Keep saved position but merge any new default settings
+          return {
+            ...def,
+            ...savedWidget,
+            x: typeof savedWidget.x === 'number' ? savedWidget.x : def.x,
+            y: typeof savedWidget.y === 'number' ? savedWidget.y : def.y,
+            w: typeof savedWidget.w === 'number' ? savedWidget.w : def.w,
+            h: typeof savedWidget.h === 'number' ? savedWidget.h : def.h,
+            visible: typeof savedWidget.visible === 'boolean' ? savedWidget.visible : def.visible,
+            zIndex: typeof savedWidget.zIndex === 'number' ? savedWidget.zIndex : def.zIndex,
+          };
+        }
+        return def;
+      });
+      
+      return merged;
+    } catch (e) {
+      console.error('Failed to parse goauct_workbench_widgets_v40 from localStorage, falling back to default:', e);
+      return DEFAULT_WIDGETS;
+    }
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activePane, setActivePane] = useState<'explorer' | 'presets' | 'info'>('explorer');
@@ -250,6 +289,11 @@ export const ClientWorkbench: React.FC = () => {
   const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
   const [terminalInput, setTerminalInput] = useState('');
 
+  // Unified console logger helper
+  const logConsoleActivity = useCallback((msg: string) => {
+    setTerminalLogs(prev => [...prev, `[activity] ${msg}`].slice(-40));
+  }, []);
+
   // Billings & Plans
   const [billingPlan, setBillingPlan] = useState<'free' | 'pro' | 'elite'>('pro');
   const [billingInvoices, setBillingInvoices] = useState<any[]>([]);
@@ -289,25 +333,7 @@ export const ClientWorkbench: React.FC = () => {
   const [ticketSubmitting, setTicketSubmitting] = useState(false);
   const [supportWidgetTab, setSupportWidgetTab] = useState<'new' | 'history'>('new');
 
-  // --- MAIN SIDEBAR SYNC ---
-  const [mainSidebarCollapsed, setMainSidebarCollapsed] = useState(() => {
-    return localStorage.getItem('goauct_sidebar_collapsed') === 'true';
-  });
 
-  useEffect(() => {
-    const handleMainSidebarEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<boolean>;
-      setMainSidebarCollapsed(customEvent.detail);
-    };
-    window.addEventListener('goauct-main-sidebar-collapsed', handleMainSidebarEvent as EventListener);
-    return () => {
-      window.removeEventListener('goauct-main-sidebar-collapsed', handleMainSidebarEvent as EventListener);
-    };
-  }, []);
-
-  const toggleMainSidebar = () => {
-    window.dispatchEvent(new CustomEvent('goauct-toggle-main-sidebar'));
-  };
 
   // --- MDI EVENT LISTENER ---
   useEffect(() => {
@@ -507,7 +533,7 @@ export const ClientWorkbench: React.FC = () => {
     const u = AuthService.getCurrentUser();
     if (u) {
       setCurrentUser(u);
-      setUserNickname(u.nickname || u.email.split('@')[0]);
+      setUserNickname(u.nickname || (u.email ? u.email.split('@')[0] : '') || 'User');
       if (u.subscription_tier) {
         setBillingPlan(u.subscription_tier.toLowerCase() as any);
       }
@@ -619,10 +645,7 @@ export const ClientWorkbench: React.FC = () => {
     }
   }, [currentUser]);
 
-  // Unified console logger helper
-  const logConsoleActivity = useCallback((msg: string) => {
-    setTerminalLogs(prev => [...prev, `[activity] ${msg}`].slice(-40));
-  }, []);
+
 
   // Fetch backend analytics & properties
   const fetchWorkbenchData = useCallback(async () => {
@@ -632,35 +655,42 @@ export const ClientWorkbench: React.FC = () => {
       const sevenDaysAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString().split('T')[0];
 
       const [stats, monthly, topScored, deedRes, sheriffRes, foreRes, lienRes] = await Promise.all([
-        getStateStats(),
-        getMonthlyStats(),
-        getTopScoredProperties(12, { availability_status: 'available' }),
-        AuctionService.getAuctionEvents({ name: 'deed', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' }),
-        AuctionService.getAuctionEvents({ name: 'sheriff', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' }),
-        AuctionService.getAuctionEvents({ name: 'foreclosure', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' }),
-        AuctionService.getAuctionEvents({ name: 'lien', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' }),
+        getStateStats().catch(err => { console.error('getStateStats failed:', err); return []; }),
+        getMonthlyStats().catch(err => { console.error('getMonthlyStats failed:', err); return []; }),
+        getTopScoredProperties(12, { availability_status: 'available' } as any).catch(err => { console.error('getTopScoredProperties failed:', err); return []; }),
+        AuctionService.getAuctionEvents({ name: 'deed', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' })
+          .catch(err => { console.error('deedRes failed:', err); return { items: [], total: 0 }; }),
+        AuctionService.getAuctionEvents({ name: 'sheriff', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' })
+          .catch(err => { console.error('sheriffRes failed:', err); return { items: [], total: 0 }; }),
+        AuctionService.getAuctionEvents({ name: 'foreclosure', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' })
+          .catch(err => { console.error('foreRes failed:', err); return { items: [], total: 0 }; }),
+        AuctionService.getAuctionEvents({ name: 'lien', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' })
+          .catch(err => { console.error('lienRes failed:', err); return { items: [], total: 0 }; }),
       ]);
 
-      setStateStats(stats);
-      setMonthlyStats(monthly);
-      setDbTopDeals(topScored as Property[]);
+      setStateStats(Array.isArray(stats) ? stats : []);
+      setMonthlyStats(Array.isArray(monthly) ? monthly : []);
+      setDbTopDeals(Array.isArray(topScored) ? (topScored as Property[]) : []);
 
       // De-duplicate Deeds
       const mergedDeeds = Array.from(
-        new Map([...deedRes.items, ...sheriffRes.items].map(item => [item.id, item])).values()
-      );
+        new Map([
+          ...(deedRes?.items || []),
+          ...(sheriffRes?.items || [])
+        ].filter(Boolean).map(item => [item?.id, item])).values()
+      ).filter(Boolean);
       setDeedsAuctions(mergedDeeds);
-      setForeclosureAuctions(foreRes.items || []);
-      setLiensAuctions(lienRes.items || []);
+      setForeclosureAuctions(foreRes?.items || []);
+      setLiensAuctions(lienRes?.items || []);
 
       // Dynamic Counter Totals
       setMarketCounts({
-        deed: (deedRes.total || 0) + (sheriffRes.total || 0) || 430,
-        foreclosure: foreRes.total || 852,
-        lien: lienRes.total || 594
+        deed: ((deedRes?.total || 0) + (sheriffRes?.total || 0)) || 430,
+        foreclosure: foreRes?.total || 852,
+        lien: lienRes?.total || 594
       });
 
-      if (topScored.length > 0) {
+      if (Array.isArray(topScored) && topScored.length > 0) {
         setSelectedProperty(topScored[0] as Property);
       }
 
@@ -1369,7 +1399,7 @@ export const ClientWorkbench: React.FC = () => {
   const activeCode = selectedState ? resolveStateCode(selectedState) : null;
 
   return (
-    <div className="w-full flex-1 flex flex-col h-[calc(100vh-64px)] overflow-hidden select-none bg-slate-50 dark:bg-slate-950 font-display">
+    <div className="w-full flex-1 flex flex-col h-full min-h-0 overflow-hidden select-none bg-slate-50 dark:bg-slate-950 font-display">
 
       {/* ─── HEADER (Topo) ─── */}
       <div className="w-full h-14 bg-white/70 dark:bg-slate-900/60 border-b border-slate-200/80 dark:border-slate-800/60 px-5 flex items-center justify-between backdrop-blur-md shrink-0 z-30">
@@ -1453,23 +1483,28 @@ export const ClientWorkbench: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-4 items-center w-full border-t border-slate-100 dark:border-slate-800/85 pt-4">
-            {/* Toggle Main Layout Sidebar */}
-            <button
-              onClick={toggleMainSidebar}
-              title={mainSidebarCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
-              className="p-2 text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900/40"
-            >
-              {mainSidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-            </button>
-
             {/* Toggle Workbench Drawer */}
-            <button
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              title={sidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
-              className="p-2 text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900/40"
-            >
-              {sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-            </button>
+            {sidebarOpen ? (
+              <button
+                onClick={() => setSidebarOpen(false)}
+                title="Collapse Workbench Drawer"
+                className="p-2 text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900/40"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-chevron-left" aria-hidden="true">
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+              </button>
+            ) : (
+              <button
+                onClick={() => setSidebarOpen(true)}
+                title="Expand Workbench Drawer"
+                className="p-2 text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900/40"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-chevron-right" aria-hidden="true">
+                  <path d="m9 18 6-6-6-6" />
+                </svg>
+              </button>
+            )}
           </div>
         </div>
 
@@ -1627,6 +1662,7 @@ export const ClientWorkbench: React.FC = () => {
         <div
           ref={canvasRef}
           onMouseDown={handleCanvasMouseDown}
+          onTouchStart={handleCanvasTouchStart}
           className="flex-1 h-full overflow-hidden relative bg-slate-150 dark:bg-slate-950 cursor-grab active:cursor-grabbing border-r border-slate-200 dark:border-slate-800"
         >
           {/* Zoomable & Pannable sliding plane container */}
@@ -2884,7 +2920,7 @@ export const ClientWorkbench: React.FC = () => {
                                   {member.email?.slice(0, 2).toUpperCase() || 'TM'}
                                 </div>
                                 <div className="min-w-0">
-                                  <span className="text-[10px] font-bold text-slate-900 dark:text-white block leading-none truncate">{member.nickname || member.email.split('@')[0]}</span>
+                                  <span className="text-[10px] font-bold text-slate-900 dark:text-white block leading-none truncate">{member.nickname || (member.email ? member.email.split('@')[0] : '') || 'Team Member'}</span>
                                   <span className="text-[8px] text-slate-455 block mt-0.5 leading-none truncate">{member.email}</span>
                                 </div>
                               </div>
@@ -3690,7 +3726,7 @@ export const ClientWorkbench: React.FC = () => {
 
                   {/* Property Compare Matrix (property_comparator) */}
                   {w.type === 'property_comparator' && (() => {
-                    const props = [compareProp1, compareProp2, compareProp3].filter(Boolean) as Property[];
+                    const props = [compareProp1, compareProp2, compareProp3].filter(Boolean) as any[];
                     
                     // Determine Top Pick based on yield_score or max capitalization
                     let topPickId = '';
