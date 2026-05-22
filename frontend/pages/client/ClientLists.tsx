@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Typography, IconButton, TextField, Dialog, Button, CircularProgress, Chip, Tabs, Tab, Autocomplete } from '@mui/material';
 import { FolderPlusIcon, Trash2Icon, Edit2Icon, ExternalLinkIcon } from 'lucide-react';
 import { calculateDealScore } from '../../intelligence/scoringEngine';
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
 import { ClientDataService, PropertyService } from '../../services/property.service';
 import { countyService, CountyContact } from '../../services/county.service';
 import { StatesService, StateContact } from '../../services/states.service';
@@ -263,15 +262,7 @@ const ClientLists: React.FC = () => {
     const isAgent = currentUser?.role === 'agent';
     const isTrial = currentUser?.subscription_tier === 'trial';
 
-    // Advanced Filters State
-    const [filterZoning, setFilterZoning] = useState<string>('All');
-    const [filterForeclosureStage, setFilterForeclosureStage] = useState<string>('All');
-    const [filterAVMConfidence, setFilterAVMConfidence] = useState<string>('All');
-    const [filterRequired, setFilterRequired] = useState<boolean>(false);
-    const [filterBotCleared, setFilterBotCleared] = useState<boolean>(false);
 
-    // Active Property detail selection state
-    const [activePropertyId, setActivePropertyId] = useState<number | null>(null);
 
     // Global listener for dynamic property additions
     useEffect(() => {
@@ -816,54 +807,7 @@ const ClientLists: React.FC = () => {
         });
     }, [selectedListProperties, selectedStateName, selectedCountyName, favoritesSet]);
 
-    const filteredProperties = React.useMemo(() => {
-        return displayProperties.filter(prop => {
-            // Zoning filter
-            if (filterZoning !== 'All') {
-                const z = (prop.zoning || '').toLowerCase();
-                const fz = filterZoning.toLowerCase();
-                if (!z.includes(fz)) return false;
-            }
-            // Foreclosure Stage filter
-            if (filterForeclosureStage !== 'All') {
-                const stage = (prop.foreclosure_stage || prop.availability_status || '').toLowerCase();
-                const fs = filterForeclosureStage.toLowerCase();
-                if (!stage.includes(fs)) return false;
-            }
-            // AVM Confidence filter
-            if (filterAVMConfidence !== 'All') {
-                const conf = prop.avm_confidence || 85; // fallback
-                if (filterAVMConfidence === 'High' && conf < 80) return false;
-                if (filterAVMConfidence === 'Medium' && (conf < 50 || conf >= 80)) return false;
-                if (filterAVMConfidence === 'Low' && conf >= 50) return false;
-            }
-            // Checkbox Required
-            if (filterRequired && !prop.is_auction_upcoming) {
-                return false;
-            }
-            // Checkbox Bot Cleared
-            if (filterBotCleared) {
-                const isCleared = prop.is_bot_cleared !== false && (prop.id % 2 === 0);
-                if (!isCleared) return false;
-            }
-            return true;
-        });
-    }, [displayProperties, filterZoning, filterForeclosureStage, filterAVMConfidence, filterRequired, filterBotCleared]);
 
-    // Automatically set the first property as active if there isn't one selected yet, or if the selected one is no longer in filtered list
-    useEffect(() => {
-        if (filteredProperties.length > 0) {
-            if (!activePropertyId || !filteredProperties.some(p => p.id === activePropertyId)) {
-                setActivePropertyId(filteredProperties[0].id);
-            }
-        } else {
-            setActivePropertyId(null);
-        }
-    }, [filteredProperties, activePropertyId]);
-
-    const activeProperty = React.useMemo(() => {
-        return filteredProperties.find(p => p.id === activePropertyId) || null;
-    }, [filteredProperties, activePropertyId]);
 
     const selectedList = lists.find(l => l.id === selectedListId) || broadcastedLists.find(l => l.id === selectedListId);
 
@@ -1474,426 +1418,179 @@ const ClientLists: React.FC = () => {
                                         Review Agenda
                                     </Button>
                                 </div>
-                            )}
+                            }
 
-                            {/* 1. Futuristic Campaign Header Banner */}
-                            <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#0B0F17] via-[#131926] to-[#0B0F17] border border-slate-800/60 p-6 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(13,139,255,0.08),transparent_50%)]" />
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(19,184,181,0.06),transparent_50%)]" />
-                                
-                                <div className="flex items-center gap-4 relative z-10">
-                                    <div className="relative w-14 h-14 shrink-0 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg group">
-                                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-[#0D8BFF] to-[#13B8B5] opacity-20 blur-md group-hover:opacity-40 transition-opacity duration-500" />
-                                        <svg className="w-8 h-8 text-[#0D8BFF] relative z-10 filter drop-shadow-[0_0_8px_rgba(13,139,255,0.5)]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                            <defs>
-                                                <linearGradient id="logo-grad-new" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                    <stop offset="0%" stopColor="#0D8BFF" />
-                                                    <stop offset="100%" stopColor="#13B8B5" />
-                                                </linearGradient>
-                                            </defs>
-                                            <path d="M12 2L2 12H5V21H19V12H22L12 2Z" stroke="url(#logo-grad-new)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <path d="M9 17V13H15V17H9Z" stroke="url(#logo-grad-new)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                                            <path d="M12 7V9" stroke="#13B8B5" strokeWidth="2" strokeLinecap="round"/>
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl md:text-2xl font-black tracking-tight text-white flex flex-col sm:flex-row sm:items-center gap-2">
-                                            DEEP PROPERTY INTELLIGENCE AT SCALE
-                                            <span className="text-[9px] uppercase font-bold tracking-widest px-2.5 py-0.5 rounded-full bg-[#13B8B5]/20 text-[#13B8B5] border border-[#13B8B5]/30 shadow-[0_0_10px_rgba(19,184,181,0.15)] animate-pulse">100+ Data Points. One Operational Platform.</span>
-                                        </h2>
-                                        <p className="text-xs md:text-sm text-slate-400 font-medium mt-1">Legal, financial and operational data unified into one acquisition workflow.</p>
+                            {/* Properties Watchlist Stack */}
+                            <div className="space-y-4 animate-fadeIn">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-[#0D8BFF] text-base">format_list_bulleted</span>
+                                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Watchlist Properties ({displayProperties.length})</span>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-6 relative z-10 text-right md:text-left self-stretch md:self-auto justify-between border-t border-slate-800 md:border-t-0 pt-4 md:pt-0">
-                                    <div className="flex flex-col">
-                                        <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Acquisition Engine</span>
-                                        <span className="text-sm font-black text-slate-200">Active Pipeline</span>
+                                {displayProperties.length === 0 ? (
+                                    <div className="bg-[#131926]/30 border border-slate-800/80 rounded-2xl p-8 text-center">
+                                        <span className="material-symbols-outlined text-4xl text-slate-600 mb-2">find_in_page</span>
+                                        <p className="text-xs text-slate-400">No properties in this folder.</p>
                                     </div>
-                                    <div className="w-[1px] h-8 bg-slate-800 hidden md:block" />
-                                    <div className="flex flex-col">
-                                        <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider">Sync Integrity</span>
-                                        <span className="text-sm font-black text-[#13B8B5] flex items-center gap-1.5 justify-end md:justify-start">
-                                            <span className="size-2 rounded-full bg-[#13B8B5] animate-ping" />
-                                            100% Operational
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                                ) : (
+                                    <div className="space-y-3.5">
+                                        {displayProperties.map((prop: any) => {
+                                            const scoreObj = calculateDealScore(prop);
+                                            let displayScore = scoreObj.score;
+                                            let displayRating = scoreObj.rating;
+                                            if (displayScore === 0) {
+                                                const seed = prop.parcel_id ? Array.from(prop.parcel_id).reduce((acc, c) => acc + (c as string).charCodeAt(0), 0) : 100;
+                                                displayScore = 65 + (seed % 31);
+                                                if (displayScore >= 90) displayRating = 'A+';
+                                                else if (displayScore >= 80) displayRating = 'A';
+                                                else displayRating = 'B';
+                                            }
 
-                            {/* 2. Top Aggregated HUD Widgets (Floating Telemetry with SVG Connectors) */}
-                            <div className="relative grid grid-cols-1 md:grid-cols-2 gap-6 mb-2">
-                                {/* SVG Connecting Line System */}
-                                <svg className="absolute inset-0 w-full h-full pointer-events-none hidden md:block" style={{ zIndex: 0 }}>
-                                    <path d="M 300 60 Q 450 120 600 60" stroke="rgba(13, 139, 255, 0.15)" strokeWidth="1.5" fill="none" strokeDasharray="4 4" />
-                                    <path d="M 620 60 Q 770 120 920 60" stroke="rgba(19, 184, 181, 0.15)" strokeWidth="1.5" fill="none" strokeDasharray="4 4" />
-                                </svg>
+                                            let strokeColor = '#EF4444';
+                                            let glowColor = 'rgba(239, 68, 68, 0.4)';
+                                            let textColor = 'text-red-400';
+                                            if (displayScore >= 90) {
+                                                strokeColor = '#10B981';
+                                                glowColor = 'rgba(16, 185, 129, 0.4)';
+                                                textColor = 'text-emerald-400';
+                                            } else if (displayScore >= 80) {
+                                                strokeColor = '#0D8BFF';
+                                                glowColor = 'rgba(13, 139, 255, 0.4)';
+                                                textColor = 'text-blue-400';
+                                            } else if (displayScore >= 65) {
+                                                strokeColor = '#F59E0B';
+                                                glowColor = 'rgba(245, 158, 11, 0.4)';
+                                                textColor = 'text-amber-400';
+                                            }
 
-                                {/* TAX DATA HUD Aggregates Card */}
-                                <div className="bg-[#131926]/40 border border-slate-800/80 rounded-2xl p-5 shadow-lg relative overflow-hidden backdrop-blur-md group hover:border-[#0D8BFF]/40 transition-colors z-10">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#0D8BFF]/5 rounded-full blur-3xl pointer-events-none" />
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-[#0D8BFF] text-xl">payments</span>
-                                            <h3 className="text-xs font-black text-slate-200 uppercase tracking-widest">Global Watchlist Tax Telemetry</h3>
-                                        </div>
-                                        <span className="text-[9px] font-mono text-slate-500 uppercase tracking-widest bg-slate-900/60 px-2 py-0.5 rounded border border-slate-800">ATTOM Secured</span>
-                                    </div>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        <div className="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60 text-center">
-                                            <p className="text-[8px] text-slate-500 uppercase font-black tracking-wider">Land Value</p>
-                                            <p className="text-xs font-black text-slate-300 mt-0.5">$2.00M</p>
-                                        </div>
-                                        <div className="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60 text-center">
-                                            <p className="text-[8px] text-slate-500 uppercase font-black tracking-wider">Improvements</p>
-                                            <p className="text-xs font-black text-slate-300 mt-0.5">$500K</p>
-                                        </div>
-                                        <div className="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60 text-center">
-                                            <p className="text-[8px] text-slate-500 uppercase font-black tracking-wider">Exemptions</p>
-                                            <p className="text-xs font-black text-[#13B8B5] mt-0.5">NOT-VALUED</p>
-                                        </div>
-                                        <div className="bg-slate-950/40 p-2.5 rounded-xl border border-[#0D8BFF]/30 text-center relative group-hover:border-[#0D8BFF]/50 transition-colors">
-                                            <div className="absolute inset-0 bg-[#0D8BFF]/5 blur-xs rounded-xl" />
-                                            <p className="text-[8px] text-[#0D8BFF] uppercase font-black tracking-wider relative z-10">Total Watchlist</p>
-                                            <p className="text-xs font-black text-white mt-0.5 relative z-10">$152.9K</p>
-                                        </div>
-                                    </div>
-                                </div>
+                                            const isFavorite = favoritesSet.has(prop.id);
 
-                                {/* AVM VALUATION HUD Aggregates Card */}
-                                <div className="bg-[#131926]/40 border border-slate-800/80 rounded-2xl p-5 shadow-lg relative overflow-hidden backdrop-blur-md group hover:border-[#13B8B5]/40 transition-colors z-10">
-                                    <div className="absolute top-0 right-0 w-32 h-32 bg-[#13B8B5]/5 rounded-full blur-3xl pointer-events-none" />
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-[#13B8B5] text-xl">analytics</span>
-                                            <h3 className="text-xs font-black text-slate-200 uppercase tracking-widest">Global Watchlist Valuation Index</h3>
-                                        </div>
-                                        <span className="text-[9px] font-mono text-emerald-400 uppercase tracking-widest bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/30 animate-pulse">98.4% Confidence</span>
-                                    </div>
-                                    <div className="grid grid-cols-4 gap-2">
-                                        <div className="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60 text-center">
-                                            <p className="text-[8px] text-slate-500 uppercase font-black tracking-wider">Jan Valuation</p>
-                                            <p className="text-xs font-black text-slate-300 mt-0.5">$310K</p>
-                                        </div>
-                                        <div className="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60 text-center">
-                                            <p className="text-[8px] text-slate-500 uppercase font-black tracking-wider">Feb Valuation</p>
-                                            <p className="text-xs font-black text-slate-300 mt-0.5">$360K</p>
-                                        </div>
-                                        <div className="bg-slate-950/40 p-2.5 rounded-xl border border-slate-800/60 text-center">
-                                            <p className="text-[8px] text-slate-500 uppercase font-black tracking-wider">Max Value</p>
-                                            <p className="text-xs font-black text-slate-300 mt-0.5">$420K</p>
-                                        </div>
-                                        <div className="bg-slate-950/40 p-2.5 rounded-xl border border-[#13B8B5]/30 text-center relative group-hover:border-[#13B8B5]/50 transition-colors">
-                                            <div className="absolute inset-0 bg-[#13B8B5]/5 blur-xs rounded-xl" />
-                                            <p className="text-[8px] text-[#13B8B5] uppercase font-black tracking-wider relative z-10">Confidence Index</p>
-                                            <p className="text-xs font-black text-white mt-0.5 relative z-10">92% High</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* 3. Advanced 3-Column Split Workspace Layout Grid */}
-                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                                
-                                {/* ── LEFT COLUMN (lg:col-span-2) - Advanced Filters Panel ── */}
-                                <div className="lg:col-span-2 space-y-4 animate-fadeIn">
-                                    <div className="bg-[#131926]/75 border border-slate-800/80 rounded-2xl p-4 shadow-xl flex flex-col gap-4 relative overflow-hidden">
-                                        <div className="flex items-center gap-2 pb-2 border-b border-slate-800">
-                                            <span className="material-symbols-outlined text-[#0D8BFF] text-base">filter_alt</span>
-                                            <h3 className="text-xs font-black text-slate-200 uppercase tracking-widest">Advanced Filters</h3>
-                                        </div>
-
-                                        {/* Zoning Select Dropdown */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Zoning Code</label>
-                                            <select
-                                                value={filterZoning}
-                                                onChange={(e) => setFilterZoning(e.target.value)}
-                                                className="w-full bg-[#0B0F17] border border-slate-800 text-slate-300 rounded-lg py-1.5 px-2.5 text-[11px] focus:outline-none focus:border-[#0D8BFF] transition-colors cursor-pointer"
-                                            >
-                                                <option value="All">All Zonings</option>
-                                                <option value="R-2">Zoning R-2 (Residential)</option>
-                                                <option value="C-1">Zoning C-1 (Commercial)</option>
-                                                <option value="A-1">Zoning A-1 (Agricultural)</option>
-                                            </select>
-                                        </div>
-
-                                        {/* Foreclosure Stage Select Dropdown */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider">Foreclosure Stage</label>
-                                            <select
-                                                value={filterForeclosureStage}
-                                                onChange={(e) => setFilterForeclosureStage(e.target.value)}
-                                                className="w-full bg-[#0B0F17] border border-slate-800 text-slate-300 rounded-lg py-1.5 px-2.5 text-[11px] focus:outline-none focus:border-[#0D8BFF] transition-colors cursor-pointer"
-                                            >
-                                                <option value="All">All Stages</option>
-                                                <option value="available">Pre-Foreclosure</option>
-                                                <option value="auction">Auction Pending</option>
-                                                <option value="sold">REO / Sold</option>
-                                            </select>
-                                        </div>
-
-                                        {/* AVM Confidence Select Dropdown */}
-                                        <div className="flex flex-col gap-1">
-                                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider">AVM Confidence</label>
-                                            <select
-                                                value={filterAVMConfidence}
-                                                onChange={(e) => setFilterAVMConfidence(e.target.value)}
-                                                className="w-full bg-[#0B0F17] border border-slate-800 text-slate-300 rounded-lg py-1.5 px-2.5 text-[11px] focus:outline-none focus:border-[#0D8BFF] transition-colors cursor-pointer"
-                                            >
-                                                <option value="All">All Intervals</option>
-                                                <option value="High">High Confidence (&gt;80%)</option>
-                                                <option value="Medium">Medium (50% - 80%)</option>
-                                                <option value="Low">Low Confidence (&lt;50%)</option>
-                                            </select>
-                                        </div>
-
-                                        {/* Checkbox Options */}
-                                        <div className="flex flex-col gap-2 pt-2 border-t border-slate-800/60">
-                                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={filterRequired}
-                                                    onChange={(e) => setFilterRequired(e.target.checked)}
-                                                    className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-900"
-                                                />
-                                                <span className="text-[10px] font-bold text-slate-400">Auction Pending</span>
-                                            </label>
-                                            <label className="flex items-center gap-2 cursor-pointer select-none">
-                                                <input
-                                                    type="checkbox"
-                                                    checked={filterBotCleared}
-                                                    onChange={(e) => setFilterBotCleared(e.target.checked)}
-                                                    className="w-3.5 h-3.5 rounded bg-slate-900 border-slate-800 text-blue-600 focus:ring-blue-500 focus:ring-offset-slate-900"
-                                                />
-                                                <span className="text-[10px] font-bold text-slate-400">Bot Cleared</span>
-                                            </label>
-                                        </div>
-
-                                        {/* Reset Button */}
-                                        <button
-                                            onClick={() => {
-                                                setFilterZoning('All');
-                                                setFilterForeclosureStage('All');
-                                                setFilterAVMConfidence('All');
-                                                setFilterRequired(false);
-                                                setFilterBotCleared(false);
-                                            }}
-                                            className="w-full text-center py-1 text-[10px] font-black uppercase text-[#0D8BFF] hover:text-[#13B8B5] transition-colors border border-[#0D8BFF]/20 rounded-lg bg-slate-950/40 hover:bg-slate-950 mt-1"
-                                        >
-                                            Clear Filters
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* ── MIDDLE COLUMN (lg:col-span-4) - Redesigned Card Watchlist Stack ── */}
-                                <div className="lg:col-span-4 space-y-4 animate-fadeIn" style={{ animationDelay: '100ms' }}>
-                                    <div className="flex items-center justify-between mb-1">
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-[#0D8BFF] text-base">format_list_bulleted</span>
-                                            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Watchlist Properties ({filteredProperties.length})</span>
-                                        </div>
-                                    </div>
-
-                                    {filteredProperties.length === 0 ? (
-                                        <div className="bg-[#131926]/30 border border-slate-800/80 rounded-2xl p-8 text-center">
-                                            <span className="material-symbols-outlined text-4xl text-slate-600 mb-2">find_in_page</span>
-                                            <p className="text-xs text-slate-400">No properties match your filter selection.</p>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-3.5 overflow-y-auto max-h-[75vh] pr-1.5 scrollbar-thin">
-                                            {filteredProperties.map((prop: any) => {
-                                                const scoreObj = calculateDealScore(prop);
-                                                let displayScore = scoreObj.score;
-                                                let displayRating = scoreObj.rating;
-                                                if (displayScore === 0) {
-                                                    const seed = prop.parcel_id ? Array.from(prop.parcel_id).reduce((acc, c) => acc + (c as string).charCodeAt(0), 0) : 100;
-                                                    displayScore = 65 + (seed % 31);
-                                                    if (displayScore >= 90) displayRating = 'A+';
-                                                    else if (displayScore >= 80) displayRating = 'A';
-                                                    else displayRating = 'B';
-                                                }
-
-                                                let strokeColor = '#EF4444';
-                                                let glowColor = 'rgba(239, 68, 68, 0.4)';
-                                                let textColor = 'text-red-400';
-                                                if (displayScore >= 90) {
-                                                    strokeColor = '#10B981';
-                                                    glowColor = 'rgba(16, 185, 129, 0.4)';
-                                                    textColor = 'text-emerald-400';
-                                                } else if (displayScore >= 80) {
-                                                    strokeColor = '#0D8BFF';
-                                                    glowColor = 'rgba(13, 139, 255, 0.4)';
-                                                    textColor = 'text-blue-400';
-                                                } else if (displayScore >= 65) {
-                                                    strokeColor = '#F59E0B';
-                                                    glowColor = 'rgba(245, 158, 11, 0.4)';
-                                                    textColor = 'text-amber-400';
-                                                }
-
-                                                const isFavorite = favoritesSet.has(prop.id);
-                                                const isActive = prop.id === activePropertyId;
-
-                                                return (
-                                                    <SwipeActionItem
-                                                        key={prop.id}
-                                                        onDelete={() => handleRemoveProperty(prop.id)}
-                                                        onMove={() => setMovingPropertyId(prop.id)}
+                                            return (
+                                                <SwipeActionItem
+                                                    key={prop.id}
+                                                    onDelete={() => handleRemoveProperty(prop.id)}
+                                                    onMove={() => setMovingPropertyId(prop.id)}
+                                                >
+                                                    <div
+                                                        onClick={() => setPreviewPropertyId(prop.parcel_id || prop.id)}
+                                                        className="group relative border border-slate-800/80 hover:border-slate-700/90 rounded-2xl p-3.5 bg-[#131926]/75 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.005] cursor-pointer flex items-center justify-between gap-3 overflow-hidden"
                                                     >
-                                                        <div
-                                                            onClick={() => setActivePropertyId(prop.id)}
-                                                            className={`group relative border rounded-2xl p-3.5 transition-all duration-300 cursor-pointer flex items-center justify-between gap-3 overflow-hidden
-                                                            ${isActive
-                                                                ? 'bg-[#182235]/95 border-[#0D8BFF] shadow-[0_0_20px_rgba(13,139,255,0.12)] ring-1 ring-[#0D8BFF]/40 scale-[1.01]'
-                                                                : 'bg-[#131926]/75 border-slate-800/80 hover:border-slate-700/90 shadow-md hover:shadow-xl hover:scale-[1.005]'}`}
-                                                        >
-                                                            {/* Highlight Indicator bar */}
-                                                            {isActive && <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#0D8BFF] to-[#13B8B5]" />}
-
-                                                            <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                                                                <div className="relative group/thumb shrink-0">
-                                                                    <StreetViewThumbnail
-                                                                        property={prop}
-                                                                        size={60}
-                                                                    />
-                                                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity rounded-xl flex items-center justify-center pointer-events-none">
-                                                                        <span className="material-symbols-outlined text-white text-xs">zoom_in</span>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="flex-1 min-w-0">
-                                                                    <div className="flex items-center gap-1.5 mb-1">
-                                                                        <h4 className="font-extrabold text-slate-100 group-hover:text-white truncate text-xs">
-                                                                            {prop.owner_address && typeof prop.owner_address === 'string' ? prop.owner_address.split('\n')[0] : (prop.title || 'Untitled Property')}
-                                                                        </h4>
-                                                                        <Chip
-                                                                            label={prop.availability_status || 'available'}
-                                                                            size="small"
-                                                                            className={`h-3.5 text-[6.5px] font-black uppercase px-0.5
-                                                                            ${prop.availability_status === 'available' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/20' : 'bg-red-950/60 text-red-400 border border-red-500/20'}`}
-                                                                        />
-                                                                    </div>
-
-                                                                    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[9px] text-slate-400">
-                                                                        <span className="font-mono font-bold text-[#0D8BFF]">{prop.parcel_id}</span>
-                                                                        <span className="opacity-20">|</span>
-                                                                        <span className="truncate">{prop.county || 'Unknown County'}</span>
-                                                                    </div>
-
-                                                                    <div className="mt-2 flex items-center gap-4">
-                                                                        <div className="flex flex-col">
-                                                                            <span className="text-[7px] text-slate-500 uppercase font-black">Opening Bid</span>
-                                                                            <span className="text-[11px] font-black text-slate-200">${prop.amount_due?.toLocaleString() || '0'}</span>
-                                                                        </div>
-                                                                        <div className="flex flex-col">
-                                                                            <span className="text-[7px] text-slate-500 uppercase font-black">Acres</span>
-                                                                            <span className="text-[11px] font-bold text-slate-300">{prop.lot_acres || 'N/A'}</span>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    {/* Quick Action Drawer buttons inside cards */}
-                                                                    <div className="mt-2.5 flex gap-1.5 border-t border-slate-800/80 pt-2" onClick={e => e.stopPropagation()}>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                if (isTrial) {
-                                                                                    alert('Due Diligence Tasks are a premium feature. Upgrade to Pro or Enterprise to track your workflow.');
-                                                                                    return;
-                                                                                }
-                                                                                setTaskProperty(prop);
-                                                                            }}
-                                                                            className="flex-1 flex items-center justify-center gap-1 py-0.5 text-[8px] font-extrabold rounded bg-[#0D8BFF]/10 text-[#0D8BFF] hover:bg-[#0D8BFF]/20 border border-[#0D8BFF]/20 transition-colors"
-                                                                        >
-                                                                            <span className="material-symbols-outlined text-[10px]">task_alt</span>
-                                                                            Task
-                                                                        </button>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                if (isTrial) {
-                                                                                    alert('Data Exports to Realtors are a premium feature. Upgrade to Pro or Enterprise to access this tool.');
-                                                                                    return;
-                                                                                }
-                                                                                setExportProperty(prop);
-                                                                                setExportForm({ contact_name: '', contact_phone: '', contact_email: '', notes: '', requested_sale_price: '' });
-                                                                            }}
-                                                                            className="flex-1 flex items-center justify-center gap-1 py-0.5 text-[8px] font-extrabold rounded bg-[#13B8B5]/10 text-[#13B8B5] hover:bg-[#13B8B5]/20 border border-[#13B8B5]/20 transition-colors"
-                                                                        >
-                                                                            <span className="material-symbols-outlined text-[10px]">upload</span>
-                                                                            Export
-                                                                        </button>
-                                                                    </div>
+                                                        <div className="flex items-center gap-3.5 flex-1 min-w-0">
+                                                            <div className="relative group/thumb shrink-0">
+                                                                <StreetViewThumbnail
+                                                                    property={prop}
+                                                                    size={60}
+                                                                />
+                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity rounded-xl flex items-center justify-center pointer-events-none">
+                                                                    <span className="material-symbols-outlined text-white text-xs">zoom_in</span>
                                                                 </div>
                                                             </div>
 
-                                                            {/* Score radial gauge */}
-                                                            <div className="flex flex-col items-end gap-2.5 shrink-0 justify-between self-stretch">
-                                                                <IconButton
-                                                                    size="small"
-                                                                    onClick={async (e) => {
-                                                                        e.stopPropagation();
-                                                                        try {
-                                                                            await PropertyService.toggleFavorite(prop.id, activeCompany?.id);
-                                                                            setFavoritesSet(prev => {
-                                                                                const next = new Set(prev);
-                                                                                if (next.has(prop.id)) next.delete(prop.id);
-                                                                                else next.add(prop.id);
-                                                                                return next;
-                                                                            });
-                                                                        } catch (err) {
-                                                                            console.error("Failed to toggle priority", err);
-                                                                        }
-                                                                    }}
-                                                                    className={`p-0.5 transition-all duration-300 ${isFavorite ? 'text-amber-400 scale-110' : 'text-slate-600 hover:text-amber-400'}`}
-                                                                >
-                                                                    <span
-                                                                        className="material-symbols-outlined text-[16px]"
-                                                                        style={{ fontVariationSettings: isFavorite ? "'FILL' 1, 'wght' 700" : "'FILL' 0, 'wght' 400" }}
-                                                                    >
-                                                                        star
-                                                                    </span>
-                                                                </IconButton>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-1.5 mb-1">
+                                                                    <h4 className="font-extrabold text-slate-100 group-hover:text-white truncate text-xs">
+                                                                        {prop.owner_address && typeof prop.owner_address === 'string' ? prop.owner_address.split('\n')[0] : (prop.title || 'Untitled Property')}
+                                                                    </h4>
+                                                                    <Chip
+                                                                        label={prop.availability_status || 'available'}
+                                                                        size="small"
+                                                                        className={`h-3.5 text-[6.5px] font-black uppercase px-0.5
+                                                                        ${prop.availability_status === 'available' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/20' : 'bg-red-950/60 text-red-400 border border-red-500/20'}`}
+                                                                    />
+                                                                </div>
 
-                                                                <div className="relative flex items-center justify-center w-11 h-11">
-                                                                    <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                                                                        <path
-                                                                            className="text-slate-800"
-                                                                            strokeWidth="4"
-                                                                            stroke="currentColor"
-                                                                            fill="none"
-                                                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                                                        />
-                                                                        <path
-                                                                            strokeDasharray={`${displayScore}, 100`}
-                                                                            strokeWidth="4"
-                                                                            strokeLinecap="round"
-                                                                            stroke={strokeColor}
-                                                                            fill="none"
-                                                                            style={{ filter: `drop-shadow(0 0 3px ${glowColor})`, transition: 'stroke-dasharray 1s ease-in-out' }}
-                                                                            d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
-                                                                        />
-                                                                    </svg>
-                                                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                                        <span className={`text-[9px] font-black tracking-tighter ${textColor}`}>{displayScore}</span>
-                                                                        <span className="text-[5.5px] text-slate-500 uppercase font-black leading-none tracking-widest">{displayRating}</span>
+                                                                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[9px] text-slate-400">
+                                                                    <span className="font-mono font-bold text-[#0D8BFF]">{prop.parcel_id}</span>
+                                                                    <span className="opacity-20">|</span>
+                                                                    <span className="truncate">{prop.county || 'Unknown County'}</span>
+                                                                    <span className="opacity-20">|</span>
+                                                                    {/* Enriched Legal Description Abstract Tooltip Pill */}
+                                                                    <div className="relative group/legal" onClick={(e) => e.stopPropagation()}>
+                                                                        <span className="cursor-pointer font-bold text-[8.5px] bg-slate-800/40 hover:bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700/60 text-slate-300 transition-colors flex items-center gap-0.5">
+                                                                            Legal Abstract <span className="material-symbols-outlined text-[9px]">info</span>
+                                                                        </span>
+                                                                        {/* Tooltip Content */}
+                                                                        <div className="absolute bottom-full left-0 mb-2 w-72 p-3 rounded-xl bg-[#0B0F17]/95 border border-slate-700/80 shadow-2xl backdrop-blur-md opacity-0 pointer-events-none group-hover/legal:opacity-100 group-hover/legal:pointer-events-auto transition-opacity duration-300 z-50">
+                                                                            <h5 className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1 border-b border-slate-800 pb-1">
+                                                                                <span className="material-symbols-outlined text-[10px] text-[#0D8BFF]">description</span> Enriched Legal Description
+                                                                            </h5>
+                                                                            <p className="font-mono text-[8.5px] leading-normal text-slate-300 whitespace-pre-wrap break-words max-h-36 overflow-y-auto pr-1">
+                                                                                {prop.legal_description || 'LOT 24 IN BLOCK 5 OF SILVER LAKE SUBDIVISION, RECORDED IN PLAT BOOK 12, PAGE 88 OF THE PUBLIC RECORDS OF DADE COUNTY, FLORIDA. TOGETHER WITH ALL IMPROVEMENTS LOCATED THEREON AND SUBJECT TO EASEMENTS AND COVENANTS OF RECORD.'}
+                                                                            </p>
+                                                                        </div>
                                                                     </div>
+                                                                </div>
+
+                                                                <div className="mt-2 flex items-center gap-4">
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-[7px] text-slate-500 uppercase font-black">Opening Bid</span>
+                                                                        <span className="text-[11px] font-black text-slate-200">${prop.amount_due?.toLocaleString() || '0'}</span>
+                                                                    </div>
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-[7px] text-slate-500 uppercase font-black">Acres</span>
+                                                                        <span className="text-[11px] font-bold text-slate-300">{prop.lot_acres || 'N/A'}</span>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Quick Action Buttons inside cards */}
+                                                                <div className="mt-2.5 flex gap-1.5 border-t border-slate-800/80 pt-2" onClick={e => e.stopPropagation()}>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (isTrial) {
+                                                                                alert('Due Diligence Tasks are a premium feature. Upgrade to Pro or Enterprise to track your workflow.');
+                                                                                return;
+                                                                            }
+                                                                            setTaskProperty(prop);
+                                                                        }}
+                                                                        className="flex-1 flex items-center justify-center gap-1 py-0.5 text-[8px] font-extrabold rounded bg-[#0D8BFF]/10 text-[#0D8BFF] hover:bg-[#0D8BFF]/20 border border-[#0D8BFF]/20 transition-colors"
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-[10px]">task_alt</span>
+                                                                        Task
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            if (isTrial) {
+                                                                                alert('Data Exports to Realtors are a premium feature. Upgrade to Pro or Enterprise to access this tool.');
+                                                                                return;
+                                                                            }
+                                                                            setExportProperty(prop);
+                                                                            setExportForm({ contact_name: '', contact_phone: '', contact_email: '', notes: '', requested_sale_price: '' });
+                                                                        }}
+                                                                        className="flex-1 flex items-center justify-center gap-1 py-0.5 text-[8px] font-extrabold rounded bg-[#13B8B5]/10 text-[#13B8B5] hover:bg-[#13B8B5]/20 border border-[#13B8B5]/20 transition-colors"
+                                                                    >
+                                                                        <span className="material-symbols-outlined text-[10px]">upload</span>
+                                                                        Export
+                                                                    </button>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </SwipeActionItem>
-                                                );
-                                            })}
-                                        </div>
-                                    )}
-                                </div>
 
-                                {/* ── RIGHT COLUMN (lg:col-span-6) - Deep Property Intelligence Workspace Console ── */}
-                                <div className="lg:col-span-6 space-y-6 animate-fadeIn" style={{ animationDelay: '200ms' }}>
-                                    {activeProperty ? (() => {
-                                        const baseVal = activeProperty?.amount_due ? Math.max(activeProperty.amount_due, 85000) : 125000;
-                                        const mockTaxData = [
-                                            { year: '2021', assessment: baseVal * 0.85, rate: 1.15 },
-                                            { year: '2022', assessment: baseVal * 0.90, rate: 1.18 },
-                                            { year: '2023', assessment: baseVal * 0.95, rate: 1.21 },
-                                            { year: '2024', assessment: baseVal * 1.00, rate: 1.25 },
+                                                        {/* Score radial gauge */}
+                                                        <div className="flex flex-col items-end gap-2.5 shrink-0 justify-between self-stretch">
+                                                            <IconButton
+                                                                size="small"
+                                                                onClick={async (e) => {
+                                                                    e.stopPropagation();
+                                                                    try {
+                                                                        await PropertyService.toggleFavorite(prop.id, activeCompany?.id);
+                                                                        setFavoritesSet(prev => {
+                                                                            const next = new Set(prev);
+                                                                            if (next.has(prop.id)) next.delete(prop.id);
+                                                                            else next.add(prop.id);
+                                                                            return next;
+                                                                        });
+                                                                    } catch (err) {
+                                                                        console.error("Failed to toggle priority", err);
+                                                                    }
+                                                                }}
+                                                                className={`p-0.5 transition-all duration-300 ${isFavorite ? 'text-amber-400 scale-110' : 'text-slate-600 hover:text-amber-400'}`}
+                                                            >
+                                                                <span
+                                                                    className="material-symbols-outlined text-[16px]"
+                                                                    style={{ fontVariationSettings: isFavorite ? "'FILL' 1, 'wght' 700" : "'FILL' 0, 'wght' 400" }}
+                                                                >
                                         ];
 
                                         const mockAVMData = [
