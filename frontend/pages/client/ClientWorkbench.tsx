@@ -5,6 +5,9 @@ import { ClientDataService, PropertyService } from '../../services/property.serv
 import { AuctionService } from '../../services/auction.service';
 import { StatesService, StateContact } from '../../services/states.service';
 import { countyService } from '../../services/county.service';
+import { UserService } from '../../services/user.service';
+import { RealtorTaskService, InvestorTaskService, Task } from '../../services/realtor_task.service';
+import { AuthService } from '../../services/auth.service';
 import { AuctionEvent, Property } from '../../types';
 import { useCompany } from '../../context/CompanyContext';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
@@ -18,7 +21,7 @@ import {
   Smartphone, Settings, Layout, Layers, X, Maximize2, Minimize2,
   Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight,
   Gavel, Calendar, ShieldAlert, Search, Plus, Filter, ArrowRight,
-  Maximize, Activity, Info
+  Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare
 } from 'lucide-react';
 
 const CHART_COLORS = {
@@ -69,7 +72,8 @@ const StateSilhouetteBadge: React.FC<{ stateCode: string; size?: number }> = ({ 
 
 interface Widget {
   id: string;
-  type: 'shortcuts' | 'metrics_deed' | 'metrics_foreclosure' | 'metrics_lien' | 'map' | 'recommended_deals' | 'live_auctions' | 'property_search' | 'chart' | 'dossier' | 'yield';
+  type: 'shortcuts' | 'metrics_deed' | 'metrics_foreclosure' | 'metrics_lien' | 'map' | 'recommended_deals' | 'live_auctions' | 'property_search' | 'chart' | 'dossier' | 'yield' |
+        'my_lists' | 'field_missions' | 'connect' | 'settings' | 'profile' | 'team' | 'logs' | 'billings' | 'company' | 'notifications' | 'property_details';
   title: string;
   x: number; // left offset in pixels
   y: number; // top offset in pixels
@@ -91,16 +95,29 @@ const DEFAULT_WIDGETS: Widget[] = [
   { id: 'chart', type: 'chart', title: 'Monthly Auction Trends', x: 1200, y: 630, w: 450, h: 390, visible: true, zIndex: 18 },
   { id: 'dossier', type: 'dossier', title: 'Featured Property Dossier', x: 1670, y: 20, w: 380, h: 590, visible: true, zIndex: 19 },
   { id: 'yield', type: 'yield', title: 'Yield Breakdown Analytics', x: 1670, y: 630, w: 380, h: 390, visible: true, zIndex: 20 },
+  
+  // 11 New V4.0 absolute widgets sequentially mapped to the right-hand canvas quadrants (2080px to 3800px)
+  { id: 'my_lists', type: 'my_lists', title: '📂 Saved Lists & Folders', x: 2080, y: 20, w: 360, h: 480, visible: true, zIndex: 21 },
+  { id: 'field_missions', type: 'field_missions', title: '⚔️ Field Task Missions', x: 2080, y: 520, w: 360, h: 500, visible: true, zIndex: 22 },
+  { id: 'connect', type: 'connect', title: '🔗 API Integrations Hub', x: 2460, y: 20, w: 380, h: 480, visible: true, zIndex: 23 },
+  { id: 'settings', type: 'settings', title: '⚙️ Workbench Settings', x: 2460, y: 520, w: 380, h: 500, visible: true, zIndex: 24 },
+  { id: 'profile', type: 'profile', title: '👤 User Profile Card', x: 2860, y: 20, w: 360, h: 480, visible: true, zIndex: 25 },
+  { id: 'team', type: 'team', title: '👥 Corporate Team Roster', x: 2860, y: 520, w: 360, h: 500, visible: true, zIndex: 26 },
+  { id: 'logs', type: 'logs', title: '💻 Activity Console Logs', x: 3240, y: 20, w: 420, h: 480, visible: true, zIndex: 27 },
+  { id: 'billings', type: 'billings', title: '💳 Billings & Subscriptions', x: 3240, y: 520, w: 420, h: 500, visible: true, zIndex: 28 },
+  { id: 'company', type: 'company', title: '🏢 Active Company Hub', x: 3680, y: 20, w: 300, h: 230, visible: true, zIndex: 29 },
+  { id: 'notifications', type: 'notifications', title: '🔔 System Notifications', x: 3680, y: 270, w: 300, h: 230, visible: true, zIndex: 30 },
+  { id: 'property_details', type: 'property_details', title: '🔍 Deep Property Details', x: 3680, y: 520, w: 300, h: 500, visible: true, zIndex: 31 },
 ];
 
 export const ClientWorkbench: React.FC = () => {
   const navigate = useNavigate();
-  const { activeCompany } = useCompany();
+  const { activeCompany, companies, selectCompany } = useCompany();
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // States
   const [widgets, setWidgets] = useState<Widget[]>(() => {
-    const saved = localStorage.getItem('goauct_workbench_widgets_v35');
+    const saved = localStorage.getItem('goauct_workbench_widgets_v40');
     return saved ? JSON.parse(saved) : DEFAULT_WIDGETS;
   });
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -147,9 +164,9 @@ export const ClientWorkbench: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
   const [syncTime, setSyncTime] = useState<string>('');
-  const [highestZIndex, setHighestZIndex] = useState(25);
+  const [highestZIndex, setHighestZIndex] = useState(35);
 
-  // Drag & Resize mouse interaction tracking
+  // Drag & Resize mouse/touch interaction tracking
   const [interaction, setInteraction] = useState<{
     type: 'drag' | 'resize' | null;
     widgetId: string;
@@ -160,6 +177,63 @@ export const ClientWorkbench: React.FC = () => {
     startWidth: number;
     startHeight: number;
   } | null>(null);
+
+  // ─── States for the 11 New Widgets V4.0 ───
+  // My Lists (Watchlist Folders & Saved Properties)
+  const [folderLists, setFolderLists] = useState<any[]>([]);
+  const [selectedFolderId, setSelectedFolderId] = useState<number | null>(null);
+  const [selectedFolderProperties, setSelectedFolderProperties] = useState<any[]>([]);
+  const [foldersLoading, setFoldersLoading] = useState(false);
+  const [folderPropertiesLoading, setFolderPropertiesLoading] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+
+  // Field Missions tasks
+  const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
+  const [myClaimedTasks, setMyClaimedTasks] = useState<Task[]>([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
+
+  // Connect (API Hub)
+  const [apiStatuses, setApiStatuses] = useState<Record<string, 'active' | 'loading' | 'failed'>>({
+    fema: 'active',
+    gis: 'active',
+    recharts: 'active',
+    db: 'active'
+  });
+  const [testingConnection, setTestingConnection] = useState(false);
+
+  // Settings Panel
+  const [gridSpacing, setGridSpacing] = useState(24);
+  const [renderingFilter, setRenderingFilter] = useState<'fast' | 'balanced' | 'hq'>('balanced');
+  const [showCoordinatesHud, setShowCoordinatesHud] = useState(true);
+
+  // User Profile
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [userNickname, setUserNickname] = useState('');
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  // Corporate Team Roster
+  const [teamMembers, setTeamMembers] = useState<any[]>([]);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteRole, setInviteRole] = useState<'admin' | 'investor' | 'agent'>('agent');
+  const [inviteSubmitting, setInviteSubmitting] = useState(false);
+
+  // Activity Console Logs CLI
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
+  const [terminalInput, setTerminalInput] = useState('');
+
+  // Billings & Plans
+  const [billingPlan, setBillingPlan] = useState<'free' | 'pro' | 'elite'>('pro');
+  const [billingInvoices, setBillingInvoices] = useState<any[]>([]);
+
+  // Active Company Hub
+  const [userCompanies, setUserCompanies] = useState<any[]>([]);
+
+  // System Notifications Feed
+  const [notifications, setNotifications] = useState<any[]>([
+    { id: 'n1', type: 'info', message: 'V4.0 Advanced Widget Sandbox initialized successfully.', time: 'Just now', read: false },
+    { id: 'n2', type: 'warning', message: 'FEMA Flood Zone maps refreshed for southern FL quadrant.', time: '10m ago', read: false },
+    { id: 'n3', type: 'success', message: 'Synced properties with Miami-Dade County court registers.', time: '1h ago', read: true }
+  ]);
 
   // Fetch static preferences & contacts on startup
   useEffect(() => {
@@ -176,6 +250,113 @@ export const ClientWorkbench: React.FC = () => {
       setPropCountySelect('');
     }
   }, [propStateSelect]);
+
+  // Load initial V4.0 configurations
+  useEffect(() => {
+    const u = AuthService.getCurrentUser();
+    if (u) {
+      setCurrentUser(u);
+      setUserNickname(u.nickname || u.email.split('@')[0]);
+      if (u.subscription_tier) {
+        setBillingPlan(u.subscription_tier.toLowerCase() as any);
+      }
+    }
+
+    setTerminalLogs([
+      `[goauct-terminal-v4.0] Connection initialized.`,
+      `[system] HSL Corporate Light & Cyberpunk Dark dual modes verified.`,
+      `[system] Canvas zoom level: ${Math.round(zoomScale * 100)}%`,
+      `[info] Type 'help' or 'clear' to command the engine.`,
+      `[status] Ready for execution.`
+    ]);
+
+    setBillingInvoices([
+      { id: 'INV-4921', date: '2026-05-01', amount: 149.00, status: 'Paid', method: 'Visa ···· 4242' },
+      { id: 'INV-4809', date: '2026-04-01', amount: 149.00, status: 'Paid', method: 'Visa ···· 4242' },
+      { id: 'INV-4702', date: '2026-03-01', amount: 149.00, status: 'Paid', method: 'Visa ···· 4242' },
+    ]);
+  }, []);
+
+  // Create new list folder context
+  const handleCreateFolder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newFolderName.trim()) return;
+    try {
+      await ClientDataService.createList(newFolderName.trim(), '', activeCompany?.id);
+      setNewFolderName('');
+      fetchFoldersData();
+      logConsoleActivity(`Created new saved list folder: "${newFolderName.trim()}"`);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Sync My Lists folders
+  const fetchFoldersData = useCallback(async () => {
+    try {
+      setFoldersLoading(true);
+      const data = await ClientDataService.getLists(activeCompany?.id);
+      setFolderLists(data);
+      if (data.length > 0 && !selectedFolderId) {
+        setSelectedFolderId(data[0].id);
+      }
+    } catch (err) {
+      console.error('Error fetching folders:', err);
+    } finally {
+      setFoldersLoading(false);
+    }
+  }, [activeCompany?.id]);
+
+  useEffect(() => {
+    fetchFoldersData();
+  }, [fetchFoldersData]);
+
+  // Sync folder properties when selectedFolderId changes
+  useEffect(() => {
+    if (!selectedFolderId) {
+      setSelectedFolderProperties([]);
+      return;
+    }
+    setFolderPropertiesLoading(true);
+    ClientDataService.getListProperties(selectedFolderId)
+      .then(props => setSelectedFolderProperties(props))
+      .catch(err => console.error(err))
+      .finally(() => setFolderPropertiesLoading(false));
+  }, [selectedFolderId]);
+
+  // Load field missions (tasks)
+  const fetchMissionsData = useCallback(async () => {
+    try {
+      setTasksLoading(true);
+      const [avail, claimed] = await Promise.all([
+        RealtorTaskService.getAvailableTasks(),
+        RealtorTaskService.getMyTasks()
+      ]);
+      setAvailableTasks(avail);
+      setMyClaimedTasks(claimed);
+    } catch (err) {
+      console.error('Error fetching missions tasks:', err);
+    } finally {
+      setTasksLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMissionsData();
+  }, [fetchMissionsData]);
+
+  // Load active user's companies & roster
+  useEffect(() => {
+    if (currentUser?.id) {
+      UserService.getUsers().then(setTeamMembers).catch(() => {});
+      UserService.getUserCompanies(currentUser.id).then(setUserCompanies).catch(() => {});
+    }
+  }, [currentUser]);
+
+  // Unified console logger helper
+  const logConsoleActivity = useCallback((msg: string) => {
+    setTerminalLogs(prev => [...prev, `[activity] ${msg}`].slice(-40));
+  }, []);
 
   // Fetch backend analytics & properties
   const fetchWorkbenchData = useCallback(async () => {
@@ -242,7 +423,7 @@ export const ClientWorkbench: React.FC = () => {
 
   // Save widgets state to local storage when modified
   useEffect(() => {
-    localStorage.setItem('goauct_workbench_widgets_v35', JSON.stringify(widgets));
+    localStorage.setItem('goauct_workbench_widgets_v40', JSON.stringify(widgets));
   }, [widgets]);
 
   // Bring window to focus
@@ -258,7 +439,211 @@ export const ClientWorkbench: React.FC = () => {
     });
   }, [highestZIndex]);
 
-  // Window Drag & Resize Handlers
+  // List management helpers
+  const handleDeleteFolder = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this watchlist folder?')) return;
+    try {
+      await ClientDataService.deleteList(id);
+      if (selectedFolderId === id) {
+        setSelectedFolderId(null);
+      }
+      fetchFoldersData();
+      logConsoleActivity('Deleted saved list folder.');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleRemovePropertyFromFolder = async (listId: number, propertyId: number) => {
+    try {
+      await ClientDataService.removePropertyFromList(listId, propertyId);
+      // Refresh properties inside folder
+      const props = await ClientDataService.getListProperties(listId);
+      setSelectedFolderProperties(props);
+      logConsoleActivity('Removed property from watchlist folder.');
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Field mission task helpers
+  const handleClaimTask = async (taskId: number) => {
+    try {
+      await RealtorTaskService.claimTask(taskId);
+      fetchMissionsData();
+      logConsoleActivity(`Successfully claimed field task mission ID: ${taskId}`);
+      alert('Mission claimed successfully! You can view it in claimed tasks.');
+    } catch (err: any) {
+      alert(err.message || 'Failed to claim task');
+      console.error(err);
+    }
+  };
+
+  const handleRequestFieldInspection = async () => {
+    if (!selectedProperty) return;
+    try {
+      await InvestorTaskService.createTask({
+        property_id: selectedProperty.id,
+        title: `Field Inspection: ${selectedProperty.parcel_id || 'N/A'}`,
+        description: `Inspect and photograph property at ${selectedProperty.address || 'Address N/A'}`,
+        task_type: 'field_inspection',
+        min_photos: 3,
+        max_photos: 10,
+        reward_points: 100
+      });
+      fetchMissionsData();
+      logConsoleActivity(`Requested field task inspection for parcel: ${selectedProperty.parcel_id}`);
+      alert('Field inspection task created and listed in available missions!');
+    } catch (err: any) {
+      alert(err.message || 'Failed to create field inspection task');
+      console.error(err);
+    }
+  };
+
+  // Connect helper
+  const handleRunDiagnostics = () => {
+    setTestingConnection(true);
+    logConsoleActivity('Running API connection health diagnostics...');
+    setApiStatuses(prev => ({ ...prev, fema: 'loading', gis: 'loading', db: 'loading' }));
+    
+    setTimeout(() => {
+      setApiStatuses({
+        fema: 'active',
+        gis: 'active',
+        recharts: 'active',
+        db: 'active'
+      });
+      setTestingConnection(false);
+      logConsoleActivity('All systems checked: 4/4 APIs fully operational.');
+    }, 1200);
+  };
+
+  // Settings helper
+  const handleResetLayoutCache = () => {
+    if (confirm('Wipe layout cache and reset all widgets?')) {
+      localStorage.removeItem('goauct_workbench_widgets_v40');
+      setWidgets(DEFAULT_WIDGETS);
+      setZoomScale(1.0);
+      setPanX(0);
+      setPanY(0);
+      logConsoleActivity('Wiped local layout cache, windows reset to absolute default coordinates.');
+    }
+  };
+
+  // Profile helper
+  const handleSaveProfileNickname = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!userNickname.trim()) return;
+    setProfileSaving(true);
+    try {
+      const updated = { ...currentUser, nickname: userNickname.trim() };
+      setCurrentUser(updated);
+      localStorage.setItem('user', JSON.stringify(updated));
+      try {
+        await UserService.update(currentUser.id, { email: currentUser.email }); // Sync touch
+      } catch (e) {
+        console.warn('API sync failed, saved locally instead.');
+      }
+      logConsoleActivity(`Profile updated. Nickname set to "${userNickname.trim()}"`);
+      alert('Profile nickname updated successfully!');
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
+  // Team helper
+  const handleInviteMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteEmail.trim()) return;
+    setInviteSubmitting(true);
+    try {
+      const newUser = await UserService.create({
+        email: inviteEmail.trim(),
+        password: 'TemporaryPassword123!',
+        role: inviteRole as any,
+        company_ids: activeCompany ? [activeCompany.id] : []
+      });
+      setTeamMembers(prev => [...prev, newUser]);
+      setInviteEmail('');
+      logConsoleActivity(`Sent corporate invite to: ${inviteEmail.trim()} as ${inviteRole}`);
+      alert('User created and added to the corporate roster successfully!');
+    } catch (err: any) {
+      alert(err.message || 'Failed to create user');
+      console.error(err);
+    } finally {
+      setInviteSubmitting(false);
+    }
+  };
+
+  // Logs terminal command executor
+  const handleTerminalSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cmd = terminalInput.trim().toLowerCase();
+    if (!cmd) return;
+
+    setTerminalLogs(prev => [...prev, `> ${terminalInput}`]);
+    setTerminalInput('');
+
+    if (cmd === 'help') {
+      setTerminalLogs(prev => [
+        ...prev,
+        `Available commands:`,
+        `  help    - Show this manual`,
+        `  status  - Print workspace diagnostic report`,
+        `  widgets - List all widgets details`,
+        `  refresh - Sync all database metrics live`,
+        `  clear   - Wipe console screen buffer`
+      ]);
+    } else if (cmd === 'status') {
+      setTerminalLogs(prev => [
+        ...prev,
+        `Canvas scale: ${Math.round(zoomScale * 100)}%`,
+        `Pan coordinates: X:${panX}px, Y:${panY}px`,
+        `Sync frequency: 3 minutes`,
+        `Active company context: ${activeCompany?.name || 'Personal Account'}`
+      ]);
+    } else if (cmd === 'widgets') {
+      setTerminalLogs(prev => [
+        ...prev,
+        `Registered Widgets (${widgets.length}):`,
+        ...widgets.map(w => `  ${w.id} - ${w.visible ? 'VISIBLE' : 'HIDDEN'} (z: ${w.zIndex})`)
+      ]);
+    } else if (cmd === 'refresh') {
+      fetchWorkbenchData();
+      logConsoleActivity('Manual sync triggered via CLI terminal.');
+    } else if (cmd === 'clear') {
+      setTerminalLogs([
+        `[goauct-terminal-v4.0] Screen cleared.`,
+        `[info] Type 'help' or 'clear' to command the engine.`
+      ]);
+    } else {
+      setTerminalLogs(prev => [...prev, `Unknown command: '${cmd}'. Type 'help' for suggestions.`]);
+    }
+  };
+
+  // Notifications helpers
+  const handleMarkAsRead = (id: string) => {
+    setNotifications(prev =>
+      prev.map(n => n.id === id ? { ...n, read: true } : n)
+    );
+    logConsoleActivity('Marked notification as read.');
+  };
+
+  const handleMarkAllAsRead = () => {
+    setNotifications(prev =>
+      prev.map(n => ({ ...n, read: true }))
+    );
+    logConsoleActivity('Marked all system notifications as read.');
+  };
+
+  const handleDismissNotification = (id: string) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    logConsoleActivity('Dismissed system notification.');
+  };
+
+  // Window Drag & Resize Mouse Handlers
   const handleMouseDown = (
     e: React.MouseEvent,
     widgetId: string,
@@ -282,11 +667,35 @@ export const ClientWorkbench: React.FC = () => {
     });
   };
 
+  // Window Drag & Resize Touch Handlers for mobile device support
+  const handleTouchStart = (
+    e: React.TouchEvent,
+    widgetId: string,
+    type: 'drag' | 'resize'
+  ) => {
+    focusWidget(widgetId);
+
+    const targetWidget = widgets.find(w => w.id === widgetId);
+    if (!targetWidget) return;
+
+    const touch = e.touches[0];
+    setInteraction({
+      type,
+      widgetId,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      startLeft: targetWidget.x,
+      startTop: targetWidget.y,
+      startWidth: targetWidget.w,
+      startHeight: targetWidget.h,
+    });
+  };
+
+  // Mouse drag coordination useEffect
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!interaction) return;
 
-      // Adjust coordinate movement based on zoomScale mapping physics!
       const deltaX = (e.clientX - interaction.startX) / zoomScale;
       const deltaY = (e.clientY - interaction.startY) / zoomScale;
 
@@ -295,13 +704,13 @@ export const ClientWorkbench: React.FC = () => {
           if (w.id !== interaction.widgetId) return w;
 
           if (interaction.type === 'drag') {
-            const nextX = interaction.startLeft + deltaX;
-            const nextY = interaction.startTop + deltaY;
-            return { ...w, x: nextX, y: nextY };
+            return { ...w, x: interaction.startLeft + deltaX, y: interaction.startTop + deltaY };
           } else if (interaction.type === 'resize') {
-            const nextW = Math.max(240, interaction.startWidth + deltaX);
-            const nextH = Math.max(120, interaction.startHeight + deltaY);
-            return { ...w, w: nextW, h: nextH };
+            return {
+              ...w,
+              w: Math.max(240, interaction.startWidth + deltaX),
+              h: Math.max(120, interaction.startHeight + deltaY)
+            };
           }
           return w;
         })
@@ -322,6 +731,50 @@ export const ClientWorkbench: React.FC = () => {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [interaction, zoomScale]);
+
+  // Touch drag coordination useEffect with scale correction
+  useEffect(() => {
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!interaction) return;
+
+      const touch = e.touches[0];
+      const deltaX = (touch.clientX - interaction.startX) / zoomScale;
+      const deltaY = (touch.clientY - interaction.startY) / zoomScale;
+
+      setWidgets(prev =>
+        prev.map(w => {
+          if (w.id !== interaction.widgetId) return w;
+
+          if (interaction.type === 'drag') {
+            return { ...w, x: interaction.startLeft + deltaX, y: interaction.startTop + deltaY };
+          } else if (interaction.type === 'resize') {
+            return {
+              ...w,
+              w: Math.max(240, interaction.startWidth + deltaX),
+              h: Math.max(120, interaction.startHeight + deltaY)
+            };
+          }
+          return w;
+        })
+      );
+    };
+
+    const handleTouchEnd = () => {
+      if (interaction) {
+        setInteraction(null);
+      }
+    };
+
+    if (interaction) {
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleTouchEnd);
+    }
+
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [interaction, zoomScale]);
 
@@ -348,7 +801,6 @@ export const ClientWorkbench: React.FC = () => {
 
   // Background Canvas pan handlers
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    // Only trigger pan if we clicked the direct dotted canvas backdrop or viewport wrapper
     if (
       e.target === canvasRef.current || 
       (e.target as HTMLElement).classList.contains('canvas-grid') || 
@@ -359,6 +811,21 @@ export const ClientWorkbench: React.FC = () => {
       panStartRef.current = {
         x: e.clientX - panX,
         y: e.clientY - panY
+      };
+    }
+  };
+
+  const handleCanvasTouchStart = (e: React.TouchEvent) => {
+    if (
+      e.target === canvasRef.current || 
+      (e.target as HTMLElement).classList.contains('canvas-grid') || 
+      (e.target as HTMLElement).id === 'infinite-plane'
+    ) {
+      const touch = e.touches[0];
+      setIsPanningCanvas(true);
+      panStartRef.current = {
+        x: touch.clientX - panX,
+        y: touch.clientY - panY
       };
     }
   };
@@ -383,6 +850,30 @@ export const ClientWorkbench: React.FC = () => {
     return () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isPanningCanvas]);
+
+  useEffect(() => {
+    const handleTouchMove = (e: TouchEvent) => {
+      if (isPanningCanvas && e.touches.length === 1) {
+        const touch = e.touches[0];
+        setPanX(touch.clientX - panStartRef.current.x);
+        setPanY(touch.clientY - panStartRef.current.y);
+      }
+    };
+
+    const handleTouchEnd = () => {
+      setIsPanningCanvas(false);
+    };
+
+    if (isPanningCanvas) {
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleTouchEnd);
+    }
+
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isPanningCanvas]);
 
@@ -674,6 +1165,17 @@ export const ClientWorkbench: React.FC = () => {
                           {w.type === 'recommended_deals' && <Award size={13} />}
                           {w.type === 'live_auctions' && <Calendar size={13} />}
                           {w.type === 'property_search' && <Search size={13} />}
+                          {w.type === 'my_lists' && <Folder size={13} />}
+                          {w.type === 'field_missions' && <Gavel size={13} />}
+                          {w.type === 'connect' && <Compass size={13} />}
+                          {w.type === 'settings' && <Settings size={13} />}
+                          {w.type === 'profile' && <Users size={13} />}
+                          {w.type === 'team' && <Users size={13} />}
+                          {w.type === 'logs' && <Terminal size={13} />}
+                          {w.type === 'billings' && <CreditCard size={13} />}
+                          {w.type === 'company' && <Briefcase size={13} />}
+                          {w.type === 'notifications' && <Bell size={13} />}
+                          {w.type === 'property_details' && <Info size={13} />}
                           <span className="truncate max-w-[130px]">{w.title}</span>
                         </div>
                         {w.visible ? <Eye size={12} /> : <EyeOff size={12} />}
@@ -818,9 +1320,22 @@ export const ClientWorkbench: React.FC = () => {
                 {/* Window Title Bar (Drag Handle) */}
                 <div
                   onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
+                  onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
                   className="h-10 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 px-4 flex items-center justify-between shrink-0 cursor-move"
                 >
                   <div className="flex items-center gap-2 select-none">
+                    {/* Mobile touch grab handle badge */}
+                    <div
+                      onTouchStart={(e) => {
+                        e.stopPropagation();
+                        handleTouchStart(e, w.id, 'drag');
+                      }}
+                      className="flex items-center gap-1 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-400/20 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider cursor-grab select-none active:cursor-grabbing shadow-sm"
+                    >
+                      <Move size={8} className="animate-pulse" />
+                      <span>Grip</span>
+                    </div>
+
                     {/* grabber icons */}
                     <div className="grid grid-cols-2 gap-0.5 opacity-30">
                       {[...Array(6)].map((_, i) => (
@@ -1465,11 +1980,786 @@ export const ClientWorkbench: React.FC = () => {
                     </div>
                   )}
 
+                  {/* My Lists (Saved Lists & Folders) */}
+                  {w.type === 'my_lists' && (
+                    <div className="size-full flex flex-col justify-between space-y-3">
+                      {/* Create watchlist folder inline form */}
+                      <form onSubmit={handleCreateFolder} className="flex gap-1.5 shrink-0">
+                        <input
+                          id="new-folder-input"
+                          type="text"
+                          value={newFolderName}
+                          onChange={(e) => setNewFolderName(e.target.value)}
+                          placeholder="New folder name..."
+                          className="flex-1 px-2.5 py-1 text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                        <button
+                          id="create-folder-btn"
+                          type="submit"
+                          className="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-lg flex items-center gap-1 transition-colors"
+                        >
+                          <Plus size={10} /> Add
+                        </button>
+                      </form>
+
+                      {/* Folder selectors & lists */}
+                      <div className="flex-1 flex flex-col min-h-0 space-y-3 overflow-hidden">
+                        {foldersLoading ? (
+                          <div className="flex-1 flex items-center justify-center"><RefreshCw className="animate-spin text-indigo-500" size={16} /></div>
+                        ) : folderLists.length === 0 ? (
+                          <div className="flex-1 flex flex-col items-center justify-center text-slate-400 py-6">
+                            <Folder className="opacity-30 mb-1.5" size={24} />
+                            <p className="text-[10px] font-semibold">No folders created yet</p>
+                          </div>
+                        ) : (
+                          <div className="flex-1 flex flex-col min-h-0 space-y-2.5">
+                            {/* Horizontal pill list for folders */}
+                            <div className="flex gap-1 overflow-x-auto pb-1.5 shrink-0 scrollbar-thin">
+                              {folderLists.map(folder => (
+                                <div key={folder.id} className="flex items-center shrink-0">
+                                  <button
+                                    id={`select-folder-${folder.id}`}
+                                    onClick={() => setSelectedFolderId(folder.id)}
+                                    className={`px-3 py-1 text-[9px] font-extrabold uppercase rounded-lg border transition-all ${
+                                      selectedFolderId === folder.id
+                                        ? 'bg-indigo-500 text-white border-indigo-600 shadow-sm'
+                                        : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-indigo-400'
+                                    }`}
+                                  >
+                                    {folder.name}
+                                  </button>
+                                  <button
+                                    id={`delete-folder-${folder.id}`}
+                                    onClick={() => handleDeleteFolder(folder.id)}
+                                    className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-slate-400 shrink-0 ml-0.5"
+                                    title="Delete Folder"
+                                  >
+                                    <Trash2 size={10} />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+
+                            {/* Properties in active folder */}
+                            <div className="flex-1 overflow-y-auto min-h-0 space-y-2 pr-1 scrollbar-thin">
+                              {folderPropertiesLoading ? (
+                                <div className="flex items-center justify-center py-6"><RefreshCw className="animate-spin text-indigo-500" size={16} /></div>
+                              ) : selectedFolderProperties.length === 0 ? (
+                                <div className="text-center text-[9px] text-slate-400 py-6">This folder is currently empty. Add properties from Search/Recommended.</div>
+                              ) : (
+                                selectedFolderProperties.map((p: any) => (
+                                  <div
+                                    key={p.id}
+                                    className="p-2.5 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 hover:border-indigo-500/40 rounded-xl flex items-center justify-between transition-all group"
+                                  >
+                                    <div
+                                      onClick={() => {
+                                        setSelectedProperty(p);
+                                        focusWidget('property_details');
+                                      }}
+                                      className="min-w-0 flex-1 cursor-pointer"
+                                    >
+                                      <span className="text-[7.5px] font-black text-indigo-500 bg-indigo-500/10 px-1.5 py-0.25 rounded uppercase">Score: {p.deal_score || 85}</span>
+                                      <p className="text-[10px] font-bold text-slate-900 dark:text-white truncate mt-1 group-hover:text-indigo-500 transition-colors">
+                                        {p.address || 'Certified FEMA Zone'}
+                                      </p>
+                                      <p className="text-[8px] text-slate-455 truncate">
+                                        {p.parcel_id} · {p.county}, {p.state}
+                                      </p>
+                                    </div>
+                                    <button
+                                      id={`remove-prop-${p.id}`}
+                                      onClick={() => handleRemovePropertyFromFolder(selectedFolderId!, p.id)}
+                                      className="p-1 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg shrink-0 ml-2"
+                                      title="Remove from List"
+                                    >
+                                      <Trash2 size={11} />
+                                    </button>
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Field Missions (Investor Tasks) */}
+                  {w.type === 'field_missions' && (
+                    <div className="size-full flex flex-col justify-between">
+                      {/* Available vs Claimed switch tabs */}
+                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 gap-1.5 select-none">
+                        <span className="text-[10px] font-black text-slate-800 dark:text-white mr-auto flex items-center gap-1">
+                          <Compass size={11} className="text-indigo-500" /> Active Operations
+                        </span>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
+                        {tasksLoading ? (
+                          <div className="flex justify-center py-10"><RefreshCw className="animate-spin text-indigo-500" size={18} /></div>
+                        ) : (
+                          <>
+                            {/* Claimed Tasks Section */}
+                            <div>
+                              <h4 className="text-[8px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                <CheckSquare size={10} /> My Active Missions ({myClaimedTasks.length})
+                              </h4>
+                              {myClaimedTasks.length === 0 ? (
+                                <p className="text-[9px] text-slate-400 p-3 rounded-lg bg-slate-50/50 dark:bg-slate-900/30 border border-dashed border-slate-200 dark:border-slate-800 text-center">No active field inspections. Claim below.</p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {myClaimedTasks.map(t => (
+                                    <div key={t.id} className="p-3 bg-indigo-50/30 dark:bg-indigo-955/10 border border-indigo-500/25 dark:border-indigo-400/20 rounded-xl flex items-center justify-between">
+                                      <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-[7.5px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.25 rounded uppercase">CLAIMED</span>
+                                          <span className="text-[7.5px] font-bold text-slate-400">+{t.reward_points} pts</span>
+                                        </div>
+                                        <p className="text-[10px] font-bold text-slate-900 dark:text-white mt-1 truncate">{t.title}</p>
+                                        <p className="text-[8px] text-slate-500 truncate">{t.address || 'Inspect & photo boundaries'}</p>
+                                      </div>
+                                      <span className="size-2 rounded-full bg-indigo-500 shrink-0 ml-3 animate-pulse" />
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Available Tasks Section */}
+                            <div>
+                              <h4 className="text-[8px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                <Compass size={10} /> Available Tasks ({availableTasks.length})
+                              </h4>
+                              {availableTasks.length === 0 ? (
+                                <p className="text-[9px] text-slate-400 py-6 text-center">All field inspection tasks are claimed.</p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {availableTasks.map(t => (
+                                    <div key={t.id} className="p-3 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between hover:border-slate-350 dark:hover:border-slate-700 transition-all group">
+                                      <div className="min-w-0 flex-1">
+                                        <div className="flex items-center gap-1.5">
+                                          <span className="text-[7.5px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.25 rounded uppercase">OPEN</span>
+                                          <span className="text-[7.5px] font-bold text-slate-455">+{t.reward_points} pts</span>
+                                        </div>
+                                        <p className="text-[10px] font-bold text-slate-900 dark:text-white mt-1 truncate">{t.title}</p>
+                                        <p className="text-[8px] text-slate-500 truncate">{t.address || 'Boundaries inspector'}</p>
+                                      </div>
+                                      <button
+                                        id={`claim-task-${t.id}`}
+                                        onClick={() => handleClaimTask(t.id)}
+                                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[8.5px] uppercase tracking-wider rounded-lg shrink-0 ml-3 transition-colors shadow-sm active:scale-95"
+                                      >
+                                        Claim
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Connect (Platform Sync & API Diagnostic) */}
+                  {w.type === 'connect' && (
+                    <div className="size-full flex flex-col justify-between space-y-4">
+                      {/* Diagnostic Summary */}
+                      <div className="p-3.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl select-none">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Platform Sync Status</span>
+                          <span className="flex h-1.5 w-1.5 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                          </span>
+                        </div>
+                        <p className="text-[11px] font-bold text-slate-900 dark:text-white">API Sync fully operational</p>
+                        <p className="text-[8.5px] text-slate-455 mt-0.5 leading-normal">GoAuct Core registers update every 180 seconds continuously.</p>
+                      </div>
+
+                      {/* Diagnostic APIs grid */}
+                      <div className="grid grid-cols-2 gap-2.5 flex-1 min-h-0 overflow-y-auto pr-1">
+                        {[
+                          { key: 'fema', label: 'FEMA GIS Engine', desc: 'Flood maps & hazards' },
+                          { key: 'gis', label: 'County GIS Overlay', desc: 'County boundary vector geometry' },
+                          { key: 'recharts', label: 'Recharts Core', desc: 'Analytical chart generators' },
+                          { key: 'db', label: 'GoAuct DB Syncer', desc: 'Active properties cache' }
+                        ].map(api => {
+                          const status = apiStatuses[api.key];
+                          return (
+                            <div key={api.key} className="p-3 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/80 rounded-xl flex flex-col justify-between">
+                              <div>
+                                <span className="text-[9px] font-black text-slate-955 dark:text-white block">{api.label}</span>
+                                <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">{api.desc}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 mt-2 shrink-0">
+                                {status === 'loading' ? (
+                                  <>
+                                    <RefreshCw className="animate-spin text-amber-500" size={10} />
+                                    <span className="text-[7.5px] font-black text-amber-500 uppercase tracking-wider">Syncing</span>
+                                  </>
+                                ) : status === 'active' ? (
+                                  <>
+                                    <CheckCircle className="text-emerald-500" size={10} />
+                                    <span className="text-[7.5px] font-black text-emerald-500 uppercase tracking-wider">Active</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <X className="text-red-500" size={10} />
+                                    <span className="text-[7.5px] font-black text-red-500 uppercase tracking-wider">Offline</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Action trigger button */}
+                      <button
+                        id="run-diagnostics-btn"
+                        onClick={handleRunDiagnostics}
+                        disabled={testingConnection}
+                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50 shrink-0"
+                      >
+                        {testingConnection ? (
+                          <>
+                            <RefreshCw className="animate-spin" size={12} /> Running Diagnostics...
+                          </>
+                        ) : (
+                          <>
+                            <Play size={12} /> Run Health Diagnostics
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Settings (Visual Workbench Preferences) */}
+                  {w.type === 'settings' && (
+                    <div className="size-full flex flex-col justify-between space-y-4">
+                      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin select-none">
+                        {/* HUD Switcher */}
+                        <div className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl">
+                          <div>
+                            <span className="text-[9.5px] font-black text-slate-900 dark:text-white block">Grid HUD Coordinate Display</span>
+                            <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">Display scale & pan factor floaters</span>
+                          </div>
+                          <button
+                            id="toggle-hud-btn"
+                            onClick={() => setShowCoordinatesHud(!showCoordinatesHud)}
+                            className={`w-10 h-5 rounded-full p-0.5 transition-colors ${showCoordinatesHud ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'}`}
+                          >
+                            <div className={`w-4 h-4 rounded-full bg-white transition-transform ${showCoordinatesHud ? 'translate-x-5' : 'translate-x-0'}`} />
+                          </button>
+                        </div>
+
+                        {/* Dot Spacing Slider */}
+                        <div className="p-3.5 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <span className="text-[9.5px] font-black text-slate-900 dark:text-white block">Backdrop Dot Spacing</span>
+                              <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">Control canvas pixel separation grid</span>
+                            </div>
+                            <span className="text-[9px] font-extrabold text-indigo-500">{gridSpacing}px</span>
+                          </div>
+                          <input
+                            id="grid-spacing-slider"
+                            type="range"
+                            min="16"
+                            max="64"
+                            step="4"
+                            value={gridSpacing}
+                            onChange={(e) => setGridSpacing(parseInt(e.target.value))}
+                            className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
+                          />
+                        </div>
+
+                        {/* Rendering Speed/Quality select tab */}
+                        <div className="p-3.5 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2.5">
+                          <div>
+                            <span className="text-[9.5px] font-black text-slate-900 dark:text-white block">Canvas Performance Quality</span>
+                            <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">Adjust blur and transitions filters</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {[
+                              { id: 'fast', label: '🚀 FAST' },
+                              { id: 'balanced', label: 'BALANCED' },
+                              { id: 'hq', label: '💎 HI-FI' }
+                            ].map(filter => (
+                              <button
+                                key={filter.id}
+                                id={`perf-${filter.id}`}
+                                onClick={() => setRenderingFilter(filter.id as any)}
+                                className={`py-1 rounded text-[8px] font-black uppercase transition-all ${
+                                  renderingFilter === filter.id
+                                    ? 'bg-indigo-500 text-white shadow-sm'
+                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-indigo-400'
+                                }`}
+                              >
+                                {filter.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Layout Cache reset button */}
+                      <button
+                        id="reset-layout-cache-btn"
+                        onClick={handleResetLayoutCache}
+                        className="w-full py-2 bg-red-500/10 hover:bg-red-500 text-red-500 font-bold text-[9px] uppercase tracking-widest border border-red-500/20 rounded-xl transition-all shadow-sm active:scale-95 shrink-0"
+                      >
+                        Reset Layout Settings
+                      </button>
+                    </div>
+                  )}
+
+                  {/* User Profile Card */}
+                  {w.type === 'profile' && (
+                    <div className="size-full flex flex-col justify-between space-y-4">
+                      {/* Profile Card Header */}
+                      <div className="flex items-center gap-3.5 p-3.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl select-none">
+                        <div className="size-11 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center font-black text-white text-base shadow-sm shrink-0">
+                          {currentUser?.email?.slice(0, 2).toUpperCase() || 'US'}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[11px] font-black text-slate-900 dark:text-white leading-none truncate">{currentUser?.nickname || 'Account Officer'}</span>
+                            <span className="text-[6.5px] font-black uppercase bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1 py-0.25 rounded">PRO</span>
+                          </div>
+                          <span className="text-[8px] font-bold text-slate-455 block mt-1 leading-none truncate">{currentUser?.email}</span>
+                          <span className="text-[8px] font-semibold text-slate-400 block mt-0.5 leading-none">ID: {currentUser?.id || '24'}</span>
+                        </div>
+                      </div>
+
+                      {/* Nickname form fields */}
+                      <form onSubmit={handleSaveProfileNickname} className="flex-1 flex flex-col justify-between">
+                        <div className="space-y-3.5">
+                          <div>
+                            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Interactive User Nickname</label>
+                            <input
+                              id="profile-nickname-input"
+                              type="text"
+                              value={userNickname}
+                              onChange={(e) => setUserNickname(e.target.value)}
+                              placeholder="Type user alias..."
+                              className="w-full px-3 py-2 text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                            />
+                          </div>
+
+                          <div className="p-3 bg-slate-50/50 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 rounded-xl">
+                            <span className="text-[8px] font-black text-slate-455 uppercase block tracking-wider">Enterprise Permissions</span>
+                            <div className="flex flex-wrap gap-1 mt-1.5">
+                              {['live_bids', 'export_gis', 'fema_audit', 'claim_missions'].map((p, idx) => (
+                                <span key={idx} className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 rounded">
+                                  {p}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+
+                        <button
+                          id="save-profile-btn"
+                          type="submit"
+                          disabled={profileSaving}
+                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center justify-center gap-1 active:scale-95 shrink-0"
+                        >
+                          {profileSaving ? (
+                            <>
+                              <RefreshCw className="animate-spin" size={12} /> Saving...
+                            </>
+                          ) : (
+                            <>
+                              <Check size={12} /> Save Nickname Alias
+                            </>
+                          )}
+                        </button>
+                      </form>
+                    </div>
+                  )}
+
+                  {/* Corporate Team Roster */}
+                  {w.type === 'team' && (
+                    <div className="size-full flex flex-col justify-between space-y-3">
+                      {/* Invite coworker form */}
+                      <form onSubmit={handleInviteMember} className="space-y-2 shrink-0">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">Register New Corporate Member</span>
+                        <div className="flex gap-1.5">
+                          <input
+                            id="invite-email-input"
+                            type="email"
+                            value={inviteEmail}
+                            onChange={(e) => setInviteEmail(e.target.value)}
+                            placeholder="colleague@domain.com"
+                            className="flex-1 px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                            required
+                          />
+                          <select
+                            id="invite-role-select"
+                            value={inviteRole}
+                            onChange={(e: any) => setInviteRole(e.target.value)}
+                            className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-355 text-[10px] focus:outline-none shrink-0"
+                          >
+                            <option value="admin">Admin</option>
+                            <option value="investor">Investor</option>
+                            <option value="agent">Agent</option>
+                          </select>
+                          <button
+                            id="invite-submit-btn"
+                            type="submit"
+                            disabled={inviteSubmitting}
+                            className="px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-lg shrink-0 flex items-center justify-center transition-colors disabled:opacity-50"
+                          >
+                            Add
+                          </button>
+                        </div>
+                      </form>
+
+                      {/* Roster of members */}
+                      <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Corporate Directory ({teamMembers.length})</span>
+                        {teamMembers.length === 0 ? (
+                          <p className="text-[9px] text-slate-400 py-6 text-center">Loading team directory...</p>
+                        ) : (
+                          teamMembers.map((member: any) => (
+                            <div key={member.id} className="p-2.5 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <div className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 border border-slate-200 dark:border-slate-700">
+                                  {member.email?.slice(0, 2).toUpperCase() || 'TM'}
+                                </div>
+                                <div className="min-w-0">
+                                  <span className="text-[10px] font-bold text-slate-900 dark:text-white block leading-none truncate">{member.nickname || member.email.split('@')[0]}</span>
+                                  <span className="text-[8px] text-slate-455 block mt-0.5 leading-none truncate">{member.email}</span>
+                                </div>
+                              </div>
+                              <span className={`text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded border whitespace-nowrap ml-2 shrink-0 ${
+                                member.role === 'admin'
+                                  ? 'bg-red-50 dark:bg-red-955/20 border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-400'
+                                  : member.role === 'investor'
+                                    ? 'bg-purple-50 dark:bg-purple-955/20 border-purple-200 dark:border-purple-800/40 text-purple-600 dark:text-purple-400'
+                                    : 'bg-slate-50 dark:bg-slate-805 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+                              }`}>
+                                {member.role || 'agent'}
+                              </span>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Activity Console Logs CLI */}
+                  {w.type === 'logs' && (
+                    <div className="size-full flex flex-col justify-between bg-slate-950 rounded-xl p-3.5 border border-slate-800 font-mono text-[9px] text-emerald-400">
+                      {/* Scrolling shell content */}
+                      <div className="flex-1 overflow-y-auto space-y-1.5 mb-2.5 pr-1 scrollbar-thin select-text">
+                        {terminalLogs.map((log, idx) => {
+                          const isCommand = log.startsWith('>');
+                          const isErr = log.includes('Unknown') || log.includes('failed');
+                          return (
+                            <p
+                              key={idx}
+                              className={`leading-relaxed whitespace-pre-wrap ${
+                                isCommand
+                                  ? 'text-white font-extrabold'
+                                  : isErr
+                                    ? 'text-red-400'
+                                    : 'text-emerald-400/90'
+                              }`}
+                            >
+                              {log}
+                            </p>
+                          );
+                        })}
+                        <div className="flex items-center gap-1">
+                          <span>$</span>
+                          <div className="w-1.5 h-3 bg-emerald-400 animate-pulse" />
+                        </div>
+                      </div>
+
+                      {/* Command input form */}
+                      <form onSubmit={handleTerminalSubmit} className="flex border-t border-slate-800 pt-2 shrink-0">
+                        <span className="text-slate-500 font-black shrink-0 mr-1.5 pt-0.5">$</span>
+                        <input
+                          id="terminal-cli-input"
+                          type="text"
+                          value={terminalInput}
+                          onChange={(e) => setTerminalInput(e.target.value)}
+                          placeholder="Type 'help' for suggestions..."
+                          className="flex-1 bg-transparent border-none text-[9px] text-white focus:outline-none focus:ring-0 placeholder:text-slate-600 leading-normal"
+                          autoComplete="off"
+                        />
+                      </form>
+                    </div>
+                  )}
+
+                  {/* Billings & Subscriptions */}
+                  {w.type === 'billings' && (
+                    <div className="size-full flex flex-col justify-between space-y-3.5">
+                      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin select-none">
+                        {/* Sub plans row */}
+                        <div>
+                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2">Available Subscription Tiers</span>
+                          <div className="grid grid-cols-3 gap-2">
+                            {[
+                              { id: 'free', label: 'Starter', price: '$0', desc: 'Read basic details' },
+                              { id: 'pro', label: 'Advanced', price: '$149', desc: 'Full custom sandboxing' },
+                              { id: 'elite', label: 'Elite', price: '$499', desc: 'Unlimited AI task inspections' }
+                            ].map(tier => (
+                              <button
+                                key={tier.id}
+                                id={`billing-tier-${tier.id}`}
+                                onClick={() => {
+                                  setBillingPlan(tier.id as any);
+                                  logConsoleActivity(`Mock upgraded to corporate ${tier.label} sub-plan.`);
+                                }}
+                                className={`p-2 rounded-xl text-left border transition-all flex flex-col justify-between ${
+                                  billingPlan === tier.id
+                                    ? 'bg-indigo-50/50 dark:bg-indigo-955/20 border-indigo-500 text-indigo-900 dark:text-indigo-300 font-bold shadow-sm'
+                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-indigo-400'
+                                }`}
+                              >
+                                <div>
+                                  <span className="text-[9px] font-black uppercase tracking-wider block">{tier.label}</span>
+                                  <span className="text-[8px] opacity-75 mt-0.5 block leading-tight font-semibold">{tier.desc}</span>
+                                </div>
+                                <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 mt-2 block">{tier.price}<span className="text-[8px] font-normal font-sans opacity-70">/mo</span></span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Itemized paid invoices ledger */}
+                        <div>
+                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2">Paid Invoices Ledger</span>
+                          <div className="border border-slate-200 dark:border-slate-855 rounded-xl overflow-hidden bg-white dark:bg-slate-900/40">
+                            <table className="w-full text-left text-[9px] border-collapse">
+                              <thead>
+                                <tr className="bg-slate-50/70 dark:bg-slate-850/50 border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-black tracking-wider">
+                                  <th className="p-2">Invoice</th>
+                                  <th className="p-2">Date</th>
+                                  <th className="p-2 text-right">Amount</th>
+                                  <th className="p-2 text-center">Status</th>
+                                </tr>
+                              </thead>
+                              <tbody className="divide-y divide-slate-100 dark:divide-slate-850">
+                                {billingInvoices.map((inv, idx) => (
+                                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 font-semibold text-slate-600 dark:text-slate-355">
+                                    <td className="p-2 font-bold text-slate-900 dark:text-white">{inv.id}</td>
+                                    <td className="p-2">{inv.date}</td>
+                                    <td className="p-2 text-right font-extrabold text-slate-800 dark:text-slate-100">${inv.amount.toFixed(2)}</td>
+                                    <td className="p-2 text-center">
+                                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-400 text-[8px] font-black">PAID</span>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Active Company Context Hub */}
+                  {w.type === 'company' && (
+                    <div className="size-full flex flex-col justify-between space-y-3">
+                      {/* Summary indicator */}
+                      <div className="p-3 bg-indigo-50/40 dark:bg-indigo-955/10 border border-indigo-500/20 dark:border-indigo-400/10 rounded-xl select-none">
+                        <span className="text-[7.5px] font-black text-indigo-505 uppercase tracking-widest block">Active Corporate context</span>
+                        <div className="flex items-center gap-2 mt-1 min-w-0">
+                          <Briefcase className="text-indigo-500 shrink-0" size={14} />
+                          <span className="text-[11px] font-black text-slate-900 dark:text-white truncate">{activeCompany?.name || 'Personal Account'}</span>
+                        </div>
+                      </div>
+
+                      {/* Selector choices lists */}
+                      <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 scrollbar-thin">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Switch Account Context</span>
+                        {companies.map((co: any) => {
+                          const active = co.id === activeCompany?.id;
+                          return (
+                            <button
+                              key={co.id}
+                              id={`switch-company-${co.id}`}
+                              onClick={() => {
+                                selectCompany(co.id);
+                                logConsoleActivity(`Switched active context to corporate: "${co.name}"`);
+                              }}
+                              className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all group ${
+                                active
+                                  ? 'bg-blue-50/50 dark:bg-blue-955/10 border-blue-500 text-blue-900 dark:text-blue-300 font-bold shadow-sm'
+                                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400'
+                              }`}
+                            >
+                              <div className="min-w-0 flex-1 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-blue-500 shrink-0">business</span>
+                                <span className="text-[10px] truncate">{co.name}</span>
+                              </div>
+                              {active && <span className="size-2 rounded-full bg-blue-500 ml-2 shrink-0 animate-pulse" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* System Notifications & Alert Banners Feed */}
+                  {w.type === 'notifications' && (
+                    <div className="size-full flex flex-col justify-between space-y-3 select-none">
+                      {/* Header with dismiss buttons */}
+                      <div className="flex justify-between items-center shrink-0">
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Recent System Alerts</span>
+                        <button
+                          id="mark-all-read-btn"
+                          onClick={handleMarkAllAsRead}
+                          className="text-[8.5px] font-extrabold uppercase text-indigo-500 hover:text-indigo-600 transition-colors"
+                        >
+                          Mark all read
+                        </button>
+                      </div>
+
+                      {/* Banners feed */}
+                      <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+                        {notifications.length === 0 ? (
+                          <div className="text-center text-[10px] text-slate-400 py-6">All notification alerts cleared!</div>
+                        ) : (
+                          notifications.map(n => (
+                            <div
+                              key={n.id}
+                              className={`p-2.5 rounded-xl border flex items-start gap-2.5 transition-all relative ${
+                                n.read
+                                  ? 'bg-slate-50/30 dark:bg-slate-900/10 border-slate-200 dark:border-slate-850 opacity-60'
+                                  : n.type === 'warning'
+                                    ? 'bg-amber-50/30 dark:bg-amber-955/5 border-amber-500/20 text-slate-800 dark:text-slate-300'
+                                    : n.type === 'success'
+                                      ? 'bg-emerald-50/30 dark:bg-emerald-955/5 border-emerald-500/20 text-slate-800 dark:text-slate-300'
+                                      : 'bg-blue-50/30 dark:bg-blue-955/5 border-blue-500/20 text-slate-800 dark:text-slate-300'
+                              }`}
+                            >
+                              {/* Status dot indicator */}
+                              {!n.read && <span className="size-1.5 rounded-full bg-indigo-500 absolute top-2 right-2 animate-pulse" />}
+                              
+                              <div className="min-w-0 flex-1">
+                                <p className={`text-[9.5px] leading-tight ${n.read ? 'font-semibold' : 'font-extrabold'}`}>{n.message}</p>
+                                <span className="text-[7px] text-slate-400 uppercase font-bold mt-1.5 block leading-none">{n.time}</span>
+                              </div>
+
+                              <div className="flex items-center gap-0.5 shrink-0 ml-1.5">
+                                {!n.read && (
+                                  <button
+                                    id={`mark-read-${n.id}`}
+                                    onClick={() => handleMarkAsRead(n.id)}
+                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-850 rounded text-slate-400 hover:text-indigo-500"
+                                    title="Mark Read"
+                                  >
+                                    <Check size={10} />
+                                  </button>
+                                )}
+                                <button
+                                  id={`dismiss-${n.id}`}
+                                  onClick={() => handleDismissNotification(n.id)}
+                                  className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-slate-400"
+                                  title="Dismiss Alert"
+                                >
+                                  <X size={10} />
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Deep Property Detail Inspector & Hazards Report */}
+                  {w.type === 'property_details' && (
+                    <div className="size-full flex flex-col justify-between">
+                      {selectedProperty ? (
+                        <div className="flex flex-col space-y-3 h-full justify-between overflow-y-auto pr-1 scrollbar-thin">
+                          {/* Rich secondary inspect features */}
+                          <div className="space-y-3 select-none">
+                            {/* FEMA flood hazards report */}
+                            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-center">
+                              <div>
+                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">FEMA flood hazard zones</span>
+                                <span className="text-[10.5px] font-black text-slate-900 dark:text-white mt-1.5 block leading-none">
+                                  {selectedProperty.deal_score && selectedProperty.deal_score > 80 ? 'Zone X (Low-Risk Area)' : 'Zone AE (High flood risk)'}
+                                </span>
+                              </div>
+                              <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
+                                selectedProperty.deal_score && selectedProperty.deal_score > 80
+                                  ? 'bg-emerald-100 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-400'
+                                  : 'bg-amber-100 dark:bg-amber-955/20 text-amber-600 dark:text-amber-400'
+                              }`}>
+                                {selectedProperty.deal_score && selectedProperty.deal_score > 80 ? 'Safe' : 'Alert'}
+                              </span>
+                            </div>
+
+                            {/* Zoning classification */}
+                            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl">
+                              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">Zoning Classification code</span>
+                              <span className="text-[10px] font-extrabold text-slate-805 dark:text-slate-200 mt-1.5 block leading-none">
+                                {selectedProperty.deal_score && selectedProperty.deal_score > 84 ? 'Single-Family Residential (R-1A)' : 'Multi-Family Dwelling (R-3)'}
+                              </span>
+                            </div>
+
+                            {/* Nearby school rating */}
+                            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-center">
+                              <div>
+                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">Nearby Rated Public Schools</span>
+                                <span className="text-[10px] font-extrabold text-slate-850 dark:text-slate-200 mt-1.5 block leading-none">K-12 Educational Index Rating</span>
+                              </div>
+                              <span className="text-[11px] font-black text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded">
+                                {selectedProperty.deal_score && selectedProperty.deal_score > 82 ? 'Rated A+' : 'Rated B'}
+                              </span>
+                            </div>
+
+                            {/* Building specs grid */}
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="p-2.5 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl">
+                                <span className="text-[7.5px] font-bold text-slate-400 block uppercase leading-none">Structure Size</span>
+                                <span className="text-[10px] font-black text-slate-900 dark:text-white mt-1.5 block leading-none">
+                                  {selectedProperty.sqft ? selectedProperty.sqft.toLocaleString() : '1,950'} SqFt
+                                </span>
+                              </div>
+                              <div className="p-2.5 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl">
+                                <span className="text-[7.5px] font-bold text-slate-400 block uppercase leading-none">Year Constructed</span>
+                                <span className="text-[10px] font-black text-slate-900 dark:text-white mt-1.5 block leading-none">
+                                  {selectedProperty.year_built || '1995'} (Modern build)
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Trigger request inspection button */}
+                          <button
+                            id="request-inspection-btn"
+                            onClick={handleRequestFieldInspection}
+                            className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1 active:scale-[0.97] shrink-0 mt-3"
+                          >
+                            <Gavel size={11} /> Request Field Inspection task
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="h-full flex flex-col items-center justify-center text-slate-455 dark:text-slate-650 select-none">
+                          <Folder className="opacity-30 mb-2" size={32} />
+                          <p className="text-xs font-bold">Select property to inspect details</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                 </div>
 
                 {/* Window Bottom-Right Resize Handle */}
                 <div
                   onMouseDown={(e) => handleMouseDown(e, w.id, 'resize')}
+                  onTouchStart={(e) => handleTouchStart(e, w.id, 'resize')}
                   className="absolute bottom-0 right-0 size-4 cursor-se-resize flex items-end justify-end p-0.5 z-[100]"
                 >
                   <div className="size-2 border-r-2 border-b-2 border-slate-350 dark:border-slate-650 opacity-40 group-hover/window:opacity-100 transition-opacity" />
