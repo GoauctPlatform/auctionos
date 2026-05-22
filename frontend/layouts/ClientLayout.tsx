@@ -612,7 +612,7 @@ const ClientLayout: React.FC = () => {
                       </NavLink>
                     )}
                   </div>
-                ))}))}
+                ))}
                 {/* Upgrade CTA mobile */}
                 {user?.subscription_tier === 'trial' && (
                   <Link
