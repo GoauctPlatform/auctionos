@@ -174,6 +174,7 @@ const ClientLayout: React.FC = () => {
   let navItems: NavItem[] = [
     { icon: 'home', label: 'Home', path: '/client', end: true },
     { icon: 'science', label: 'Dashboard V2', path: '/client/dashboard-v2' },
+    { icon: 'biotech', label: 'IDE Workbench', path: '/client/workbench' },
     { icon: 'campaign', label: 'Live Auctions', path: '/client/auctions' },
     { icon: 'location_on', label: 'Property Search', path: '/client/properties' },
     { icon: 'list_alt', label: 'My Lists', path: '/client/lists' },
@@ -485,22 +486,30 @@ const ClientLayout: React.FC = () => {
         <div className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 flex flex-col">
           {isMainDashboard && (
             <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12 mt-6 w-full shrink-0">
-              <div className="glass-card p-4 flex flex-col sm:flex-row justify-between items-center gap-4 border border-blue-500/25 bg-blue-50/50 dark:bg-blue-950/10 text-slate-800 dark:text-slate-100">
+              <div className="glass-card p-4.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-blue-500/25 bg-blue-50/50 dark:bg-blue-950/10 text-slate-800 dark:text-slate-100">
                 <div className="flex items-center gap-3">
-                  <div className="size-10 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
-                    <span className="material-symbols-outlined text-[20px] animate-pulse">science</span>
+                  <div className="size-11 rounded-2xl bg-blue-500/10 dark:bg-blue-400/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400 shrink-0">
+                    <span className="material-symbols-outlined text-[22px] animate-pulse">biotech</span>
                   </div>
                   <div className="text-left">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-950 dark:text-white">Try the new Experimental Layout (Beta)</h4>
-                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Explore a modern, multi-column modular dashboard designed for high-performance analytical and yield analysis.</p>
+                    <h4 className="text-xs font-black uppercase tracking-wider text-slate-950 dark:text-white">Try our experimental core layouts</h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Explore modern, high-performance dashboards with absolute visual control over maps, trends, and dossier widgets.</p>
                   </div>
                 </div>
-                <Link
-                  to="/client/dashboard-v2"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[10px] uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap"
-                >
-                  Switch to V2 Layout
-                </Link>
+                <div className="flex items-center gap-2 shrink-0 w-full md:w-auto mt-2 md:mt-0">
+                  <Link
+                    to="/client/dashboard-v2"
+                    className="flex-1 md:flex-none text-center px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-250 border border-slate-200 dark:border-white/10 font-bold text-[9.5px] uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95"
+                  >
+                    V2 Modular Grid
+                  </Link>
+                  <Link
+                    to="/client/workbench"
+                    className="flex-1 md:flex-none text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9.5px] uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap"
+                  >
+                    V3 IDE Workbench
+                  </Link>
+                </div>
               </div>
             </div>
           )}
