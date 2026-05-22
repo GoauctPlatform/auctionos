@@ -149,20 +149,38 @@ const CustomLineTooltip: React.FC<any> = ({ active, payload, label }) => {
 };
 
 const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedState, onStateClick }) => {
-  // Take top 12 states by total volume for readability
-  const chartData = useMemo(() => {
-    return stats
-      .filter(s => s.state_code && s.state_code !== 'Unknown')
-      .slice(0, 12)
-      .map(s => ({
-        state: s.state_code,
-        deed: s.deed_volume ?? 0,
-        lien: s.lien_volume ?? 0,
-        foreclosure: s.foreclosure_volume ?? 0,
-      }));
-  }, [stats]);
+  const cleanStats = useMemo(() =>
+    stats.filter(s => s.state_code && s.state_code !== 'Unknown'),
+    [stats]
+  );
 
-  const isEmpty = chartData.length === 0;
+  // ── Overview mode: top 12 states comparison (no state selected) ──────────
+  const overviewData = useMemo(() => {
+    return cleanStats.slice(0, 12).map(s => ({
+      state: s.state_code,
+      deed: s.deed_volume ?? 0,
+      lien: s.lien_volume ?? 0,
+      foreclosure: s.foreclosure_volume ?? 0,
+    }));
+  }, [cleanStats]);
+
+  // ── Focused mode: breakdown of the selected state ────────────────────────
+  const focusedData = useMemo(() => {
+    if (!selectedState) return null;
+    const match = cleanStats.find(s => s.state_code === selectedState);
+    if (!match) return null;
+    return [
+      { label: 'Tax Deeds',     value: match.deed_volume ?? 0,        color: CHART_COLORS.deed },
+      { label: 'Tax Liens',     value: match.lien_volume ?? 0,        color: CHART_COLORS.lien },
+      { label: 'Foreclosures',  value: match.foreclosure_volume ?? 0, color: CHART_COLORS.foreclosure },
+    ];
+  }, [selectedState, cleanStats]);
+
+  const isFocused = !!selectedState && !!focusedData;
+  const isEmpty = overviewData.length === 0;
+
+  // Active state silhouette code (for header badge)
+  const activeCode = selectedState ? resolveStateCode(selectedState) : null;
 
   return (
     <div
@@ -177,20 +195,45 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedSta
         borderRadius: 20,
         boxShadow: '0 8px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.05)',
         overflow: 'hidden',
+        transition: 'all 0.3s ease',
       }}
     >
-      {/* Card Header */}
+      {/* Card Header — state silhouette changes with selected state */}
       <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(148,163,184,0.10)', background: 'rgba(15,23,42,0.50)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <div className="flex items-center gap-2">
-          {/* Map icon mirroring ClientLists folder header */}
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#818CF8' }}>stacked_line_chart</span>
+        <div className="flex items-center gap-2.5">
+          {/* Silhouette badge: shows selected state or generic chart icon */}
+          {activeCode ? (
+            <div style={{ transition: 'all 0.3s ease' }}>
+              <StateSilhouetteBadge stateCode={activeCode} size={28} />
+            </div>
+          ) : (
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#818CF8' }}>stacked_line_chart</span>
+            </div>
+          )}
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-widest" style={{ color: 'rgba(203,213,225,0.85)', lineHeight: 1.2 }}>
+              {isFocused ? selectedState : 'State Auction Trends'}
+            </h2>
+            {isFocused && (
+              <p className="text-[9px] font-bold uppercase tracking-widest mt-0.5" style={{ color: 'rgba(148,163,184,0.4)' }}>
+                Auction type breakdown
+              </p>
+            )}
           </div>
-          <h2 className="text-sm font-bold uppercase tracking-widest" style={{ color: 'rgba(203,213,225,0.85)' }}>
-            State Auction Trends
-          </h2>
+          {isFocused && (
+            <button
+              onClick={() => onStateClick('')}
+              className="ml-1 flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest transition-all hover:scale-105"
+              style={{ color: 'rgba(148,163,184,0.5)', background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(148,163,184,0.12)', borderRadius: 6, padding: '2px 7px' }}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: 10 }}>close</span>
+              All States
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-1.5">
+        {/* Legend pills */}
+        <div className="flex items-center gap-1.5 flex-wrap justify-end">
           {[{ key: 'deed', label: 'Tax Deeds', color: CHART_COLORS.deed }, { key: 'lien', label: 'Tax Liens', color: CHART_COLORS.lien }, { key: 'foreclosure', label: 'Foreclosures', color: CHART_COLORS.foreclosure }].map(item => (
             <div key={item.key} className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: `${item.color}18`, border: `1px solid ${item.color}40` }}>
               <div className="w-1.5 h-1.5 rounded-full" style={{ background: item.color }} />
@@ -200,46 +243,66 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedSta
         </div>
       </div>
 
-      {/* State icon row — top 6 states */}
-      {!isEmpty && (
-        <div style={{ padding: '10px 20px 0', display: 'flex', gap: 8, flexWrap: 'wrap', flexShrink: 0 }}>
-          {chartData.slice(0, 6).map(d => {
-            const code = resolveStateCode(d.state);
-            const isActive = selectedState === d.state;
-            return (
-              <button
-                key={d.state}
-                onClick={() => onStateClick(isActive ? '' : d.state)}
-                title={`Filter to ${d.state}`}
-                className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
-                style={{
-                  padding: '4px 8px 4px 6px',
-                  borderRadius: 8,
-                  background: isActive ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.05)',
-                  border: isActive ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(148,163,184,0.12)',
-                  cursor: 'pointer',
-                }}
-              >
-                <StateSilhouetteBadge stateCode={code} size={18} />
-                <span className="text-[10px] font-bold" style={{ color: isActive ? '#A5B4FC' : 'rgba(148,163,184,0.8)' }}>{d.state}</span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {/* Chart area */}
-      <div className="flex-1 w-full" style={{ padding: '12px 8px 8px', minHeight: 340 }}>
+      <div className="flex-1 w-full" style={{ padding: '16px 8px 8px', minHeight: 340 }}>
         {isEmpty ? (
           <div className="h-full flex flex-col items-center justify-center" style={{ color: 'rgba(148,163,184,0.5)' }}>
             <span className="material-symbols-outlined" style={{ fontSize: 48, marginBottom: 12, opacity: 0.3 }}>stacked_line_chart</span>
             <p className="text-sm font-bold">No trend data yet</p>
             <p className="text-xs mt-1 opacity-60">Import properties with auction history to see state-level trends.</p>
           </div>
+        ) : isFocused && focusedData ? (
+          // ── FOCUSED MODE: single state breakdown ──────────────────────────
+          <div className="h-full flex flex-col justify-center gap-5 px-6 py-4">
+            {focusedData.map((item) => {
+              const total = focusedData.reduce((a, b) => a + b.value, 0);
+              const pct = total > 0 ? (item.value / total) * 100 : 0;
+              return (
+                <div key={item.label}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: item.color, boxShadow: `0 0 6px ${item.color}80` }} />
+                      <span className="text-xs font-bold" style={{ color: 'rgba(203,213,225,0.85)' }}>{item.label}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-black" style={{ color: item.color }}>{item.value.toLocaleString()}</span>
+                      <span className="text-[9px] font-bold" style={{ color: 'rgba(148,163,184,0.4)' }}>{pct.toFixed(0)}%</span>
+                    </div>
+                  </div>
+                  <div style={{ height: 8, borderRadius: 99, background: 'rgba(148,163,184,0.08)', overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${pct}%`,
+                        borderRadius: 99,
+                        background: `linear-gradient(90deg, ${item.color}cc, ${item.color})`,
+                        boxShadow: `0 0 8px ${item.color}60`,
+                        transition: 'width 0.6s cubic-bezier(0.4,0,0.2,1)',
+                        minWidth: item.value > 0 ? 4 : 0,
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+            {/* Total pill */}
+            <div className="flex justify-center mt-2">
+              <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(148,163,184,0.12)' }}>
+                <span className="material-symbols-outlined" style={{ fontSize: 12, color: 'rgba(148,163,184,0.5)' }}>home</span>
+                <span className="text-[10px] font-black" style={{ color: 'rgba(148,163,184,0.6)' }}>
+                  {focusedData.reduce((a, b) => a + b.value, 0).toLocaleString()} total tracked
+                </span>
+              </div>
+            </div>
+          </div>
         ) : (
+          // ── OVERVIEW MODE: top 12 states line chart ───────────────────────
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData} margin={{ top: 8, right: 16, left: -8, bottom: 0 }}
+            <LineChart
+              data={overviewData}
+              margin={{ top: 8, right: 16, left: -8, bottom: 0 }}
               onClick={(e) => { if (e?.activeLabel) onStateClick(selectedState === e.activeLabel ? '' : e.activeLabel); }}
+              style={{ cursor: 'pointer' }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.08)" />
               <XAxis
@@ -277,8 +340,10 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedSta
 
       {/* Footer note */}
       <div style={{ padding: '8px 20px 14px', flexShrink: 0 }}>
-        <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(148,163,184,0.35)' }}>
-          Click a point or state badge to filter the dashboard · Top 12 states by volume
+        <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(148,163,184,0.30)' }}>
+          {isFocused
+            ? `${selectedState} · Click "All States" to return to overview`
+            : 'Click any state on the chart or heatmap to see its breakdown · Top 12 states by volume'}
         </p>
       </div>
     </div>
