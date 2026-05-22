@@ -120,6 +120,9 @@ export interface StateStat {
         D: number;
         F: number;
     };
+    deed_volume?: number;
+    lien_volume?: number;
+    foreclosure_volume?: number;
 }
 
 export const getStateStats = async (): Promise<StateStat[]> => {

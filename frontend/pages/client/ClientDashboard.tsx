@@ -11,6 +11,54 @@ import { calculateDealScore } from '../../intelligence/scoringEngine';
 import { getTopScoredProperties, getStateStats, StateStat } from '../../services/scores.service';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
 import { API_URL } from '../../services/httpClient';
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
+  Legend, ResponsiveContainer
+} from 'recharts';
+
+// ─── State Map Helpers (mirrors ClientLists.tsx) ────────────────────────────
+
+const STATE_CODE_MAP: Record<string, string> = {
+  'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
+  'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
+  'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
+  'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
+  'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
+  'Montana': 'MT', 'Nebraska': 'NE', 'Nevada': 'NV', 'New Hampshire': 'NH', 'New Jersey': 'NJ',
+  'New Mexico': 'NM', 'New York': 'NY', 'North Carolina': 'NC', 'North Dakota': 'ND', 'Ohio': 'OH',
+  'Oklahoma': 'OK', 'Oregon': 'OR', 'Pennsylvania': 'PA', 'Rhode Island': 'RI', 'South Carolina': 'SC',
+  'South Dakota': 'SD', 'Tennessee': 'TN', 'Texas': 'TX', 'Utah': 'UT', 'Vermont': 'VT',
+  'Virginia': 'VA', 'Washington': 'WA', 'West Virginia': 'WV', 'Wisconsin': 'WI', 'Wyoming': 'WY'
+};
+
+/** Returns the 2-letter state code from either a full name or existing code. */
+function resolveStateCode(stateRaw: string): string {
+  if (!stateRaw) return '';
+  const trimmed = stateRaw.trim();
+  if (trimmed.length === 2) return trimmed.toUpperCase();
+  return STATE_CODE_MAP[trimmed] || trimmed.toUpperCase().slice(0, 2);
+}
+
+/** State silhouette badge — same design as ClientLists.tsx folder headers */
+const StateSilhouetteBadge: React.FC<{ stateCode: string; size?: number }> = ({ stateCode, size = 28 }) => {
+  const url = `https://raw.githubusercontent.com/ahuseyn/state-icons/master/icons/${stateCode}.svg`;
+  return (
+    <div
+      style={{ width: size, height: size }}
+      className="relative bg-white/10 border border-white/20 rounded-lg flex items-center justify-center p-1 shrink-0 shadow-sm"
+    >
+      <img
+        src={url}
+        alt={stateCode}
+        className="w-full h-full object-contain opacity-70 brightness-0 invert"
+        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+      />
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <span className="text-[8px] font-black text-white/30 tracking-tighter">{stateCode}</span>
+      </div>
+    </div>
+  );
+};
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -60,6 +108,182 @@ function sortByTopProperties(items: AuctionEvent[], n = 10): AuctionEvent[] {
     })
     .slice(0, n);
 }
+
+// ─── State Auction Trends Line Chart ────────────────────────────────────────
+
+interface TrendChartProps {
+  stats: StateStat[];
+  selectedState: string;
+  onStateClick: (s: string) => void;
+}
+
+const CHART_COLORS = {
+  deed: '#8B5CF6',         // violet
+  lien: '#F59E0B',         // amber
+  foreclosure: '#EF4444',  // rose
+};
+
+const CustomLineTooltip: React.FC<any> = ({ active, payload, label }) => {
+  if (!active || !payload?.length) return null;
+  const stateCode = resolveStateCode(label);
+  const silhouetteUrl = `https://raw.githubusercontent.com/ahuseyn/state-icons/master/icons/${stateCode}.svg`;
+  return (
+    <div className="pointer-events-none" style={{ backdropFilter: 'blur(20px)', background: 'rgba(15,23,42,0.85)', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 14, padding: '12px 16px', minWidth: 180, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+      <div className="flex items-center gap-2 mb-3">
+        <div className="relative w-7 h-7 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center p-1 shrink-0">
+          <img src={silhouetteUrl} alt={stateCode} className="w-full h-full object-contain opacity-70 brightness-0 invert" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+        </div>
+        <span className="text-white font-black text-sm tracking-wide">{label}</span>
+      </div>
+      {payload.map((entry: any) => (
+        <div key={entry.name} className="flex items-center justify-between gap-4 mb-1">
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full" style={{ background: entry.color }} />
+            <span className="text-slate-300 text-xs capitalize">{entry.name}</span>
+          </div>
+          <span className="text-white font-bold text-xs">{entry.value.toLocaleString()}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedState, onStateClick }) => {
+  // Take top 12 states by total volume for readability
+  const chartData = useMemo(() => {
+    return stats
+      .filter(s => s.state_code && s.state_code !== 'Unknown')
+      .slice(0, 12)
+      .map(s => ({
+        state: s.state_code,
+        deed: s.deed_volume ?? 0,
+        lien: s.lien_volume ?? 0,
+        foreclosure: s.foreclosure_volume ?? 0,
+      }));
+  }, [stats]);
+
+  const isEmpty = chartData.length === 0;
+
+  return (
+    <div
+      id="tour-auction-trends"
+      className="w-full flex flex-col"
+      style={{
+        minHeight: 520,
+        background: 'rgba(15,23,42,0.60)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        border: '1px solid rgba(148,163,184,0.12)',
+        borderRadius: 20,
+        boxShadow: '0 8px 40px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.05)',
+        overflow: 'hidden',
+      }}
+    >
+      {/* Card Header */}
+      <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(148,163,184,0.10)', background: 'rgba(15,23,42,0.50)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div className="flex items-center gap-2">
+          {/* Map icon mirroring ClientLists folder header */}
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: 'rgba(99,102,241,0.2)', border: '1px solid rgba(99,102,241,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 16, color: '#818CF8' }}>stacked_line_chart</span>
+          </div>
+          <h2 className="text-sm font-bold uppercase tracking-widest" style={{ color: 'rgba(203,213,225,0.85)' }}>
+            State Auction Trends
+          </h2>
+        </div>
+        <div className="flex items-center gap-1.5">
+          {[{ key: 'deed', label: 'Tax Deeds', color: CHART_COLORS.deed }, { key: 'lien', label: 'Tax Liens', color: CHART_COLORS.lien }, { key: 'foreclosure', label: 'Foreclosures', color: CHART_COLORS.foreclosure }].map(item => (
+            <div key={item.key} className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: `${item.color}18`, border: `1px solid ${item.color}40` }}>
+              <div className="w-1.5 h-1.5 rounded-full" style={{ background: item.color }} />
+              <span className="text-[10px] font-bold" style={{ color: item.color }}>{item.label}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* State icon row — top 6 states */}
+      {!isEmpty && (
+        <div style={{ padding: '10px 20px 0', display: 'flex', gap: 8, flexWrap: 'wrap', flexShrink: 0 }}>
+          {chartData.slice(0, 6).map(d => {
+            const code = resolveStateCode(d.state);
+            const isActive = selectedState === d.state;
+            return (
+              <button
+                key={d.state}
+                onClick={() => onStateClick(isActive ? '' : d.state)}
+                title={`Filter to ${d.state}`}
+                className="flex items-center gap-1.5 transition-all duration-200 hover:scale-105"
+                style={{
+                  padding: '4px 8px 4px 6px',
+                  borderRadius: 8,
+                  background: isActive ? 'rgba(99,102,241,0.25)' : 'rgba(255,255,255,0.05)',
+                  border: isActive ? '1px solid rgba(99,102,241,0.5)' : '1px solid rgba(148,163,184,0.12)',
+                  cursor: 'pointer',
+                }}
+              >
+                <StateSilhouetteBadge stateCode={code} size={18} />
+                <span className="text-[10px] font-bold" style={{ color: isActive ? '#A5B4FC' : 'rgba(148,163,184,0.8)' }}>{d.state}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Chart area */}
+      <div className="flex-1 w-full" style={{ padding: '12px 8px 8px', minHeight: 340 }}>
+        {isEmpty ? (
+          <div className="h-full flex flex-col items-center justify-center" style={{ color: 'rgba(148,163,184,0.5)' }}>
+            <span className="material-symbols-outlined" style={{ fontSize: 48, marginBottom: 12, opacity: 0.3 }}>stacked_line_chart</span>
+            <p className="text-sm font-bold">No trend data yet</p>
+            <p className="text-xs mt-1 opacity-60">Import properties with auction history to see state-level trends.</p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={chartData} margin={{ top: 8, right: 16, left: -8, bottom: 0 }}
+              onClick={(e) => { if (e?.activeLabel) onStateClick(selectedState === e.activeLabel ? '' : e.activeLabel); }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.08)" />
+              <XAxis
+                dataKey="state"
+                tick={{ fill: 'rgba(148,163,184,0.7)', fontSize: 10, fontWeight: 700 }}
+                axisLine={{ stroke: 'rgba(148,163,184,0.12)' }}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: 'rgba(148,163,184,0.6)', fontSize: 9 }}
+                axisLine={false}
+                tickLine={false}
+                width={32}
+              />
+              <RechartsTooltip content={<CustomLineTooltip />} cursor={{ stroke: 'rgba(148,163,184,0.15)', strokeWidth: 1 }} />
+              <Line
+                type="monotone" dataKey="deed" name="Tax Deeds"
+                stroke={CHART_COLORS.deed} strokeWidth={2.5} dot={{ r: 3, fill: CHART_COLORS.deed, strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: CHART_COLORS.deed, stroke: 'rgba(139,92,246,0.4)', strokeWidth: 4 }}
+              />
+              <Line
+                type="monotone" dataKey="lien" name="Tax Liens"
+                stroke={CHART_COLORS.lien} strokeWidth={2.5} dot={{ r: 3, fill: CHART_COLORS.lien, strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: CHART_COLORS.lien, stroke: 'rgba(245,158,11,0.4)', strokeWidth: 4 }}
+              />
+              <Line
+                type="monotone" dataKey="foreclosure" name="Foreclosures"
+                stroke={CHART_COLORS.foreclosure} strokeWidth={2.5} dot={{ r: 3, fill: CHART_COLORS.foreclosure, strokeWidth: 0 }}
+                activeDot={{ r: 5, fill: CHART_COLORS.foreclosure, stroke: 'rgba(239,68,68,0.4)', strokeWidth: 4 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        )}
+      </div>
+
+      {/* Footer note */}
+      <div style={{ padding: '8px 20px 14px', flexShrink: 0 }}>
+        <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(148,163,184,0.35)' }}>
+          Click a point or state badge to filter the dashboard · Top 12 states by volume
+        </p>
+      </div>
+    </div>
+  );
+};
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 
@@ -865,9 +1089,9 @@ const ClientDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* Intelligence Layer Stack (Mapa acima de Recomendações) */}
-      <div className="flex flex-col gap-8">
-        {/* State Intelligence Heatmap */}
+      {/* Analytics Grid: Heatmap + Line Chart side by side */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* National Yield Heatmap */}
         <div id="tour-yield-heatmap" className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-sm overflow-hidden flex flex-col" style={{ minHeight: '520px' }}>
             <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50 shrink-0">
                 <h2 className="text-sm font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
@@ -889,15 +1113,22 @@ const ClientDashboard: React.FC = () => {
             </div>
         </div>
 
-        {/* Suggested Deals Panel */}
-        <div id="tour-suggested-deals" className="w-full">
-          <SuggestedDeals
-            properties={filteredDeals.length > 0 ? filteredDeals : suggestedDeals}
-            loading={loading || dealsLoading}
-            stateFilter={selectedState}
-            onStateChange={(s) => setSelectedState(s)}
-          />
-        </div>
+        {/* State Auction Trends Line Chart */}
+        <StateAuctionTrendsChart
+          stats={stateStats}
+          selectedState={selectedState}
+          onStateClick={(s) => setSelectedState(s)}
+        />
+      </div>
+
+      {/* Suggested Deals Panel */}
+      <div id="tour-suggested-deals" className="w-full">
+        <SuggestedDeals
+          properties={filteredDeals.length > 0 ? filteredDeals : suggestedDeals}
+          loading={loading || dealsLoading}
+          stateFilter={selectedState}
+          onStateChange={(s) => setSelectedState(s)}
+        />
       </div>
 
       {/* Top Auctions Sections */}

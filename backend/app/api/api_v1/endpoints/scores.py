@@ -244,38 +244,96 @@ def get_state_stats(
 ) -> Any:
     """
     Returns aggregated deal quality and volume statistics per state.
-    This replaces the expensive client-side looping logic for the Heatmap.
+    Also includes breakdowns by auction type (deed, lien, foreclosure).
+    Uses dialect-safe SQL: SQLite (dev) uses SUM(CASE WHEN),
+    PostgreSQL (prod) uses COUNT(*) FILTER.
     """
-    query = text("""
-        SELECT 
-            UPPER(TRIM(p.state)) as state_code,
-            COUNT(*) as volume,
-            AVG(COALESCE(s.deal_score, 0)) as avg_score,
-            JSONB_BUILD_OBJECT(
-                'A', COUNT(*) FILTER (WHERE s.rating LIKE 'A%'),
-                'B', COUNT(*) FILTER (WHERE s.rating = 'B'),
-                'C', COUNT(*) FILTER (WHERE s.rating = 'C'),
-                'D', COUNT(*) FILTER (WHERE s.rating = 'D'),
-                'F', COUNT(*) FILTER (WHERE s.rating = 'F')
-            ) as distribution
-        FROM property_details p
-        LEFT JOIN property_scores s ON p.parcel_id = s.parcel_id
-        WHERE LOWER(TRIM(p.availability_status)) = 'available'
-          AND p.state IS NOT NULL
-          AND NULLIF(TRIM(p.state), '') IS NOT NULL
-          AND p.created_by_user_id IS NULL -- Exclude user-created custom properties
-        GROUP BY 1
-        ORDER BY volume DESC
-    """)
-    
+    is_sqlite = "sqlite" in str(db.bind.url)
+
+    if is_sqlite:
+        query = text("""
+            SELECT 
+                UPPER(TRIM(p.state)) as state_code,
+                COUNT(*) as volume,
+                AVG(COALESCE(s.deal_score, 0)) as avg_score,
+                SUM(CASE WHEN s.rating LIKE 'A%' THEN 1 ELSE 0 END) as dist_a,
+                SUM(CASE WHEN s.rating = 'B' THEN 1 ELSE 0 END) as dist_b,
+                SUM(CASE WHEN s.rating = 'C' THEN 1 ELSE 0 END) as dist_c,
+                SUM(CASE WHEN s.rating = 'D' THEN 1 ELSE 0 END) as dist_d,
+                SUM(CASE WHEN s.rating = 'F' THEN 1 ELSE 0 END) as dist_f,
+                SUM(CASE WHEN (
+                    LOWER(COALESCE(ae.tax_status, '')) LIKE '%deed%' OR
+                    LOWER(COALESCE(ae.tax_status, '')) LIKE '%sheriff%' OR
+                    LOWER(COALESCE(pah.auction_name, '')) LIKE '%deed%' OR
+                    LOWER(COALESCE(pah.auction_name, '')) LIKE '%sheriff%'
+                ) THEN 1 ELSE 0 END) as deed_volume,
+                SUM(CASE WHEN (
+                    LOWER(COALESCE(ae.tax_status, '')) LIKE '%lien%' OR
+                    LOWER(COALESCE(ae.tax_status, '')) LIKE '%certificate%' OR
+                    LOWER(COALESCE(pah.auction_name, '')) LIKE '%lien%' OR
+                    LOWER(COALESCE(pah.auction_name, '')) LIKE '%certificate%'
+                ) THEN 1 ELSE 0 END) as lien_volume,
+                SUM(CASE WHEN (
+                    LOWER(COALESCE(ae.tax_status, '')) LIKE '%foreclosure%' OR
+                    LOWER(COALESCE(pah.auction_name, '')) LIKE '%foreclosure%'
+                ) THEN 1 ELSE 0 END) as foreclosure_volume
+            FROM property_details p
+            LEFT JOIN property_scores s ON p.parcel_id = s.parcel_id
+            LEFT JOIN property_auction_history pah ON pah.property_id = p.property_id
+            LEFT JOIN auction_events ae ON ae.id = pah.auction_id
+            WHERE LOWER(TRIM(p.availability_status)) = 'available'
+              AND p.state IS NOT NULL
+              AND NULLIF(TRIM(p.state), '') IS NOT NULL
+              AND p.created_by_user_id IS NULL
+            GROUP BY UPPER(TRIM(p.state))
+            ORDER BY volume DESC
+        """)
+    else:
+        query = text("""
+            SELECT 
+                UPPER(TRIM(p.state)) as state_code,
+                COUNT(*) as volume,
+                AVG(COALESCE(s.deal_score, 0)) as avg_score,
+                COUNT(*) FILTER (WHERE s.rating LIKE 'A%') as dist_a,
+                COUNT(*) FILTER (WHERE s.rating = 'B') as dist_b,
+                COUNT(*) FILTER (WHERE s.rating = 'C') as dist_c,
+                COUNT(*) FILTER (WHERE s.rating = 'D') as dist_d,
+                COUNT(*) FILTER (WHERE s.rating = 'F') as dist_f,
+                COUNT(*) FILTER (WHERE (
+                    ae.tax_status ILIKE '%deed%' OR ae.tax_status ILIKE '%sheriff%' OR
+                    pah.auction_name ILIKE '%deed%' OR pah.auction_name ILIKE '%sheriff%'
+                )) as deed_volume,
+                COUNT(*) FILTER (WHERE (
+                    ae.tax_status ILIKE '%lien%' OR ae.tax_status ILIKE '%certificate%' OR
+                    pah.auction_name ILIKE '%lien%' OR pah.auction_name ILIKE '%certificate%'
+                )) as lien_volume,
+                COUNT(*) FILTER (WHERE (
+                    ae.tax_status ILIKE '%foreclosure%' OR
+                    pah.auction_name ILIKE '%foreclosure%'
+                )) as foreclosure_volume
+            FROM property_details p
+            LEFT JOIN property_scores s ON p.parcel_id = s.parcel_id
+            LEFT JOIN property_auction_history pah ON pah.property_id = p.property_id
+            LEFT JOIN auction_events ae ON ae.id = pah.auction_id
+            WHERE LOWER(TRIM(p.availability_status)) = 'available'
+              AND p.state IS NOT NULL
+              AND NULLIF(TRIM(p.state), '') IS NOT NULL
+              AND p.created_by_user_id IS NULL
+            GROUP BY UPPER(TRIM(p.state))
+            ORDER BY volume DESC
+        """)
+
     results = db.execute(query).fetchall()
 
     return [
         {
-            "state_code": r[0].upper() if r[0] else "Unknown",
+            "state_code": r[0] if r[0] else "Unknown",
             "volume": r[1],
             "average_score": float(r[2]) if r[2] is not None else 0.0,
-            "distribution": r[3] if r[3] else {"A": 0, "B": 0, "C": 0, "D": 0, "F": 0}
+            "distribution": {"A": r[3], "B": r[4], "C": r[5], "D": r[6], "F": r[7]},
+            "deed_volume": r[8],
+            "lien_volume": r[9],
+            "foreclosure_volume": r[10]
         }
         for r in results
     ]
