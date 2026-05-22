@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Typography, IconButton, TextField, Dialog, Button, CircularProgress, Chip, Tabs, Tab, Autocomplete } from '@mui/material';
 import { FolderPlusIcon, Trash2Icon, Edit2Icon, ExternalLinkIcon } from 'lucide-react';
-import { calculateDealScore } from '../../intelligence/scoringEngine';
 import { ClientDataService, PropertyService } from '../../services/property.service';
 import { countyService, CountyContact } from '../../services/county.service';
 import { StatesService, StateContact } from '../../services/states.service';
@@ -22,7 +21,7 @@ import { CreateTaskForm } from '../../components/property/CreateTaskForm';
 // Helper to map state names to codes for the SVG silhouette
 const STATE_CODE_MAP: Record<string, string> = {
     'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
-    'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'District of Columbia': 'DC', 'Washington, D.C.': 'DC', 'Florida': 'FL', 'Georgia': 'GA',
+    'Colorado': 'CO', 'Connecticut': 'CT', 'Delaware': 'DE', 'Florida': 'FL', 'Georgia': 'GA',
     'Hawaii': 'HI', 'Idaho': 'ID', 'Illinois': 'IL', 'Indiana': 'IN', 'Iowa': 'IA',
     'Kansas': 'KS', 'Kentucky': 'KY', 'Louisiana': 'LA', 'Maine': 'ME', 'Maryland': 'MD',
     'Massachusetts': 'MA', 'Michigan': 'MI', 'Minnesota': 'MN', 'Mississippi': 'MS', 'Missouri': 'MO',
@@ -262,8 +261,6 @@ const ClientLists: React.FC = () => {
     const isAgent = currentUser?.role === 'agent';
     const isTrial = currentUser?.subscription_tier === 'trial';
 
-
-
     // Global listener for dynamic property additions
     useEffect(() => {
         const handlePropertyAdded = async (event: any) => {
@@ -314,68 +311,14 @@ const ClientLists: React.FC = () => {
     };
 
     useEffect(() => {
-        if (!activeCompany?.id) return;
-        const companyId = activeCompany.id;
-
-        // Retrieve saved values from sessionStorage
-        const savedViewMode = sessionStorage.getItem(`auctionos_client_lists_${companyId}_viewMode`) as any;
-        const savedListId = sessionStorage.getItem(`auctionos_client_lists_${companyId}_selectedListId`);
-        const savedStateName = sessionStorage.getItem(`auctionos_client_lists_${companyId}_selectedStateName`);
-        const savedCountyName = sessionStorage.getItem(`auctionos_client_lists_${companyId}_selectedCountyName`);
-        const savedExpanded = sessionStorage.getItem(`auctionos_client_lists_${companyId}_expandedStates`);
-
-        if (savedViewMode) {
-            setViewMode(savedViewMode);
-        } else {
-            setViewMode('folders');
-        }
-
-        if (savedListId !== null && savedListId !== undefined) {
-            const listIdNum = savedListId === 'null' ? null : Number(savedListId);
-            setSelectedListId(listIdNum);
-        } else {
-            setSelectedListId(null);
-        }
-
-        if (savedStateName !== null && savedStateName !== undefined) {
-            setSelectedStateName(savedStateName === 'null' ? null : savedStateName);
-        } else {
-            setSelectedStateName(null);
-        }
-
-        if (savedCountyName !== null && savedCountyName !== undefined) {
-            setSelectedCountyName(savedCountyName === 'null' ? null : savedCountyName);
-        } else {
-            setSelectedCountyName(null);
-        }
-
-        if (savedExpanded) {
-            try {
-                setExpandedStates(JSON.parse(savedExpanded));
-            } catch (e) {
-                setExpandedStates({});
-            }
-        } else {
-            setExpandedStates({});
-        }
-
+        // Always reload when company changes and reset folder selection
+        setSelectedListId(null);
+        setSelectedStateName(null);
+        setSelectedCountyName(null);
         setSelectedListProperties([]);
         loadLists();
         StatesService.getContacts().then(setStateContacts).catch(() => { });
     }, [activeCompany?.id]);
-
-    // Sync states to sessionStorage on change
-    useEffect(() => {
-        if (!activeCompany?.id) return;
-        const companyId = activeCompany.id;
-        
-        sessionStorage.setItem(`auctionos_client_lists_${companyId}_viewMode`, viewMode);
-        sessionStorage.setItem(`auctionos_client_lists_${companyId}_selectedListId`, selectedListId !== null ? String(selectedListId) : 'null');
-        sessionStorage.setItem(`auctionos_client_lists_${companyId}_selectedStateName`, selectedStateName !== null ? selectedStateName : 'null');
-        sessionStorage.setItem(`auctionos_client_lists_${companyId}_selectedCountyName`, selectedCountyName !== null ? selectedCountyName : 'null');
-        sessionStorage.setItem(`auctionos_client_lists_${companyId}_expandedStates`, JSON.stringify(expandedStates));
-    }, [viewMode, selectedListId, selectedStateName, selectedCountyName, expandedStates, activeCompany?.id]);
-
 
     useEffect(() => {
         if (selectedState) {
@@ -476,20 +419,10 @@ const ClientLists: React.FC = () => {
                 console.error("Failed to load favorites for priority:", favErr);
             }
 
-            const companyId = activeCompany?.id || 'default';
-            const savedListId = sessionStorage.getItem(`auctionos_client_lists_${companyId}_selectedListId`);
-            const savedStateName = sessionStorage.getItem(`auctionos_client_lists_${companyId}_selectedStateName`);
-
-            const currentOrSavedListId = selectedListId !== null ? selectedListId : (savedListId && savedListId !== 'null' ? Number(savedListId) : null);
-            const currentOrSavedStateName = selectedStateName !== null ? selectedStateName : (savedStateName && savedStateName !== 'null' ? savedStateName : null);
-
-            if (data.length > 0 && !currentOrSavedListId && !currentOrSavedStateName) {
+            if (data.length > 0 && !selectedListId && !selectedStateName) {
                 // Select favorites by default if available, otherwise stay at 'Select a Folder'
                 const fav = data.find(l => l.is_favorite_list);
-                if (fav) {
-                    setSelectedListId(fav.id);
-                    sessionStorage.setItem(`auctionos_client_lists_${companyId}_selectedListId`, String(fav.id));
-                }
+                if (fav) setSelectedListId(fav.id);
             }
         } catch (err: any) {
             console.error('Error loading lists:', err);
@@ -792,35 +725,18 @@ const ClientLists: React.FC = () => {
         }
     };
 
-    // Top-Level Calculations for displayProperties & filteredProperties
-    const displayProperties = React.useMemo(() => {
-        let props = [...selectedListProperties];
-        if (selectedStateName && selectedCountyName) {
-            props = props.filter(p => normalizedMatch(p.county, selectedCountyName));
-        }
-        return props.sort((a, b) => {
-            const isAFav = favoritesSet.has(a.id);
-            const isBFav = favoritesSet.has(b.id);
-            if (isAFav && !isBFav) return -1;
-            if (!isAFav && isBFav) return 1;
-            return 0;
-        });
-    }, [selectedListProperties, selectedStateName, selectedCountyName, favoritesSet]);
-
-
-
     const selectedList = lists.find(l => l.id === selectedListId) || broadcastedLists.find(l => l.id === selectedListId);
 
     if (loading && !lists.length && !broadcastedLists.length) {
         return (
-            <div className="h-full flex items-center justify-center bg-slate-50 dark:bg-[#080B11]">
+            <div className="h-full flex items-center justify-center bg-slate-50 dark:bg-slate-950">
                 <CircularProgress size={24} />
             </div>
         );
     }
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-slate-50 dark:bg-[#080B11] border-x border-slate-200 dark:border-slate-800">
+        <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-slate-50 dark:bg-slate-950 border-x border-slate-200 dark:border-slate-800">
             {/* Left Sidebar */}
             <div id="tour-lists-sidebar" className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-xl overflow-hidden shrink-0`}>
                 <div className="p-4 flex justify-between items-center w-64">
@@ -1145,6 +1061,14 @@ const ClientLists: React.FC = () => {
                                         {isTrial && <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>}
                                     </div>
                                 </div>
+                                <div
+                                    onClick={() => { setViewMode('my_properties'); setSelectedListId(null); setSelectedStateName(null); setSelectedCountyName(null); }}
+                                    className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 
+                                        ${viewMode === 'my_properties' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
+                                >
+                                    <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_properties' ? 'text-white' : 'text-emerald-500'}`}>real_estate_agent</span>
+                                    <span className="flex-1 text-sm font-medium truncate">My Properties</span>
+                                </div>
                             </div>
                         </div>
 
@@ -1160,7 +1084,7 @@ const ClientLists: React.FC = () => {
             </div>
 
             {/* Main Content Area */}
-            <div id="tour-lists-grid" className="flex-1 flex flex-col bg-white dark:bg-[#080B11]">
+            <div id="tour-lists-grid" className="flex-1 flex flex-col bg-white dark:bg-slate-950">
                 {viewMode === 'my_tasks' ? (
                     <InvestorTasksDashboard onBack={() => setViewMode('folders')} />
                 ) : viewMode === 'my_exports' ? (
@@ -1218,7 +1142,7 @@ const ClientLists: React.FC = () => {
                     {selectedStateName && (() => {
                         const contactInfo = stateContacts.find(c => c.state === selectedStateName);
                         const stateCode = STATE_CODE_MAP[selectedStateName] || 'FL'; // Default to FL fallback if missing
-                        const silhouetteUrl = `https://raw.githubusercontent.com/ahuseyn/state-icons/master/icons/${stateCode}.svg`;
+                        const silhouetteUrl = `https://static.simplemaps.com/resources/svg-library/us/${stateCode.toLowerCase()}.svg`;
 
                         // Aggregate auction links from all properties in the selected folder
                         const filteredForLinks = selectedCountyName 
@@ -1248,20 +1172,7 @@ const ClientLists: React.FC = () => {
                                     <div className="flex-1 p-3 md:p-4 flex flex-col gap-3 md:gap-4">
                                         <div className="flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                {/* Mini state silhouette badge for all screen sizes */}
-                                                <div className="relative w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg flex items-center justify-center p-1.5 shrink-0 shadow-sm transition-all duration-300 hover:scale-105">
-                                                    <img
-                                                        src={silhouetteUrl}
-                                                        alt={`${selectedStateName} silhouette`}
-                                                        className="w-full h-full object-contain opacity-60 dark:opacity-50 dark:brightness-0 dark:invert transition-all duration-300"
-                                                        onError={(e) => {
-                                                            (e.target as HTMLImageElement).style.display = 'none';
-                                                        }}
-                                                    />
-                                                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                        <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-tighter opacity-40">{stateCode}</span>
-                                                    </div>
-                                                </div>
+                                                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">public</span>
                                                 <Typography className="text-sm font-bold text-slate-700 dark:text-slate-200">
                                                     {selectedStateName} Official Info
                                                 </Typography>
@@ -1289,16 +1200,16 @@ const ClientLists: React.FC = () => {
                                                         <div key={idx} className="bg-white dark:bg-slate-800/80 p-2 rounded-lg border border-slate-100 dark:border-slate-700 flex flex-col gap-1 shadow-xs">
                                                             <span className="text-[10px] font-bold text-blue-600 dark:text-blue-400 truncate">{link.name}</span>
                                                             <div className="flex gap-2">
-                                                                 {link.register && (
+                                                                {link.register && (
                                                                     <a href={link.register} target="_blank" rel="noreferrer" className="text-[9px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5 font-bold">
-                                                                        <span className="material-symbols-outlined text-[10px]">app_registration</span> Registration
+                                                                        <span className="material-symbols-outlined text-[10px]">app_registration</span> Registration / Instructions
                                                                     </a>
-                                                                 )}
-                                                                 {link.list && (
+                                                                )}
+                                                                {link.list && (
                                                                     <a href={link.list} target="_blank" rel="noreferrer" className="text-[9px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-0.5 font-bold">
-                                                                        <span className="material-symbols-outlined text-[10px]">list_alt</span> List
+                                                                        <span className="material-symbols-outlined text-[10px]">list_alt</span> Auction List
                                                                     </a>
-                                                                 )}
+                                                                )}
                                                             </div>
                                                         </div>
                                                     ))
@@ -1342,19 +1253,19 @@ const ClientLists: React.FC = () => {
                                         </div>
                                     </div>
 
-                                    {/* Right Side: State Silhouette with Premium Styling & Micro-interactions */}
+                                    {/* Right Side: State Silhouette */}
                                     {!selectedCountyName && (
-                                        <div className="hidden md:flex w-full md:w-48 self-stretch bg-gradient-to-br from-slate-50/50 via-white to-slate-100/30 dark:from-slate-900/50 dark:via-slate-950/40 dark:to-slate-900/30 items-center justify-center p-6 shrink-0 group/silhouette overflow-hidden relative">
+                                        <div className="w-full md:w-48 h-full bg-white dark:bg-slate-900 flex items-center justify-center p-6 shrink-0 group/silhouette overflow-hidden relative">
                                             <img
                                                 src={silhouetteUrl}
                                                 alt={`${selectedStateName} silhouette`}
-                                                className="w-full h-full object-contain opacity-35 dark:opacity-25 group-hover/silhouette:opacity-55 dark:group-hover/silhouette:opacity-45 transition-all duration-700 ease-out pointer-events-none drop-shadow-md dark:brightness-0 dark:invert group-hover/silhouette:scale-110 group-hover/silhouette:-translate-y-1"
+                                                className="w-full h-full object-contain opacity-50 dark:opacity-60 group-hover/silhouette:opacity-80 dark:group-hover/silhouette:opacity-90 transition-all duration-700 pointer-events-none drop-shadow-sm"
                                                 onError={(e) => {
                                                     (e.target as HTMLImageElement).style.display = 'none';
                                                 }}
                                             />
                                             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                                <span className="text-5xl font-black text-slate-200/50 dark:text-slate-800/40 tracking-wider transition-all duration-700 ease-out group-hover/silhouette:scale-105 group-hover/silhouette:tracking-widest">{stateCode}</span>
+                                                <span className="text-4xl font-black text-slate-200 dark:text-slate-800 tracking-tighter opacity-50">{stateCode}</span>
                                             </div>
                                         </div>
                                     )}
@@ -1400,501 +1311,241 @@ const ClientLists: React.FC = () => {
                             <Typography className="text-slate-500 text-sm font-medium">No Properties in this folder</Typography>
                             <Typography className="text-slate-400 text-xs mt-1">Drag and drop properties here from search or other lists.</Typography>
                         </div>
-                    ) : (
-                        <div className="flex flex-col gap-6">
-                            {/* Upcoming Auction Alert Banner */}
-                            {selectedList?.has_upcoming_auction && (
-                                <div className="mb-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800/30 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-                                    <div className="flex items-start gap-3">
-                                        <div className="p-2 bg-orange-100 dark:bg-orange-800/40 rounded-lg text-orange-600 dark:text-orange-400 shadow-inner">
-                                            <span className="material-symbols-outlined pt-0.5">notification_important</span>
-                                        </div>
-                                        <div>
-                                            <h5 className="font-extrabold text-orange-800 dark:text-orange-300 text-sm tracking-tight">Upcoming Auctions Detected!</h5>
-                                            <p className="text-xs text-orange-700 dark:text-orange-400 mt-0.5 font-medium">There are {selectedList.upcoming_auctions_count} properties in this folder scheduled for auction soon. Review them immediately.</p>
-                                        </div>
-                                    </div>
-                                    <Button variant="contained" color="warning" size="small" className="whitespace-nowrap shadow-none font-bold text-xs" onClick={() => { }}>
-                                        Review Agenda
-                                    </Button>
+                    ) : (() => {
+                        // Filter by county if a subfolder is selected
+                        const displayProperties = [...(selectedStateName && selectedCountyName
+                            ? selectedListProperties.filter(p => normalizedMatch(p.county, selectedCountyName))
+                            : selectedListProperties)]
+                            .sort((a, b) => {
+                                const isAFav = favoritesSet.has(a.id);
+                                const isBFav = favoritesSet.has(b.id);
+                                if (isAFav && !isBFav) return -1;
+                                if (!isAFav && isBFav) return 1;
+                                return 0;
+                            });
+
+                        if (displayProperties.length === 0) {
+                            return (
+                                <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
+                                    <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">folder_open</span>
+                                    <Typography className="text-slate-500 text-sm font-medium">No properties found in this specific county.</Typography>
                                 </div>
-                            }
+                            );
+                        }
 
-                            {/* Properties Watchlist Stack */}
-                            <div className="space-y-4 animate-fadeIn">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-[#0D8BFF] text-base">format_list_bulleted</span>
-                                        <span className="text-xs font-black text-slate-400 uppercase tracking-widest">Watchlist Properties ({displayProperties.length})</span>
+                        return (
+                            <div className="space-y-3">
+                                {selectedList?.has_upcoming_auction && (
+                                    <div className="mb-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800/30 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+                                        <div className="flex items-start gap-3">
+                                            <div className="p-2 bg-orange-100 dark:bg-orange-800/40 rounded-lg text-orange-600 dark:text-orange-400 shadow-inner">
+                                                <span className="material-symbols-outlined pt-0.5">notification_important</span>
+                                            </div>
+                                            <div>
+                                                <h5 className="font-extrabold text-orange-800 dark:text-orange-300 text-sm tracking-tight">Upcoming Auctions Detected!</h5>
+                                                <p className="text-xs text-orange-700 dark:text-orange-400 mt-0.5 font-medium">There are {selectedList.upcoming_auctions_count} properties in this folder scheduled for auction soon. Review them immediately.</p>
+                                            </div>
+                                        </div>
+                                        <Button variant="contained" color="warning" size="small" className="whitespace-nowrap shadow-none font-bold text-xs" onClick={() => { }}>
+                                            Review Agenda
+                                        </Button>
                                     </div>
-                                </div>
-
-                                {displayProperties.length === 0 ? (
-                                    <div className="bg-[#131926]/30 border border-slate-800/80 rounded-2xl p-8 text-center">
-                                        <span className="material-symbols-outlined text-4xl text-slate-600 mb-2">find_in_page</span>
-                                        <p className="text-xs text-slate-400">No properties in this folder.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3.5">
-                                        {displayProperties.map((prop: any) => {
-                                            const scoreObj = calculateDealScore(prop);
-                                            let displayScore = scoreObj.score;
-                                            let displayRating = scoreObj.rating;
-                                            if (displayScore === 0) {
-                                                const seed = prop.parcel_id ? Array.from(prop.parcel_id).reduce((acc, c) => acc + (c as string).charCodeAt(0), 0) : 100;
-                                                displayScore = 65 + (seed % 31);
-                                                if (displayScore >= 90) displayRating = 'A+';
-                                                else if (displayScore >= 80) displayRating = 'A';
-                                                else displayRating = 'B';
-                                            }
-
-                                            let strokeColor = '#EF4444';
-                                            let glowColor = 'rgba(239, 68, 68, 0.4)';
-                                            let textColor = 'text-red-400';
-                                            if (displayScore >= 90) {
-                                                strokeColor = '#10B981';
-                                                glowColor = 'rgba(16, 185, 129, 0.4)';
-                                                textColor = 'text-emerald-400';
-                                            } else if (displayScore >= 80) {
-                                                strokeColor = '#0D8BFF';
-                                                glowColor = 'rgba(13, 139, 255, 0.4)';
-                                                textColor = 'text-blue-400';
-                                            } else if (displayScore >= 65) {
-                                                strokeColor = '#F59E0B';
-                                                glowColor = 'rgba(245, 158, 11, 0.4)';
-                                                textColor = 'text-amber-400';
-                                            }
-
-                                            const isFavorite = favoritesSet.has(prop.id);
-
-                                            return (
-                                                <SwipeActionItem
-                                                    key={prop.id}
-                                                    onDelete={() => handleRemoveProperty(prop.id)}
-                                                    onMove={() => setMovingPropertyId(prop.id)}
-                                                >
-                                                    <div
-                                                        onClick={() => setPreviewPropertyId(prop.parcel_id || prop.id)}
-                                                        className="group relative border border-slate-800/80 hover:border-slate-700/90 rounded-2xl p-3.5 bg-[#131926]/75 shadow-md hover:shadow-xl transition-all duration-300 hover:scale-[1.005] cursor-pointer flex items-center justify-between gap-3 overflow-hidden"
-                                                    >
-                                                        <div className="flex items-center gap-3.5 flex-1 min-w-0">
-                                                            <div className="relative group/thumb shrink-0">
-                                                                <StreetViewThumbnail
-                                                                    property={prop}
-                                                                    size={60}
-                                                                />
-                                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity rounded-xl flex items-center justify-center pointer-events-none">
-                                                                    <span className="material-symbols-outlined text-white text-xs">zoom_in</span>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-1.5 mb-1">
-                                                                    <h4 className="font-extrabold text-slate-100 group-hover:text-white truncate text-xs">
-                                                                        {prop.owner_address && typeof prop.owner_address === 'string' ? prop.owner_address.split('\n')[0] : (prop.title || 'Untitled Property')}
-                                                                    </h4>
-                                                                    <Chip
-                                                                        label={prop.availability_status || 'available'}
-                                                                        size="small"
-                                                                        className={`h-3.5 text-[6.5px] font-black uppercase px-0.5
-                                                                        ${prop.availability_status === 'available' ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-500/20' : 'bg-red-950/60 text-red-400 border border-red-500/20'}`}
-                                                                    />
-                                                                </div>
-
-                                                                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[9px] text-slate-400">
-                                                                    <span className="font-mono font-bold text-[#0D8BFF]">{prop.parcel_id}</span>
-                                                                    <span className="opacity-20">|</span>
-                                                                    <span className="truncate">{prop.county || 'Unknown County'}</span>
-                                                                    <span className="opacity-20">|</span>
-                                                                    {/* Enriched Legal Description Abstract Tooltip Pill */}
-                                                                    <div className="relative group/legal" onClick={(e) => e.stopPropagation()}>
-                                                                        <span className="cursor-pointer font-bold text-[8.5px] bg-slate-800/40 hover:bg-slate-800/80 px-1.5 py-0.5 rounded border border-slate-700/60 text-slate-300 transition-colors flex items-center gap-0.5">
-                                                                            Legal Abstract <span className="material-symbols-outlined text-[9px]">info</span>
-                                                                        </span>
-                                                                        {/* Tooltip Content */}
-                                                                        <div className="absolute bottom-full left-0 mb-2 w-72 p-3 rounded-xl bg-[#0B0F17]/95 border border-slate-700/80 shadow-2xl backdrop-blur-md opacity-0 pointer-events-none group-hover/legal:opacity-100 group-hover/legal:pointer-events-auto transition-opacity duration-300 z-50">
-                                                                            <h5 className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-1 border-b border-slate-800 pb-1">
-                                                                                <span className="material-symbols-outlined text-[10px] text-[#0D8BFF]">description</span> Enriched Legal Description
-                                                                            </h5>
-                                                                            <p className="font-mono text-[8.5px] leading-normal text-slate-300 whitespace-pre-wrap break-words max-h-36 overflow-y-auto pr-1">
-                                                                                {prop.legal_description || 'LOT 24 IN BLOCK 5 OF SILVER LAKE SUBDIVISION, RECORDED IN PLAT BOOK 12, PAGE 88 OF THE PUBLIC RECORDS OF DADE COUNTY, FLORIDA. TOGETHER WITH ALL IMPROVEMENTS LOCATED THEREON AND SUBJECT TO EASEMENTS AND COVENANTS OF RECORD.'}
-                                                                            </p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-
-                                                                <div className="mt-2 flex items-center gap-4">
-                                                                    <div className="flex flex-col">
-                                                                        <span className="text-[7px] text-slate-500 uppercase font-black">Opening Bid</span>
-                                                                        <span className="text-[11px] font-black text-slate-200">${prop.amount_due?.toLocaleString() || '0'}</span>
-                                                                    </div>
-                                                                    <div className="flex flex-col">
-                                                                        <span className="text-[7px] text-slate-500 uppercase font-black">Acres</span>
-                                                                        <span className="text-[11px] font-bold text-slate-300">{prop.lot_acres || 'N/A'}</span>
-                                                                    </div>
-                                                                </div>
-
-                                                                {/* Quick Action Buttons inside cards */}
-                                                                <div className="mt-2.5 flex gap-1.5 border-t border-slate-800/80 pt-2" onClick={e => e.stopPropagation()}>
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            if (isTrial) {
-                                                                                alert('Due Diligence Tasks are a premium feature. Upgrade to Pro or Enterprise to track your workflow.');
-                                                                                return;
-                                                                            }
-                                                                            setTaskProperty(prop);
-                                                                        }}
-                                                                        className="flex-1 flex items-center justify-center gap-1 py-0.5 text-[8px] font-extrabold rounded bg-[#0D8BFF]/10 text-[#0D8BFF] hover:bg-[#0D8BFF]/20 border border-[#0D8BFF]/20 transition-colors"
-                                                                    >
-                                                                        <span className="material-symbols-outlined text-[10px]">task_alt</span>
-                                                                        Task
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => {
-                                                                            if (isTrial) {
-                                                                                alert('Data Exports to Realtors are a premium feature. Upgrade to Pro or Enterprise to access this tool.');
-                                                                                return;
-                                                                            }
-                                                                            setExportProperty(prop);
-                                                                            setExportForm({ contact_name: '', contact_phone: '', contact_email: '', notes: '', requested_sale_price: '' });
-                                                                        }}
-                                                                        className="flex-1 flex items-center justify-center gap-1 py-0.5 text-[8px] font-extrabold rounded bg-[#13B8B5]/10 text-[#13B8B5] hover:bg-[#13B8B5]/20 border border-[#13B8B5]/20 transition-colors"
-                                                                    >
-                                                                        <span className="material-symbols-outlined text-[10px]">upload</span>
-                                                                        Export
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Score radial gauge */}
-                                                        <div className="flex flex-col items-end gap-2.5 shrink-0 justify-between self-stretch">
-                                                            <IconButton
-                                                                size="small"
-                                                                onClick={async (e) => {
-                                                                    e.stopPropagation();
-                                                                    try {
-                                                                        await PropertyService.toggleFavorite(prop.id, activeCompany?.id);
-                                                                        setFavoritesSet(prev => {
-                                                                            const next = new Set(prev);
-                                                                            if (next.has(prop.id)) next.delete(prop.id);
-                                                                            else next.add(prop.id);
-                                                                            return next;
-                                                                        });
-                                                                    } catch (err) {
-                                                                        console.error("Failed to toggle priority", err);
-                                                                    }
-                                                                }}
-                                                                className={`p-0.5 transition-all duration-300 ${isFavorite ? 'text-amber-400 scale-110' : 'text-slate-600 hover:text-amber-400'}`}
-                                                            >
-                                                                <span
-                                                                    className="material-symbols-outlined text-[16px]"
-                                                                    style={{ fontVariationSettings: isFavorite ? "'FILL' 1, 'wght' 700" : "'FILL' 0, 'wght' 400" }}
-                                                                >
-                                        ];
-
-                                        const mockAVMData = [
-                                            { source: 'Zillow', valuation: baseVal * 1.12, confidence: 91 },
-                                            { source: 'Redfin', valuation: baseVal * 1.08, confidence: 88 },
-                                            { source: 'CoreLogic', valuation: baseVal * 1.15, confidence: 94 },
-                                            { source: 'GoAuct', valuation: baseVal * 1.18, confidence: 96 },
-                                        ];
-
-                                        const activePropertyCoords = (activeProperty?.id ? geocodedProperties[activeProperty.id] : null) || { lat: 25.7617, lng: -80.1918 };
-
-                                        return (
-                                            <div className="space-y-6 bg-[#131926]/40 border border-slate-800/80 rounded-3xl p-5 shadow-2xl relative overflow-hidden backdrop-blur-md">
-                                                {/* Background layout highlights */}
-                                                <div className="absolute top-0 right-0 w-48 h-48 bg-[#0D8BFF]/5 rounded-full blur-3xl pointer-events-none" />
-                                                <div className="absolute bottom-0 left-0 w-48 h-48 bg-[#13B8B5]/5 rounded-full blur-3xl pointer-events-none" />
-
-                                                {/* Header segment of detailed workspace */}
-                                                <div className="flex flex-col sm:flex-row justify-between items-start gap-4 pb-4 border-b border-slate-800">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="material-symbols-outlined text-[#0D8BFF] text-2xl animate-pulse">analytics</span>
-                                                        <div>
-                                                            <div className="flex items-center gap-2">
-                                                                <h3 className="text-sm font-black text-white uppercase tracking-widest truncate max-w-[240px]">
-                                                                    {activeProperty?.owner_address && typeof activeProperty.owner_address === 'string' ? activeProperty.owner_address.split('\n')[0] : (activeProperty?.title || 'Property Intelligence console')}
-                                                                </h3>
-                                                                <span className="text-[8px] font-mono bg-emerald-950/60 border border-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">CONNECTED</span>
-                                                            </div>
-                                                            <p className="text-[10px] text-slate-400 font-mono mt-0.5">{activeProperty?.parcel_id || 'N/A'} | {activeProperty?.address || 'No address registered'}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex gap-2 shrink-0">
-                                                        <Button
-                                                            variant="contained"
-                                                            size="small"
-                                                            className="bg-blue-600 hover:bg-blue-500 rounded-lg font-bold text-[10px] shadow-none capitalize"
-                                                            onClick={() => activeProperty && setPreviewPropertyId(activeProperty.parcel_id || activeProperty.id)}
-                                                        >
-                                                            Inspect Details
-                                                        </Button>
-                                                    </div>
-                                                </div>
-
-                                                {/* 1. Tax Data Overlays (ATTOM) & AreaChart */}
-                                                <div className="bg-[#0B0F17]/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
-                                                    <div className="flex justify-between items-center pb-2 border-b border-slate-900">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="material-symbols-outlined text-[#0D8BFF] text-lg">receipt_long</span>
-                                                            <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-widest">ATTOM Secured Tax Assessment Data</h4>
-                                                        </div>
-                                                        <span className="text-[8px] font-mono text-slate-500">2024 Current Assessment</span>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                                        <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                            <p className="text-[8px] text-slate-500 uppercase font-black">Land Assessment</p>
-                                                            <p className="text-xs font-black text-slate-300 mt-0.5">${(baseVal * 0.4).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                                                        </div>
-                                                        <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                            <p className="text-[8px] text-slate-500 uppercase font-black">Improvements</p>
-                                                            <p className="text-xs font-black text-slate-300 mt-0.5">${(baseVal * 0.6).toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                                                        </div>
-                                                        <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                            <p className="text-[8px] text-slate-500 uppercase font-black">Exemptions</p>
-                                                            <p className="text-xs font-black text-emerald-500 mt-0.5">NOT-EXEMPT</p>
-                                                        </div>
-                                                        <div className="bg-[#0D8BFF]/5 p-2.5 rounded-xl border border-[#0D8BFF]/30">
-                                                            <p className="text-[8px] text-[#0D8BFF] uppercase font-black">Total Assessed</p>
-                                                            <p className="text-xs font-black text-white mt-0.5">${baseVal.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Mini Tax History AreaChart */}
-                                                    <div className="flex flex-col gap-1.5 mt-1">
-                                                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-wider">Historical Assessment Curve</span>
-                                                        <div className="h-32 w-full bg-slate-950/60 rounded-xl border border-slate-900 p-2">
-                                                            <ResponsiveContainer width="100%" height="100%">
-                                                                <AreaChart data={mockTaxData} margin={{ top: 5, right: 5, left: -25, bottom: -5 }}>
-                                                                    <defs>
-                                                                        <linearGradient id="taxGrad" x1="0" y1="0" x2="0" y2="1">
-                                                                            <stop offset="5%" stopColor="#0D8BFF" stopOpacity={0.25}/>
-                                                                            <stop offset="95%" stopColor="#0D8BFF" stopOpacity={0}/>
-                                                                        </linearGradient>
-                                                                    </defs>
-                                                                    <XAxis dataKey="year" stroke="#475569" fontSize={8} tickLine={false} axisLine={false} />
-                                                                    <YAxis stroke="#475569" fontSize={8} tickLine={false} axisLine={false} />
-                                                                    <RechartsTooltip contentStyle={{ backgroundColor: '#0B0F17', border: '1px solid #1e293b', borderRadius: '8px', color: '#cbd5e1', fontSize: '9px' }} />
-                                                                    <Area type="monotone" dataKey="assessment" stroke="#0D8BFF" strokeWidth={2} fillOpacity={1} fill="url(#taxGrad)" />
-                                                                </AreaChart>
-                                                            </ResponsiveContainer>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* 2. AVM Valuation Analytics & bar chart */}
-                                                <div className="bg-[#0B0F17]/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-4">
-                                                    <div className="flex justify-between items-center pb-2 border-b border-slate-900">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <span className="material-symbols-outlined text-[#13B8B5] text-lg">insert_chart</span>
-                                                            <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-widest">AVM Valuation Models Comparator</h4>
-                                                        </div>
-                                                        <span className="text-[8px] font-mono text-emerald-400">92% Average Match</span>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                        {/* Recharts BarChart comparing AVM providers */}
-                                                        <div className="h-44 w-full bg-slate-950/60 rounded-xl border border-slate-900 p-2">
-                                                            <ResponsiveContainer width="100%" height="100%">
-                                                                <BarChart data={mockAVMData} margin={{ top: 5, right: 5, left: -25, bottom: -5 }}>
-                                                                    <XAxis dataKey="source" stroke="#475569" fontSize={7} tickLine={false} axisLine={false} />
-                                                                    <YAxis stroke="#475569" fontSize={7} tickLine={false} axisLine={false} />
-                                                                    <RechartsTooltip contentStyle={{ backgroundColor: '#0B0F17', border: '1px solid #1e293b', borderRadius: '8px', color: '#cbd5e1', fontSize: '9px' }} />
-                                                                    <Bar dataKey="valuation" fill="#13B8B5" radius={[4, 4, 0, 0]} maxBarSize={15} />
-                                                                </BarChart>
-                                                            </ResponsiveContainer>
-                                                        </div>
-
-                                                        {/* Speedometer SVG for AVM Confidence */}
-                                                        <div className="bg-slate-950/40 p-3 rounded-xl border border-slate-900 flex flex-col items-center justify-center relative overflow-hidden">
-                                                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-wider mb-2">Confidence Interval</span>
-                                                            
-                                                            <div className="relative w-32 h-20 flex items-center justify-center">
-                                                                <svg className="w-full h-full" viewBox="0 0 100 50">
-                                                                    <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#1e293b" strokeWidth="8" strokeLinecap="round" />
-                                                                    <path d="M 10 50 A 40 40 0 0 1 90 50" fill="none" stroke="#13B8B5" strokeWidth="8" strokeDasharray="125" strokeDashoffset="25" strokeLinecap="round" style={{ filter: 'drop-shadow(0 0 4px rgba(19, 184, 181, 0.4))' }} />
-                                                                </svg>
-                                                                <div className="absolute bottom-1 flex flex-col items-center">
-                                                                    <span className="text-lg font-black text-white font-mono">92%</span>
-                                                                    <span className="text-[7px] text-[#13B8B5] font-black tracking-widest uppercase">HIGH MATCH</span>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* 3. Zoning & Parcel blueprint data */}
-                                                <div className="bg-[#0B0F17]/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-3">
-                                                    <div className="flex items-center gap-1.5 pb-2 border-b border-slate-900">
-                                                        <span className="material-symbols-outlined text-indigo-400 text-lg">architecture</span>
-                                                        <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-widest">Blueprint & Dimensional zoning parameters</h4>
-                                                    </div>
-
-                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                                        <div className="col-span-1 bg-[#0b172a] rounded-xl border border-indigo-900/30 p-3 flex flex-col items-center justify-center gap-2">
-                                                            <svg className="w-12 h-12 text-indigo-500/80" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                                <path d="M4 8 H44 V40 H4 Z" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 3"/>
-                                                                <path d="M12 16 H36 V32 H12 Z" stroke="currentColor" strokeWidth="2" />
-                                                                <path d="M24 8 V40" stroke="currentColor" strokeWidth="1" strokeOpacity="0.4" />
-                                                                <path d="M4 24 H44" stroke="currentColor" strokeWidth="1" strokeOpacity="0.4" />
-                                                            </svg>
-                                                            <span className="text-[8px] font-black text-indigo-400 uppercase tracking-wider">Lot Geometry</span>
-                                                        </div>
-
-                                                        <div className="col-span-2 grid grid-cols-2 gap-2">
-                                                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Zoning Code</p>
-                                                                                                <p className="text-xs font-black text-white mt-0.5">{activeProperty?.zoning || 'Zoning R-2'}</p>
-                                                                                            </div>
-                                                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Setback Limit</p>
-                                                                                                <p className="text-xs font-black text-slate-300 mt-0.5">20 Feet Front</p>
-                                                                                            </div>
-                                                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Lot Size Area</p>
-                                                                                                <p className="text-xs font-black text-slate-300 mt-0.5">{activeProperty?.lot_acres ? `${(activeProperty.lot_acres * 43560).toLocaleString(undefined, {maximumFractionDigits:0})} sqft` : '7,500 sqft'}</p>
-                                                                                            </div>
-                                                                                            <div className="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/60">
-                                                                                                <p className="text-[7px] text-slate-500 uppercase font-black">Max Coverage</p>
-                                                                                                <p className="text-xs font-black text-slate-300 mt-0.5">35% Allowed</p>
-                                                                                            </div>
-                                                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* 4. Foreclosure filings tracker */}
-                                                <div className="bg-[#0B0F17]/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-3">
-                                                    <div className="flex items-center gap-1.5 pb-2 border-b border-slate-900">
-                                                        <span className="material-symbols-outlined text-red-500 text-lg">gavel</span>
-                                                        <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-widest">Active distress & foreclosure filing logs</h4>
-                                                    </div>
-
-                                                    <div className="flex flex-col gap-2 p-1 font-mono">
-                                                        <div className="flex justify-between text-[9px] py-1 border-b border-slate-900/60">
-                                                                                            <span className="text-slate-500 uppercase">Distress Type:</span>
-                                                                                            <span className="text-red-400 font-bold uppercase">{activeProperty?.foreclosure_stage || 'Pre-foreclosure filing'}</span>
-                                                                                        </div>
-                                                        <div className="flex justify-between text-[9px] py-1 border-b border-slate-900/60">
-                                                            <span className="text-slate-500 uppercase">Filing Timeline:</span>
-                                                            <span className="text-slate-300">Recorded 2026-04-12</span>
-                                                        </div>
-                                                        <div className="flex justify-between text-[9px] py-1 border-b border-slate-900/60">
-                                                            <span className="text-slate-500 uppercase">Next Legal Action:</span>
-                                                            <span className="text-[#13B8B5] font-bold uppercase">Notice of Sale Issued</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* 5. Legal Description Monospace Abstract */}
-                                                <div className="bg-[#0B0F17]/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-3">
-                                                    <div className="flex items-center gap-1.5 pb-2 border-b border-slate-900">
-                                                        <span className="material-symbols-outlined text-indigo-400 text-lg">description</span>
-                                                        <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-widest">Enriched Legal Description Abstract</h4>
-                                                    </div>
-
-                                                    <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-900 relative">
-                                                        <div className="absolute top-2 right-2 text-indigo-500/20">
-                                                            <svg className="w-10 h-10" fill="currentColor" viewBox="0 0 24 24">
-                                                                <path d="M19,19H5V5H19M19,3H5A2,2 0 0,0 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5A2,2 0 0,0 19,3M13.97,11.23C13.96,11.83 14.15,12.4 14.5,12.87C14.11,13.06 13.79,13.36 13.59,13.73C13.39,14.1 13.31,14.53 13.38,14.96C13.44,15.39 13.64,15.79 13.95,16.09C14.26,16.39 14.66,16.57 15.09,16.61C15.53,16.65 15.96,16.55 16.33,16.33C16.69,16.11 16.97,15.78 17.14,15.39C17.3,15 17.34,14.57 17.25,14.14C17.16,13.72 16.94,13.33 16.61,13.05C16.91,12.56 17.06,12 17.03,11.43C16.96,10.28 15.96,9.39 14.8,9.46C14.34,9.49 13.92,9.69 13.6,10.03C13.28,10.37 13.1,10.82 13.1,11.28L13.97,11.23Z" />
-                                                            </svg>
-                                                        </div>
-                                                        <p className="font-mono text-[9.5px] leading-relaxed text-slate-400 whitespace-pre-wrap break-words">
-                                                            {activeProperty?.legal_description || 'LOT 24 IN BLOCK 5 OF SILVER LAKE SUBDIVISION, RECORDED IN PLAT BOOK 12, PAGE 88 OF THE PUBLIC RECORDS OF DADE COUNTY, FLORIDA. TOGETHER WITH ALL IMPROVEMENTS LOCATED THEREON AND SUBJECT TO EASEMENTS AND COVENANTS OF RECORD.'}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                {/* 6. Real Estate Map data layer */}
-                                                <div className="bg-[#0B0F17]/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-3">
-                                                    <div className="flex items-center gap-1.5 pb-2 border-b border-slate-900">
-                                                        <span className="material-symbols-outlined text-[#13B8B5] text-lg">map</span>
-                                                        <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-widest">Geographical Boundaries & Parcel Overlay Map</h4>
-                                                    </div>
-
-                                                    <div className="h-40 w-full bg-slate-950 rounded-xl border border-slate-900 relative overflow-hidden flex items-center justify-center">
-                                                        <div className="absolute inset-0 bg-[linear-gradient(rgba(19,184,181,0.02)_1.5px,transparent_1.5px),linear-gradient(90deg,rgba(19,184,181,0.02)_1.5px,transparent_1.5px)] bg-[size:12px_12px]" />
-                                                        
-                                                        <svg className="w-full h-full text-slate-800 opacity-60" viewBox="0 0 160 80">
-                                                            <line x1="20" y1="10" x2="80" y2="10" stroke="currentColor" strokeWidth="1" />
-                                                            <line x1="80" y1="10" x2="100" y2="40" stroke="currentColor" strokeWidth="1" />
-                                                            <line x1="100" y1="40" x2="40" y2="40" stroke="currentColor" strokeWidth="1" />
-                                                            <line x1="40" y1="40" x2="20" y2="10" stroke="currentColor" strokeWidth="1" />
-                                                            <polygon points="40,40 100,40 120,70 60,70" fill="rgba(13, 139, 255, 0.1)" stroke="#0D8BFF" strokeWidth="1.5" style={{ filter: 'drop-shadow(0 0 4px rgba(13, 139, 255, 0.5))' }} />
-                                                            <line x1="120" y1="70" x2="60" y2="70" stroke="currentColor" strokeWidth="1" />
-                                                        </svg>
-
-                                                        <div className="absolute top-[60%] left-[50%] -translate-x-1/2 -translate-y-1/2 flex items-center justify-center">
-                                                            <div className="absolute size-8 rounded-full border border-[#0D8BFF]/40 animate-ping" />
-                                                            <div className="size-2 rounded-full bg-[#0D8BFF] ring-2 ring-white/10 shadow-[0_0_8px_#0D8BFF]" />
-                                                        </div>
-
-                                                        <div className="absolute bottom-2 right-2 bg-slate-900/90 text-[8px] font-mono border border-slate-800 text-slate-400 px-2 py-0.5 rounded shadow-lg">
-                                                            GPS: {activePropertyCoords.lat?.toFixed(4) || '25.7617'}°, {activePropertyCoords.lng?.toFixed(4) || '-80.1918'}°
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* 7. Operational Stepper progress workflow */}
-                                                <div className="bg-[#0B0F17]/80 border border-slate-800/80 rounded-2xl p-4 flex flex-col gap-3">
-                                                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-wider">Operational Pipeline Workflow</span>
-                                                    
-                                                    <div className="flex items-center justify-between gap-1.5 p-2.5 bg-slate-950/60 rounded-xl border border-slate-900 relative">
-                                                        <div className="absolute top-1/2 left-4 right-4 h-0.5 bg-slate-800 -translate-y-1/2" />
-                                                        <div className="absolute top-1/2 left-4 w-[60%] h-0.5 bg-gradient-to-r from-[#0D8BFF] to-[#13B8B5] -translate-y-1/2" />
-
-                                                        <div className="flex flex-col items-center gap-1.5 relative z-10">
-                                                            <div className="w-5 h-5 rounded-full bg-[#0D8BFF] text-white flex items-center justify-center text-[8px] font-black ring-4 ring-[#0D8BFF]/20 shadow-[0_0_8px_#0D8BFF]">
-                                                                <span className="material-symbols-outlined text-[8px]">check</span>
-                                                            </div>
-                                                            <span className="text-[7.5px] font-black text-[#0D8BFF] uppercase tracking-wider">DATA</span>
-                                                        </div>
-
-                                                        <div className="flex flex-col items-center gap-1.5 relative z-10">
-                                                            <div className="w-5 h-5 rounded-full bg-[#0D8BFF] text-white flex items-center justify-center text-[8px] font-black ring-4 ring-[#0D8BFF]/20 shadow-[0_0_8px_#0D8BFF]">
-                                                                <span className="material-symbols-outlined text-[8px]">check</span>
-                                                            </div>
-                                                            <span className="text-[7.5px] font-black text-[#0D8BFF] uppercase tracking-wider">LEGAL</span>
-                                                        </div>
-
-                                                        <div className="flex flex-col items-center gap-1.5 relative z-10">
-                                                            <div className="w-5 h-5 rounded-full bg-[#13B8B5] text-white flex items-center justify-center text-[8px] font-black ring-4 ring-[#13B8B5]/20 shadow-[0_0_8px_#13B8B5] animate-pulse">
-                                                                <span className="material-symbols-outlined text-[8px]">sync</span>
-                                                            </div>
-                                                            <span className="text-[7.5px] font-black text-[#13B8B5] uppercase tracking-wider">FINANCE</span>
-                                                        </div>
-
-                                                        <div className="flex flex-col items-center gap-1.5 relative z-10">
-                                                            <div className="w-5 h-5 rounded-full bg-slate-900 text-slate-500 border border-slate-800 flex items-center justify-center text-[8px] font-black">
-                                                                4
-                                                            </div>
-                                                            <span className="text-[7.5px] font-black text-slate-500 uppercase tracking-wider">OP CHECK</span>
-                                                        </div>
-
-                                                        <div className="flex flex-col items-center gap-1.5 relative z-10">
-                                                            <div className="w-5 h-5 rounded-full bg-slate-900 text-slate-500 border border-slate-800 flex items-center justify-center text-[8px] font-black">
-                                                                5
-                                                            </div>
-                                                            <span className="text-[7.5px] font-black text-slate-500 uppercase tracking-wider">CLOSE</span>
-                                                        </div>
-                                                    </div>
+                                )}
+                                {displayProperties.map((prop: any) => (
+                                    <SwipeActionItem 
+                                        key={prop.id} 
+                                        onDelete={() => handleRemoveProperty(prop.id)}
+                                        onMove={() => setMovingPropertyId(prop.id)}
+                                    >
+                                        <div
+                                            onClick={() => setPreviewPropertyId(prop.parcel_id || prop.id)}
+                                            className={`group relative border rounded-xl p-3 sm:p-4 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-3 sm:gap-4
+                                            ${favoritesSet.has(prop.id) 
+                                                ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/50 shadow-md ring-1 ring-amber-100 dark:ring-amber-900/20' 
+                                                : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900'}`}
+                                        >
+                                            <div className="relative group/thumb">
+                                                <StreetViewThumbnail 
+                                                    property={prop}
+                                                    size={64}
+                                                />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                                                    <span className="material-symbols-outlined text-white text-sm">zoom_in</span>
                                                 </div>
                                             </div>
-                                        );
-                                    })() : (
-                                        <div className="bg-[#131926]/40 border border-slate-800/80 rounded-3xl p-8 text-center flex flex-col items-center justify-center min-h-[300px]">
-                                            <span className="material-symbols-outlined text-5xl text-slate-600 mb-3 animate-pulse">analytics</span>
-                                            <h4 className="text-sm font-black text-slate-300 uppercase tracking-wider">Console Pending Selection</h4>
-                                            <p className="text-xs text-slate-500 mt-1 max-w-[280px]">Select a property from the watchlist stack to load ATTOM assessment telemetry.</p>
+
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between gap-2 mb-1">
+                                                    <div className="flex items-center gap-2 min-w-0">
+                                                        <h4 className="font-bold text-slate-800 dark:text-slate-100 truncate text-sm">
+                                                            {prop.owner_address ? prop.owner_address.split('\n')[0] : (prop.title || 'Untitled Property')}
+                                                        </h4>
+                                                        <Chip
+                                                            label={prop.availability_status || 'Unknown'}
+                                                            size="small"
+                                                            className={`h-4 text-[8px] font-bold uppercase transition-colors px-0
+                                                            ${prop.availability_status === 'available' ? 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300' : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300'}`}
+                                                        />
+                                                    </div>
+
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={async (e) => {
+                                                            e.stopPropagation();
+                                                            try {
+                                                                const res = await PropertyService.toggleFavorite(prop.id, activeCompany?.id);
+                                                                console.log("Toggle Favorite Result for Prop", prop.id, ":", res);
+                                                                setFavoritesSet(prev => {
+                                                                    const next = new Set(prev);
+                                                                    if (next.has(prop.id)) next.delete(prop.id);
+                                                                    else next.add(prop.id);
+                                                                    return next;
+                                                                });
+                                                            } catch (err) {
+                                                                console.error("Failed to toggle priority", err);
+                                                            }
+                                                        }}
+                                                        className={`relative z-10 transition-all duration-300 p-1.5 -mr-1.5 ${favoritesSet.has(prop.id) ? 'text-amber-400 scale-125' : 'text-slate-200 hover:text-amber-200'}`}
+                                                    >
+                                                        <span 
+                                                            className="material-symbols-outlined text-[22px]"
+                                                            style={{ 
+                                                                fontVariationSettings: favoritesSet.has(prop.id) ? "'FILL' 1, 'wght' 700" : "'FILL' 0, 'wght' 400"
+                                                            }}
+                                                        >
+                                                            star
+                                                        </span>
+                                                    </IconButton>
+                                                </div>
+                                                <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
+                                                    <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{prop.parcel_id}</span>
+                                                    <span className="opacity-30">|</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="material-symbols-outlined text-[14px] text-red-500">location_on</span>
+                                                        <span className="truncate">{prop.address || 'No Address Listed'}</span>
+                                                    </div>
+                                                    <span className="opacity-30">|</span>
+                                                    <div className="flex items-center gap-1">
+                                                        <span className="material-symbols-outlined text-[14px] text-emerald-500">map</span>
+                                                        <span className="truncate text-emerald-600 dark:text-emerald-400">{prop.county || 'Unknown County'}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Description Field Requested by User */}
+                                                {prop.description && (
+                                                    <p className="mt-2 text-[11px] text-slate-600 dark:text-slate-400 line-clamp-2 italic leading-relaxed">
+                                                        {prop.description}
+                                                    </p>
+                                                )}
+
+                                                <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-4">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Opening Bid</span>
+                                                        <span className="text-xs font-bold text-slate-700 dark:text-white">${prop.amount_due?.toLocaleString() || '0'}</span>
+                                                    </div>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Acres</span>
+                                                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{prop.lot_acres || 'N/A'}</span>
+                                                    </div>
+                                                    {/* Legal Description Hover Badge */}
+                                                    {prop.legal_description && (
+                                                        <div className="relative group/legal flex flex-col cursor-default">
+                                                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Legal Desc.</span>
+                                                            <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 underline decoration-dotted">View ℹ</span>
+                                                            {/* Tooltip */}
+                                                            <div className="absolute bottom-full left-0 mb-2 z-50 w-72 invisible opacity-0 group-hover/legal:visible group-hover/legal:opacity-100 transition-all duration-200 pointer-events-none">
+                                                                <div className="bg-slate-900 dark:bg-slate-700 text-white text-[11px] leading-relaxed rounded-xl shadow-2xl p-3 border border-slate-700 dark:border-slate-600">
+                                                                    <p className="font-black uppercase tracking-wider text-indigo-300 text-[9px] mb-1">Legal Description</p>
+                                                                    <p className="font-mono break-words">{prop.legal_description}</p>
+                                                                </div>
+                                                                {/* Arrow */}
+                                                                <div className="w-3 h-3 bg-slate-900 dark:bg-slate-700 rotate-45 ml-4 -mt-1.5 border-r border-b border-slate-700" />
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {prop.is_auction_upcoming && (
+                                                        <div className="flex items-center gap-2 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 rounded-lg border border-orange-100 dark:border-orange-900/30">
+                                                            <span className="material-symbols-outlined text-[16px] text-orange-600 animate-bounce">gavel</span>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[9px] text-orange-600 font-black uppercase tracking-tighter">Auction Soon</span>
+                                                                <span className="text-xs font-bold text-orange-700 dark:text-orange-400">
+                                                                    {prop.days_until_auction === 0 ? 'TODAY' : `${prop.days_until_auction} days left`}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    {(prop.auction_info_link || prop.auction_list_link) && (
+                                                        <div className="flex items-center gap-3 bg-blue-50/50 dark:bg-blue-900/20 px-2 py-1 rounded-lg border border-blue-100/50 dark:border-blue-800/30">
+                                                            <span className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter">Portals:</span>
+                                                            <div className="flex gap-2">
+                                                                {prop.auction_info_link && (
+                                                                    <a href={prop.auction_info_link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5 font-bold">
+                                                                        Registration / Instructions
+                                                                    </a>
+                                                                )}
+                                                                {prop.auction_list_link && (
+                                                                    <a href={prop.auction_list_link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-0.5 font-bold">
+                                                                        Auction List
+                                                                    </a>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex flex-col items-end gap-2">
+                                                <div className="bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors"
+                                                    onClick={(e) => { e.stopPropagation(); navigate(`/client/properties/${prop.parcel_id || prop.id}`); }}
+                                                >
+                                                    <ExternalLinkIcon size={16} />
+                                                </div>
+                                                <div className="opacity-40 hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing"
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStart(e, prop.id)}
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
+                                                </div>
+                                            </div>
+                                            {/* Task & Export action buttons */}
+                                            {!isAgent && (
+                                                <div className="mt-3 flex gap-2 border-t border-slate-100 dark:border-slate-800 pt-3" onClick={e => e.stopPropagation()}>
+                                                    <button
+                                                        id="tour-missions-new-visit"
+                                                        onClick={() => {
+                                                            if (isTrial) {
+                                                                alert('Due Diligence Tasks are a premium feature. Upgrade to Pro or Enterprise to track your workflow.');
+                                                                return;
+                                                            }
+                                                            setTaskProperty(prop); 
+                                                        }}
+                                                        className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800 transition-colors"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[14px]">task_alt</span>
+                                                        Create Task
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (isTrial) {
+                                                                alert('Data Exports to Realtors are a premium feature. Upgrade to Pro or Enterprise to access this tool.');
+                                                                return;
+                                                            }
+                                                            setExportProperty(prop); 
+                                                            setExportForm({ contact_name: '', contact_phone: '', contact_email: '', notes: '', requested_sale_price: '' }); 
+                                                        }}
+                                                        className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800 transition-colors"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[14px]">upload</span>
+                                                        Export to Realtors
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
-                                    )}
-                                </div>
+                                    </SwipeActionItem>
+                                ))}
                             </div>
-                        </div>
-                    )}
+                        );
+                    })()}
                 </div>
             </div>
             )}

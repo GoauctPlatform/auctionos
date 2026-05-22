@@ -9,6 +9,7 @@ import { recommendProperties, rankAuctions } from '../../intelligence/rankingEng
 import { useTour } from '../../context/TourContext';
 import { calculateDealScore } from '../../intelligence/scoringEngine';
 import { getTopScoredProperties, getStateStats, StateStat } from '../../services/scores.service';
+import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
 import { API_URL } from '../../services/httpClient';
 import {
   AreaChart,
@@ -69,7 +70,70 @@ function sortByTopProperties(items: AuctionEvent[], n = 10): AuctionEvent[] {
 
 // ─── Sub-Components ──────────────────────────────────────────────────────────
 
+const QuickActions: React.FC = () => {
+  const navigate = useNavigate();
+
+  const actions = [
+    {
+      icon: 'format_list_bulleted',
+      label: 'My Lists',
+      desc: 'View your saved properties',
+      path: '/client/lists',
+      color: 'from-blue-500 to-blue-600',
+    },
+    {
+      icon: 'real_estate_agent',
+      label: 'Field Missions',
+      desc: 'Track due diligence',
+      path: '/client/tasks',
+      color: 'from-indigo-500 to-indigo-600',
+    },
+    {
+      icon: 'location_on',
+      label: 'Property Search',
+      desc: 'Search & filter properties',
+      path: '/client/properties',
+      color: 'from-violet-500 to-violet-600',
+    },
+    {
+      icon: 'calendar_month',
+      label: 'Auction Calendar',
+      desc: "See what's scheduled",
+      path: '/client/auctions',
+      color: 'from-sky-500 to-sky-600',
+    },
+  ];
+
+  return (
+    <section>
+      <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3">
+        Quick Access
+      </h2>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        {actions.map((a) => (
+          <button
+            key={a.label}
+            onClick={() => navigate(a.path)}
+            className="group flex flex-col items-start gap-2 p-4 bg-white dark:bg-[#0F131C] border border-slate-200 dark:border-slate-850 rounded-xl hover:border-[#0D8BFF]/50 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 text-left"
+          >
+            <div className={`size-10 rounded-lg bg-gradient-to-br ${a.color} flex items-center justify-center shadow-sm`}>
+              <span className="material-symbols-outlined text-white text-[20px]">{a.icon}</span>
+            </div>
+            <div>
+              <p className="text-sm font-bold text-slate-800 dark:text-white group-hover:text-[#0D8BFF] transition-colors">
+                {a.label}
+              </p>
+              <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{a.desc}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+};
+
 // ─── Auction Card ────────────────────────────────────────────────────────────
+
 const AuctionCard: React.FC<{ auction: AuctionEvent }> = ({ auction }) => {
   const { label, color } = getTypeLabel(auction.tax_status);
   const navigate = useNavigate();
@@ -77,39 +141,39 @@ const AuctionCard: React.FC<{ auction: AuctionEvent }> = ({ auction }) => {
   return (
     <div
       onClick={() => {
-        const d = auction.auction_date ? String(auction.auction_date).split('T')[0] : '';
+        const d = auction.auction_date ? auction.auction_date.split('T')[0] : '';
         navigate(`/client/auctions?name=${encodeURIComponent(auction.name || '')}&startDate=${d}&endDate=${d}`);
       }}
-      className="flex-shrink-0 w-64 bg-[#0F131C] border border-slate-800/60 rounded-xl p-4 hover:border-[#0D8BFF]/45 hover:shadow-md hover:shadow-blue-500/5 transition-all duration-300 cursor-pointer text-left"
+      className="flex-shrink-0 w-64 bg-white dark:bg-[#0F131C] border border-slate-200 dark:border-slate-850 rounded-xl p-4 hover:border-[#0D8BFF]/40 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer"
     >
       <div className="flex items-start justify-between mb-3">
-        <span className={`text-[10px] font-bold font-mono px-2 py-0.5 rounded-full ${color}`}>
+        <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${color}`}>
           {label}
         </span>
         {(auction.parcels_count || auction.properties_count) ? (
-          <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
-            <span className="material-symbols-outlined text-[13px] text-[#0D8BFF]">home</span>
+          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">home</span>
             {auction.parcels_count || auction.properties_count}
           </span>
         ) : null}
       </div>
 
-      <p className="text-xs font-bold text-white leading-tight line-clamp-2 mb-2 font-sans tracking-wide">
+      <p className="text-sm font-bold text-slate-800 dark:text-white leading-tight line-clamp-2 mb-2">
         {auction.name}
       </p>
 
       <div className="space-y-1">
         {(auction.state || auction.county) && (
-          <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
-            <span className="material-symbols-outlined text-[13px] text-[#13B8B5]">location_on</span>
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+            <span className="material-symbols-outlined text-[14px]">location_on</span>
             <span className="truncate">
               {[auction.county, auction.state].filter(Boolean).join(', ')}
             </span>
           </div>
         )}
-        <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
-          <span className="material-symbols-outlined text-[13px] text-[#0D8BFF]">calendar_today</span>
-          <span>{formatDate(String(auction.auction_date))}</span>
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <span className="material-symbols-outlined text-[14px]">calendar_today</span>
+          <span>{formatDate(auction.auction_date)}</span>
         </div>
       </div>
     </div>
@@ -117,77 +181,33 @@ const AuctionCard: React.FC<{ auction: AuctionEvent }> = ({ auction }) => {
 };
 
 // ─── Top Auctions Section ────────────────────────────────────────────────────
+
 const sectionMeta = {
   deed: {
     title: 'Top Deed Auctions',
     icon: 'gavel',
     emptyMsg: 'No deed auctions available',
-    color: 'text-purple-400',
-    bg: 'bg-purple-950/20 border-purple-800/30',
+    color: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-purple-50 dark:bg-purple-900/20',
   },
   foreclosure: {
     title: 'Top Foreclosure Auctions',
     icon: 'real_estate_agent',
     emptyMsg: 'No foreclosure auctions available',
-    color: 'text-red-400',
-    bg: 'bg-red-950/20 border-red-800/30',
+    color: 'text-red-600 dark:text-red-400',
+    bg: 'bg-red-50 dark:bg-red-900/20',
   },
   lien: {
     title: 'Top Tax Lien Auctions',
     icon: 'receipt_long',
     emptyMsg: 'No tax lien auctions available',
-    color: 'text-amber-400',
-    bg: 'bg-amber-950/20 border-amber-800/30',
+    color: 'text-amber-600 dark:text-amber-400',
+    bg: 'bg-amber-50 dark:bg-amber-900/20',
   },
 };
 
-interface TopAuctionsProps {
-  type: 'deed' | 'foreclosure' | 'lien';
-  allAuctions: AuctionEvent[];
-  loading: boolean;
-}
-
-const TopAuctions: React.FC<TopAuctionsProps> = ({ type, allAuctions, loading }) => {
-  const meta = sectionMeta[type];
-  const items = sortByTopProperties(filterByType(allAuctions, type));
-
-  return (
-    <section className="bg-[#0F131C] border border-slate-850 p-5 rounded-2xl">
-      <div className="flex items-center gap-2 mb-3">
-        <div className={`size-7 rounded-lg ${meta.bg} flex items-center justify-center border`}>
-          <span className={`material-symbols-outlined text-[15px] ${meta.color}`}>{meta.icon}</span>
-        </div>
-        <h2 className="text-xs font-black uppercase tracking-wider text-white font-sans">{meta.title}</h2>
-        {items.length > 0 && (
-          <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-800 text-[10px] font-bold font-mono text-slate-350">
-            {items.length}
-          </span>
-        )}
-      </div>
-
-      {loading ? (
-        <div className="flex gap-3 overflow-x-auto pb-2">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex-shrink-0 w-64 h-32 bg-slate-900 border border-slate-800 rounded-xl animate-pulse" />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
-        <div className={`flex items-center gap-3 p-4 rounded-xl border border-dashed border-slate-800/80 bg-slate-900/40`}>
-          <span className={`material-symbols-outlined ${meta.color}`}>{meta.icon}</span>
-          <p className="text-xs text-slate-400 font-mono">No matching auctions indexed for current operational cycle.</p>
-        </div>
-      ) : (
-        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-800">
-          {items.map((a) => (
-            <AuctionCard key={a.id} auction={a} />
-          ))}
-        </div>
-      )}
-    </section>
-  );
-};
-
 // ─── Suggested Deals Section ─────────────────────────────────────────────────
+
 const US_STATES = [
   'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA',
   'KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
@@ -197,24 +217,27 @@ const US_STATES = [
 
 const SuggestedDeals: React.FC<{ properties: Property[], loading: boolean, stateFilter: string, onStateChange: (s: string) => void }> = ({ properties, loading, stateFilter, onStateChange }) => {
   const navigate = useNavigate();
+
+  // Exclude the first featured property from the scrollable list if there are multiple,
+  // so that the first one is the Spotlight and others are browsed in the carousel.
   const displayProperties = properties.length > 1 ? properties.slice(1) : properties;
 
   return (
-    <section className="bg-[#0F131C] border border-slate-850 p-6 rounded-2xl overflow-hidden flex flex-col space-y-4">
+    <section className="glass-card-premium p-6 rounded-2xl overflow-hidden flex flex-col space-y-4">
       <div className="flex justify-between items-center flex-wrap gap-3">
         <div>
-          <h2 className="text-xs font-black text-white flex items-center gap-2 uppercase tracking-wide font-sans">
-            <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">auto_awesome</span>
+          <h2 className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2 uppercase tracking-wide">
+            <span className="material-symbols-outlined text-[#13B8B5]">auto_awesome</span>
             High-Potential Recommended Deals
           </h2>
-          <p className="text-[10px] text-slate-400 mt-0.5 font-mono">// Algorithmic distressed real estate matchmaking</p>
+          <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5">Intelligence-filtered distressed opportunities</p>
         </div>
         
         <div className="flex items-center gap-3">
           <select
             value={stateFilter}
             onChange={(e) => onStateChange(e.target.value)}
-            className="text-[10px] font-bold font-mono px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg text-slate-350 focus:outline-none focus:ring-1 focus:ring-[#0D8BFF]"
+            className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/80 text-slate-700 dark:text-slate-350 focus:outline-none focus:ring-1 focus:ring-[#0D8BFF]"
           >
             <option value="">🇺🇸 All States</option>
             {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
@@ -222,7 +245,7 @@ const SuggestedDeals: React.FC<{ properties: Property[], loading: boolean, state
 
           <button 
             onClick={() => navigate(stateFilter ? `/client/properties?top=true&state=${stateFilter}` : '/client/properties?top=true')}
-            className="text-[9px] font-black text-[#0D8BFF] border border-[#0D8BFF]/30 hover:bg-[#0D8BFF]/5 px-2.5 py-1 rounded-md uppercase tracking-wider transition-colors"
+            className="text-[10px] font-bold text-[#0D8BFF] hover:underline uppercase tracking-widest"
           >
             Explore All
           </button>
@@ -232,17 +255,17 @@ const SuggestedDeals: React.FC<{ properties: Property[], loading: boolean, state
       {loading ? (
         <div className="flex gap-4 overflow-x-auto pb-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="flex-shrink-0 w-72 h-36 bg-slate-900 border border-slate-800 rounded-xl animate-pulse" />
+            <div key={i} className="flex-shrink-0 w-72 h-36 bg-slate-100 dark:bg-slate-900/50 rounded-xl animate-pulse" />
           ))}
         </div>
       ) : displayProperties.length === 0 ? (
-        <div className="h-36 bg-slate-900/40 border border-dashed border-slate-800 rounded-xl flex flex-col items-center justify-center text-slate-400 p-6 text-center">
-          <span className="material-symbols-outlined text-3xl mb-1 text-slate-600">inventory_2</span>
-          <p className="text-xs font-bold font-sans">{stateFilter ? `No additional deals for ${stateFilter}` : 'Initializing Scoring Seed...'}</p>
-          <p className="text-[9px] text-slate-500 font-mono mt-0.5">Scoring engines running in background sync mode.</p>
+        <div className="h-36 bg-slate-50 dark:bg-[#0F131C]/60 border border-dashed border-slate-200 dark:border-slate-850 rounded-xl flex flex-col items-center justify-center text-slate-400 p-6 text-center">
+          <span className="material-symbols-outlined text-3xl mb-1 text-slate-550">inventory_2</span>
+          <p className="text-xs font-bold">{stateFilter ? `No additional deals for ${stateFilter}` : 'Adjusting Algorithm...'}</p>
+          <p className="text-[10px] mt-0.5">Select a different state or run the scoring seed script.</p>
         </div>
       ) : (
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-800">
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-250 dark:scrollbar-thumb-slate-800">
           {displayProperties.map((p) => {
             const score = calculateDealScore(p);
             const displayRating = (p as any).deal_rating || score.rating;
@@ -258,36 +281,36 @@ const SuggestedDeals: React.FC<{ properties: Property[], loading: boolean, state
               <div 
                 key={p.parcel_id || (p as any).id}
                 onClick={() => navigate(`/client/properties/${p.parcel_id || (p as any).id}`)}
-                className="flex-shrink-0 w-72 p-4 bg-slate-950/40 border border-slate-850 hover:border-[#0D8BFF]/45 hover:shadow-lg rounded-xl transition-all cursor-pointer group flex flex-col justify-between space-y-3"
+                className="flex-shrink-0 w-72 p-4 bg-slate-50/50 dark:bg-[#0F131C] border border-slate-150 dark:border-slate-850 hover:border-[#0D8BFF]/40 rounded-xl transition-all cursor-pointer group hover:shadow-lg flex flex-col justify-between space-y-3"
               >
                 <div className="flex items-start justify-between">
                   <div className={`size-10 rounded-xl flex flex-col items-center justify-center text-white font-black text-xs shadow-md ${ratingColor}`}>
                     <span>{displayRating}</span>
                   </div>
                   
-                  <div className="text-right font-mono">
-                    <span className="text-[7px] text-slate-500 uppercase font-black tracking-widest block">AI Match</span>
+                  <div className="text-right">
+                    <span className="text-[8px] text-slate-400 uppercase font-black tracking-widest block">AI Match</span>
                     <span className="text-xs font-extrabold text-[#13B8B5]">{Math.round(displayScore)}%</span>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold text-white truncate group-hover:text-[#0D8BFF] transition-colors leading-snug">
+                  <p className="text-xs font-bold text-slate-800 dark:text-white truncate group-hover:text-[#0D8BFF] transition-colors">
                     {p.address || p.parcel_id}
                   </p>
-                  <p className="text-[9px] text-slate-500 uppercase tracking-widest font-black font-mono mt-0.5 truncate">
+                  <p className="text-[9px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-bold mt-0.5 truncate">
                     {p.county || 'Unknown County'}, {(p as any).state || (p as any).state_code}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 pt-2 border-t border-slate-900">
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800/40">
                    {(p as any).amount_due && (
-                    <p className="text-[9px] text-[#13B8B5] font-extrabold whitespace-nowrap bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10 font-mono">
+                    <p className="text-[9px] text-[#13B8B5] font-bold whitespace-nowrap bg-emerald-500/5 dark:bg-emerald-950/20 px-2 py-0.5 rounded border border-emerald-500/10">
                       ${Number((p as any).amount_due).toLocaleString()} Bid
                     </p>
                   )}
                   {(p as any).assessed_value && (
-                    <p className="text-[9px] text-[#0D8BFF] font-extrabold whitespace-nowrap bg-blue-500/5 px-2 py-0.5 rounded border border-blue-500/10 font-mono">
+                    <p className="text-[9px] text-[#0D8BFF] font-bold whitespace-nowrap bg-blue-500/5 dark:bg-blue-950/20 px-2 py-0.5 rounded border border-blue-500/10">
                       ${Number((p as any).assessed_value).toLocaleString()} Value
                     </p>
                   )}
@@ -301,7 +324,54 @@ const SuggestedDeals: React.FC<{ properties: Property[], loading: boolean, state
   );
 };
 
-// ─── Auction Search ──────────────────────────────────────────────────────────
+interface TopAuctionsProps {
+  type: 'deed' | 'foreclosure' | 'lien';
+  allAuctions: AuctionEvent[];
+  loading: boolean;
+}
+
+const TopAuctions: React.FC<TopAuctionsProps> = ({ type, allAuctions, loading }) => {
+  const meta = sectionMeta[type];
+  const items = sortByTopProperties(filterByType(allAuctions, type));
+
+  return (
+    <section>
+      <div className="flex items-center gap-2 mb-3">
+        <div className={`size-7 rounded-lg ${meta.bg} flex items-center justify-center`}>
+          <span className={`material-symbols-outlined text-[16px] ${meta.color}`}>{meta.icon}</span>
+        </div>
+        <h2 className="text-base font-bold text-slate-800 dark:text-white">{meta.title}</h2>
+        {items.length > 0 && (
+          <span className="ml-1 px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-slate-500 dark:text-slate-450">
+            {items.length}
+          </span>
+        )}
+      </div>
+
+      {loading ? (
+        <div className="flex gap-3 overflow-x-auto pb-2">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="flex-shrink-0 w-64 h-36 bg-slate-100 dark:bg-slate-800 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <div className={`flex items-center gap-3 p-4 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 ${meta.bg}`}>
+          <span className={`material-symbols-outlined ${meta.color}`}>{meta.icon}</span>
+          <p className="text-sm text-slate-500 dark:text-slate-400">{meta.emptyMsg} — data will appear as auctions are imported.</p>
+        </div>
+      ) : (
+        <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-800">
+          {items.map((a) => (
+            <AuctionCard key={a.id} auction={a} />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+};
+
+// ─── Auction Search (Backend-powered, beautifully redesigned) ─────────────────
+
 const AuctionSearch: React.FC = () => {
   const [query, setQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -334,40 +404,42 @@ const AuctionSearch: React.FC = () => {
   }, [query, typeFilter]);
 
   return (
-    <div className="bg-[#0F131C] border border-slate-850 p-5 rounded-2xl flex flex-col space-y-4">
+    <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
       <div>
-        <h2 className="text-xs font-black uppercase tracking-widest text-white flex items-center gap-2 font-sans">
+        <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 flex items-center gap-2">
           <span className="material-symbols-outlined text-[#0D8BFF] text-[18px]">search</span>
           Search Auctions
         </h2>
-        <p className="text-[10px] text-slate-400 mt-1 font-mono">// Live querying on national distressed registry</p>
+        <p className="text-[10px] text-slate-400 mt-1">Live querying on national distressed sales registry</p>
       </div>
 
       <div className="flex gap-2 flex-wrap">
+        {/* Text search */}
         <div className="relative flex-1 min-w-[200px]">
-          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-[18px]">search</span>
+          <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 text-[18px]">search</span>
           <input
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Escape') { setQuery(''); setResults([]); setSearched(false); } }}
             placeholder="Search name, state, county…"
-            className="w-full pl-9 pr-9 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-white placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-[#0D8BFF] transition-all font-mono"
+            className="w-full pl-9 pr-9 py-2 bg-white dark:bg-[#0f1626]/50 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-850 dark:text-white placeholder-slate-450 focus:outline-none focus:ring-1 focus:ring-[#0D8BFF] focus:border-[#0D8BFF] transition-all"
           />
           {(query || loading) && (
             <div className="absolute right-3 top-1/2 -translate-y-1/2">
               {loading
-                ? <span className="material-symbols-outlined text-[15px] text-slate-550 animate-spin">progress_activity</span>
-                : <button onClick={() => { setQuery(''); setResults([]); setSearched(false); }} className="text-slate-500 hover:text-slate-350"><span className="material-symbols-outlined text-[15px]">close</span></button>
+                ? <span className="material-symbols-outlined text-[16px] text-slate-450 animate-spin">progress_activity</span>
+                : <button onClick={() => { setQuery(''); setResults([]); setSearched(false); }} className="text-slate-405 hover:text-slate-650 dark:hover:text-slate-300"><span className="material-symbols-outlined text-[16px]">close</span></button>
               }
             </div>
           )}
         </div>
 
+        {/* Auction Type Filter */}
         <select
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
-          className="px-2.5 py-2 bg-slate-950/80 border border-slate-800 rounded-xl text-xs text-slate-350 focus:outline-none focus:ring-1 focus:ring-[#0D8BFF] min-w-[110px] font-mono"
+          className="px-2.5 py-2 bg-white dark:bg-[#0f1626]/50 border border-slate-200 dark:border-slate-800 rounded-xl text-xs text-slate-700 dark:text-slate-355 focus:outline-none focus:ring-1 focus:ring-[#0D8BFF] min-w-[110px]"
         >
           <option value="">All Types</option>
           <option value="deed">Tax Deed</option>
@@ -376,27 +448,28 @@ const AuctionSearch: React.FC = () => {
         </select>
       </div>
 
+      {/* Results */}
       {searched && (
-        <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+        <div className="animate-in fade-in slide-in-from-top-2 duration-350">
           {results.length === 0 ? (
-            <div className="flex items-center gap-2 p-3 bg-slate-900/40 border border-slate-850 rounded-xl text-xs text-slate-500 font-mono">
+            <div className="flex items-center gap-2 p-3 bg-slate-50 dark:bg-slate-900/30 border border-slate-200/50 dark:border-slate-800/80 rounded-xl text-xs text-slate-500">
               <span className="material-symbols-outlined text-[16px]">search_off</span>
-              No records matched: "{query}"
+              No auctions found{query ? ` for "${query}"` : ''}
             </div>
           ) : (
-            <div className="bg-slate-950 border border-slate-850 rounded-xl overflow-hidden divide-y divide-slate-850 font-mono text-[10px]">
-              <div className="px-3 py-1.5 bg-slate-900/40 flex items-center justify-between">
-                <span className="font-semibold text-slate-500">
-                  {results.length} record{results.length !== 1 ? 's' : ''} parsed
+            <div className="bg-white dark:bg-[#0f1626]/60 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden divide-y divide-slate-100 dark:divide-slate-800">
+              <div className="px-3 py-1.5 bg-slate-50/50 dark:bg-slate-900/30 flex items-center justify-between">
+                <span className="text-[10px] font-semibold text-slate-450 dark:text-slate-500">
+                  {results.length} result{results.length !== 1 ? 's' : ''}{query ? ` for "${query}"` : ''}
                 </span>
                 <button
                   onClick={() => navigate(`/client/auctions${query ? `?q=${encodeURIComponent(query)}` : ''}`)}
-                  className="text-[#0D8BFF] font-semibold hover:underline"
+                  className="text-[10px] text-[#0D8BFF] font-semibold hover:underline"
                 >
-                  Global View →
+                  View all auctions →
                 </button>
               </div>
-              <div className="max-h-48 overflow-y-auto divide-y divide-slate-850">
+              <div className="max-h-48 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
                 {results.map((a) => {
                   const { label, color } = getTypeLabel(a.tax_status);
                   return (
@@ -412,19 +485,19 @@ const AuctionSearch: React.FC = () => {
                         }
                         navigate(`/client/auctions?${params.toString()}`);
                       }}
-                      className="flex items-center gap-3 px-3 py-2 hover:bg-slate-900/60 cursor-pointer transition-colors group"
+                      className="flex items-center gap-3 px-3 py-2 hover:bg-slate-50 dark:hover:bg-[#0f1626]/40 cursor-pointer transition-colors group"
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-slate-200 truncate group-hover:text-[#0D8BFF] transition-colors">{a.name}</p>
-                        <p className="text-[9px] text-slate-500 mt-0.5 truncate">
+                        <p className="text-xs font-semibold text-slate-850 dark:text-slate-200 truncate group-hover:text-[#0D8BFF] transition-colors">{a.name}</p>
+                        <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
                           {[a.county, a.state].filter(Boolean).join(', ')}
                           {a.auction_date && ` · ${formatDate(String(a.auction_date))}`}
                         </p>
                       </div>
-                      <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${color}`}>{label}</span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${color}`}>{label}</span>
                       {a.parcels_count ? (
-                        <span className="text-slate-400 font-semibold flex items-center gap-0.5 shrink-0">
-                          <span className="material-symbols-outlined text-[11px] text-[#0D8BFF]">home</span>{a.parcels_count}
+                        <span className="text-[10px] text-slate-450 font-semibold flex items-center gap-0.5 shrink-0">
+                          <span className="material-symbols-outlined text-[12px]">home</span>{a.parcels_count}
                         </span>
                       ) : null}
                     </div>
@@ -448,7 +521,6 @@ const ClientDashboard: React.FC = () => {
   const user = AuthService.getCurrentUser();
   const { activeCompany } = useCompany();
   const { startTour } = useTour();
-  
   const formatName = (str?: string) => {
     if (!str) return 'There';
     const base = str.split('@')[0];
@@ -456,12 +528,12 @@ const ClientDashboard: React.FC = () => {
   };
   
   const getFirstName = () => {
-    // @ts-ignore - full_name may not be typed in current frontend models
-    if (user?.full_name) {
-      const first = user.full_name.trim().split(' ')[0];
-      return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
-    }
-    return formatName(user?.email);
+      // @ts-ignore - full_name may not be typed in current frontend models
+      if (user?.full_name) {
+          const first = user.full_name.trim().split(' ')[0];
+          return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+      }
+      return formatName(user?.email);
   };
   const userName = getFirstName();
 
@@ -472,42 +544,30 @@ const ClientDashboard: React.FC = () => {
   const [dbTopDeals, setDbTopDeals] = useState<Property[]>([]);
   const [stateStats, setStateStats] = useState<StateStat[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedState, setSelectedState] = useState('FL'); // Default focus is Florida
+  const [selectedState, setSelectedState] = useState('');
   const [filteredDeals, setFilteredDeals] = useState<Property[]>([]);
   const [dealsLoading, setDealsLoading] = useState(false);
   const [myListsPreferences, setMyListsPreferences] = useState<{ states: string[]; counties: string[]; total: number } | null>(null);
   const [isPersonalized, setIsPersonalized] = useState(false);
   const isFetchingBus = useRef(false);
 
-  // Map Interactive States
-  const [hoveredCounty, setHoveredCounty] = useState<{
-    name: string;
-    opportunities: number;
-    trend: string;
-    x: number;
-    y: number;
-  } | null>(null);
-  
-  const [selectedCounty, setSelectedCounty] = useState<string>('Miami-Dade');
-  const [mapSearchQuery, setMapSearchQuery] = useState('');
-
   // ─── Announcements ────────────────────────────────────────────────────────
   const [announcements, setAnnouncements] = useState<{id:number;title:string;message:string;type:string}[]>([]);
   const [annIndex, setAnnIndex] = useState(0);
-  
   useEffect(() => {
     fetch(`${API_URL}/admin/announcements/`)
       .then(r => r.ok ? r.json() : [])
       .then(data => setAnnouncements(Array.isArray(data) ? data : []))
       .catch(() => {});
   }, []);
-
   useEffect(() => {
     if (announcements.length < 2) return;
     const t = setInterval(() => setAnnIndex(i => (i + 1) % announcements.length), 5000);
     return () => clearInterval(t);
   }, [announcements.length]);
 
+  // ─── Reactive Data Pipeline ────────────────────────────────────────────────
+  
   const marketInventory = useMemo(() => {
     return rawProperties.filter(p => 
       (p.availability_status || '').toLowerCase().trim() === 'available'
@@ -526,7 +586,7 @@ const ClientDashboard: React.FC = () => {
 
     return baseList
       .sort((a, b) => {
-        const ratingMap: Record<string, text> = { 'A+': 1, 'A': 2, 'B': 3, 'C': 4 };
+        const ratingMap: Record<string, number> = { 'A+': 1, 'A': 2, 'B': 3, 'C': 4 };
         const ratingA = (a as any).deal_rating || calculateDealScore(a).rating;
         const ratingB = (b as any).deal_rating || calculateDealScore(b).rating;
         
@@ -642,33 +702,30 @@ const ClientDashboard: React.FC = () => {
     loadFilteredDeals();
   }, [selectedState, dbTopDeals]);
 
-  // ─── Mockup Inspired Chart Data ───────────────────────────────────────────
-
-  // Tax Deed Analytics Card Data
-  const taxDeedAnalyticsData = useMemo(() => [
-    { name: 'Jan 21', lienValue: 2400, bidToValue: 45 },
-    { name: 'Feb 22', lienValue: 3300, bidToValue: 68 },
-    { name: 'Jan 23', lienValue: 2800, bidToValue: 55 },
-    { name: 'Mar 24', lienValue: 4900, bidToValue: 98 },
+  // Area & Bar Charts Data Source
+  const analyticsData = useMemo(() => [
+    { month: 'Jan', value: 240 },
+    { month: 'Feb', value: 320 },
+    { month: 'Mar', value: 280 },
+    { month: 'Apr', value: 450 },
+    { month: 'May', value: 499 },
   ], []);
 
-  // Foreclosure Opportunity Indicators Data
-  const foreclosureBarData = useMemo(() => [
-    { name: 'Tax Lien', count: 154140, fill: '#0D8BFF' },
-    { name: 'Tax Deed', count: 48501, fill: '#13B8B5' },
-    { name: 'Foreclosure', count: 8178, fill: '#8b5cf6' },
-    { name: 'Certificate', count: 2436, fill: '#ec4899' },
-    { name: 'Other', count: 39, fill: '#10b981' }
-  ], []);
+  const barData = useMemo(() => [
+    { name: 'Deeds', count: stats.deed, fill: '#0D8BFF' },
+    { name: 'Foreclosures', count: stats.foreclosure, fill: '#13B8B5' },
+    { name: 'Liens', count: stats.lien, fill: '#8b5cf6' },
+  ], [stats]);
 
-  // Market Trend quarterly opportunities Area Graph data
-  const marketTrendData = useMemo(() => [
-    { quarter: '0', opportunities: 200 },
-    { quarter: 'Q1:21', opportunities: 380 },
-    { quarter: 'Q2:22', opportunities: 580 },
-    { quarter: 'Q3:22', opportunities: 510 },
-    { quarter: 'Q4:23', opportunities: 740 },
-    { quarter: 'Q4:34', opportunities: 1100 },
+  const trendsData = useMemo(() => [
+    { quarter: 'Q1:21', opportunities: 420 },
+    { quarter: 'Q2:22', opportunities: 480 },
+    { quarter: 'Q3:23', opportunities: 510 },
+    { quarter: 'Q4:24', opportunities: 590 },
+    { quarter: 'Q1:34', opportunities: 650 },
+    { quarter: 'Q2:34', opportunities: 720 },
+    { quarter: 'Q3:34', opportunities: 780 },
+    { quarter: 'Q4:34', opportunities: 840 },
   ], []);
 
   // Featured Property spotlight selection
@@ -677,808 +734,776 @@ const ClientDashboard: React.FC = () => {
     return list[0] || null;
   }, [filteredDeals, suggestedDeals]);
 
-  // Florida County Outline SVG Nodes and coordinates mapping
-  const floridaCounties = useMemo(() => [
-    { 
-      name: 'Miami-Dade', 
-      opportunities: 554, 
-      trend: '+15%', 
-      color: '#0D8BFF',
-      path: 'M 255,270 L 290,270 L 285,320 L 250,320 Z',
-      cx: 270,
-      cy: 295
-    },
-    { 
-      name: 'Broward', 
-      opportunities: 360, 
-      trend: '+12%', 
-      color: '#13B8B5',
-      path: 'M 220,180 L 255,180 L 255,215 L 220,215 Z',
-      cx: 237,
-      cy: 197
-    },
-    { 
-      name: 'Volusia', 
-      opportunities: 107, 
-      trend: '+8%', 
-      color: '#10B981',
-      path: 'M 220,215 L 255,215 L 250,245 L 215,245 Z',
-      cx: 235,
-      cy: 230
-    },
-    { 
-      name: 'Hillsborough', 
-      opportunities: 322, 
-      trend: '+14%', 
-      color: '#8b5cf6',
-      path: 'M 180,190 L 220,190 L 215,225 L 175,225 Z',
-      cx: 198,
-      cy: 207
-    },
-    { 
-      name: 'Duval', 
-      opportunities: 199, 
-      trend: '+6%', 
-      color: '#0D8BFF',
-      path: 'M 220,120 L 260,120 L 255,160 L 215,160 Z',
-      cx: 238,
-      cy: 140
-    },
-    { 
-      name: 'Palm Beach', 
-      opportunities: 448, 
-      trend: '+11%', 
-      color: '#13B8B5',
-      path: 'M 250,245 L 285,245 L 280,270 L 245,270 Z',
-      cx: 265,
-      cy: 257
-    }
-  ], []);
-
-  // Filtered counties by search box
-  const filteredMapCounties = useMemo(() => {
-    if (!mapSearchQuery.trim()) return floridaCounties;
-    return floridaCounties.filter(c => c.name.toLowerCase().includes(mapSearchQuery.toLowerCase()));
-  }, [floridaCounties, mapSearchQuery]);
-
-  // Bottom table mocks matching "Florida Tax Deed Opportunities Increased 18%"
-  const highPotentialCounties = [
-    { name: 'Miami-Dade', value: '554' },
-    { name: 'Palm Beach', value: '448' },
-    { name: 'Broward', value: '360' },
-    { name: 'Hillsborough', value: '322' },
-    { name: 'Marion', value: '251' },
-    { name: 'Escambia', value: '209' },
-    { name: 'Duval', value: '199' },
-    { name: 'Polk', value: '193' }
-  ];
-
-  const largeDistressedAssets = [
-    { name: 'Miami-Dade Valuation', value: '$458,592,452' },
-    { name: 'Broward Valuation', value: '$184,595,940' },
-    { name: 'Palm Beach Valuation', value: '$170,132,876' },
-    { name: 'Hillsborough Valuation', value: '$105,734,584' },
-    { name: 'Lee Valuation', value: '$103,871,706' },
-    { name: 'Orange Valuation', value: '$59,086,054' },
-    { name: 'Duval Valuation', value: '$56,527,049' },
-    { name: 'Polk Valuation', value: '$46,461,007' }
-  ];
-
   return (
-    <div className="min-h-screen bg-[#080B11] flex flex-col transition-colors duration-300">
+    <div className="p-4 sm:p-6 w-full space-y-6 px-4 sm:px-8 lg:px-12 relative min-h-screen bg-[#080B11] bg-mesh-premium transition-colors duration-300">
       
-      {/* ─── 1. TOP BRANDING CAMPAIGN HEADER BANNER (mockup style) ─── */}
-      <header id="tour-welcome-header" className="bg-white border-b border-slate-200 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 select-none">
-        <div className="flex items-center gap-4">
-          
-          {/* Glowing premium badge container */}
-          <div className="flex items-center gap-3">
-            <div className="size-11 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 p-0.5 shadow-md flex items-center justify-center">
-              <div className="size-full bg-slate-950 rounded-[10px] flex items-center justify-center">
-                <svg className="w-6 h-6 text-[#0D8BFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
-                  <polyline points="9 22 9 12 15 12 15 22" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M17 14l-5-5-5 5" stroke="#13B8B5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </div>
+      {/* Welcome Modal overlay */}
+      {showWelcomeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center border border-slate-100 dark:border-slate-700 animate-in fade-in zoom-in duration-300">
+            <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <span className="material-symbols-outlined text-4xl text-blue-600 dark:text-blue-400">celebration</span>
             </div>
-            
-            <h1 className="text-2xl font-black text-slate-800 tracking-tight font-sans">
-              GOAUCT
-            </h1>
-          </div>
-
-          {/* Vertical line divider */}
-          <div className="hidden sm:block h-8 w-[1.5px] bg-slate-300" />
-
-          {/* Title Headline overlay */}
-          <div className="text-center sm:text-left">
-            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight leading-tight">
-              Florida Tax Deed Opportunities <span className="text-[#0D8BFF] font-black">Increased 18%</span>
-            </h2>
-          </div>
-        </div>
-
-        {/* Console Operator tag */}
-        <div className="flex items-center gap-3">
-          <div className="text-right hidden md:block">
-            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Operator Console</span>
-            <span className="text-xs font-bold text-slate-600 mt-0.5">Welcome back, {userName}</span>
-          </div>
-          <button 
-            onClick={() => startTour()}
-            className="text-[10px] font-black text-[#0D8BFF] border border-[#0D8BFF]/30 hover:bg-[#0D8BFF]/5 px-3 py-1.5 rounded-lg uppercase tracking-wider transition-colors"
-          >
-            Launch System Tour
-          </button>
-        </div>
-      </header>
-
-      {/* ─── MAIN DASHBOARD INTERACTIVE DESKTOP CARD VIEW ─── */}
-      <main className="flex-1 p-4 sm:p-6 lg:p-8 flex gap-6 max-w-[1600px] w-full mx-auto">
-        
-        {/* Left vertical navigation bar (Bloomberg / Palantir tablet device style) */}
-        <aside className="w-16 bg-[#0E131F] border border-slate-850 rounded-2xl py-6 flex flex-col items-center justify-between shadow-xl shrink-0 hidden sm:flex">
-          <div className="flex flex-col items-center gap-6 w-full">
-            
-            {/* System brand trigger */}
-            <div className="size-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-[#13B8B5] cursor-pointer hover:border-[#13B8B5]/50 transition-colors">
-              <span className="material-symbols-outlined text-[20px]">terminal</span>
-            </div>
-
-            {/* Sidebar path options */}
-            <nav className="flex flex-col items-center gap-4 w-full">
-              <button 
-                onClick={() => navigate('/client')} 
-                title="Dashboard Console"
-                className="size-10 rounded-xl flex items-center justify-center text-[#0D8BFF] bg-[#0D8BFF]/10 border border-[#0D8BFF]/20"
-              >
-                <span className="material-symbols-outlined text-[20px]">dashboard</span>
-              </button>
-
-              <button 
-                onClick={() => navigate('/client/lists')} 
-                title="My Watchlists"
-                className="size-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-850/40 transition-all"
-              >
-                <span className="material-symbols-outlined text-[20px]">format_list_bulleted</span>
-              </button>
-
-              <button 
-                onClick={() => navigate('/client/properties')} 
-                title="Property Search"
-                className="size-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-850/40 transition-all"
-              >
-                <span className="material-symbols-outlined text-[20px]">analytics</span>
-              </button>
-
-              <button 
-                onClick={() => navigate('/client/tasks')} 
-                title="Field Missions"
-                className="size-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-850/40 transition-all"
-              >
-                <span className="material-symbols-outlined text-[20px]">pin_drop</span>
-              </button>
-            </nav>
-          </div>
-
-          {/* Bottom Settings indicator */}
-          <div className="flex flex-col items-center gap-4 w-full">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Welcome to GoAuct!</h2>
+            <p className="text-slate-600 dark:text-slate-400 mb-8">
+              Your investor account is ready. You're currently on the Trial plan. You can explore upcoming auctions, search for properties, and build your lists. Let's get started!
+            </p>
             <button 
-              onClick={() => navigate('/client/password')} 
-              title="Account Security"
-              className="size-10 rounded-xl flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-850/40 transition-all"
+              onClick={() => {
+                setShowWelcomeModal(false);
+                setSearchParams({});
+              }} 
+              className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
             >
-              <span className="material-symbols-outlined text-[20px]">settings</span>
+              Start Exploring
             </button>
+          </div>
+        </div>
+      )}
 
-            <div className="w-8 h-8 rounded-full bg-[#0D8BFF] text-white flex items-center justify-center font-bold text-xs shadow-md shadow-blue-500/20">
-              {userName.charAt(0)}
+      {/* Redesigned Premium Header Banner */}
+      <div id="tour-welcome-header" className="flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-4 border-b border-slate-200/50 dark:border-slate-800/40">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="h-2 w-2 rounded-full bg-[#13B8B5] animate-ping" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#13B8B5] font-mono">Operations Active // US Core Registry</span>
+          </div>
+          <h1 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+            Multi-County Acquisition Infrastructure
+          </h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Centralize distressed property intelligence across the United States.
+          </p>
+        </div>
+
+        {/* Powered By GoAuct widget */}
+        <div className="flex items-center gap-4 shrink-0">
+          <div className="text-right hidden sm:block">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Operator Console</p>
+            <p className="text-xs font-mono text-[#0D8BFF] font-bold mt-0.5">Welcome back, {userName}</p>
+          </div>
+
+          <div className="p-3 bg-white dark:bg-[#0F131C] border border-slate-200 dark:border-slate-850 rounded-2xl flex items-center gap-3 shadow-lg hover:border-[#0D8BFF]/40 transition-colors relative group">
+            <div className="absolute inset-0 bg-[#0D8BFF]/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="text-left relative z-10">
+              <span className="text-[8px] font-black text-slate-400 uppercase tracking-wider block">System Engine</span>
+              <span className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-widest font-mono">POWERED BY</span>
+            </div>
+            <div className="size-9 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-center relative z-10 shrink-0">
+              {/* Glowing SVG GoAuct Icon */}
+              <svg className="w-5 h-5 text-[#0D8BFF]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" strokeLinecap="round" strokeLinejoin="round" />
+                <polyline points="9 22 9 12 15 12 15 22" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M12 2v20" stroke="rgba(19,184,181,0.3)" strokeDasharray="2 2" />
+                <path d="M17 14l-5-5-5 5" stroke="#13B8B5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
             </div>
           </div>
-        </aside>
+        </div>
+      </div>
 
-        {/* 3-Column main interactive body layout */}
-        <div className="flex-1 flex flex-col gap-6 overflow-hidden">
-
-          {/* Announcements & Dynamic Welcome Modal overlays */}
-          {showWelcomeModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs">
-              <div className="bg-[#0F131C] border border-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center animate-in fade-in zoom-in duration-300">
-                <div className="w-20 h-20 bg-blue-900/40 border border-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="material-symbols-outlined text-4xl text-[#0D8BFF]">celebration</span>
-                </div>
-                <h2 className="text-2xl font-black text-white mb-2">Welcome to GoAuct!</h2>
-                <p className="text-slate-400 text-sm mb-8 leading-relaxed">
-                  Your distressed real estate investment operator account is ready. You are currently on the trial plan with Florida county intelligence enabled.
-                </p>
-                <button 
-                  onClick={() => {
-                    setShowWelcomeModal(false);
-                    setSearchParams({});
-                  }} 
-                  className="w-full py-3 bg-[#0D8BFF] hover:bg-blue-650 text-white font-extrabold rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
-                >
-                  Enter Operator Room
-                </button>
+      {/* System Announcements Rotator */}
+      <div id="tour-announcements">
+        {announcements.length > 0 ? (() => {
+          const ann = announcements[annIndex];
+          const typeMap: Record<string, {bg: string; icon: string; color: string}> = {
+            info:    { bg: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800',       icon: 'info',         color: 'text-blue-600 dark:text-blue-400' },
+            warning: { bg: 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800',   icon: 'warning',      color: 'text-amber-600 dark:text-amber-400' },
+            success: { bg: 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800', icon: 'check_circle', color: 'text-emerald-600 dark:text-emerald-400' },
+            update:  { bg: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800', icon: 'new_releases', color: 'text-purple-600 dark:text-purple-400' },
+          };
+          const cfg = typeMap[ann.type] || typeMap.info;
+          return (
+            <div className={`flex items-start gap-3 px-4 py-3 border rounded-xl transition-all duration-500 ${cfg.bg}`}>
+              <span className={`material-symbols-outlined text-[20px] mt-0.5 shrink-0 ${cfg.color}`}>{cfg.icon}</span>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-bold ${cfg.color}`}>{ann.title}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-300 mt-0.5 line-clamp-2">{ann.message}</p>
               </div>
-            </div>
-          )}
-
-          {/* Announcements system ticker */}
-          {announcements.length > 0 && (
-            <div id="tour-announcements" className="bg-[#0F131C]/60 border border-slate-850 rounded-xl px-4 py-2.5 flex items-center gap-3">
-              <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">campaign</span>
-              <div className="flex-1 min-w-0 font-mono text-[10px] text-slate-350 flex items-center justify-between">
-                <p className="truncate">
-                  <strong className="text-white uppercase mr-1.5">// SYSTEM RECORD:</strong>
-                  {announcements[annIndex].title} — {announcements[annIndex].message}
-                </p>
-                <div className="flex items-center gap-1 shrink-0 ml-2">
+              {announcements.length > 1 && (
+                <div className="shrink-0 flex items-center gap-1.5 mt-1">
                   {announcements.map((_, i) => (
-                    <button 
-                      key={i} 
-                      onClick={() => setAnnIndex(i)}
-                      className={`h-1.5 rounded-full transition-all ${i === annIndex ? 'w-3.5 bg-[#13B8B5]' : 'w-1.5 bg-slate-700'}`}
+                    <button key={i} onClick={() => setAnnIndex(i)}
+                      className={`h-1.5 rounded-full transition-all ${i === annIndex ? 'w-4 bg-current' : 'w-1.5 bg-slate-300 dark:bg-slate-650'}`}
                     />
                   ))}
                 </div>
-              </div>
+              )}
             </div>
-          )}
+          );
+        })() : (
+          <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-xl">
+            <span className="material-symbols-outlined text-blue-500 mt-0.5">campaign</span>
+            <div>
+              <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">System Announcements</p>
+              <p className="text-sm text-blue-600 dark:text-blue-400 mt-0.5">No active announcements at this time.</p>
+            </div>
+          </div>
+        )}
+      </div>
 
-          {/* Primary 3-Column Grid Layout */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            
-            {/* ─── LEFT COLUMN (col-span-3) ─── */}
-            <div className="lg:col-span-3 space-y-6 flex flex-col justify-between">
-              
-              {/* 1. Tax Deed Analytics Chart Card */}
-              <div className="bg-[#0F131C] border border-slate-850 rounded-2xl p-5 shadow-xl flex flex-col space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xs font-black text-white uppercase tracking-widest font-sans">
-                      Tax Deed Analytics
-                    </h3>
-                    <div className="flex items-center gap-3 mt-1.5 text-[9px] font-mono">
-                      <span className="flex items-center gap-1 text-[#0D8BFF]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#0D8BFF]" />
-                        Lien Value Trends
-                      </span>
-                      <span className="flex items-center gap-1 text-[#13B8B5]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#13B8B5]" />
-                        Bid-to-Value ratio
-                      </span>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-slate-550 text-base cursor-pointer hover:text-white">more_horiz</span>
+      {/* Personalization Banner */}
+      {isPersonalized && myListsPreferences && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">
+          <span className="material-symbols-outlined text-blue-500 text-[20px]">auto_awesome</span>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+              Personalized for your portfolio
+            </p>
+            <p className="text-xs text-blue-600 dark:text-blue-400 mt-0.5">
+              Showing market data for <strong>{myListsPreferences.states.join(', ')}</strong> based on your {myListsPreferences.total} saved properties.
+            </p>
+          </div>
+          <button
+            onClick={() => { setSelectedState(''); setIsPersonalized(false); }}
+            className="text-[10px] font-bold text-blue-500 hover:text-blue-700 bg-blue-100 dark:bg-blue-900/50 px-2 py-1 rounded-lg"
+          >
+            Reset to Global
+          </button>
+        </div>
+      )}
+
+      {/* Quick Actions */}
+      <QuickActions />
+
+      {/* ─── 3-Column Desktop Grid Layout ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* LEFT COLUMN: Portfolio Status & Foreclosure Analytics (col-span-3) */}
+        <div className="lg:col-span-3 space-y-6 flex flex-col">
+          
+          {/* 1. Portfolio Status Panel */}
+          <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
+            <div>
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#0D8BFF] text-[18px]">folder_special</span>
+                  Portfolio Status
+                </h3>
+                <span className="text-[8px] font-black text-[#13B8B5] font-mono tracking-widest bg-[#13B8B5]/10 px-1.5 py-0.5 rounded">Active</span>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1">Operational asset tracking & values</p>
+            </div>
+
+            {/* Asset Telemetry Stats */}
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between p-2.5 bg-slate-50/50 dark:bg-[#0f1626]/40 border border-slate-100 dark:border-slate-800/60 rounded-xl">
+                <div>
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">A-Grade Assets</span>
+                  <span className="text-lg font-black text-slate-900 dark:text-white">27</span>
                 </div>
-
-                {/* Dual-axis Recharts telemetry */}
-                <div className="h-36 w-full relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={taxDeedAnalyticsData} margin={{ top: 10, right: -5, left: -25, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="lienValGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#0D8BFF" stopOpacity={0.25}/>
-                          <stop offset="95%" stopColor="#0D8BFF" stopOpacity={0.0}/>
-                        </linearGradient>
-                        <linearGradient id="bidToValGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#13B8B5" stopOpacity={0.15}/>
-                          <stop offset="95%" stopColor="#13B8B5" stopOpacity={0.0}/>
-                        </linearGradient>
-                      </defs>
-                      <XAxis 
-                        dataKey="name" 
-                        stroke="#475569" 
-                        fontSize={8} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        dy={6}
-                      />
-                      <YAxis 
-                        stroke="#475569" 
-                        fontSize={8} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        domain={[0, 5000]}
-                      />
-                      <RechartsTooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#0F131C', 
-                          border: '1px solid #1e293b', 
-                          borderRadius: '8px',
-                          fontSize: '9px',
-                          color: '#fff',
-                          fontFamily: 'monospace'
-                        }} 
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="lienValue" 
-                        stroke="#0D8BFF" 
-                        strokeWidth={2} 
-                        fillOpacity={1} 
-                        fill="url(#lienValGrad)" 
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="bidToValue" 
-                        stroke="#13B8B5" 
-                        strokeWidth={1.5} 
-                        fillOpacity={1} 
-                        fill="url(#bidToValGrad)" 
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-
-                {/* Stat badges row */}
-                <div className="grid grid-cols-3 gap-2 pt-3.5 border-t border-slate-800/80 text-center font-mono">
-                  <div>
-                    <span className="text-[8px] text-slate-500 uppercase font-black tracking-wider block">Lien Value</span>
-                    <span className="text-xs font-black text-white mt-1 block">$499.32M</span>
-                  </div>
-                  <div className="border-x border-slate-850 px-1">
-                    <span className="text-[8px] text-slate-500 uppercase font-black tracking-wider block">Bid-to-Value</span>
-                    <span className="text-xs font-black text-[#13B8B5] mt-1 block">19.2%</span>
-                  </div>
-                  <div>
-                    <span className="text-[8px] text-slate-500 uppercase font-black tracking-wider block">Counties</span>
-                    <span className="text-xs font-black text-[#0D8BFF] mt-1 block">595</span>
-                  </div>
+                <div className="text-right">
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Value (M)</span>
+                  <span className="text-sm font-extrabold text-[#13B8B5]">$29.2M</span>
                 </div>
               </div>
 
-              {/* 2. Foreclosure Opportunity Indicators Chart Card */}
-              <div className="bg-[#0F131C] border border-slate-850 rounded-2xl p-5 shadow-xl flex flex-col space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xs font-black text-white uppercase tracking-widest font-sans">
-                      Foreclosure Opportunity Indicators
-                    </h3>
-                    <p className="text-[9px] text-[#13B8B5] font-mono mt-1">// Growth in other asset types</p>
-                  </div>
-                  <span className="material-symbols-outlined text-slate-550 text-base cursor-pointer hover:text-white">more_horiz</span>
+              <div className="flex items-center justify-between p-2.5 bg-slate-50/50 dark:bg-[#0f1626]/40 border border-slate-100 dark:border-slate-800/60 rounded-xl">
+                <div>
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">B-Grade Assets</span>
+                  <span className="text-lg font-black text-slate-900 dark:text-white">166</span>
                 </div>
+                <div className="text-right">
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Value (M)</span>
+                  <span className="text-sm font-extrabold text-[#0D8BFF]">$455.5M</span>
+                </div>
+              </div>
 
-                {/* Vertical bar telemetry */}
-                <div className="h-36 w-full relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={foreclosureBarData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-                      <XAxis 
-                        dataKey="name" 
-                        stroke="#475569" 
-                        fontSize={7} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        dy={6}
-                      />
-                      <YAxis 
-                        stroke="#475569" 
-                        fontSize={8} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        domain={[0, 1600]}
-                      />
-                      <RechartsTooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#0F131C', 
-                          border: '1px solid #1e293b', 
-                          borderRadius: '8px',
-                          fontSize: '9px',
-                          color: '#fff',
-                          fontFamily: 'monospace'
-                        }} 
-                      />
-                      <Bar dataKey="count" radius={[3, 3, 0, 0]}>
-                        {foreclosureBarData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
+              <div className="flex items-center justify-between p-2.5 bg-slate-50/50 dark:bg-[#0f1626]/40 border border-slate-100 dark:border-slate-800/60 rounded-xl">
+                <div>
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Assets</span>
+                  <span className="text-lg font-black text-slate-900 dark:text-white">243</span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Total Vol</span>
+                  <span className="text-sm font-extrabold text-purple-400">1,542</span>
                 </div>
               </div>
             </div>
 
-            {/* ─── MIDDLE COLUMN (col-span-6) ─── */}
-            <div className="lg:col-span-6 space-y-6 flex flex-col justify-between">
-              
-              {/* Overlay header caption text */}
-              <div className="space-y-1 p-1">
-                <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight leading-tight">
-                  Florida Tax Deed Opportunities <span className="text-[#0D8BFF]">Increased 18%</span>
-                </h2>
-                <p className="text-xs text-slate-400 font-sans">
-                  Operational intelligence for scalable distressed property acquisition.
-                </p>
-              </div>
-
-              {/* Volume of Tax Deed Opportunities Map Container */}
-              <div id="tour-yield-heatmap" className="bg-[#0F131C] border border-slate-850 rounded-2xl p-5 shadow-xl flex flex-col space-y-4 relative overflow-hidden flex-1 min-h-[460px]">
-                
-                {/* Control Ribbon (Mockup style) */}
-                <div className="flex flex-wrap items-center justify-between gap-3 z-10">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-black text-white tracking-wide">
-                      Volume of Tax deed Opportunities
-                    </span>
-                  </div>
-
-                  {/* Active filters overlay button menu */}
-                  <div className="flex items-center gap-2">
-                    
-                    {/* Integrated Search ribbon */}
-                    <div className="relative">
-                      <span className="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-500 text-xs">search</span>
-                      <input 
-                        type="text" 
-                        value={mapSearchQuery}
-                        onChange={(e) => setMapSearchQuery(e.target.value)}
-                        placeholder="Search County..." 
-                        className="pl-7 pr-3 py-1 bg-slate-950 border border-slate-800 rounded-lg text-[9px] font-mono text-white focus:outline-none focus:ring-1 focus:ring-[#0D8BFF] placeholder-slate-600 w-28 transition-all"
-                      />
-                    </div>
-
-                    <button className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[9px] font-mono text-slate-400 hover:text-white transition-colors">
-                      <span className="material-symbols-outlined text-[10px]">tune</span>
-                      Filters
-                    </button>
-
-                    <button className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg text-[9px] font-mono text-slate-400 hover:text-white transition-colors">
-                      Actions
-                      <span className="material-symbols-outlined text-[10px]">expand_more</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Stylized Vector SVG silhouette of the Florida Peninsula Heatmap */}
-                <div className="flex-1 bg-[#090D15] rounded-xl border border-slate-900 flex flex-col items-center justify-center relative overflow-hidden group min-h-[300px]">
-                  
-                  {/* Grid Lines HUD Overlay */}
-                  <div className="absolute inset-0 bg-grid-slate-900/50 opacity-40 pointer-events-none" />
-                  
-                  <div className="absolute top-3 left-4 font-mono text-[7px] text-[#0D8BFF] opacity-60 tracking-wider flex items-center gap-1.5">
-                    <span className="size-1.5 bg-[#0D8BFF] rounded-full animate-ping" />
-                    <span>GEO-HUD // CORE LOCK: FLORIDA HEATMAP</span>
-                  </div>
-                  
-                  <div className="absolute bottom-3 right-4 font-mono text-[7px] text-slate-500 opacity-60">
-                    SCALE LEVEL: METRO PORTFOLIO
-                  </div>
-
-                  {/* Florida interactive vector SVG path grid */}
-                  <svg className="w-full h-full max-h-[340px] p-6 relative z-10" viewBox="0 0 320 340" fill="none">
-                    
-                    {/* Tech radar rings */}
-                    <circle cx="210" cy="200" r="110" stroke="rgba(13, 139, 255, 0.02)" strokeWidth="1" strokeDasharray="3 3" />
-                    <circle cx="210" cy="200" r="60" stroke="rgba(19, 184, 181, 0.03)" strokeWidth="1" />
-
-                    {/* Base outline silhouette shadow background for Florida */}
-                    <path 
-                      d="M 30,120 L 150,120 L 150,150 L 175,180 L 215,220 L 245,280 L 275,340 L 290,320 L 285,270 L 255,200 L 230,120 L 220,120 L 150,120 Z" 
-                      fill="rgba(13, 139, 255, 0.015)" 
-                      stroke="rgba(13, 139, 255, 0.08)" 
-                      strokeWidth="2" 
-                      strokeDasharray="4 2" 
+            {/* Vertical Bar Chart (State-wise volume) */}
+            <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/80">
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 font-mono">State-wise Inventory Volume</span>
+              <div className="h-32 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={barData} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                    <XAxis dataKey="name" stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
+                    <YAxis stroke="#94a3b8" fontSize={8} tickLine={false} axisLine={false} />
+                    <RechartsTooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#0f172a', 
+                        border: '1px solid rgba(255,255,255,0.1)', 
+                        borderRadius: '8px',
+                        fontSize: '10px',
+                        color: '#fff'
+                      }} 
                     />
+                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                      {barData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
 
-                    {/* Interactive County regions grid map */}
-                    {filteredMapCounties.map((c) => {
-                      const isActive = selectedCounty === c.name;
-                      return (
-                        <g 
-                          key={c.name}
-                          onClick={() => {
-                            setSelectedCounty(c.name);
-                            if (c.name === 'Miami-Dade') setSelectedState('FL');
-                          }}
-                          onMouseEnter={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            const containerRect = e.currentTarget.ownerSVGElement?.getBoundingClientRect();
-                            setHoveredCounty({
-                              name: c.name,
-                              opportunities: c.opportunities,
-                              trend: c.trend,
-                              x: rect.left - (containerRect?.left || 0) + rect.width / 2,
-                              y: rect.top - (containerRect?.top || 0) - 10
-                            });
-                          }}
-                          onMouseLeave={() => setHoveredCounty(null)}
-                          className="cursor-pointer"
-                        >
-                          {/* Main county visual polygon path */}
-                          <path 
-                            d={c.path}
-                            fill={isActive ? 'rgba(19,184,181,0.2)' : 'rgba(13, 139, 255, 0.05)'}
-                            stroke={isActive ? '#13B8B5' : 'rgba(13, 139, 255, 0.2)'}
-                            strokeWidth={isActive ? 1.5 : 1}
-                            className="transition-all duration-300 hover:fill-blue-900/30 hover:stroke-[#0D8BFF]"
-                          />
+          {/* 2. Foreclosure Analytics Widget */}
+          <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
+            <div>
+              <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">trending_up</span>
+                Foreclosure Analytics
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Lien volume & filing performance trackers</p>
+            </div>
 
-                          {/* Radar pulsing node core */}
-                          <circle cx={c.cx} cy={c.cy} r="6" fill={`${c.color}20`} className="animate-ping" />
-                          <circle cx={c.cx} cy={c.cy} r="3" fill={c.color} />
-                        </g>
-                      );
-                    })}
-                  </svg>
+            {/* Indicator Range Bars */}
+            <div className="space-y-3 pt-1">
+              <div>
+                <div className="flex justify-between text-[9px] font-black text-slate-400 mb-1">
+                  <span>FILINGS</span>
+                  <span className="text-[#0D8BFF]">59 Active</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-600 to-[#0D8BFF] rounded-full" style={{ width: '65%' }} />
+                </div>
+              </div>
 
-                  {/* Floating tooltip */}
-                  {hoveredCounty && (
-                    <div 
-                      style={{ left: hoveredCounty.x, top: hoveredCounty.y }}
-                      className="absolute z-50 bg-[#0F131C] border border-slate-800 rounded-xl p-3 shadow-2xl pointer-events-none transform -translate-x-1/2 -translate-y-full flex flex-col gap-1 font-mono text-[9px] text-white select-none whitespace-nowrap"
-                    >
-                      <span className="font-extrabold text-[#0D8BFF] tracking-wide uppercase">{hoveredCounty.name}</span>
-                      <span className="text-slate-400">Opportunities: <strong className="text-white">{hoveredCounty.opportunities}</strong></span>
-                      <span className="text-slate-400">Trend: <strong className="text-[#13B8B5]">{hoveredCounty.trend}</strong></span>
+              <div>
+                <div className="flex justify-between text-[9px] font-black text-slate-400 mb-1">
+                  <span>DEFAULT RATE</span>
+                  <span className="text-[#13B8B5]">3.09%</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-teal-500 to-[#13B8B5] rounded-full" style={{ width: '45%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[9px] font-black text-slate-400 mb-1">
+                  <span>MARKET VOLUME</span>
+                  <span className="text-purple-400">3.60M</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-purple-600 to-purple-400 rounded-full" style={{ width: '80%' }} />
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-[9px] font-black text-slate-400 mb-1">
+                  <span>MARKET TRENDS</span>
+                  <span className="text-emerald-400">+3.56%</span>
+                </div>
+                <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full" style={{ width: '70%' }} />
+                </div>
+              </div>
+            </div>
+
+            {/* Sub-counters grid */}
+            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-200/50 dark:border-slate-800/80 text-center font-mono">
+              <div>
+                <span className="text-[14px] font-black text-slate-900 dark:text-white">233</span>
+                <span className="text-[7px] text-slate-500 uppercase font-bold block mt-0.5">FILINGS</span>
+              </div>
+              <div className="border-x border-slate-200/50 dark:border-slate-800/80 px-1">
+                <span className="text-[14px] font-black text-slate-900 dark:text-white">114</span>
+                <span className="text-[7px] text-slate-500 uppercase font-bold block mt-0.5">TOTALS</span>
+              </div>
+              <div>
+                <span className="text-[14px] font-black text-slate-900 dark:text-white">20</span>
+                <span className="text-[7px] text-slate-500 uppercase font-bold block mt-0.5">MARKETS</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. High-Potential Regions */}
+          <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
+            <div>
+              <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#0D8BFF] text-[18px]">public</span>
+                High-Potential Regions
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Average yield performance indicators</p>
+            </div>
+
+            <div className="space-y-2 max-h-48 overflow-y-auto pr-1 scrollbar-thin">
+              {stateStats.slice(0, 5).map((s) => {
+                const score = Math.round(s.average_score);
+                const ratingColor = score > 80 
+                  ? 'text-[#13B8B5]' 
+                  : score > 60 
+                    ? 'text-[#0D8BFF]' 
+                    : 'text-amber-500';
+                
+                return (
+                  <div key={s.state_code} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/50 dark:bg-[#0f1626]/30 border border-slate-100/50 dark:border-slate-800/40">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-black text-slate-800 dark:text-slate-200 bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                        {s.state_code.toUpperCase()}
+                      </span>
+                      <span className="text-[9px] text-slate-400 dark:text-slate-500 font-bold">
+                        {s.volume} Assets
+                      </span>
                     </div>
-                  )}
-                </div>
-
-                {/* Legend Scale */}
-                <div className="flex items-center justify-between text-[8px] font-mono text-slate-500 pt-2 border-t border-slate-900">
-                  <span>SCALE OPPORTUNITIES:</span>
-                  <div className="flex items-center gap-1">
-                    <span>0</span>
-                    <div className="w-24 h-1.5 rounded-full bg-gradient-to-r from-blue-950 to-[#0D8BFF]" />
-                    <span>4,000</span>
+                    <div className="text-right">
+                      <span className={`text-[10px] font-extrabold ${ratingColor}`}>
+                        {score}% Match
+                      </span>
+                    </div>
                   </div>
+                );
+              })}
+              {stateStats.length === 0 && (
+                <div className="text-center py-4 text-xs text-slate-450">
+                  No state intelligence available yet.
                 </div>
-              </div>
+              )}
             </div>
-
-            {/* ─── RIGHT COLUMN (col-span-3) ─── */}
-            <div className="lg:col-span-3 space-y-6 flex flex-col justify-between">
-              
-              {/* 1. Featured High-Potential Property Spotlight */}
-              <div className="bg-[#0F131C] border border-slate-850 rounded-2xl p-5 shadow-xl flex flex-col space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xs font-black text-white uppercase tracking-widest font-sans">
-                      Featured Spotlight
-                    </h3>
-                    <p className="text-[9px] text-slate-500 font-mono mt-1">// High-potential distressed asset</p>
-                  </div>
-                  <span className="material-symbols-outlined text-[#13B8B5] text-base cursor-pointer hover:text-white animate-pulse">verified</span>
-                </div>
-
-                {/* Property Rendering preview */}
-                <div className="relative h-28 w-full rounded-xl overflow-hidden border border-slate-800">
-                  <img 
-                    src="https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80" 
-                    alt="Premium distressed skyscraper rendering"
-                    className="size-full object-cover brightness-[0.75]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent" />
-                  <span className="absolute bottom-2 left-2.5 text-[9px] font-extrabold text-white bg-slate-950/60 px-2 py-0.5 rounded backdrop-blur-xs font-mono">
-                    101 Bayshore Drive, Miami, FL
-                  </span>
-                </div>
-
-                {/* High contrast value indicators */}
-                <div className="grid grid-cols-2 gap-2 text-center font-mono">
-                  <div className="p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                    <span className="text-[7px] text-slate-500 uppercase font-black block">Est. Market Value</span>
-                    <span className="text-xs font-black text-white mt-0.5 block">$353.7M</span>
-                  </div>
-                  <div className="p-2 bg-slate-900 border border-slate-800 rounded-xl">
-                    <span className="text-[7px] text-slate-500 uppercase font-black block">Est. Bid Price</span>
-                    <span className="text-xs font-black text-[#13B8B5] mt-0.5 block">$1,200</span>
-                  </div>
-                </div>
-
-                {/* Specs grids */}
-                <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 pt-2.5 border-t border-slate-900 text-[8px] font-mono text-slate-400">
-                  <div className="flex justify-between border-b border-slate-900 py-0.5">
-                    <span>Address:</span>
-                    <span className="text-white font-extrabold truncate max-w-[70px]">Miami-Dade, FL</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-900 py-0.5">
-                    <span>Bid Price:</span>
-                    <span className="text-[#13B8B5] font-extrabold">$1,200</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-900 py-0.5">
-                    <span>Market Value:</span>
-                    <span className="text-white font-extrabold">$353,700,000</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-900 py-0.5">
-                    <span>Property Count:</span>
-                    <span className="text-white font-extrabold">1,450</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-900 py-0.5">
-                    <span>Market Valia:</span>
-                    <span className="text-white font-extrabold">$353.7M</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-900 py-0.5">
-                    <span>Property Utnes:</span>
-                    <span className="text-white font-extrabold">Commercial</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-900 py-0.5">
-                    <span>Property Reoes:</span>
-                    <span className="text-white font-extrabold">Active</span>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-900 py-0.5">
-                    <span>Bid Count:</span>
-                    <span className="text-white font-extrabold">134</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. Market Trend Charts Card */}
-              <div className="bg-[#0F131C] border border-slate-850 rounded-2xl p-5 shadow-xl flex flex-col space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-xs font-black text-white uppercase tracking-widest font-sans">
-                      Market Trend Charts
-                    </h3>
-                    <p className="text-[9px] text-[#13B8B5] font-mono mt-1">// Opportunity growth - 18% quarterly</p>
-                  </div>
-                  <span className="material-symbols-outlined text-slate-550 text-base cursor-pointer hover:text-white">more_horiz</span>
-                </div>
-
-                {/* Glowing area graph */}
-                <div className="h-32 w-full relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={marketTrendData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="marketTrendGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#13B8B5" stopOpacity={0.25}/>
-                          <stop offset="95%" stopColor="#13B8B5" stopOpacity={0.0}/>
-                        </linearGradient>
-                      </defs>
-                      <XAxis 
-                        dataKey="quarter" 
-                        stroke="#475569" 
-                        fontSize={7} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        dy={6}
-                      />
-                      <YAxis 
-                        stroke="#475569" 
-                        fontSize={8} 
-                        tickLine={false} 
-                        axisLine={false} 
-                        domain={[0, 1200]}
-                      />
-                      <RechartsTooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#0F131C', 
-                          border: '1px solid #1e293b', 
-                          borderRadius: '8px',
-                          fontSize: '9px',
-                          color: '#fff',
-                          fontFamily: 'monospace'
-                        }} 
-                      />
-                      <Area 
-                        type="monotone" 
-                        dataKey="opportunities" 
-                        stroke="#13B8B5" 
-                        strokeWidth={2} 
-                        fillOpacity={1} 
-                        fill="url(#marketTrendGrad)" 
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-            </div>
-
           </div>
-
-          {/* ─── BOTTOM ROW: PROPERTY INTELLIGENCE DASHBOARD TABLES (Span 2 layout) ─── */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#0F131C] border border-slate-850 p-5 rounded-2xl shadow-xl">
-            
-            {/* Left Table - High-Potential Counties */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-                <span className="material-symbols-outlined text-[#0D8BFF] text-base">analytics</span>
-                <span className="text-xs font-black text-white uppercase tracking-wider font-sans">High-Potential Counties</span>
-              </div>
-              <div className="overflow-x-auto rounded-xl border border-slate-900 bg-slate-950/40">
-                <table className="w-full text-left font-mono text-[9px] text-slate-300">
-                  <thead>
-                    <tr className="bg-slate-900/60 text-slate-500 uppercase tracking-widest border-b border-slate-900">
-                      <th className="p-2.5">County Name</th>
-                      <th className="p-2.5 text-right">Opportunities Indexed</th>
-                      <th className="p-2.5 text-right">Operational Status</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-900">
-                    {highPotentialCounties.map((county, idx) => (
-                      <tr key={idx} className="hover:bg-slate-900/40 transition-colors">
-                        <td className="p-2.5 font-bold text-white">{county.name}</td>
-                        <td className="p-2.5 text-right text-[#0D8BFF] font-extrabold">{county.value}</td>
-                        <td className="p-2.5 text-right"><span className="text-[#13B8B5] bg-[#13B8B5]/5 px-1.5 py-0.5 rounded font-black text-[7px] border border-[#13B8B5]/10">GEO-LOCK ACTIVE</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Right Table - Large Distressed Assets */}
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
-                <span className="material-symbols-outlined text-[#13B8B5] text-base">dashboard_customize</span>
-                <span className="text-xs font-black text-white uppercase tracking-wider font-sans">Large Distressed Assets</span>
-              </div>
-              <div className="overflow-x-auto rounded-xl border border-slate-900 bg-slate-950/40">
-                <table className="w-full text-left font-mono text-[9px] text-slate-330">
-                  <thead>
-                    <tr className="bg-slate-900/60 text-slate-500 uppercase tracking-widest border-b border-slate-900">
-                      <th className="p-2.5">Asset Classification</th>
-                      <th className="p-2.5 text-right">Volume Capacity</th>
-                      <th className="p-2.5 text-right">Compliance Risk</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-900">
-                    {largeDistressedAssets.map((asset, idx) => (
-                      <tr key={idx} className="hover:bg-slate-900/40 transition-colors">
-                        <td className="p-2.5 font-bold text-white">{asset.name}</td>
-                        <td className="p-2.5 text-right text-[#13B8B5] font-extrabold">{asset.value}</td>
-                        <td className="p-2.5 text-right"><span className="text-[#0D8BFF] bg-[#0D8BFF]/5 px-1.5 py-0.5 rounded font-black text-[7px] border border-[#0D8BFF]/10">0.05% LOW RISK</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-          </div>
-
-          {/* ─── Carousel Slider & Custom Subcomponents Below standard grids ─── */}
-          <div id="tour-suggested-deals" className="w-full">
-            <SuggestedDeals
-              properties={filteredDeals.length > 0 ? filteredDeals : suggestedDeals}
-              loading={loading || dealsLoading}
-              stateFilter={selectedState}
-              onStateChange={(s) => setSelectedState(s)}
-            />
-          </div>
-
-          {/* Top Auctions Sections */}
-          <div className="space-y-6 pt-2">
-            <TopAuctions type="deed" allAuctions={typeAuctions.deed} loading={loading} />
-            <TopAuctions type="foreclosure" allAuctions={typeAuctions.foreclosure} loading={loading} />
-            <TopAuctions type="lien" allAuctions={typeAuctions.lien} loading={loading} />
-          </div>
-
-          {/* Sleek Modern Auction Search registry query panel */}
-          <AuctionSearch />
-
-          {/* ─── SLEEK BOTTOM UTILITY BAR ─── */}
-          <footer className="bg-[#0E131F] border border-slate-850 rounded-2xl px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 shadow-xl select-none font-mono text-[10px] text-slate-400">
-            <div className="flex items-center gap-3">
-              <span className="flex items-center gap-1.5 text-emerald-500 font-bold">
-                <span className="size-2 bg-emerald-500 rounded-full animate-ping" />
-                Data feed active
-              </span>
-              <span className="text-slate-600">|</span>
-              <span>Syncing feed: <strong className="text-white">10% latency</strong></span>
-            </div>
-
-            <div className="flex items-center gap-5">
-              <span>Status: <strong className="text-white">"User current browsers"</strong></span>
-              <span className="text-slate-600">|</span>
-              <div className="flex items-center gap-1.5">
-                <span>Active Cycle:</span>
-                <select className="bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-white font-bold focus:outline-none">
-                  <option>Q4 2026</option>
-                  <option>Q1 2027</option>
-                </select>
-              </div>
-            </div>
-          </footer>
-
         </div>
 
-      </main>
+        {/* CENTER COLUMN: Interactive US Operations Map & Pipelines (col-span-5) */}
+        <div className="lg:col-span-5 space-y-6 flex flex-col">
+          
+          {/* 1. US Operations Map Widget */}
+          <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4 relative overflow-hidden" style={{ minHeight: '440px' }}>
+            <div className="flex items-center justify-between z-10">
+              <div>
+                <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">satellite_alt</span>
+                  US Operations Map
+                </h3>
+                <span className="text-[8px] font-bold text-[#13B8B5] font-mono tracking-widest mt-1 block">
+                  QUERY ID: <span className="text-slate-300">GA-MC-773</span> // SYSTEM: ACTIVE
+                </span>
+              </div>
 
+              {/* State drop-down selector built matching mockup design */}
+              <select
+                value={selectedState}
+                onChange={(e) => setSelectedState(e.target.value)}
+                className="text-[10px] font-bold px-2 py-1 bg-slate-900/60 border border-slate-800 rounded-lg text-slate-350 focus:outline-none focus:ring-1 focus:ring-[#0D8BFF]"
+              >
+                <option value="">🇺🇸 Global Operations</option>
+                {stateStats.map(s => (
+                  <option key={s.state_code} value={s.state_code}>
+                    {s.state_code.toUpperCase()} ({s.volume})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* US SVG Map overlay layout */}
+            <div className="flex-1 min-h-[220px] bg-[#070b12] rounded-2xl border border-slate-900 flex flex-col items-center justify-center relative overflow-hidden group">
+              
+              {/* Monospace overlay HUD grid */}
+              <div className="absolute top-2 left-3 font-mono text-[7px] text-[#0D8BFF] opacity-60 tracking-wider flex items-center gap-1.5">
+                <span className="size-1 bg-[#0D8BFF] rounded-full animate-ping" />
+                <span>GEO-LOCK: [FL, TX, CA, PA, OH, NY]</span>
+              </div>
+              <div className="absolute bottom-2 right-3 font-mono text-[7px] text-slate-500 opacity-60">
+                LAT: 28.5383° // LON: -81.3792°
+              </div>
+              <div className="absolute bottom-2 left-3 font-mono text-[7px] text-[#13B8B5] opacity-60">
+                LATENCY: 12ms // STABILITY: 99.8%
+              </div>
+
+              {/* Breathtaking stylized SVG outline map of USA with county nodes and connecting links */}
+              <svg className="w-full h-full p-4" viewBox="0 0 600 320" fill="none">
+                {/* Tech Radar Sweeper Circles */}
+                <circle cx="300" cy="160" r="140" stroke="rgba(19, 184, 181, 0.03)" strokeWidth="1" strokeDasharray="3 3" />
+                <circle cx="300" cy="160" r="90" stroke="rgba(13, 139, 255, 0.03)" strokeWidth="1" />
+                <circle cx="300" cy="160" r="40" stroke="rgba(19, 184, 181, 0.05)" strokeWidth="1.5" />
+                
+                {/* Coordinate Crosshairs */}
+                <line x1="300" y1="0" x2="300" y2="320" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+                <line x1="0" y1="160" x2="600" y2="160" stroke="rgba(255,255,255,0.03)" strokeWidth="0.5" />
+
+                {/* Stylized US Outline path representation */}
+                <path 
+                  d="M 50 120 L 75 75 L 120 70 L 170 50 L 260 50 L 320 65 L 420 55 L 485 30 L 515 50 L 525 85 L 560 110 L 550 170 L 510 205 L 460 215 L 440 250 L 400 240 L 350 265 L 305 285 L 245 280 L 195 240 L 180 240 L 170 205 L 115 190 L 70 195 L 40 180 Z" 
+                  fill="rgba(13, 139, 255, 0.02)" 
+                  stroke="rgba(13, 139, 255, 0.15)" 
+                  strokeWidth="1.5" 
+                  strokeDasharray="4 2" 
+                />
+
+                {/* Regional highlighted state polygons (CA, TX, FL) */}
+                {/* CA Highlight */}
+                <path d="M 50 120 L 75 75 L 85 90 L 95 145 L 85 185 Z" fill="rgba(19, 184, 181, 0.06)" stroke="rgba(19, 184, 181, 0.3)" strokeWidth="1" />
+                {/* TX Highlight */}
+                <path d="M 215 190 L 260 190 L 285 245 L 245 280 L 210 235 Z" fill="rgba(19, 184, 181, 0.08)" stroke="rgba(19, 184, 181, 0.4)" strokeWidth="1" />
+                {/* FL Highlight */}
+                <path d="M 460 215 L 480 215 L 510 265 L 490 260 Z" fill="rgba(19, 184, 181, 0.1)" stroke="rgba(19, 184, 181, 0.5)" strokeWidth="1" />
+
+                {/* Dashed Connecting Line System simulating operational coordinate flows */}
+                <path d="M 75 130 L 240 220 L 485 240 L 460 115 L 400 95 L 370 115" stroke="rgba(19, 184, 181, 0.2)" strokeWidth="1.2" strokeDasharray="3 3" />
+                <path d="M 240 220 L 400 95 L 485 240" stroke="rgba(13, 139, 255, 0.15)" strokeWidth="1" strokeDasharray="1 3" />
+
+                {/* Glowing County/State Radar Nodes */}
+                {/* 1. CA Node */}
+                <circle cx="75" cy="130" r="14" fill="rgba(19,184,181,0.06)" className="animate-pulse" />
+                <circle cx="75" cy="130" r="8" fill="rgba(19,184,181,0.12)" />
+                <circle cx="75" cy="130" r="3.5" fill="#13B8B5" />
+                <text x="65" y="112" fill="#13B8B5" fontSize="7" fontFamily="monospace" fontWeight="bold">CA [LOCK]</text>
+
+                {/* 2. TX Node */}
+                <circle cx="240" cy="220" r="16" fill="rgba(19,184,181,0.06)" />
+                <circle cx="240" cy="220" r="9" fill="rgba(19,184,181,0.15)" />
+                <circle cx="240" cy="220" r="4" fill="#13B8B5" />
+                <text x="225" y="202" fill="#13B8B5" fontSize="7" fontFamily="monospace" fontWeight="bold">TX [ACTIVE]</text>
+
+                {/* 3. FL Node */}
+                <circle cx="485" cy="240" r="20" fill="rgba(13,139,255,0.08)" className="animate-pulse" />
+                <circle cx="485" cy="240" r="12" fill="rgba(19,184,181,0.2)" />
+                <circle cx="485" cy="240" r="5" fill="#13B8B5" />
+                <text x="470" y="222" fill="#13B8B5" fontSize="7" fontFamily="monospace" fontWeight="bold">FL [98% MATCH]</text>
+
+                {/* 4. NY Node */}
+                <circle cx="460" cy="115" r="12" fill="rgba(13,139,255,0.05)" />
+                <circle cx="460" cy="115" r="3" fill="#0D8BFF" />
+                <text x="450" y="100" fill="#0D8BFF" fontSize="7" fontFamily="monospace" fontWeight="bold">NY [SYNC]</text>
+
+                {/* 5. PA Node */}
+                <circle cx="400" cy="95" r="10" fill="rgba(13,139,255,0.05)" />
+                <circle cx="400" cy="95" r="3" fill="#0D8BFF" />
+                <text x="390" y="80" fill="#0D8BFF" fontSize="7" fontFamily="monospace" fontWeight="bold">PA</text>
+
+                {/* 6. OH Node */}
+                <circle cx="370" cy="115" r="10" fill="rgba(13,139,255,0.05)" />
+                <circle cx="370" cy="115" r="3" fill="#0D8BFF" />
+                <text x="360" y="132" fill="#0D8BFF" fontSize="7" fontFamily="monospace" fontWeight="bold">OH</text>
+              </svg>
+
+              {/* Active selected state radar crosshair overlay */}
+              {selectedState && (
+                <div className="absolute inset-0 bg-[#13B8B5]/5 border-2 border-[#13B8B5]/30 backdrop-blur-[0.5px] p-4 flex flex-col justify-end pointer-events-none animate-in fade-in duration-300">
+                  <div className="p-3 bg-slate-950/95 border border-[#13B8B5]/40 rounded-xl max-w-[240px] pointer-events-auto">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-[10px] font-black text-white uppercase tracking-widest">{selectedState.toUpperCase()} Core Intel</span>
+                      <span className="text-[7px] font-mono text-[#13B8B5] bg-[#13B8B5]/10 px-1 rounded">LOCKED</span>
+                    </div>
+                    {(() => {
+                      const stat = stateStats.find(s => s.state_code === selectedState);
+                      if (!stat) return <p className="text-[9px] text-slate-500">Querying registry...</p>;
+                      return (
+                        <div className="space-y-1 text-[9px] font-mono text-slate-400">
+                          <p>OPPORTUNITY MATCH: <span className="text-[#13B8B5] font-bold">{Math.round(stat.average_score)}%</span></p>
+                          <p>TOTAL INVENTORY: <span className="text-white font-bold">{stat.volume} Properties</span></p>
+                          <p>STATUS CODE: <span className="text-[#0D8BFF]">200 OK</span></p>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Tax Deed Intelligence / County Intel table */}
+            <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/80">
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 font-mono flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[#13B8B5] text-[14px]">grid_on</span>
+                Tax Deed Intelligence Registry
+              </span>
+              
+              <div className="overflow-x-auto rounded-lg border border-slate-200/40 dark:border-slate-800/60 bg-slate-50/30 dark:bg-[#070b12]/50 font-mono text-[8px] text-slate-350">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-100 dark:bg-slate-900/60 text-slate-450 uppercase font-black tracking-wider border-b border-slate-200/60 dark:border-slate-800/60">
+                      <th className="p-2">Lien Data</th>
+                      <th className="p-2 text-right">Tax History</th>
+                      <th className="p-2 text-right">Auction Date</th>
+                      <th className="p-2 text-right">Risk Score</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200/40 dark:divide-slate-800/40">
+                    <tr className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                      <td className="p-2 text-slate-200">#FL-ORL-2026</td>
+                      <td className="p-2 text-right text-[#13B8B5] font-extrabold">$163,337</td>
+                      <td className="p-2 text-right">May 24, 2026</td>
+                      <td className="p-2 text-right text-emerald-450">98% Match</td>
+                    </tr>
+                    <tr className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                      <td className="p-2 text-slate-200">#TX-HAR-2026</td>
+                      <td className="p-2 text-right text-[#13B8B5] font-extrabold">$8,355</td>
+                      <td className="p-2 text-right">Jun 02, 2026</td>
+                      <td className="p-2 text-right text-emerald-450">95% Match</td>
+                    </tr>
+                    <tr className="hover:bg-slate-100/50 dark:hover:bg-slate-900/30 transition-colors">
+                      <td className="p-2 text-slate-200">#CA-LA-2026</td>
+                      <td className="p-2 text-right text-[#13B8B5] font-extrabold">$38,565</td>
+                      <td className="p-2 text-right">Jun 14, 2026</td>
+                      <td className="p-2 text-right text-blue-450">84% Match</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Horizontal Acquisition Pipeline flowchart */}
+          <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
+            <div>
+              <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">account_tree</span>
+                Real Estate Acquisition Pipelines
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Multi-county operational workflow pipeline connections</p>
+            </div>
+
+            {/* Pipeline flowchart */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 bg-[#070b12] rounded-xl border border-slate-800/60 relative overflow-hidden">
+              
+              {/* Connecting pipeline line */}
+              <div className="absolute top-1/2 left-8 right-8 h-[1.5px] bg-gradient-to-r from-[#0D8BFF]/40 via-[#13B8B5]/40 to-emerald-500/40 -translate-y-1/2 hidden md:block" />
+
+              {/* Node 1 */}
+              <div className="flex flex-col items-center gap-1.5 relative z-10 w-full md:w-auto">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg group hover:border-[#0D8BFF]/50 transition-colors">
+                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#0D8BFF] text-base transition-colors">database</span>
+                </div>
+                <div className="text-center font-mono">
+                  <p className="text-[8px] font-black text-slate-200 uppercase tracking-wider">Data Intake</p>
+                  <span className="text-[6px] text-slate-500 uppercase font-bold">100% Sync</span>
+                </div>
+              </div>
+
+              <span className="material-symbols-outlined text-slate-700 text-sm rotate-90 md:rotate-0">arrow_forward</span>
+
+              {/* Node 2 */}
+              <div className="flex flex-col items-center gap-1.5 relative z-10 w-full md:w-auto">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg group hover:border-[#13B8B5]/50 transition-colors">
+                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#13B8B5] text-base transition-colors">document_scanner</span>
+                </div>
+                <div className="text-center font-mono">
+                  <p className="text-[8px] font-black text-slate-200 uppercase tracking-wider">Due Diligence</p>
+                  <span className="text-[6px] text-[#13B8B5] uppercase font-bold animate-pulse">Running</span>
+                </div>
+              </div>
+
+              <span className="material-symbols-outlined text-slate-700 text-sm rotate-90 md:rotate-0">arrow_forward</span>
+
+              {/* Node 3 */}
+              <div className="flex flex-col items-center gap-1.5 relative z-10 w-full md:w-auto">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center shadow-lg group hover:border-[#0D8BFF]/50 transition-colors">
+                  <span className="material-symbols-outlined text-slate-400 group-hover:text-[#0D8BFF] text-base transition-colors">memory</span>
+                </div>
+                <div className="text-center font-mono">
+                  <p className="text-[8px] font-black text-slate-200 uppercase tracking-wider">Bid Strategy</p>
+                  <span className="text-[6px] text-slate-500 uppercase font-bold">Ready</span>
+                </div>
+              </div>
+
+              <span className="material-symbols-outlined text-slate-700 text-sm rotate-90 md:rotate-0">arrow_forward</span>
+
+              {/* Node 4 */}
+              <div className="flex flex-col items-center gap-1.5 relative z-10 w-full md:w-auto">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 border border-[#10B981]/50 flex items-center justify-center shadow-lg relative group">
+                  <div className="absolute inset-0 bg-[#10B981]/10 blur-xs rounded-xl" />
+                  <span className="material-symbols-outlined text-[#10B981] text-base relative z-10">verified</span>
+                </div>
+                <div className="text-center font-mono">
+                  <p className="text-[8px] font-black text-slate-200 uppercase tracking-wider">Acquisition</p>
+                  <span className="text-[6px] text-[#10B981] uppercase font-bold">Target Locked</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT COLUMN: Field Operation Coordination & Search (col-span-4) */}
+        <div className="lg:col-span-4 space-y-6 flex flex-col">
+          
+          {/* 1. Field Operation Coordination */}
+          <div className="glass-card-premium p-5 rounded-2xl flex flex-col space-y-4">
+            <div>
+              <h3 className="text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span className="material-symbols-outlined text-[#13B8B5] text-[18px]">badge</span>
+                Field Operation Coordination
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">Geospatial verification & agent locking tracker</p>
+            </div>
+
+            {/* Agent Grid Tracker */}
+            <div className="space-y-3">
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block font-mono">On-site Agents Telemetry</span>
+              
+              <div className="grid grid-cols-2 gap-2 text-[9px] font-mono text-slate-350">
+                <div className="p-2.5 bg-slate-50/50 dark:bg-[#070b12]/50 border border-slate-200/40 dark:border-slate-800/60 rounded-xl flex flex-col justify-between h-20">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-200">Agent Alpha</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[8px]">LOC: Orlando, FL</p>
+                    <p className="text-[#13B8B5] text-[8px] font-bold mt-0.5">GEO-LOCK: SUCCESS</p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-slate-50/50 dark:bg-[#070b12]/50 border border-slate-200/40 dark:border-slate-800/60 rounded-xl flex flex-col justify-between h-20">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-200">Agent Beta</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[8px]">LOC: Houston, TX</p>
+                    <p className="text-[#13B8B5] text-[8px] font-bold mt-0.5">GEO-LOCK: SUCCESS</p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-slate-50/50 dark:bg-[#070b12]/50 border border-slate-200/40 dark:border-slate-800/60 rounded-xl flex flex-col justify-between h-20">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-200">Agent Gamma</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#0D8BFF] animate-pulse" />
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[8px]">LOC: Los Angeles, CA</p>
+                    <p className="text-[#0D8BFF] text-[8px] font-bold mt-0.5">IN TRANSIT</p>
+                  </div>
+                </div>
+
+                <div className="p-2.5 bg-slate-50/50 dark:bg-[#070b12]/50 border border-slate-200/40 dark:border-slate-800/60 rounded-xl flex flex-col justify-between h-20">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-[#94a3b8]">Agent Delta</span>
+                    <span className="h-1.5 w-1.5 rounded-full bg-slate-750" />
+                  </div>
+                  <div>
+                    <p className="text-slate-500 text-[8px]">LOC: Philadelphia, PA</p>
+                    <p className="text-slate-500 text-[8px] font-bold mt-0.5">STANDBY</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pending Inspections queue */}
+            <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/80">
+              <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 font-mono flex items-center justify-between">
+                <span>Pending Field Inspections</span>
+                <span className="text-[#13B8B5]">3 Queue</span>
+              </span>
+
+              <div className="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-thin">
+                <div className="flex items-center justify-between p-2 rounded-lg bg-[#070b12]/50 border border-slate-900 font-mono text-[8px]">
+                  <div>
+                    <p className="font-bold text-slate-200">#FL-440263-AP</p>
+                    <p className="text-slate-500 text-[7px] mt-0.5">Orange County, FL // Drive-by SOP</p>
+                  </div>
+                  <span className="text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded uppercase tracking-wider">Pending</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-lg bg-[#070b12]/50 border border-slate-900 font-mono text-[8px]">
+                  <div>
+                    <p className="font-bold text-slate-200">#TX-118490-DE</p>
+                    <p className="text-slate-500 text-[7px] mt-0.5">Harris County, TX // Photos required</p>
+                  </div>
+                  <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider">Scheduled</span>
+                </div>
+
+                <div className="flex items-center justify-between p-2 rounded-lg bg-[#070b12]/50 border border-slate-900 font-mono text-[8px]">
+                  <div>
+                    <p className="font-bold text-slate-200">#CA-889312-LA</p>
+                    <p className="text-slate-500 text-[7px] mt-0.5">Los Angeles, CA // Occupancy check</p>
+                  </div>
+                  <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider">Scheduled</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. Sleek and Modern Auction Search */}
+          <AuctionSearch />
+
+          {/* 3. Featured Property spotlight select / details */}
+          {featuredProperty ? (() => {
+            const score = calculateDealScore(featuredProperty);
+            const displayRating = (featuredProperty as any).deal_rating || score.rating;
+            const displayScore = (featuredProperty as any).deal_score ?? score.score;
+            const ratingColor = displayRating.startsWith('A') 
+              ? 'bg-emerald-500 shadow-emerald-500/20' 
+              : displayRating.startsWith('B') 
+                ? 'bg-blue-500 shadow-blue-500/20' 
+                : 'bg-amber-500 shadow-amber-500/20';
+
+            return (
+              <div 
+                onClick={() => navigate(`/client/properties/${featuredProperty.parcel_id || (featuredProperty as any).id}`)}
+                className="glass-card-premium p-5 rounded-2xl space-y-4 hover:border-[#0D8BFF]/40 cursor-pointer group hover:shadow-2xl/40 transition-all duration-300"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[8px] font-black text-[#13B8B5] bg-[#13B8B5]/10 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                      Featured Opportunity
+                    </span>
+                    <h3 className="text-sm font-bold text-slate-805 dark:text-white group-hover:text-[#0D8BFF] transition-colors mt-2 leading-tight truncate pr-1">
+                      {featuredProperty.address || featuredProperty.parcel_id}
+                    </h3>
+                    <p className="text-[9px] text-slate-400 uppercase tracking-widest font-black mt-0.5">
+                      {featuredProperty.county || 'Unknown County'}, {(featuredProperty as any).state || (featuredProperty as any).state_code}
+                    </p>
+                  </div>
+                  
+                  <div className={`size-12 shrink-0 rounded-xl flex flex-col items-center justify-center text-white font-black text-xs shadow-lg ${ratingColor} transform group-hover:scale-105 transition-transform duration-300`}>
+                    <span className="text-sm">{displayRating}</span>
+                    <span className="text-[8px] opacity-80">{Math.round(displayScore)}%</span>
+                  </div>
+                </div>
+
+                {/* Tabular Stripe-style Metrics Block */}
+                <div className="grid grid-cols-2 gap-y-3 gap-x-4 pt-2 border-t border-slate-200/50 dark:border-slate-800/80 text-xs font-medium">
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800/40">
+                    <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider text-[8px]">Market Value</span>
+                    <span className="text-slate-800 dark:text-slate-200 font-extrabold">
+                      {featuredProperty.assessed_value ? `$${Number(featuredProperty.assessed_value).toLocaleString()}` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800/40">
+                    <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider text-[8px]">Bid Price</span>
+                    <span className="text-[#13B8B5] font-extrabold">
+                      {featuredProperty.amount_due ? `$${Number(featuredProperty.amount_due).toLocaleString()}` : '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800/40">
+                    <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider text-[8px]">Acres</span>
+                    <span className="text-slate-800 dark:text-slate-200 font-extrabold">
+                      {featuredProperty.lot_acres ? Number(featuredProperty.lot_acres).toFixed(2) : '—'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800/40">
+                    <span className="text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider text-[8px]">Parcel ID</span>
+                    <span className="text-slate-850 dark:text-slate-350 font-bold font-mono text-[9px] truncate max-w-[80px]">
+                      {featuredProperty.parcel_id}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })() : (
+            <div className="glass-card-premium p-6 rounded-2xl text-center text-slate-400">
+              <span className="material-symbols-outlined text-4xl mb-2 text-slate-500">inventory_2</span>
+              <p className="text-sm font-bold">No featured properties found</p>
+            </div>
+          )}
+        </div>
+      </div>
+      {/* ─── Secondary Carousel Slider below the grid ─── */}
+      <div id="tour-suggested-deals" className="w-full">
+        <SuggestedDeals
+          properties={filteredDeals.length > 0 ? filteredDeals : suggestedDeals}
+          loading={loading || dealsLoading}
+          stateFilter={selectedState}
+          onStateChange={(s) => setSelectedState(s)}
+        />
+      </div>
+
+      {/* Top Auctions Sections */}
+      <div className="space-y-8 pt-4">
+        <TopAuctions type="deed" allAuctions={typeAuctions.deed} loading={loading} />
+        <TopAuctions type="foreclosure" allAuctions={typeAuctions.foreclosure} loading={loading} />
+        <TopAuctions type="lien" allAuctions={typeAuctions.lien} loading={loading} />
+      </div>
     </div>
   );
 };
