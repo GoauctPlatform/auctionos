@@ -339,6 +339,99 @@ def get_state_stats(
     ]
 
 
+MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+
+@router.get("/stats/monthly", response_model=List[dict])
+def get_monthly_stats(
+    db: Session = Depends(deps.get_db),
+    state: Optional[str] = None,
+) -> Any:
+    """
+    Returns monthly historical counts of auction types (deed, lien, foreclosure).
+    X-axis data: month labels (Jan–Dec, current year).
+    Y-axis data: auction event counts per type.
+    Optional ?state=FL filters to one state's history.
+    Always returns all 12 months (zeros filled) so the line chart renders a full year.
+    """
+    is_sqlite = "sqlite" in str(db.bind.url)
+    state_filter = "AND UPPER(TRIM(p.state)) = UPPER(:state)" if state else ""
+
+    if is_sqlite:
+        query = text(f"""
+            SELECT
+                CAST(strftime('%m', pah.auction_date) AS INTEGER) as month_num,
+                SUM(CASE WHEN (
+                    LOWER(COALESCE(ae.tax_status, '')) LIKE '%deed%' OR
+                    LOWER(COALESCE(ae.tax_status, '')) LIKE '%sheriff%' OR
+                    LOWER(COALESCE(pah.auction_name, '')) LIKE '%deed%' OR
+                    LOWER(COALESCE(pah.auction_name, '')) LIKE '%sheriff%'
+                ) THEN 1 ELSE 0 END) as deed_count,
+                SUM(CASE WHEN (
+                    LOWER(COALESCE(ae.tax_status, '')) LIKE '%lien%' OR
+                    LOWER(COALESCE(ae.tax_status, '')) LIKE '%certificate%' OR
+                    LOWER(COALESCE(pah.auction_name, '')) LIKE '%lien%' OR
+                    LOWER(COALESCE(pah.auction_name, '')) LIKE '%certificate%'
+                ) THEN 1 ELSE 0 END) as lien_count,
+                SUM(CASE WHEN (
+                    LOWER(COALESCE(ae.tax_status, '')) LIKE '%foreclosure%' OR
+                    LOWER(COALESCE(pah.auction_name, '')) LIKE '%foreclosure%'
+                ) THEN 1 ELSE 0 END) as foreclosure_count
+            FROM property_auction_history pah
+            LEFT JOIN property_details p ON p.property_id = pah.property_id
+            LEFT JOIN auction_events ae ON ae.id = pah.auction_id
+            WHERE pah.auction_date IS NOT NULL
+              AND p.created_by_user_id IS NULL
+              {state_filter}
+            GROUP BY month_num
+            ORDER BY month_num
+        """)
+    else:
+        query = text(f"""
+            SELECT
+                EXTRACT(MONTH FROM pah.auction_date)::INTEGER as month_num,
+                COUNT(*) FILTER (WHERE (
+                    ae.tax_status ILIKE '%deed%' OR ae.tax_status ILIKE '%sheriff%' OR
+                    pah.auction_name ILIKE '%deed%' OR pah.auction_name ILIKE '%sheriff%'
+                )) as deed_count,
+                COUNT(*) FILTER (WHERE (
+                    ae.tax_status ILIKE '%lien%' OR ae.tax_status ILIKE '%certificate%' OR
+                    pah.auction_name ILIKE '%lien%' OR pah.auction_name ILIKE '%certificate%'
+                )) as lien_count,
+                COUNT(*) FILTER (WHERE (
+                    ae.tax_status ILIKE '%foreclosure%' OR
+                    pah.auction_name ILIKE '%foreclosure%'
+                )) as foreclosure_count
+            FROM property_auction_history pah
+            LEFT JOIN property_details p ON p.property_id = pah.property_id
+            LEFT JOIN auction_events ae ON ae.id = pah.auction_id
+            WHERE pah.auction_date IS NOT NULL
+              AND p.created_by_user_id IS NULL
+              {state_filter}
+            GROUP BY month_num
+            ORDER BY month_num
+        """)
+
+    params = {"state": state.strip().upper()} if state else {}
+    rows = db.execute(query, params).fetchall()
+
+    # Map month_num → counts from query results
+    month_map: dict = {r[0]: {"deed": int(r[1] or 0), "lien": int(r[2] or 0), "foreclosure": int(r[3] or 0)} for r in rows}
+
+    # Return full 12-month array (fill zeros for months with no data)
+    return [
+        {
+            "month_num": m,
+            "month_label": MONTH_LABELS[m - 1],
+            "deed": month_map.get(m, {}).get("deed", 0),
+            "lien": month_map.get(m, {}).get("lien", 0),
+            "foreclosure": month_map.get(m, {}).get("foreclosure", 0),
+        }
+        for m in range(1, 13)
+    ]
+
+
 @router.get("/", response_model=List[dict])
 def list_scores(
     db: Session = Depends(deps.get_db),

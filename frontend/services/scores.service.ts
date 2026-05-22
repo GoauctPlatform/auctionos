@@ -137,6 +137,32 @@ export const getStateStats = async (): Promise<StateStat[]> => {
     }
 };
 
+/**
+ * Monthly historical counts of auction types per state (or all states).
+ * X-axis: months (Jan–Dec). Y-axis: deed/lien/foreclosure counts.
+ * Always returns 12 rows (months with no data return 0s).
+ */
+export interface MonthlyAuctionStat {
+    month_num: number;
+    month_label: string;   // "Jan", "Feb", …, "Dec"
+    deed: number;
+    lien: number;
+    foreclosure: number;
+}
+
+export const getMonthlyStats = async (state?: string): Promise<MonthlyAuctionStat[]> => {
+    try {
+        const params = state ? `?state=${encodeURIComponent(state)}` : '';
+        const res = await fetch(`${SCORES_URL}/stats/monthly${params}`, {
+            headers: getHeaders(),
+        });
+        if (!res.ok) return [];
+        return await res.json();
+    } catch {
+        return [];
+    }
+};
+
 
 /**
  * Fetches the paginated full score list (admin analytics).

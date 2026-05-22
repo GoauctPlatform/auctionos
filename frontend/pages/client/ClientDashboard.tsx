@@ -8,7 +8,7 @@ import { useCompany } from '../../context/CompanyContext';
 import { recommendProperties, rankAuctions } from '../../intelligence/rankingEngine';
 import { useTour } from '../../context/TourContext';
 import { calculateDealScore } from '../../intelligence/scoringEngine';
-import { getTopScoredProperties, getStateStats, StateStat } from '../../services/scores.service';
+import { getTopScoredProperties, getStateStats, StateStat, getMonthlyStats, MonthlyAuctionStat } from '../../services/scores.service';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
 import { API_URL } from '../../services/httpClient';
 import {
@@ -113,8 +113,10 @@ function sortByTopProperties(items: AuctionEvent[], n = 10): AuctionEvent[] {
 
 interface TrendChartProps {
   stats: StateStat[];
+  monthlyStats: MonthlyAuctionStat[];
   selectedState: string;
   onStateClick: (s: string) => void;
+  loading?: boolean;
 }
 
 const CHART_COLORS = {
@@ -123,63 +125,26 @@ const CHART_COLORS = {
   foreclosure: '#EF4444',  // rose
 };
 
-const CustomLineTooltip: React.FC<any> = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
-  const stateCode = resolveStateCode(label);
-  const silhouetteUrl = `https://raw.githubusercontent.com/ahuseyn/state-icons/master/icons/${stateCode}.svg`;
-  return (
-    <div className="pointer-events-none" style={{ backdropFilter: 'blur(20px)', background: 'rgba(15,23,42,0.85)', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 14, padding: '12px 16px', minWidth: 180, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
-      <div className="flex items-center gap-2 mb-3">
-        <div className="relative w-7 h-7 bg-white/10 border border-white/20 rounded-lg flex items-center justify-center p-1 shrink-0">
-          <img src={silhouetteUrl} alt={stateCode} className="w-full h-full object-contain opacity-70 brightness-0 invert" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-        </div>
-        <span className="text-white font-black text-sm tracking-wide">{label}</span>
-      </div>
-      {payload.map((entry: any) => (
-        <div key={entry.name} className="flex items-center justify-between gap-4 mb-1">
-          <div className="flex items-center gap-1.5">
-            <div className="w-2 h-2 rounded-full" style={{ background: entry.color }} />
-            <span className="text-slate-300 text-xs capitalize">{entry.name}</span>
-          </div>
-          <span className="text-white font-bold text-xs">{entry.value.toLocaleString()}</span>
-        </div>
-      ))}
-    </div>
-  );
-};
-
-const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedState, onStateClick }) => {
+const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, monthlyStats, selectedState, onStateClick, loading }) => {
   const cleanStats = useMemo(() =>
     stats.filter(s => s.state_code && s.state_code !== 'Unknown'),
     [stats]
   );
 
-  // ── Overview mode: top 12 states comparison (no state selected) ──────────
-  const overviewData = useMemo(() => {
-    return cleanStats.slice(0, 12).map(s => ({
-      state: s.state_code,
-      deed: s.deed_volume ?? 0,
-      lien: s.lien_volume ?? 0,
-      foreclosure: s.foreclosure_volume ?? 0,
-    }));
-  }, [cleanStats]);
+  const isEmpty = monthlyStats.length === 0 || monthlyStats.every(m => m.deed + m.lien + m.foreclosure === 0);
 
-  // ── Focused mode: breakdown of the selected state ────────────────────────
-  const focusedData = useMemo(() => {
+  const focusedTotals = useMemo(() => {
     if (!selectedState) return null;
     const match = cleanStats.find(s => s.state_code === selectedState);
     if (!match) return null;
     return [
-      { label: 'Tax Deeds',     value: match.deed_volume ?? 0,        color: CHART_COLORS.deed },
-      { label: 'Tax Liens',     value: match.lien_volume ?? 0,        color: CHART_COLORS.lien },
-      { label: 'Foreclosures',  value: match.foreclosure_volume ?? 0, color: CHART_COLORS.foreclosure },
+      { label: 'Tax Deeds',    value: match.deed_volume ?? 0,        color: CHART_COLORS.deed },
+      { label: 'Tax Liens',    value: match.lien_volume ?? 0,        color: CHART_COLORS.lien },
+      { label: 'Foreclosures', value: match.foreclosure_volume ?? 0, color: CHART_COLORS.foreclosure },
     ];
   }, [selectedState, cleanStats]);
 
-  const isFocused = !!selectedState && !!focusedData;
-  const isEmpty = overviewData.length === 0;
-
-  // Active state silhouette code (for header badge)
+  const isFocused = !!selectedState;
   const activeCode = selectedState ? resolveStateCode(selectedState) : null;
 
   return (
@@ -198,10 +163,8 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedSta
         transition: 'all 0.3s ease',
       }}
     >
-      {/* Card Header — state silhouette changes with selected state */}
       <div style={{ padding: '16px 20px', borderBottom: '1px solid rgba(148,163,184,0.10)', background: 'rgba(15,23,42,0.50)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
         <div className="flex items-center gap-2.5">
-          {/* Silhouette badge: shows selected state or generic chart icon */}
           {activeCode ? (
             <div style={{ transition: 'all 0.3s ease' }}>
               <StateSilhouetteBadge stateCode={activeCode} size={28} />
@@ -215,11 +178,9 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedSta
             <h2 className="text-sm font-bold uppercase tracking-widest" style={{ color: 'rgba(203,213,225,0.85)', lineHeight: 1.2 }}>
               {isFocused ? selectedState : 'State Auction Trends'}
             </h2>
-            {isFocused && (
-              <p className="text-[9px] font-bold uppercase tracking-widest mt-0.5" style={{ color: 'rgba(148,163,184,0.4)' }}>
-                Auction type breakdown
-              </p>
-            )}
+            <p className="text-[9px] font-bold uppercase tracking-widest mt-0.5" style={{ color: 'rgba(148,163,184,0.4)' }}>
+              {isFocused ? 'Monthly history · current year' : 'All states · monthly volume'}
+            </p>
           </div>
           {isFocused && (
             <button
@@ -232,7 +193,6 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedSta
             </button>
           )}
         </div>
-        {/* Legend pills */}
         <div className="flex items-center gap-1.5 flex-wrap justify-end">
           {[{ key: 'deed', label: 'Tax Deeds', color: CHART_COLORS.deed }, { key: 'lien', label: 'Tax Liens', color: CHART_COLORS.lien }, { key: 'foreclosure', label: 'Foreclosures', color: CHART_COLORS.foreclosure }].map(item => (
             <div key={item.key} className="flex items-center gap-1 px-2 py-0.5 rounded-full" style={{ background: `${item.color}18`, border: `1px solid ${item.color}40` }}>
@@ -243,70 +203,38 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedSta
         </div>
       </div>
 
-      {/* Chart area */}
+      {isFocused && focusedTotals && (
+        <div style={{ padding: '10px 20px 0', display: 'flex', gap: 12, flexShrink: 0, flexWrap: 'wrap' }}>
+          {focusedTotals.map(item => (
+            <div key={item.label} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg" style={{ background: `${item.color}12`, border: `1px solid ${item.color}30` }}>
+              <div className="w-2 h-2 rounded-full" style={{ background: item.color, boxShadow: `0 0 5px ${item.color}80` }} />
+              <span className="text-[9px] font-bold uppercase tracking-widest" style={{ color: item.color }}>{item.label}</span>
+              <span className="text-xs font-black ml-1" style={{ color: 'rgba(203,213,225,0.9)' }}>{item.value.toLocaleString()}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
       <div className="flex-1 w-full" style={{ padding: '16px 8px 8px', minHeight: 340 }}>
-        {isEmpty ? (
+        {loading ? (
+          <div className="h-full flex items-center justify-center">
+            <div style={{ width: 28, height: 28, borderRadius: '50%', border: '3px solid rgba(99,102,241,0.2)', borderTopColor: '#818CF8', animation: 'spin 0.8s linear infinite' }} />
+          </div>
+        ) : isEmpty ? (
           <div className="h-full flex flex-col items-center justify-center" style={{ color: 'rgba(148,163,184,0.5)' }}>
             <span className="material-symbols-outlined" style={{ fontSize: 48, marginBottom: 12, opacity: 0.3 }}>stacked_line_chart</span>
-            <p className="text-sm font-bold">No trend data yet</p>
-            <p className="text-xs mt-1 opacity-60">Import properties with auction history to see state-level trends.</p>
-          </div>
-        ) : isFocused && focusedData ? (
-          // ── FOCUSED MODE: single state breakdown ──────────────────────────
-          <div className="h-full flex flex-col justify-center gap-5 px-6 py-4">
-            {focusedData.map((item) => {
-              const total = focusedData.reduce((a, b) => a + b.value, 0);
-              const pct = total > 0 ? (item.value / total) * 100 : 0;
-              return (
-                <div key={item.label}>
-                  <div className="flex items-center justify-between mb-1.5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2.5 h-2.5 rounded-full" style={{ background: item.color, boxShadow: `0 0 6px ${item.color}80` }} />
-                      <span className="text-xs font-bold" style={{ color: 'rgba(203,213,225,0.85)' }}>{item.label}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-black" style={{ color: item.color }}>{item.value.toLocaleString()}</span>
-                      <span className="text-[9px] font-bold" style={{ color: 'rgba(148,163,184,0.4)' }}>{pct.toFixed(0)}%</span>
-                    </div>
-                  </div>
-                  <div style={{ height: 8, borderRadius: 99, background: 'rgba(148,163,184,0.08)', overflow: 'hidden' }}>
-                    <div
-                      style={{
-                        height: '100%',
-                        width: `${pct}%`,
-                        borderRadius: 99,
-                        background: `linear-gradient(90deg, ${item.color}cc, ${item.color})`,
-                        boxShadow: `0 0 8px ${item.color}60`,
-                        transition: 'width 0.6s cubic-bezier(0.4,0,0.2,1)',
-                        minWidth: item.value > 0 ? 4 : 0,
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-            {/* Total pill */}
-            <div className="flex justify-center mt-2">
-              <div className="flex items-center gap-1.5 px-4 py-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(148,163,184,0.12)' }}>
-                <span className="material-symbols-outlined" style={{ fontSize: 12, color: 'rgba(148,163,184,0.5)' }}>home</span>
-                <span className="text-[10px] font-black" style={{ color: 'rgba(148,163,184,0.6)' }}>
-                  {focusedData.reduce((a, b) => a + b.value, 0).toLocaleString()} total tracked
-                </span>
-              </div>
-            </div>
+            <p className="text-sm font-bold">No monthly data yet</p>
+            <p className="text-xs mt-1 opacity-60">Auction events with dates will appear here as monthly trends.</p>
           </div>
         ) : (
-          // ── OVERVIEW MODE: top 12 states line chart ───────────────────────
           <ResponsiveContainer width="100%" height="100%">
             <LineChart
-              data={overviewData}
+              data={monthlyStats}
               margin={{ top: 8, right: 16, left: -8, bottom: 0 }}
-              onClick={(e) => { if (e?.activeLabel) onStateClick(selectedState === e.activeLabel ? '' : e.activeLabel); }}
-              style={{ cursor: 'pointer' }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.08)" />
               <XAxis
-                dataKey="state"
+                dataKey="month_label"
                 tick={{ fill: 'rgba(148,163,184,0.7)', fontSize: 10, fontWeight: 700 }}
                 axisLine={{ stroke: 'rgba(148,163,184,0.12)' }}
                 tickLine={false}
@@ -315,22 +243,50 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedSta
                 tick={{ fill: 'rgba(148,163,184,0.6)', fontSize: 9 }}
                 axisLine={false}
                 tickLine={false}
-                width={32}
+                width={36}
+                allowDecimals={false}
+                label={{ value: 'Auctions', angle: -90, position: 'insideLeft', offset: 14, style: { fill: 'rgba(148,163,184,0.25)', fontSize: 9, fontWeight: 700 } }}
               />
-              <RechartsTooltip content={<CustomLineTooltip />} cursor={{ stroke: 'rgba(148,163,184,0.15)', strokeWidth: 1 }} />
+              <RechartsTooltip
+                content={({ active, payload, label }) => {
+                  if (!active || !payload?.length) return null;
+                  return (
+                    <div style={{ backdropFilter: 'blur(20px)', background: 'rgba(15,23,42,0.88)', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 12, padding: '10px 14px', minWidth: 160, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}>
+                      <div className="flex items-center gap-2 mb-2">
+                        {activeCode && <StateSilhouetteBadge stateCode={activeCode} size={20} />}
+                        <span className="text-white font-black text-xs tracking-wide">{label}</span>
+                        {isFocused && <span className="text-[9px] font-bold" style={{ color: 'rgba(148,163,184,0.4)' }}>{selectedState}</span>}
+                      </div>
+                      {payload.map((entry: any) => (
+                        <div key={entry.name} className="flex items-center justify-between gap-4 mb-0.5">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-1.5 h-1.5 rounded-full" style={{ background: entry.color }} />
+                            <span className="text-slate-300 text-xs">{entry.name}</span>
+                          </div>
+                          <span className="text-white font-bold text-xs">{entry.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                }}
+                cursor={{ stroke: 'rgba(148,163,184,0.15)', strokeWidth: 1 }}
+              />
               <Line
                 type="monotone" dataKey="deed" name="Tax Deeds"
-                stroke={CHART_COLORS.deed} strokeWidth={2.5} dot={{ r: 3, fill: CHART_COLORS.deed, strokeWidth: 0 }}
+                stroke={CHART_COLORS.deed} strokeWidth={2.5}
+                dot={{ r: 3, fill: CHART_COLORS.deed, strokeWidth: 0 }}
                 activeDot={{ r: 5, fill: CHART_COLORS.deed, stroke: 'rgba(139,92,246,0.4)', strokeWidth: 4 }}
               />
               <Line
                 type="monotone" dataKey="lien" name="Tax Liens"
-                stroke={CHART_COLORS.lien} strokeWidth={2.5} dot={{ r: 3, fill: CHART_COLORS.lien, strokeWidth: 0 }}
+                stroke={CHART_COLORS.lien} strokeWidth={2.5}
+                dot={{ r: 3, fill: CHART_COLORS.lien, strokeWidth: 0 }}
                 activeDot={{ r: 5, fill: CHART_COLORS.lien, stroke: 'rgba(245,158,11,0.4)', strokeWidth: 4 }}
               />
               <Line
                 type="monotone" dataKey="foreclosure" name="Foreclosures"
-                stroke={CHART_COLORS.foreclosure} strokeWidth={2.5} dot={{ r: 3, fill: CHART_COLORS.foreclosure, strokeWidth: 0 }}
+                stroke={CHART_COLORS.foreclosure} strokeWidth={2.5}
+                dot={{ r: 3, fill: CHART_COLORS.foreclosure, strokeWidth: 0 }}
                 activeDot={{ r: 5, fill: CHART_COLORS.foreclosure, stroke: 'rgba(239,68,68,0.4)', strokeWidth: 4 }}
               />
             </LineChart>
@@ -338,12 +294,11 @@ const StateAuctionTrendsChart: React.FC<TrendChartProps> = ({ stats, selectedSta
         )}
       </div>
 
-      {/* Footer note */}
       <div style={{ padding: '8px 20px 14px', flexShrink: 0 }}>
-        <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(148,163,184,0.30)' }}>
+        <p className="text-[9px] font-bold uppercase tracking-widest" style={{ color: 'rgba(148,163,184,0.28)' }}>
           {isFocused
-            ? `${selectedState} · Click "All States" to return to overview`
-            : 'Click any state on the chart or heatmap to see its breakdown · Top 12 states by volume'}
+            ? `${selectedState} · monthly auction history · click "All States" to compare`
+            : 'Click heatmap or chart line to drill into a state · Jan–Dec current year'}
         </p>
       </div>
     </div>
@@ -840,6 +795,8 @@ const ClientDashboard: React.FC = () => {
   const [rawProperties, setRawProperties] = useState<Property[]>([]);
   const [dbTopDeals, setDbTopDeals] = useState<Property[]>([]);
   const [stateStats, setStateStats] = useState<StateStat[]>([]);
+  const [monthlyStats, setMonthlyStats] = useState<MonthlyAuctionStat[]>([]);
+  const [monthlyLoading, setMonthlyLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [selectedState, setSelectedState] = useState('');
   const [filteredDeals, setFilteredDeals] = useState<Property[]>([]);
@@ -945,9 +902,13 @@ const ClientDashboard: React.FC = () => {
       const topScored = await getTopScoredProperties(10, { availability_status: 'available' });
       setDbTopDeals(topScored as any[]);
 
-      // 3. Load Regional Aggregated Stats (Heatmap)
-      const stats = await getStateStats();
+      // 3. Load Regional Aggregated Stats (Heatmap) + initial monthly data
+      const [stats, monthly] = await Promise.all([
+        getStateStats(),
+        getMonthlyStats(),      // all-states aggregated for first render
+      ]);
       setStateStats(stats);
+      setMonthlyStats(monthly);
 
       // 4. Fallback: Only fetch raw properties if recommendations are empty
       if (topScored.length === 0) {
@@ -972,6 +933,15 @@ const ClientDashboard: React.FC = () => {
     const interval = setInterval(fetchDashboardData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [fetchDashboardData]);
+
+  // Re-fetch monthly stats whenever the selected state changes
+  useEffect(() => {
+    setMonthlyLoading(true);
+    getMonthlyStats(selectedState || undefined)
+      .then(data => setMonthlyStats(data))
+      .catch(() => {})
+      .finally(() => setMonthlyLoading(false));
+  }, [selectedState]);
 
   // --- Dynamic Dashboard Event: Extract real states/counties from My Lists ---
   // Uses the /lists/preferences endpoint → gets actual states from saved properties
@@ -1181,8 +1151,10 @@ const ClientDashboard: React.FC = () => {
         {/* State Auction Trends Line Chart */}
         <StateAuctionTrendsChart
           stats={stateStats}
+          monthlyStats={monthlyStats}
           selectedState={selectedState}
           onStateClick={(s) => setSelectedState(s)}
+          loading={monthlyLoading}
         />
       </div>
 
