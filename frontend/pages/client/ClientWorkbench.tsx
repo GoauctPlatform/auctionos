@@ -73,7 +73,7 @@ const StateSilhouetteBadge: React.FC<{ stateCode: string; size?: number }> = ({ 
 interface Widget {
   id: string;
   type: 'shortcuts' | 'metrics_deed' | 'metrics_foreclosure' | 'metrics_lien' | 'map' | 'recommended_deals' | 'live_auctions' | 'property_search' | 'chart' | 'dossier' | 'yield' |
-        'my_lists' | 'field_missions' | 'connect' | 'settings' | 'profile' | 'team' | 'logs' | 'billings' | 'company' | 'notifications' | 'property_details';
+        'my_lists' | 'field_missions' | 'connect' | 'settings' | 'profile' | 'team' | 'logs' | 'billings' | 'company' | 'notifications' | 'property_details' | 'create_task' | 'support_center';
   title: string;
   x: number; // left offset in pixels
   y: number; // top offset in pixels
@@ -108,6 +108,10 @@ const DEFAULT_WIDGETS: Widget[] = [
   { id: 'company', type: 'company', title: '🏢 Active Company Hub', x: 3680, y: 20, w: 300, h: 230, visible: true, zIndex: 29 },
   { id: 'notifications', type: 'notifications', title: '🔔 System Notifications', x: 3680, y: 270, w: 300, h: 230, visible: true, zIndex: 30 },
   { id: 'property_details', type: 'property_details', title: '🔍 Deep Property Details', x: 3680, y: 520, w: 300, h: 500, visible: true, zIndex: 31 },
+
+  // New V5.0 Real-Logic Widgets
+  { id: 'create_task', type: 'create_task', title: '⚔️ Create Mission Task', x: 2080, y: 1040, w: 360, h: 420, visible: true, zIndex: 32 },
+  { id: 'support_center', type: 'support_center', title: '💬 Support & Help Center', x: 2460, y: 1040, w: 380, h: 420, visible: true, zIndex: 33 },
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -235,6 +239,30 @@ export const ClientWorkbench: React.FC = () => {
     { id: 'n3', type: 'success', message: 'Synced properties with Miami-Dade County court registers.', time: '1h ago', read: true }
   ]);
 
+  // V5.0 Investor Reviews, Task Creation & Support Ticket states
+  const [myRequestedTasks, setMyRequestedTasks] = useState<Task[]>([]);
+  const [activeReviewTask, setActiveReviewTask] = useState<Task | null>(null);
+  const [reviewNotes, setReviewNotes] = useState('');
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+
+  // New task form fields
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDesc, setNewTaskDesc] = useState('');
+  const [newTaskType, setNewTaskType] = useState('field_inspection');
+  const [newTaskPoints, setNewTaskPoints] = useState(100);
+  const [newTaskMinPhotos, setNewTaskMinPhotos] = useState(3);
+  const [newTaskMaxPhotos, setNewTaskMaxPhotos] = useState(10);
+  const [newTaskPropId, setNewTaskPropId] = useState<number | ''>('');
+  const [taskCreating, setTaskCreating] = useState(false);
+
+  // Support Ticketing widgets states
+  const [supportTickets, setSupportTickets] = useState<any[]>([]);
+  const [ticketSubject, setTicketSubject] = useState('');
+  const [ticketMessage, setTicketMessage] = useState('');
+  const [ticketType, setTicketType] = useState('general');
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [ticketSubmitting, setTicketSubmitting] = useState(false);
+
   // Fetch static preferences & contacts on startup
   useEffect(() => {
     StatesService.getContacts().then(setStateList).catch(() => {});
@@ -328,12 +356,14 @@ export const ClientWorkbench: React.FC = () => {
   const fetchMissionsData = useCallback(async () => {
     try {
       setTasksLoading(true);
-      const [avail, claimed] = await Promise.all([
+      const [avail, claimed, requested] = await Promise.all([
         RealtorTaskService.getAvailableTasks(),
-        RealtorTaskService.getMyTasks()
+        RealtorTaskService.getMyTasks(),
+        InvestorTaskService.getMyTasks().catch(() => [])
       ]);
       setAvailableTasks(avail);
       setMyClaimedTasks(claimed);
+      setMyRequestedTasks(requested);
     } catch (err) {
       console.error('Error fetching missions tasks:', err);
     } finally {
@@ -341,9 +371,22 @@ export const ClientWorkbench: React.FC = () => {
     }
   }, []);
 
+  const fetchTicketsData = useCallback(async () => {
+    try {
+      setTicketsLoading(true);
+      const tickets = await InvestorTaskService.getMyTickets().catch(() => []);
+      setSupportTickets(tickets);
+    } catch (err) {
+      console.error('Error fetching tickets:', err);
+    } finally {
+      setTicketsLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     fetchMissionsData();
-  }, [fetchMissionsData]);
+    fetchTicketsData();
+  }, [fetchMissionsData, fetchTicketsData]);
 
   // Load active user's companies & roster
   useEffect(() => {
@@ -574,6 +617,75 @@ export const ClientWorkbench: React.FC = () => {
       console.error(err);
     } finally {
       setInviteSubmitting(false);
+    }
+  };
+
+  // V5.0 Action Helpers
+  const handleReviewSubmission = async (taskId: number, approved: boolean) => {
+    setReviewSubmitting(true);
+    try {
+      await InvestorTaskService.reviewSubmission(taskId, approved, reviewNotes || 'Review by investor client');
+      logConsoleActivity(`Reviewed field task ID ${taskId}: ${approved ? 'APPROVED' : 'REJECTED'}`);
+      alert(`Task has been successfully ${approved ? 'approved' : 'rejected and sent back'}.`);
+      setActiveReviewTask(null);
+      setReviewNotes('');
+      fetchMissionsData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to submit review');
+      console.error(err);
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  const handleCreateTaskFromWidget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTaskTitle.trim()) return;
+    setTaskCreating(true);
+    try {
+      await InvestorTaskService.createTask({
+        property_id: newTaskPropId ? Number(newTaskPropId) : selectedProperty?.id || 1,
+        title: newTaskTitle.trim(),
+        description: newTaskDesc.trim(),
+        task_type: newTaskType,
+        min_photos: newTaskMinPhotos,
+        max_photos: newTaskMaxPhotos,
+        reward_points: newTaskPoints,
+      });
+      logConsoleActivity(`Created new field mission task: "${newTaskTitle.trim()}"`);
+      alert('Mission task created successfully!');
+      setNewTaskTitle('');
+      setNewTaskDesc('');
+      setNewTaskPropId('');
+      fetchMissionsData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to create task');
+      console.error(err);
+    } finally {
+      setTaskCreating(false);
+    }
+  };
+
+  const handleCreateTicketFromWidget = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ticketSubject.trim() || !ticketMessage.trim()) return;
+    setTicketSubmitting(true);
+    try {
+      await InvestorTaskService.createSupportTicket({
+        subject: ticketSubject.trim(),
+        message: ticketMessage.trim(),
+        ticket_type: ticketType,
+      });
+      logConsoleActivity(`Submitted support ticket: "${ticketSubject.trim()}"`);
+      alert('Support ticket created successfully!');
+      setTicketSubject('');
+      setTicketMessage('');
+      fetchTicketsData();
+    } catch (err: any) {
+      alert(err.message || 'Failed to submit ticket');
+      console.error(err);
+    } finally {
+      setTicketSubmitting(false);
     }
   };
 
@@ -2404,7 +2516,6 @@ export const ClientWorkbench: React.FC = () => {
                             onChange={(e: any) => setInviteRole(e.target.value)}
                             className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-355 text-[10px] focus:outline-none shrink-0"
                           >
-                            <option value="admin">Admin</option>
                             <option value="investor">Investor</option>
                             <option value="agent">Agent</option>
                           </select>
