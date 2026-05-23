@@ -6065,21 +6065,7 @@ export const ClientWorkbench: React.FC = () => {
             ))}
           </div>
 
-          {/* Floating Canvas scale HUD overlay (fixed relative to canvas viewport!) */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 bg-slate-900/90 dark:bg-slate-950/90 text-white backdrop-blur-md px-4 py-2 rounded-2xl flex items-center gap-4 border border-slate-805 shadow-2xl select-none font-bold text-[10px]">
-            <div className="flex items-center gap-2 border-r border-slate-800 pr-3 text-slate-400">
-              <Move size={11} />
-              <span>Canvas Center Coordinates:</span>
-              <span className="text-slate-100 font-extrabold">{panX}px, {panY}px</span>
-            </div>
 
-            <div className="flex items-center gap-2 pr-2">
-              <Compass size={11} className="text-indigo-400 animate-spin" />
-              <span>Scale Factor:</span>
-              <span className="text-indigo-400 font-extrabold">{Math.round(zoomScale * 100)}%</span>
-            </div>
-            {/* Zoom controls moved to the sidebar ribbon bottom for superior layout flow */}
-          </div>
 
         </div>
         )}
