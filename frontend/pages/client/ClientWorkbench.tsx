@@ -16,6 +16,8 @@ import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
 import ClientAuctions from './ClientAuctions';
 import ClientProperties from './ClientProperties';
 import ClientLists from './ClientLists';
+import { InvestorTasksDashboard } from './InvestorTasksDashboard';
+import PropertyDetailPage from '../admin/PropertyDetailPage';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, PieChart, Pie, Cell
@@ -23,7 +25,7 @@ import {
 import {
   Compass, Map, BarChart2, Folder, Terminal, Award,
   HelpCircle, ShieldCheck, RefreshCw, FileText, CheckCircle,
-  Smartphone, Settings, Layout, Layers, X, Maximize2, Minimize2,
+  Smartphone, Settings, Layout, Layers, X, Maximize2, Minimize2, Minus,
   Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
   Gavel, Calendar, ShieldAlert, Search, Plus, Filter, ArrowRight,
   Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare,
@@ -106,6 +108,20 @@ interface Widget {
   h: number; // height in pixels
   visible: boolean;
   zIndex: number;
+}
+
+interface OverlayWindow {
+  id: string;
+  type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details';
+  title: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  zIndex: number;
+  isMinimized: boolean;
+  isMaximized: boolean;
+  data?: any;
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
@@ -239,6 +255,243 @@ export const ClientWorkbench: React.FC = () => {
   const [rightPanelMinimized, setRightPanelMinimized] = useState<boolean>(() => {
     return localStorage.getItem('goauct_workbench_rightPanelMinimized') === 'true';
   });
+
+  // Hybrid OS Window Overlay System States
+  const [overlayWindows, setOverlayWindows] = useState<OverlayWindow[]>(() => {
+    try {
+      const saved = localStorage.getItem('goauct_workbench_overlayWindows');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to parse overlayWindows', e);
+    }
+    return [];
+  });
+  const [activeOverlayWindowId, setActiveOverlayWindowId] = useState<string | null>(() => {
+    return localStorage.getItem('goauct_workbench_activeOverlayWindowId');
+  });
+
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_overlayWindows', JSON.stringify(overlayWindows));
+  }, [overlayWindows]);
+
+  useEffect(() => {
+    if (activeOverlayWindowId) {
+      localStorage.setItem('goauct_workbench_activeOverlayWindowId', activeOverlayWindowId);
+    } else {
+      localStorage.removeItem('goauct_workbench_activeOverlayWindowId');
+    }
+  }, [activeOverlayWindowId]);
+
+  const openOverlayWindow = (
+    type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details',
+    title: string,
+    data?: any
+  ) => {
+    const id = type === 'property_details' ? `prop_details_${data?.propertyId}` : type;
+
+    setOverlayWindows(prev => {
+      const existingIdx = prev.findIndex(w => w.id === id);
+      if (existingIdx !== -1) {
+        return prev.map((w, idx) =>
+          idx === existingIdx
+            ? { ...w, isMinimized: false, zIndex: Math.max(...prev.map(x => x.zIndex), 0) + 1 }
+            : w
+        );
+      }
+
+      const viewportW = window.innerWidth;
+      const viewportH = window.innerHeight;
+      const w = type === 'property_details' ? 880 : 1050;
+      const h = type === 'property_details' ? 620 : 680;
+      const x = Math.max((viewportW - w) / 2 + (prev.length * 20) % 200, 40);
+      const y = Math.max((viewportH - h) / 2 + (prev.length * 20) % 200, 60);
+      const zIndex = Math.max(...prev.map(x => x.zIndex), 0) + 1;
+
+      const newWin: OverlayWindow = {
+        id,
+        type,
+        title,
+        x,
+        y,
+        w,
+        h,
+        zIndex,
+        isMinimized: false,
+        isMaximized: false,
+        data,
+      };
+      return [...prev, newWin];
+    });
+
+    setActiveOverlayWindowId(id);
+    logConsoleActivity(`Opened overlay window: "${title}"`);
+  };
+
+  const focusOverlayWindow = (id: string) => {
+    setActiveOverlayWindowId(id);
+    setOverlayWindows(prev => {
+      const maxZ = Math.max(...prev.map(w => w.zIndex), 0);
+      return prev.map(w => (w.id === id ? { ...w, zIndex: maxZ + 1 } : w));
+    });
+  };
+
+  const closeOverlayWindow = (id: string) => {
+    setOverlayWindows(prev => prev.filter(w => w.id !== id));
+    if (activeOverlayWindowId === id) {
+      setActiveOverlayWindowId(null);
+    }
+    logConsoleActivity(`Closed overlay window: "${id}"`);
+  };
+
+  const toggleMinimizeOverlayWindow = (id: string) => {
+    setOverlayWindows(prev =>
+      prev.map(w => (w.id === id ? { ...w, isMinimized: !w.isMinimized } : w))
+    );
+    logConsoleActivity(`Toggled minimize for window: "${id}"`);
+  };
+
+  const toggleMaximizeOverlayWindow = (id: string) => {
+    setOverlayWindows(prev =>
+      prev.map(w => (w.id === id ? { ...w, isMaximized: !w.isMaximized } : w))
+    );
+    logConsoleActivity(`Toggled maximize for window: "${id}"`);
+  };
+
+  interface OverlayInteraction {
+    type: 'drag' | 'resize';
+    winId: string;
+    startX: number;
+    startY: number;
+    startLeft: number;
+    startTop: number;
+    startWidth: number;
+    startHeight: number;
+  }
+
+  const [overlayInteraction, setOverlayInteraction] = useState<OverlayInteraction | null>(null);
+
+  const handleOverlayMouseDown = (
+    e: React.MouseEvent,
+    winId: string,
+    type: 'drag' | 'resize'
+  ) => {
+    e.preventDefault();
+    focusOverlayWindow(winId);
+
+    const win = overlayWindows.find(w => w.id === winId);
+    if (!win || win.isMaximized) return;
+
+    setOverlayInteraction({
+      type,
+      winId,
+      startX: e.clientX,
+      startY: e.clientY,
+      startLeft: win.x,
+      startTop: win.y,
+      startWidth: win.w,
+      startHeight: win.h,
+    });
+  };
+
+  const handleOverlayTouchStart = (
+    e: React.TouchEvent,
+    winId: string,
+    type: 'drag' | 'resize'
+  ) => {
+    focusOverlayWindow(winId);
+
+    const win = overlayWindows.find(w => w.id === winId);
+    if (!win || win.isMaximized) return;
+
+    const touch = e.touches[0];
+    setOverlayInteraction({
+      type,
+      winId,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      startLeft: win.x,
+      startTop: win.y,
+      startWidth: win.w,
+      startHeight: win.h,
+    });
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!overlayInteraction) return;
+
+      const deltaX = e.clientX - overlayInteraction.startX;
+      const deltaY = e.clientY - overlayInteraction.startY;
+
+      setOverlayWindows(prev =>
+        prev.map(w => {
+          if (w.id !== overlayInteraction.winId) return w;
+
+          if (overlayInteraction.type === 'drag') {
+            const nextX = Math.min(window.innerWidth - 100, Math.max(-w.w + 100, overlayInteraction.startLeft + deltaX));
+            const nextY = Math.min(window.innerHeight - 100, Math.max(0, overlayInteraction.startTop + deltaY));
+            return { ...w, x: nextX, y: nextY };
+          } else if (overlayInteraction.type === 'resize') {
+            return {
+              ...w,
+              w: Math.max(320, overlayInteraction.startWidth + deltaX),
+              h: Math.max(240, overlayInteraction.startHeight + deltaY),
+            };
+          }
+          return w;
+        })
+      );
+    };
+
+    const handleMouseUp = () => {
+      setOverlayInteraction(null);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!overlayInteraction) return;
+      const touch = e.touches[0];
+
+      const deltaX = touch.clientX - overlayInteraction.startX;
+      const deltaY = touch.clientY - overlayInteraction.startY;
+
+      setOverlayWindows(prev =>
+        prev.map(w => {
+          if (w.id !== overlayInteraction.winId) return w;
+
+          if (overlayInteraction.type === 'drag') {
+            const nextX = Math.min(window.innerWidth - 100, Math.max(-w.w + 100, overlayInteraction.startLeft + deltaX));
+            const nextY = Math.min(window.innerHeight - 100, Math.max(0, overlayInteraction.startTop + deltaY));
+            return { ...w, x: nextX, y: nextY };
+          } else if (overlayInteraction.type === 'resize') {
+            return {
+              ...w,
+              w: Math.max(320, overlayInteraction.startWidth + deltaX),
+              h: Math.max(240, overlayInteraction.startHeight + deltaY),
+            };
+          }
+          return w;
+        })
+      );
+    };
+
+    const handleTouchEnd = () => {
+      setOverlayInteraction(null);
+    };
+
+    if (overlayInteraction) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+      window.addEventListener('touchmove', handleTouchMove, { passive: false });
+      window.addEventListener('touchend', handleTouchEnd);
+    }
+
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [overlayInteraction]);
 
   // Persist state variables to localStorage
   useEffect(() => {
@@ -1594,8 +1847,12 @@ export const ClientWorkbench: React.FC = () => {
                   <button
                     key={app.id}
                     onClick={() => {
-                      setWidgets(prev => prev.map(ww => ww.id === app.id ? { ...ww, visible: true } : ww));
-                      setActiveIdeTabId(app.id);
+                      if (['my_lists', 'live_auctions', 'property_search', 'field_missions'].includes(app.id)) {
+                        openOverlayWindow(app.id as any, app.label);
+                      } else {
+                        setWidgets(prev => prev.map(ww => ww.id === app.id ? { ...ww, visible: true } : ww));
+                        setActiveIdeTabId(app.id);
+                      }
                     }}
                     className="flex flex-col items-center gap-2 group"
                   >
@@ -2213,30 +2470,34 @@ export const ClientWorkbench: React.FC = () => {
                   key={shortcut.id}
                   title={shortcut.label}
                   onClick={() => {
-                    setWidgets(prev => {
-                      const match = prev.find(w => w.id === shortcut.id);
-                      const nextZ = highestZIndex + 1;
-                      setHighestZIndex(nextZ);
-                      
-                      return prev.map(w => 
-                        w.id === shortcut.id 
-                          ? { ...w, visible: true, zIndex: nextZ } 
-                          : w
-                      );
-                    });
-                    
-                    if (layoutTemplate === 'ide') {
-                      setActiveIdeTabId(shortcut.id);
-                      logConsoleActivity(`Opened tab in workspace: "${shortcut.label}"`);
+                    if (['my_lists', 'live_auctions', 'property_search', 'field_missions'].includes(shortcut.id)) {
+                      openOverlayWindow(shortcut.id as any, shortcut.label);
                     } else {
-                      const match = widgets.find(w => w.id === shortcut.id);
-                      if (match) {
-                        const targetX = -match.x + (window.innerWidth - match.w) / 2;
-                        const targetY = -match.y + (window.innerHeight - match.h) / 2;
-                        setPanX(targetX);
-                        setPanY(targetY);
-                        setZoomScale(1.0);
-                        logConsoleActivity(`Focused and centered on widget: "${match.title}"`);
+                      setWidgets(prev => {
+                        const match = prev.find(w => w.id === shortcut.id);
+                        const nextZ = highestZIndex + 1;
+                        setHighestZIndex(nextZ);
+                        
+                        return prev.map(w => 
+                          w.id === shortcut.id 
+                            ? { ...w, visible: true, zIndex: nextZ } 
+                            : w
+                        );
+                      });
+                      
+                      if (layoutTemplate === 'ide') {
+                        setActiveIdeTabId(shortcut.id);
+                        logConsoleActivity(`Opened tab in workspace: "${shortcut.label}"`);
+                      } else {
+                        const match = widgets.find(w => w.id === shortcut.id);
+                        if (match) {
+                          const targetX = -match.x + (window.innerWidth - match.w) / 2;
+                          const targetY = -match.y + (window.innerHeight - match.h) / 2;
+                          setPanX(targetX);
+                          setPanY(targetY);
+                          setZoomScale(1.0);
+                          logConsoleActivity(`Focused and centered on widget: "${match.title}"`);
+                        }
                       }
                     }
                   }}
@@ -2660,8 +2921,12 @@ export const ClientWorkbench: React.FC = () => {
                                       <button
                                         key={app.id}
                                         onClick={() => {
-                                          setWidgets(prev => prev.map(ww => ww.id === app.id ? { ...ww, visible: true } : ww));
-                                          setActiveIdeTabId(app.id);
+                                          if (['my_lists', 'live_auctions', 'property_search', 'field_missions'].includes(app.id)) {
+                                            openOverlayWindow(app.id as any, app.label);
+                                          } else {
+                                            setWidgets(prev => prev.map(ww => ww.id === app.id ? { ...ww, visible: true } : ww));
+                                            setActiveIdeTabId(app.id);
+                                          }
                                         }}
                                         className="flex flex-col items-center gap-2 group"
                                       >
@@ -3400,7 +3665,20 @@ export const ClientWorkbench: React.FC = () => {
                             return (
                               <div
                                 key={idx}
-                                onClick={() => navigate(app.path)}
+                                onClick={() => {
+                                  const idMap: Record<string, string> = {
+                                    '/client/auctions': 'live_auctions',
+                                    '/client/properties': 'property_search',
+                                    '/client/lists': 'my_lists',
+                                    '/client/tasks': 'field_missions'
+                                  };
+                                  const id = idMap[app.path];
+                                  if (id) {
+                                    openOverlayWindow(id as any, app.label);
+                                  } else {
+                                    navigate(app.path);
+                                  }
+                                }}
                                 className="flex flex-col items-center gap-1 cursor-pointer transition-all hover:scale-105 active:scale-95 group"
                               >
                                 <div className={`size-11 rounded-2xl bg-gradient-to-br ${app.color} flex items-center justify-center shadow-lg group-hover:shadow-blue-500/20`}>
@@ -3737,7 +4015,7 @@ export const ClientWorkbench: React.FC = () => {
 
                           <div className="flex flex-col gap-2 shrink-0">
                             <button
-                              onClick={() => navigate(`/client/properties/${selectedProperty.id}`)}
+                              onClick={() => openOverlayWindow('property_details', `🔍 Property: ${selectedProperty.parcel_id || selectedProperty.id}`, { propertyId: selectedProperty.id, parcelId: selectedProperty.parcel_id })}
                               className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-[0.97]"
                             >
                               View Dossier details
@@ -5479,6 +5757,171 @@ export const ClientWorkbench: React.FC = () => {
 
         </div>
         )}
+
+        {/* ─── HYBRID VIRTUAL DESKTOP WINDOW OVERLAYS ─── */}
+        {overlayWindows.filter(w => !w.isMinimized).map(w => {
+          const isActive = activeOverlayWindowId === w.id;
+          return (
+            <div
+              key={w.id}
+              onClick={() => focusOverlayWindow(w.id)}
+              style={{
+                position: 'absolute',
+                left: w.isMaximized ? 0 : w.x,
+                top: w.isMaximized ? 0 : w.y,
+                width: w.isMaximized ? '100%' : w.w,
+                height: w.isMaximized ? '100%' : w.h,
+                zIndex: w.zIndex + 100, // Float over background canvas
+              }}
+              className={`glass-card shadow-2xl border flex flex-col overflow-hidden rounded-2xl transition-shadow backdrop-blur-xl ${
+                isActive 
+                  ? 'border-indigo-500/80 dark:border-indigo-500/80 shadow-indigo-500/10 bg-white/95 dark:bg-slate-900/95' 
+                  : 'border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/85'
+              }`}
+            >
+              {/* Window Title Bar */}
+              <div
+                onMouseDown={(e) => handleOverlayMouseDown(e, w.id, 'drag')}
+                onTouchStart={(e) => handleOverlayTouchStart(e, w.id, 'drag')}
+                className={`h-11 border-b px-4 flex items-center justify-between shrink-0 select-none cursor-grab active:cursor-grabbing ${
+                  isActive 
+                    ? 'bg-slate-100/90 dark:bg-slate-900/95 border-indigo-500/20' 
+                    : 'bg-slate-50/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <div className={`size-2 rounded-full ${isActive ? 'bg-indigo-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`} />
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                    {w.title}
+                  </span>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-1.5" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
+                  <button
+                    onClick={() => toggleMinimizeOverlayWindow(w.id)}
+                    className="size-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    title="Minimize"
+                  >
+                    <Minus size={12} />
+                  </button>
+                  <button
+                    onClick={() => toggleMaximizeOverlayWindow(w.id)}
+                    className="size-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    title={w.isMaximized ? "Restore Size" : "Maximize"}
+                  >
+                    {w.isMaximized ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
+                  </button>
+                  <button
+                    onClick={() => closeOverlayWindow(w.id)}
+                    className="size-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
+                    title="Close"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Window Content Container */}
+              <div className="flex-1 overflow-hidden min-h-0 bg-white dark:bg-slate-950 relative">
+                {w.type === 'my_lists' && <ClientLists />}
+                {w.type === 'live_auctions' && <ClientAuctions />}
+                {w.type === 'property_search' && <ClientProperties />}
+                {w.type === 'field_missions' && <InvestorTasksDashboard />}
+                {w.type === 'property_details' && (
+                  <div className="size-full overflow-y-auto no-scrollbar scrollbar-none">
+                    <PropertyDetailPage readOnly={true} overrideId={w.data?.propertyId} />
+                  </div>
+                )}
+              </div>
+
+              {/* Resize Handle (bottom-right corner) */}
+              {!w.isMaximized && (
+                <div
+                  onMouseDown={(e) => handleOverlayMouseDown(e, w.id, 'resize')}
+                  onTouchStart={(e) => handleOverlayTouchStart(e, w.id, 'resize')}
+                  className="absolute bottom-0 right-0 size-4 cursor-se-resize flex items-end justify-end p-0.5 z-40 group"
+                >
+                  <svg className="size-2 text-slate-450 dark:text-slate-600 group-hover:text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                    <line x1="6" y1="21" x2="21" y2="6" />
+                    <line x1="12" y1="21" x2="21" y2="12" />
+                  </svg>
+                </div>
+              )}
+            </div>
+          );
+        })}
+
+        {/* ─── DOCK / BARRA DE TAREFAS HÍBRIDA (Estilo macOS) ─── */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-slate-950/85 backdrop-blur-md rounded-2xl border border-slate-700/50 flex items-center gap-3 z-[200] shadow-2xl transition-all select-none">
+          {/* Core Shortcuts to open windows */}
+          {[
+            { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
+            { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-405 text-cyan-500' },
+            { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'hover:text-purple-400 text-purple-500' },
+            { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
+          ].map(item => {
+            const Icon = item.icon;
+            const isOpen = overlayWindows.some(w => w.type === item.id);
+            const isMin = overlayWindows.find(w => w.type === item.id)?.isMinimized;
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  const match = overlayWindows.find(w => w.type === item.id);
+                  if (match) {
+                    if (match.isMinimized) {
+                      toggleMinimizeOverlayWindow(match.id);
+                    } else {
+                      focusOverlayWindow(match.id);
+                    }
+                  } else {
+                    openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : '⚔️ Field Task Missions');
+                  }
+                }}
+                className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 ${item.color} ${isOpen ? 'bg-slate-800 border border-slate-700' : 'bg-transparent'} ${isMin ? 'opacity-50' : ''}`}
+                title={item.label}
+              >
+                <Icon size={18} />
+                {isOpen && (
+                  <span className="absolute bottom-1 size-1 bg-indigo-500 rounded-full animate-pulse" />
+                )}
+              </button>
+            );
+          })}
+
+          {/* Separator if we have open property detail windows */}
+          {overlayWindows.some(w => w.type === 'property_details') && (
+            <div className="w-[1px] h-8 bg-slate-700/50" />
+          )}
+
+          {/* Open Property Details Windows list */}
+          {overlayWindows.filter(w => w.type === 'property_details').map(w => {
+            const isActive = activeOverlayWindowId === w.id;
+            return (
+              <button
+                key={w.id}
+                onClick={() => {
+                  if (w.isMinimized) {
+                    toggleMinimizeOverlayWindow(w.id);
+                  } else {
+                    focusOverlayWindow(w.id);
+                  }
+                }}
+                className={`relative h-10 px-2 rounded-xl flex items-center gap-1.5 transition-all text-left bg-slate-800/60 border border-slate-700/50 hover:bg-slate-700/60 ${w.isMinimized ? 'opacity-50' : ''}`}
+                title={w.title}
+              >
+                <FileText size={14} className="text-indigo-400" />
+                <span className="text-[8px] font-black text-slate-350 max-w-[80px] truncate uppercase tracking-wider">
+                  {w.data?.parcelId || 'Property'}
+                </span>
+                {isActive && !w.isMinimized && (
+                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 size-1 bg-indigo-500 rounded-full" />
+                )}
+              </button>
+            );
+          })}
+        </div>
 
       </div>
 

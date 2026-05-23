@@ -36,10 +36,12 @@ import { useTour } from '../../context/TourContext';
 
 interface PropertyDetailPageProps {
     readOnly?: boolean;
+    overrideId?: string | number;
 }
 
-const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = false }) => {
-    const { id } = useParams<{ id: string }>();
+const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = false, overrideId }) => {
+    const { id: paramId } = useParams<{ id: string }>();
+    const id = overrideId ? String(overrideId) : paramId;
     const navigate = useNavigate();
     const location = useLocation();
     const { activeCompany } = useCompany();
