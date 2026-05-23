@@ -4,53 +4,54 @@
 
 :root {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-  
+
   /* ==========================================================================
      LIGHT THEME (Modern Corporate Clean)
      ========================================================================== */
   --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
   --bg-tertiary: #f1f5f9;
-  
+
   --accent: #00b8d9;
   --accent-hover: #00d4ff;
   --accent-glow: rgba(0, 184, 217, 0.15);
-  --accent-text: #006d80; /* High contrast WCAG AA/AAA compliant accent for text */
-  
+  --accent-text: #006d80;
+  /* High contrast WCAG AA/AAA compliant accent for text */
+
   --text-primary: #0f172a;
   --text-secondary: #334155;
   --text-muted: #57606a;
-  
+
   --border: #e2e8f0;
   --border-focus: #00b8d9;
-  
+
   --success: #06b6d4;
   --success-bg: rgba(6, 182, 212, 0.08);
   --warning: #d97706;
   --warning-bg: rgba(217, 119, 6, 0.08);
   --danger: #dc2626;
   --danger-bg: rgba(220, 38, 38, 0.08);
-  
+
   --shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.05), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
   --shadow-glow: none;
-  
+
   /* Glassmorphism Light */
   --glass-bg: rgba(255, 255, 255, 0.75);
   --glass-border: rgba(226, 232, 240, 0.7);
   --glass-blur: 16px;
-  
+
   /* Neumorphism Light (soft bevels) */
   --neu-flat: 12px 12px 24px #e2e8f0, -12px -12px 24px #ffffff;
   --neu-inset: inset 6px 6px 12px #e2e8f0, inset -6px -6px 12px #ffffff;
-  
+
   /* Legacy Brand compatibility mapping */
   --brand-blue: #0A84FF;
   --brand-teal: #12B3B6;
   --brand-dark: #111827;
-  
+
   --card-radius: 12px;
   --btn-radius: 8px;
-  
+
   color-scheme: light dark;
 }
 
@@ -70,6 +71,7 @@
 }
 
 @layer components {
+
   /* Dynamic Responsive Cards */
   .glass-card {
     background: var(--glass-bg);
@@ -80,7 +82,7 @@
     border-radius: var(--card-radius);
     transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   }
-  
+
   .neu-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
@@ -88,7 +90,7 @@
     border-radius: var(--card-radius);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   .neu-inset-card {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
@@ -96,7 +98,7 @@
     border-radius: var(--card-radius);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   .neu-btn {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
@@ -104,34 +106,34 @@
     border-radius: var(--btn-radius);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  
+
   .dark .neu-btn {
     box-shadow: 4px 4px 10px #05070e, -4px -4px 10px #1a2338;
   }
-  
+
   .neu-btn:hover {
     transform: translateY(-1px);
     box-shadow: 6px 6px 12px rgba(0, 0, 0, 0.08), -6px -6px 12px rgba(255, 255, 255, 0.7);
   }
-  
+
   .dark .neu-btn:hover {
     box-shadow: 6px 6px 12px #05070e, -6px -6px 12px #22304d;
   }
-  
+
   .neu-btn:active {
     transform: translateY(0);
     box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.05), inset -2px -2px 5px rgba(255, 255, 255, 0.5);
   }
-  
+
   .dark .neu-btn:active {
     box-shadow: inset 2px 2px 5px #05070e, inset -2px -2px 5px #151e33;
   }
-  
+
   /* Cyberpunk glows & neon highlights */
   .glow-accent {
     box-shadow: var(--shadow-glow);
   }
-  
+
   .glow-accent-hover:hover {
     box-shadow: 0 0 20px var(--accent-glow);
     border-color: var(--accent-hover);
@@ -141,193 +143,194 @@
   .theme-bg-primary {
     background-color: var(--bg-primary);
   }
+
   .theme-bg-secondary {
     background-color: var(--bg-secondary);
   }
+
   .theme-bg-tertiary {
     background-color: var(--bg-tertiary);
   }
-  
+
   .theme-text-primary {
     color: var(--text-primary);
   }
+
   .theme-text-secondary {
     color: var(--text-secondary);
   }
+
   .theme-text-muted {
     color: var(--text-muted);
   }
+
   .theme-text-accent {
     color: var(--accent-text);
   }
-  
+
   .theme-border {
     border-color: var(--border);
   }
+
   .theme-border-focus:focus {
     border-color: var(--border-focus);
     box-shadow: 0 0 0 2px var(--accent-glow);
   }
-  
+
   /* Micro-animations */
   .hover-scale {
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
   .hover-scale:hover {
     transform: scale(1.02);
   }
-  
+
   /* Background Dynamic Grid Mesh Mesh gradient overrides */
   .bg-mesh-gradient {
     background: radial-gradient(at 0% 0%, rgba(0, 184, 217, 0.08) 0, transparent 65%),
-                radial-gradient(at 100% 0%, rgba(18, 179, 182, 0.08) 0, transparent 65%),
-                radial-gradient(at 100% 100%, rgba(10, 132, 255, 0.05) 0, transparent 65%),
-                radial-gradient(at 0% 100%, rgba(0, 184, 217, 0.05) 0, transparent 65%);
+      radial-gradient(at 100% 0%, rgba(18, 179, 182, 0.08) 0, transparent 65%),
+      radial-gradient(at 100% 100%, rgba(10, 132, 255, 0.05) 0, transparent 65%),
+      radial-gradient(at 0% 100%, rgba(0, 184, 217, 0.05) 0, transparent 65%);
   }
 
   .dark .bg-mesh-gradient {
     background: radial-gradient(at 0% 0%, rgba(0, 229, 229, 0.15) 0, transparent 60%),
-                radial-gradient(at 100% 0%, rgba(18, 179, 182, 0.15) 0, transparent 60%),
-                radial-gradient(at 100% 100%, rgba(10, 132, 255, 0.1) 0, transparent 60%),
-                radial-gradient(at 0% 100%, rgba(0, 229, 229, 0.1) 0, transparent 60%);
+      radial-gradient(at 100% 0%, rgba(18, 179, 182, 0.15) 0, transparent 60%),
+      radial-gradient(at 100% 100%, rgba(10, 132, 255, 0.1) 0, transparent 60%),
+      radial-gradient(at 0% 100%, rgba(0, 229, 229, 0.1) 0, transparent 60%);
   }
 
   /* ==========================================================================
      GLOBAL UNIFIED LIGHT/DARK THEME MAPPINGS
      ========================================================================== */
-  
+
   /* Primary backgrounds and card elements */
   .bg-white {
     background-color: var(--bg-secondary) !important;
   }
+
   .bg-slate-50 {
     background-color: var(--bg-primary) !important;
   }
+
   .bg-slate-100 {
     background-color: var(--bg-tertiary) !important;
   }
-  
+
   /* Slate & gray borders alignment */
-  .border-slate-100, .border-slate-200, .border-slate-250 {
+  .border-slate-100,
+  .border-slate-200,
+  .border-slate-250 {
     border-color: var(--border) !important;
   }
-  
+
   /* Core typography layers contrast */
-  .text-slate-900, .text-slate-800, .text-slate-950 {
+  .text-slate-900,
+  .text-slate-800,
+  .text-slate-950 {
     color: var(--text-primary) !important;
   }
-  .text-slate-700, .text-slate-600 {
+
+  .text-slate-700,
+  .text-slate-600 {
     color: var(--text-secondary) !important;
   }
-  .text-slate-500, .text-slate-400 {
+
+  .text-slate-500,
+  .text-slate-400 {
     color: var(--text-muted) !important;
   }
 
- .dark {
-  --bg-primary: #0f172a;
-  --bg-secondary: #1e293b;
-  --bg-tertiary: #334155;
-  
-  --accent: #3b82f6;
-  --accent-hover: #2563eb;
-  --accent-glow: rgba(59, 130, 246, 0.15);
-  --accent-text: #60a5fa;
-  
-  --text-primary: #f8fafc;
-  --text-secondary: #cbd5e1;
-  --text-muted: #64748b;
-  
-  --border: #334155;
-  --border-focus: #3b82f6;
-  
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.1);
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.12);
-  --danger: #ef4444;
-  --danger-bg: rgba(239, 68, 68, 0.12);
-  
-  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
-  --shadow-glow: none;
-  
-  /* Glassmorphism Classic Dark */
-  --glass-bg: rgba(30, 41, 59, 0.8);
-  --glass-border: rgba(51, 65, 85, 0.5);
-  --glass-blur: 12px;
-  
-  /* Neumorphism Classic Dark */
-  --neu-flat: 12px 12px 24px #0b111e, -12px -12px 24px #131c30;
-  --neu-inset: inset 6px 6px 12px #0b111e, inset -6px -6px 12px #17243c;
-}
+  .dark {
+    --bg-primary: #0a0f1c;
+    --bg-secondary: #111827;
+    --bg-tertiary: #1a2338;
 
-.dark.cyberpunk {
-  --bg-primary: #0a0f1c;
-  --bg-secondary: rgba(17, 24, 39, 0.75);
-  --bg-tertiary: rgba(26, 35, 56, 0.55);
-  
-  --accent: #00e5e5;
-  --accent-hover: #00f5ff;
-  --accent-glow: rgba(0, 229, 229, 0.35);
-  --accent-text: #00e5e5;
-  
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  
-  --border: rgba(0, 229, 229, 0.18);
-  --border-focus: #00e5e5;
-  
-  --success: #22d3ee;
-  --success-bg: rgba(34, 211, 238, 0.12);
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.12);
-  --danger: #f87171;
-  --danger-bg: rgba(248, 113, 113, 0.12);
-  
-  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 229, 229, 0.08);
-  --shadow-glow: 0 0 20px rgba(0, 229, 229, 0.35);
-  
-  /* Glassmorphism Dark Mockup-Aligned */
-  --glass-bg: rgba(10, 15, 30, 0.75);
-  --glass-border: rgba(0, 229, 229, 0.18);
-  --glass-blur: 16px;
-  
-  /* Neumorphism Cyberpunk Dark */
-  --neu-flat: 12px 12px 24px #02040a, -12px -12px 24px #080c1e;
-  --neu-inset: inset 6px 6px 12px #02040a, inset -6px -6px 12px #0c1432;
-}
+    --accent: #00e5e5;
+    --accent-hover: #00f5ff;
+    --accent-glow: rgba(0, 229, 229, 0.3);
+    --accent-text: #00e5e5;
+    /* Neon on dark background passes WCAG contrast cleanly */
+
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #6b7280;
+
+    --border: #334155;
+    --border-focus: #00e5e5;
+
+    --success: #22d3ee;
+    --success-bg: rgba(34, 211, 238, 0.1);
+    --warning: #f59e0b;
+    --warning-bg: rgba(245, 158, 11, 0.12);
+    --danger: #f87171;
+    --danger-bg: rgba(248, 113, 113, 0.12);
+
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+    --shadow-glow: 0 0 15px rgba(0, 229, 229, 0.2);
+
+    /* Glassmorphism Dark */
+    --glass-bg: rgba(17, 24, 39, 0.65);
+    --glass-border: rgba(51, 65, 85, 0.35);
+    --glass-blur: 16px;
+
+    /* Neumorphism Dark (Cyberpunk) */
+    --neu-flat: 12px 12px 24px #05070e, -12px -12px 24px #0f172a;
+    --neu-inset: inset 6px 6px 12px #05070e, inset -6px -6px 12px #151e33;
+  }
+
 
   /* Dark mode mappings override */
   .dark .bg-slate-900 {
     background-color: var(--bg-secondary) !important;
   }
+
   .dark .bg-slate-950 {
     background-color: var(--bg-primary) !important;
   }
+
   .dark .bg-slate-800 {
     background-color: var(--bg-tertiary) !important;
   }
-  .dark .border-slate-700, .dark .border-slate-800 {
+
+  .dark .border-slate-700,
+  .dark .border-slate-800 {
     border-color: var(--border) !important;
   }
-  .dark .text-slate-100, .dark .text-slate-200 {
+
+  .dark .text-slate-100,
+  .dark .text-slate-200 {
     color: var(--text-primary) !important;
   }
-  .dark .text-slate-350, .dark .text-slate-400 {
+
+  .dark .text-slate-350,
+  .dark .text-slate-400 {
     color: var(--text-secondary) !important;
   }
-  .dark .text-slate-550, .dark .text-slate-500, .dark .text-slate-600 {
+
+  .dark .text-slate-550,
+  .dark .text-slate-500,
+  .dark .text-slate-600 {
     color: var(--text-muted) !important;
   }
 
   /* Dynamic Active Primary Actions & Buttons */
-  .bg-blue-600, .bg-indigo-600, .bg-primary {
+  .bg-blue-600,
+  .bg-indigo-600,
+  .bg-primary {
     background-color: var(--accent) !important;
   }
-  .hover\:bg-blue-700:hover, .hover\:bg-indigo-700:hover, .hover\:bg-primary-hover:hover {
+
+  .hover\:bg-blue-700:hover,
+  .hover\:bg-indigo-700:hover,
+  .hover\:bg-primary-hover:hover {
     background-color: var(--accent-hover) !important;
   }
-  .text-blue-600, .text-indigo-600, .text-primary {
+
+  .text-blue-600,
+  .text-indigo-600,
+  .text-primary {
     color: var(--accent-text) !important;
   }
 }

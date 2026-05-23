@@ -241,10 +241,7 @@ const ClientLayout: React.FC = () => {
 
   const isMainDashboard = false;
   const isWorkbench = location.pathname.startsWith('/client/workbench');
-  const hideHeader = location.pathname.startsWith('/client/workbench') || 
-                     location.pathname === '/client' || 
-                     location.pathname === '/client/' ||
-                     location.pathname.includes('/properties/');
+  const hideHeader = location.pathname.startsWith('/client');
   const isWorkbenchWorkspace = location.pathname.startsWith('/client/workbench') || 
                                location.pathname === '/client' || 
                                location.pathname === '/client/';
