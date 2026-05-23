@@ -26,7 +26,8 @@ import {
   Smartphone, Settings, Layout, Layers, X, Maximize2, Minimize2,
   Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight,
   Gavel, Calendar, ShieldAlert, Search, Plus, Filter, ArrowRight,
-  Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare
+  Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare,
+  MousePointer, TrendingUp
 } from 'lucide-react';
 
 const CHART_COLORS = {
@@ -199,6 +200,20 @@ export const ClientWorkbench: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activePane, setActivePane] = useState<'explorer' | 'presets' | 'info'>('explorer');
   const [selectedState, setSelectedState] = useState<string>('');
+
+  // IDE Mode & Node Canvas Custom States
+  const [layoutTemplate, setLayoutTemplate] = useState<'canvas' | 'ide'>('canvas');
+  const [activeIdeTabId, setActiveIdeTabId] = useState<string | null>('live_auctions');
+  const [nodeCanvasTool, setNodeCanvasTool] = useState<'select' | 'connect'>('select');
+  const [nodeConnections, setNodeConnections] = useState<Array<{ from: string, to: string }>>([
+    { from: '1', to: '2' },
+    { from: '1', to: '3' },
+    { from: '2', to: '4' },
+    { from: '3', to: '5' },
+    { from: '4', to: '6' },
+    { from: '5', to: '6' }
+  ]);
+  const [nodeConnectSourceId, setNodeConnectSourceId] = useState<string | null>(null);
   
   // Dynamic API details states
   const [stateStats, setStateStats] = useState<StateStat[]>([]);
@@ -1304,10 +1319,32 @@ export const ClientWorkbench: React.FC = () => {
 
   // Toggle widget visibility
   const toggleVisibility = (id: string) => {
-    setWidgets(prev =>
-      prev.map(w => w.id === id ? { ...w, visible: !w.visible } : w)
-    );
-    focusWidget(id);
+    let wasVisible = false;
+    setWidgets(prev => {
+      wasVisible = prev.find(w => w.id === id)?.visible || false;
+      return prev.map(w => w.id === id ? { ...w, visible: !w.visible } : w);
+    });
+    
+    if (layoutTemplate === 'ide') {
+      if (!wasVisible) {
+        setActiveIdeTabId(id);
+      } else if (activeIdeTabId === id) {
+        // If we closed the active tab, pick another visible one if any
+        setTimeout(() => {
+          setWidgets(currentWidgets => {
+            const open = currentWidgets.filter(w => w.visible);
+            if (open.length > 0) {
+              setActiveIdeTabId(open[0].id);
+            } else {
+              setActiveIdeTabId(null);
+            }
+            return currentWidgets;
+          });
+        }, 50);
+      }
+    } else {
+      focusWidget(id);
+    }
   };
 
   // Presets arranger
@@ -1418,15 +1455,54 @@ export const ClientWorkbench: React.FC = () => {
           <div>
             <div className="flex items-center gap-1.5">
               <h2 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white leading-none">GoAuct OS</h2>
-              <span className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.25 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 rounded-md">V3.5 Infinite Canvas</span>
+              <span className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.25 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 rounded-md">
+                {layoutTemplate === 'ide' ? 'V3.5 IDE Mode' : 'V3.5 Infinite Canvas'}
+              </span>
             </div>
             <p className="text-[8.5px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
-              Pannable zoom viewport with custom analytical widgets
+              {layoutTemplate === 'ide' ? 'Tabbed developer workspace with system diagnostics' : 'Pannable zoom viewport with custom analytical widgets'}
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Template Layout Toggler */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900/60 p-0.5 rounded-lg border border-slate-200/50 dark:border-slate-800 flex shadow-sm mr-2 select-none">
+            <button
+              onClick={() => {
+                setLayoutTemplate('canvas');
+                logConsoleActivity('Switched workspace layout to Infinite Canvas Mode.');
+              }}
+              className={`text-[8px] font-black uppercase px-2 py-1 rounded-md transition-all ${
+                layoutTemplate === 'canvas'
+                  ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-slate-450 dark:text-slate-550 hover:text-slate-700 dark:hover:text-slate-350'
+              }`}
+            >
+              Canvas
+            </button>
+            <button
+              onClick={() => {
+                setLayoutTemplate('ide');
+                const open = widgets.filter(w => w.visible);
+                if (open.length > 0 && (!activeIdeTabId || !widgets.find(w => w.id === activeIdeTabId)?.visible)) {
+                  setActiveIdeTabId(open[0].id);
+                } else if (open.length === 0) {
+                  setWidgets(prev => prev.map(w => w.id === 'live_auctions' ? { ...w, visible: true } : w));
+                  setActiveIdeTabId('live_auctions');
+                }
+                logConsoleActivity('Switched workspace layout to IDE Developer Workspace Mode.');
+              }}
+              className={`text-[8px] font-black uppercase px-2 py-1 rounded-md transition-all ${
+                layoutTemplate === 'ide'
+                  ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                  : 'text-slate-450 dark:text-slate-550 hover:text-slate-700 dark:hover:text-slate-350'
+              }`}
+            >
+              IDE Mode
+            </button>
+          </div>
+
           {selectedState && (
             <button
               onClick={() => setSelectedState('')}
@@ -1524,14 +1600,19 @@ export const ClientWorkbench: React.FC = () => {
                       );
                     });
                     
-                    const match = widgets.find(w => w.id === shortcut.id);
-                    if (match) {
-                      const targetX = -match.x + (window.innerWidth - match.w) / 2;
-                      const targetY = -match.y + (window.innerHeight - match.h) / 2;
-                      setPanX(targetX);
-                      setPanY(targetY);
-                      setZoomScale(1.0);
-                      logConsoleActivity(`Focused and centered on widget: "${match.title}"`);
+                    if (layoutTemplate === 'ide') {
+                      setActiveIdeTabId(shortcut.id);
+                      logConsoleActivity(`Opened tab in workspace: "${shortcut.label}"`);
+                    } else {
+                      const match = widgets.find(w => w.id === shortcut.id);
+                      if (match) {
+                        const targetX = -match.x + (window.innerWidth - match.w) / 2;
+                        const targetY = -match.y + (window.innerHeight - match.h) / 2;
+                        setPanX(targetX);
+                        setPanY(targetY);
+                        setZoomScale(1.0);
+                        logConsoleActivity(`Focused and centered on widget: "${match.title}"`);
+                      }
                     }
                   }}
                   className={`relative p-2 rounded-xl transition-all ${
@@ -1590,7 +1671,7 @@ export const ClientWorkbench: React.FC = () => {
                     <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Workspace Explorer</h3>
                     <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Toggle widgets on canvas</p>
                     <p className="text-[8.5px] text-slate-500 dark:text-slate-400 mt-2 bg-blue-500/5 dark:bg-blue-955/10 border border-blue-500/10 p-2 rounded-lg font-bold leading-normal">
-                      Clique nos ícones para abrir janelas internas flutuantes dentro do GoAuct. Organize sua área de trabalho como preferir.
+                      Click on the icons to open internal floating windows within GoAuct. Organize your workspace however you prefer.
                     </p>
                   </div>
 
@@ -1662,6 +1743,51 @@ export const ClientWorkbench: React.FC = () => {
               {activePane === 'presets' && (
                 <>
                   <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Workspace Template</h3>
+                    <p className="text-[8px] font-bold text-slate-455 uppercase tracking-widest mt-0.5">Choose layout behavior</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        setLayoutTemplate('canvas');
+                        logConsoleActivity('Switched workspace layout to Infinite Canvas Mode.');
+                      }}
+                      className={`p-2.5 rounded-xl border text-center transition-all ${
+                        layoutTemplate === 'canvas'
+                          ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm'
+                          : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-450 dark:text-slate-500'
+                      }`}
+                    >
+                      <LayoutGrid size={14} className="mx-auto mb-1" />
+                      <span className="text-[9px] font-black uppercase tracking-wider">Canvas</span>
+                    </button>
+                    <button
+                      onClick={() => {
+                        setLayoutTemplate('ide');
+                        const open = widgets.filter(w => w.visible);
+                        if (open.length > 0 && (!activeIdeTabId || !widgets.find(w => w.id === activeIdeTabId)?.visible)) {
+                          setActiveIdeTabId(open[0].id);
+                        } else if (open.length === 0) {
+                          setWidgets(prev => prev.map(w => w.id === 'live_auctions' ? { ...w, visible: true } : w));
+                          setActiveIdeTabId('live_auctions');
+                        }
+                        logConsoleActivity('Switched workspace layout to IDE Developer Workspace Mode.');
+                      }}
+                      className={`p-2.5 rounded-xl border text-center transition-all ${
+                        layoutTemplate === 'ide'
+                          ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm'
+                          : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-450 dark:text-slate-500'
+                      }`}
+                    >
+                      <Terminal size={14} className="mx-auto mb-1" />
+                      <span className="text-[9px] font-black uppercase tracking-wider">IDE Mode</span>
+                    </button>
+                  </div>
+
+                  <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
+
+                  <div>
                     <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Layout Presets</h3>
                     <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Quick window arrangements</p>
                   </div>
@@ -1728,7 +1854,251 @@ export const ClientWorkbench: React.FC = () => {
           )}
         </div>
 
+        {/* ─── IDE WORKSPACE MODE ─── */}
+        {layoutTemplate === 'ide' && (
+          <div className="flex-1 flex flex-col h-full overflow-hidden">
+
+            {/* IDE Top Breadcrumb Bar */}
+            <div className="h-7 bg-slate-100/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center gap-2 shrink-0 select-none">
+              <span className="text-[8px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">GoAuct OS</span>
+              <span className="text-slate-300 dark:text-slate-700 text-[9px]">/</span>
+              <span className="text-[8px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">pages</span>
+              <span className="text-slate-300 dark:text-slate-700 text-[9px]">/</span>
+              <span className="text-[8px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
+                {activeIdeTabId ? (widgets.find(w => w.id === activeIdeTabId)?.title?.replace(/^[^\w]+/, '') || activeIdeTabId) : 'workspace'}
+              </span>
+              <div className="ml-auto flex items-center gap-3">
+                <span className="text-[7.5px] font-bold text-emerald-500 flex items-center gap-1">
+                  <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  feature/newinterface
+                </span>
+                <span className="text-[7.5px] font-bold text-slate-400 dark:text-slate-600 uppercase">TSX</span>
+                <span className="text-[7.5px] font-bold text-slate-400 dark:text-slate-600 uppercase">UTF-8</span>
+              </div>
+            </div>
+
+            {/* IDE Tab Bar */}
+            <div className="h-9 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-end gap-0 overflow-x-auto no-scrollbar shrink-0">
+              {widgets.filter(w => w.visible).map(w => {
+                const isActive = activeIdeTabId === w.id;
+                const tabIcons: Record<string, React.ReactNode> = {
+                  live_auctions: <Calendar size={10} />,
+                  property_search: <Search size={10} />,
+                  my_lists: <Folder size={10} />,
+                  map: <Map size={10} />,
+                  chart: <BarChart2 size={10} />,
+                  dossier: <Folder size={10} />,
+                  field_missions: <Gavel size={10} />,
+                  connect: <Compass size={10} />,
+                  settings: <Settings size={10} />,
+                  profile: <Users size={10} />,
+                  logs: <Terminal size={10} />,
+                  node_canvas: <Layers size={10} />,
+                  rehab_calc: <Activity size={10} />,
+                  shortcuts: <Smartphone size={10} />,
+                };
+                return (
+                  <button
+                    key={w.id}
+                    onClick={() => setActiveIdeTabId(w.id)}
+                    className={`group flex items-center gap-1.5 px-3 h-full text-[9px] font-semibold border-r border-slate-200 dark:border-slate-800 whitespace-nowrap transition-all shrink-0 relative ${
+                      isActive
+                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-b-2 border-b-indigo-500 font-bold'
+                        : 'bg-slate-50/60 dark:bg-slate-950/60 text-slate-500 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-900 hover:text-slate-700 dark:hover:text-slate-300'
+                    }`}
+                  >
+                    <span className={isActive ? 'text-indigo-500' : 'text-slate-400'}>
+                      {tabIcons[w.id] || <Layers size={10} />}
+                    </span>
+                    <span className="truncate max-w-[120px]">{w.title.replace(/^[^\w]+/, '')}</span>
+                    <span
+                      onClick={e => { e.stopPropagation(); toggleVisibility(w.id); }}
+                      className="ml-0.5 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all rounded p-0.5 hover:bg-red-50 dark:hover:bg-red-955/10 cursor-pointer"
+                      title="Close tab"
+                    >
+                      <X size={9} />
+                    </span>
+                  </button>
+                );
+              })}
+              {widgets.filter(w => w.visible).length === 0 && (
+                <div className="flex items-center px-4 h-full text-[9px] text-slate-400 dark:text-slate-600 italic">
+                  No open tabs — click a shortcut icon to open a page
+                </div>
+              )}
+            </div>
+
+            {/* IDE Central Area: Editor + Right Panel + Bottom Terminal */}
+            <div className="flex-1 flex overflow-hidden min-h-0">
+
+              {/* Central Editor Viewport */}
+              <div className="flex-1 flex flex-col overflow-hidden min-h-0">
+
+                {/* Active Tab Content */}
+                <div className="flex-1 overflow-auto min-h-0 bg-white dark:bg-slate-900">
+                  {activeIdeTabId ? (() => {
+                    const w = widgets.find(x => x.id === activeIdeTabId);
+                    if (!w) return (
+                      <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-600 gap-3">
+                        <Sparkles size={32} className="opacity-30" />
+                        <p className="text-xs font-semibold">Tab not found</p>
+                      </div>
+                    );
+                    // Render the full page for tabs that have original components
+                    if (w.id === 'live_auctions') return <div className="size-full overflow-auto no-scrollbar"><ClientAuctions /></div>;
+                    if (w.id === 'property_search') return <div className="size-full overflow-auto no-scrollbar"><ClientProperties /></div>;
+                    if (w.id === 'my_lists') return <div className="size-full overflow-auto no-scrollbar"><ClientLists /></div>;
+                    // For all other widgets, render their content inside a styled wrapper
+                    return (
+                      <div className="size-full overflow-auto p-6 bg-slate-50/50 dark:bg-slate-950/50">
+                        <div className="max-w-5xl mx-auto">
+                          <div className="mb-5 flex items-center gap-3">
+                            <div className="size-9 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-md">
+                              <Sparkles size={16} className="text-white" />
+                            </div>
+                            <div>
+                              <h1 className="text-lg font-black text-slate-900 dark:text-white">{w.title}</h1>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Widget ID: {w.id} · Type: {w.type}</p>
+                            </div>
+                          </div>
+                          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+                            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">
+                              Switch to <strong>Canvas Mode</strong> to interact with this widget on the infinite canvas, or use the left sidebar to navigate.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })() : (
+                    <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400 dark:text-slate-600">
+                      <Sparkles size={48} className="opacity-20" />
+                      <div className="text-center">
+                        <p className="text-sm font-bold text-slate-500 dark:text-slate-500">No active tab</p>
+                        <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">Click any shortcut icon or widget toggle to open a page here</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Bottom Terminal Panel */}
+                <div className="h-44 bg-slate-950 border-t border-slate-800 flex flex-col shrink-0">
+                  <div className="flex items-center gap-1 px-3 py-1 border-b border-slate-800 shrink-0">
+                    {['Terminal', 'Console', 'Problems'].map((tab, i) => (
+                      <button key={tab} className={`px-3 py-1 text-[8.5px] font-bold uppercase tracking-wider rounded-t transition-all ${i === 0 ? 'text-white bg-slate-800 border border-slate-700 border-b-slate-800' : 'text-slate-500 hover:text-slate-300'}`}>
+                        {tab}
+                      </button>
+                    ))}
+                    <div className="ml-auto flex items-center gap-2">
+                      <span className="text-[7.5px] font-bold text-emerald-500 flex items-center gap-1">
+                        <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        LIVE
+                      </span>
+                      <button
+                        onClick={() => logConsoleActivity('Terminal cleared by user.')}
+                        className="text-[7.5px] text-slate-600 hover:text-slate-300 uppercase font-bold px-1.5"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex-1 overflow-y-auto px-4 py-2 font-mono text-[9px] space-y-1 no-scrollbar">
+                    {terminalLogs.slice().reverse().map((entry, i) => (
+                      <div key={i} className="flex items-start gap-2 opacity-90 hover:opacity-100">
+                        <span className="text-emerald-500 shrink-0 font-black">›</span>
+                        <span className="text-slate-300">{entry}</span>
+                      </div>
+                    ))}
+                    {terminalLogs.length === 0 && (
+                      <div className="text-slate-600 italic">GoAuct OS terminal ready.</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Agent Panel */}
+              <div className="w-64 bg-white/95 dark:bg-slate-900/95 border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 overflow-y-auto no-scrollbar">
+                <div className="p-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <div className="size-6 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-sm">
+                      <Sparkles size={11} className="text-white" />
+                    </div>
+                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Agent Panel</span>
+                  </div>
+                  <p className="text-[7.5px] text-slate-400 dark:text-slate-500 mt-1 font-medium uppercase tracking-wider">Antigravity AI · Context-Aware</p>
+                </div>
+
+                <div className="p-3 space-y-3 flex-1">
+                  {/* Workspace Status */}
+                  <div className="p-2.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-955/10 border border-indigo-500/15">
+                    <p className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1.5">Workspace Status</p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between text-[8px]">
+                        <span className="text-slate-500 font-semibold">Open Tabs</span>
+                        <span className="font-black text-slate-900 dark:text-white">{widgets.filter(w => w.visible).length}</span>
+                      </div>
+                      <div className="flex justify-between text-[8px]">
+                        <span className="text-slate-500 font-semibold">Active Tab</span>
+                        <span className="font-black text-indigo-600 dark:text-indigo-400 truncate max-w-[80px]">{activeIdeTabId || '—'}</span>
+                      </div>
+                      <div className="flex justify-between text-[8px]">
+                        <span className="text-slate-500 font-semibold">Layout</span>
+                        <span className="font-black text-emerald-600 dark:text-emerald-400">IDE Mode</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div>
+                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Quick Actions</p>
+                    <div className="space-y-1.5">
+                      {[
+                        { label: 'Open Live Auctions', id: 'live_auctions', icon: Calendar },
+                        { label: 'Open Property Search', id: 'property_search', icon: Search },
+                        { label: 'Open Watchlists', id: 'my_lists', icon: Folder },
+                        { label: 'Open Node Canvas', id: 'node_canvas', icon: Layers },
+                      ].map(action => {
+                        const Icon = action.icon;
+                        return (
+                          <button
+                            key={action.id}
+                            onClick={() => {
+                              setWidgets(prev => prev.map(w => w.id === action.id ? { ...w, visible: true } : w));
+                              setActiveIdeTabId(action.id);
+                              logConsoleActivity(`Opened "${action.label}" tab in IDE workspace.`);
+                            }}
+                            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-800"
+                          >
+                            <Icon size={11} className="text-indigo-500 shrink-0" />
+                            <span className="text-[8.5px] font-bold text-slate-700 dark:text-slate-300 truncate">{action.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Activity Log Summary */}
+                  <div>
+                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Recent Activity</p>
+                    <div className="space-y-1.5">
+                      {terminalLogs.slice(-4).reverse().map((entry, i) => (
+                        <div key={i} className="text-[7.5px] text-slate-500 dark:text-slate-500 leading-tight border-l-2 border-indigo-500/30 pl-2 py-0.5">
+                          {entry}
+                        </div>
+                      ))}
+                      {terminalLogs.length === 0 && (
+                        <p className="text-[7.5px] text-slate-400 dark:text-slate-600 italic">No activity yet.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        )}
+
         {/* ─── INTERACTIVE WORKSPACE CANVAS (VIEWPORT) ─── */}
+        {layoutTemplate === 'canvas' && (
         <div
           ref={canvasRef}
           onMouseDown={handleCanvasMouseDown}
@@ -3320,7 +3690,7 @@ export const ClientWorkbench: React.FC = () => {
                             <Layers size={11} className="text-violet-500" /> Node-based Canvas with Auto Layout and Edge Connections
                           </span>
                           <span className="text-[8px] text-slate-500 dark:text-slate-400 font-medium pl-4">
-                            Organize seus dashboards com widgets conectáveis e Auto Layout inteligente.
+                            Organize your dashboards with connectable widgets and smart Auto Layout.
                           </span>
                         </div>
                         <button
@@ -3352,21 +3722,24 @@ export const ClientWorkbench: React.FC = () => {
                           </defs>
 
                           {/* Connections */}
-                          {dealFlowNodes.map((n, i) => {
-                            if (i === 0) return null;
-                            const prev = dealFlowNodes[i - 1];
-                            const isActive = n.status !== 'pending' && prev.status !== 'pending';
-                            const isCompleted = n.status === 'completed' && prev.status === 'completed';
+                          {nodeConnections.map((conn, idx) => {
+                            const fromNode = dealFlowNodes.find(n => n.id === conn.from);
+                            const toNode = dealFlowNodes.find(n => n.id === conn.to);
+                            if (!fromNode || !toNode) return null;
+                            
+                            const isActive = toNode.status !== 'pending' && fromNode.status !== 'pending';
+                            const isCompleted = toNode.status === 'completed' && fromNode.status === 'completed';
+                            
                             return (
-                              <g key={`path-${prev.id}-${n.id}`}>
+                              <g key={`path-${conn.from}-${conn.to}-${idx}`}>
                                 <path
-                                  d={drawBezier(prev, n)}
+                                  d={drawBezier(fromNode, toNode)}
                                   stroke={isCompleted ? 'url(#completedGrad)' : isActive ? 'url(#activeGlowGrad)' : '#94A3B8'}
                                   strokeWidth={isActive ? 2.5 : 1.5}
                                   fill="none"
                                   strokeDasharray={isActive && !isCompleted ? '5,5' : 'none'}
                                   className={isActive && !isCompleted ? 'animate-pulse' : ''}
-                                  opacity={n.status === 'pending' ? 0.4 : 1}
+                                  opacity={toNode.status === 'pending' ? 0.4 : 1}
                                 />
                               </g>
                             );
@@ -3375,7 +3748,10 @@ export const ClientWorkbench: React.FC = () => {
                           {/* Nodes rendered as SVG foreignObjects for rich HTML rendering */}
                           {dealFlowNodes.map(n => {
                             const isDragging = draggingNodeId === n.id;
+                            const isSelectedSource = nodeConnectSourceId === n.id;
+                            
                             const borderClass =
+                              isSelectedSource ? 'border-indigo-650 ring-4 ring-indigo-500/40 bg-indigo-50/60 dark:bg-indigo-955/20 text-indigo-700 dark:text-indigo-400 font-extrabold animate-pulse' :
                               n.status === 'completed' ? 'border-emerald-500/80 bg-emerald-50/50 dark:bg-emerald-955/20 text-emerald-700 dark:text-emerald-450' :
                               n.status === 'active' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-955/20 text-blue-700 dark:text-blue-400 ring-2 ring-blue-500/20' :
                               'border-slate-350 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400';
@@ -3391,11 +3767,32 @@ export const ClientWorkbench: React.FC = () => {
                               >
                                 <div
                                   onMouseDown={(e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    setDraggingNodeId(n.id);
+                                    if (nodeCanvasTool === 'select') {
+                                      e.stopPropagation();
+                                      e.preventDefault();
+                                      setDraggingNodeId(n.id);
+                                    }
                                   }}
-                                  onClick={() => handleNodeClick(n.id)}
+                                  onClick={() => {
+                                    if (nodeCanvasTool === 'connect') {
+                                      if (!nodeConnectSourceId) {
+                                        setNodeConnectSourceId(n.id);
+                                        logConsoleActivity(`Connection source set: "${n.label}". Click another node to connect.`);
+                                      } else {
+                                        if (nodeConnectSourceId !== n.id) {
+                                          const exists = nodeConnections.some(c => c.from === nodeConnectSourceId && c.to === n.id);
+                                          if (!exists) {
+                                            setNodeConnections(prev => [...prev, { from: nodeConnectSourceId!, to: n.id }]);
+                                            logConsoleActivity(`Connected node "${dealFlowNodes.find(x => x.id === nodeConnectSourceId)?.label}" to "${n.label}".`);
+                                          }
+                                          setNodeConnectSourceId(null);
+                                          setNodeCanvasTool('select');
+                                        }
+                                      }
+                                    } else {
+                                      handleNodeClick(n.id);
+                                    }
+                                  }}
                                   className={`px-2 py-1 border rounded-xl flex flex-col items-center justify-center cursor-grab active:cursor-grabbing text-center shadow-md select-none transition-all duration-75 hover:scale-102 ${borderClass} ${isDragging ? 'shadow-lg scale-105 opacity-90 ring-4 ring-indigo-500/20' : ''}`}
                                   style={{ height: '40px' }}
                                 >
@@ -3409,9 +3806,81 @@ export const ClientWorkbench: React.FC = () => {
                           })}
                         </svg>
 
+                        {/* Floating Tool Palette */}
+                        <div className="absolute top-2 left-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-1.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 shadow-lg flex items-center gap-1.5 z-10 select-none">
+                          <button
+                            onClick={() => {
+                              setNodeCanvasTool('select');
+                              setNodeConnectSourceId(null);
+                            }}
+                            className={`p-1 rounded transition-all flex items-center gap-1 ${
+                              nodeCanvasTool === 'select'
+                                ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            title="Select / Move Node"
+                          >
+                            <MousePointer size={11} />
+                            <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Select</span>
+                          </button>
+                          
+                          <button
+                            onClick={() => {
+                              setNodeCanvasTool('connect');
+                              setNodeConnectSourceId(null);
+                            }}
+                            className={`p-1 rounded transition-all flex items-center gap-1 ${
+                              nodeCanvasTool === 'connect'
+                                ? 'bg-indigo-600 text-white font-bold shadow-sm animate-pulse'
+                                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            }`}
+                            title="Connect Nodes (Draw Arrow)"
+                          >
+                            <TrendingUp size={11} />
+                            <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Connect</span>
+                          </button>
+
+                          <div className="w-[1px] h-3.5 bg-slate-200 dark:bg-slate-850" />
+
+                          <button
+                            onClick={() => {
+                              const pool = ['GIS Audit', 'Escrow Close', 'Tax Record', 'Title Search', 'Deed Audit', 'Final Review', 'Legal Int.', 'Bid Strategy'];
+                              const randomLabel = pool[Math.floor(Math.random() * pool.length)];
+                              const nextId = String(dealFlowNodes.length + 1);
+                              const randomX = Math.round(50 + Math.random() * 250);
+                              const randomY = Math.round(50 + Math.random() * 250);
+                              
+                              setDealFlowNodes(prev => [
+                                ...prev,
+                                { id: nextId, label: `${randomLabel} (${nextId})`, status: 'pending', x: randomX, y: randomY }
+                              ]);
+                              logConsoleActivity(`Spawned custom pipeline node: "${randomLabel} (${nextId})"`);
+                            }}
+                            className="p-1 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-855 transition-all flex items-center gap-1"
+                            title="Add Custom Node"
+                          >
+                            <Plus size={11} />
+                            <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Add Node</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setNodeConnections([]);
+                              logConsoleActivity('Cleared all pipeline node connections.');
+                            }}
+                            className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 transition-all flex items-center gap-1"
+                            title="Clear Connections"
+                          >
+                            <Trash2 size={11} />
+                            <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Clear</span>
+                          </button>
+                        </div>
+
                         {/* Interactive Drag & Change Instruction Overlay */}
-                        <div className="absolute bottom-2 left-2 right-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-1.5 rounded-lg border border-slate-200 dark:border-slate-800/80 text-[7px] font-bold text-slate-500 text-center pointer-events-none uppercase tracking-widest">
-                          💡 Drag nodes to rearrange · Click nodes to cycle status
+                        <div className="absolute bottom-2 left-2 right-2 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md p-1.5 rounded-lg border border-slate-200 dark:border-slate-800/85 text-[7px] font-black text-slate-500 text-center pointer-events-none uppercase tracking-widest leading-none">
+                          {nodeCanvasTool === 'connect'
+                            ? '↗️ Click source node, then click target node to connect'
+                            : '🖱️ Drag nodes to rearrange · Click nodes to cycle status · Switch to Connect tool to draw lines'}
                         </div>
                       </div>
                     </div>
@@ -3836,10 +4305,11 @@ export const ClientWorkbench: React.FC = () => {
           </div>
 
         </div>
+        )}
 
       </div>
 
-      {/* ─── FOOTER (Status e Controles) ─── */}
+      {/* ─── FOOTER (Status Bar) ─── */}
       <div className="w-full h-8 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-850 px-5 flex justify-between items-center shrink-0 z-30 select-none">
         <div className="flex items-center gap-2">
           <span className="relative flex h-1.5 w-1.5">
@@ -3847,17 +4317,21 @@ export const ClientWorkbench: React.FC = () => {
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
           </span>
           <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-            Synced · Last Refresh: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{syncTime || '04:18 AM'}</span>
+            Synced · Last Refresh: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{syncTime || '—'}</span>
           </span>
         </div>
 
         <div className="flex items-center gap-3">
+          <span className="text-[7.5px] font-bold text-emerald-500 flex items-center gap-1">
+            <span className="size-1.5 rounded-full bg-emerald-500" />
+            feature/newinterface
+          </span>
           <div className="flex items-center gap-1 text-[8.5px] font-semibold text-slate-455 dark:text-slate-500">
             <Layers size={10} />
-            <span>Active Canvas Windows: {widgets.filter(w => w.visible).length}</span>
+            <span>{layoutTemplate === 'ide' ? `Tabs: ${widgets.filter(w => w.visible).length}` : `Windows: ${widgets.filter(w => w.visible).length}`}</span>
           </div>
-          <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-            IDE Workbench V3.5
+          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${layoutTemplate === 'ide' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' : 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20'}`}>
+            {layoutTemplate === 'ide' ? 'IDE Mode' : 'Canvas Mode'}
           </span>
         </div>
       </div>
