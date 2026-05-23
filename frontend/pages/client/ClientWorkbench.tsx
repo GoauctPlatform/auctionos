@@ -2816,50 +2816,7 @@ export const ClientWorkbench: React.FC = () => {
                     </div>
                   ) : (
                     <>
-                      <div>
-                        <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Workspace Template</h3>
-                        <p className="text-[8px] font-bold text-slate-455 uppercase tracking-widest mt-0.5">Choose layout behavior</p>
-                      </div>
 
-                      <div className="grid grid-cols-2 gap-2">
-                        <button
-                          onClick={() => {
-                            setLayoutTemplate('canvas');
-                            logConsoleActivity('Switched workspace layout to Infinite Canvas Mode.');
-                          }}
-                          className={`p-2.5 rounded-xl border text-center transition-all ${
-                            layoutTemplate === 'canvas'
-                              ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm'
-                              : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-450 dark:text-slate-500'
-                          }`}
-                        >
-                          <LayoutGrid size={14} className="mx-auto mb-1" />
-                          <span className="text-[9px] font-black uppercase tracking-wider">Canvas</span>
-                        </button>
-                        <button
-                          onClick={() => {
-                            setLayoutTemplate('ide');
-                            const open = widgets.filter(w => w.visible);
-                            if (open.length > 0 && (!activeIdeTabId || !widgets.find(w => w.id === activeIdeTabId)?.visible)) {
-                              setActiveIdeTabId(open[0].id);
-                            } else if (open.length === 0) {
-                              setWidgets(prev => prev.map(w => w.id === 'live_auctions' ? { ...w, visible: true } : w));
-                              setActiveIdeTabId('live_auctions');
-                            }
-                            logConsoleActivity('Switched workspace layout to IDE Developer Workspace Mode.');
-                          }}
-                          className={`p-2.5 rounded-xl border text-center transition-all ${
-                            layoutTemplate === 'ide'
-                              ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm'
-                              : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-450 dark:text-slate-500'
-                          }`}
-                        >
-                          <Terminal size={14} className="mx-auto mb-1" />
-                          <span className="text-[9px] font-black uppercase tracking-wider">IDE Mode</span>
-                        </button>
-                      </div>
-
-                      <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
 
                       <div className="flex items-center justify-between">
                         <div>
