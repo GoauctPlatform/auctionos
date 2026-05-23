@@ -204,6 +204,11 @@ export const ClientWorkbench: React.FC = () => {
   // IDE Mode & Node Canvas Custom States
   const [layoutTemplate, setLayoutTemplate] = useState<'canvas' | 'ide'>('canvas');
   const [activeIdeTabId, setActiveIdeTabId] = useState<string | null>('live_auctions');
+  // Split panel states
+  const [ideSplitMode, setIdeSplitMode] = useState(false);
+  const [splitIdeTabId, setSplitIdeTabId] = useState<string | null>(null);
+  const [splitLeftWidthPct, setSplitLeftWidthPct] = useState(50);
+  const splitDraggingRef = useRef(false);
   const [nodeCanvasTool, setNodeCanvasTool] = useState<'select' | 'connect'>('select');
   const [nodeConnections, setNodeConnections] = useState<Array<{ from: string, to: string }>>([
     { from: '1', to: '2' },
@@ -1031,6 +1036,31 @@ export const ClientWorkbench: React.FC = () => {
     logConsoleActivity('Dismissed system notification.');
   };
 
+  // Split panel divider drag handler
+  const handleSplitDividerMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    splitDraggingRef.current = true;
+    const startX = e.clientX;
+    const startPct = splitLeftWidthPct;
+    const container = (e.currentTarget as HTMLElement).parentElement;
+    if (!container) return;
+    const containerW = container.getBoundingClientRect().width;
+
+    const onMove = (moveE: MouseEvent) => {
+      if (!splitDraggingRef.current) return;
+      const delta = moveE.clientX - startX;
+      const newPct = Math.min(80, Math.max(20, startPct + (delta / containerW) * 100));
+      setSplitLeftWidthPct(Math.round(newPct));
+    };
+    const onUp = () => {
+      splitDraggingRef.current = false;
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    };
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  };
+
   // Window Drag & Resize Mouse Handlers
   const handleMouseDown = (
     e: React.MouseEvent,
@@ -1529,8 +1559,8 @@ export const ClientWorkbench: React.FC = () => {
       {/* ─── MAIN WORKBENCH PANEL ─── */}
       <div className="flex-1 flex w-full overflow-hidden relative">
 
-        {/* ─── SIDEBAR 1: Primary VS Code Ribbon (64px) ─── */}
-        <div className="w-16 bg-white dark:bg-slate-950 border-r border-slate-200/80 dark:border-slate-800/60 flex flex-col justify-between py-4 items-center shrink-0 z-40 overflow-y-auto no-scrollbar scrollbar-none">
+        {/* ─── SIDEBAR 1: Primary VS Code Ribbon (64px desktop, 40px mobile) ─── */}
+        <div className="w-10 md:w-16 bg-white dark:bg-slate-950 border-r border-slate-200/80 dark:border-slate-800/60 flex flex-col justify-between py-4 items-center shrink-0 z-40 overflow-y-auto no-scrollbar scrollbar-none">
           <div className="flex flex-col gap-3 w-full items-center">
             {[
               { id: 'explorer', icon: Layers, label: 'Workspace Explorer' },
@@ -1656,9 +1686,9 @@ export const ClientWorkbench: React.FC = () => {
           </div>
         </div>
 
-        {/* ─── SIDEBAR 2: Collapsible Secondary Drawer (240px) ─── */}
+        {/* ─── SIDEBAR 2: Collapsible Secondary Drawer (240px) — hidden on mobile ─── */}
         <div
-          className={`bg-white/95 dark:bg-slate-900/90 border-r border-slate-200/80 dark:border-slate-800/60 flex flex-col transition-all duration-300 backdrop-blur-sm shrink-0 z-35 overflow-y-auto ${
+          className={`hidden md:flex bg-white/95 dark:bg-slate-900/90 border-r border-slate-200/80 dark:border-slate-800/60 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 z-35 overflow-y-auto ${
             sidebarOpen ? 'w-60' : 'w-0 pointer-events-none border-r-0'
           }`}
         >
@@ -1881,6 +1911,7 @@ export const ClientWorkbench: React.FC = () => {
             <div className="h-9 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-end gap-0 overflow-x-auto no-scrollbar shrink-0">
               {widgets.filter(w => w.visible).map(w => {
                 const isActive = activeIdeTabId === w.id;
+                const isSplit = splitIdeTabId === w.id;
                 const tabIcons: Record<string, React.ReactNode> = {
                   live_auctions: <Calendar size={10} />,
                   property_search: <Search size={10} />,
@@ -1896,29 +1927,65 @@ export const ClientWorkbench: React.FC = () => {
                   node_canvas: <Layers size={10} />,
                   rehab_calc: <Activity size={10} />,
                   shortcuts: <Smartphone size={10} />,
+                  billings: <CreditCard size={10} />,
+                  company: <Briefcase size={10} />,
+                  notifications: <Bell size={10} />,
+                  property_details: <Search size={10} />,
+                  team: <Users size={10} />,
+                  recommended_deals: <TrendingUp size={10} />,
                 };
                 return (
-                  <button
+                  <div
                     key={w.id}
+                    role="tab"
                     onClick={() => setActiveIdeTabId(w.id)}
-                    className={`group flex items-center gap-1.5 px-3 h-full text-[9px] font-semibold border-r border-slate-200 dark:border-slate-800 whitespace-nowrap transition-all shrink-0 relative ${
+                    className={`group flex items-center gap-1.5 px-3 h-full text-[9px] font-semibold border-r border-slate-200 dark:border-slate-800 whitespace-nowrap transition-all shrink-0 relative cursor-pointer ${
                       isActive
                         ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-b-2 border-b-indigo-500 font-bold'
+                        : isSplit
+                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-b-2 border-b-emerald-500 font-bold'
                         : 'bg-slate-50/60 dark:bg-slate-950/60 text-slate-500 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-900 hover:text-slate-700 dark:hover:text-slate-300'
                     }`}
                   >
-                    <span className={isActive ? 'text-indigo-500' : 'text-slate-400'}>
+                    <span className={isActive ? 'text-indigo-500' : isSplit ? 'text-emerald-500' : 'text-slate-400'}>
                       {tabIcons[w.id] || <Layers size={10} />}
                     </span>
-                    <span className="truncate max-w-[120px]">{w.title.replace(/^[^\w]+/, '')}</span>
+                    <span className="truncate max-w-[100px]">{w.title.replace(/^[^\w]+/, '')}</span>
+                    {/* Split button - only visible on hover, not for already-split tab */}
+                    {!isSplit && (
+                      <span
+                        onClick={e => {
+                          e.stopPropagation();
+                          setSplitIdeTabId(w.id);
+                          setIdeSplitMode(true);
+                          if (activeIdeTabId === w.id) {
+                            // Find another visible tab to be the main tab
+                            const other = widgets.filter(x => x.visible && x.id !== w.id)[0];
+                            if (other) setActiveIdeTabId(other.id);
+                          }
+                          logConsoleActivity(`Split view: "${w.title.replace(/^[^\w]+/, '')}" opened in right panel.`);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 ml-0.5 hover:text-emerald-500 transition-all rounded p-0.5 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 cursor-pointer"
+                        title="Open in split panel"
+                      >
+                        <LayoutGrid size={8} />
+                      </span>
+                    )}
                     <span
-                      onClick={e => { e.stopPropagation(); toggleVisibility(w.id); }}
-                      className="ml-0.5 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all rounded p-0.5 hover:bg-red-50 dark:hover:bg-red-955/10 cursor-pointer"
+                      onClick={e => {
+                        e.stopPropagation();
+                        toggleVisibility(w.id);
+                        if (splitIdeTabId === w.id) {
+                          setSplitIdeTabId(null);
+                          setIdeSplitMode(false);
+                        }
+                      }}
+                      className="ml-0.5 opacity-0 group-hover:opacity-100 hover:text-red-500 transition-all rounded p-0.5 hover:bg-red-50 dark:hover:bg-red-950/10 cursor-pointer"
                       title="Close tab"
                     >
                       <X size={9} />
                     </span>
-                  </button>
+                  </div>
                 );
               })}
               {widgets.filter(w => w.visible).length === 0 && (
@@ -1926,65 +1993,554 @@ export const ClientWorkbench: React.FC = () => {
                   No open tabs — click a shortcut icon to open a page
                 </div>
               )}
+              {/* Split mode indicator pill */}
+              {ideSplitMode && (
+                <div className="ml-auto flex items-center gap-1.5 px-3 shrink-0">
+                  <span className="text-[7.5px] font-bold text-emerald-500 flex items-center gap-1">
+                    <LayoutGrid size={9} />
+                    Split
+                  </span>
+                  <button
+                    onClick={() => { setIdeSplitMode(false); setSplitIdeTabId(null); setSplitLeftWidthPct(50); }}
+                    className="text-[7.5px] text-slate-400 hover:text-red-500 font-bold px-1 transition-colors"
+                    title="Close split view"
+                  >
+                    <X size={9} />
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* IDE Central Area: Editor + Right Panel + Bottom Terminal */}
+            {/* IDE Central Area: Split Panels + Terminal + Right Agent Panel */}
             <div className="flex-1 flex overflow-hidden min-h-0">
 
-              {/* Central Editor Viewport */}
+              {/* Central Editor Area (includes split panels + terminal) */}
               <div className="flex-1 flex flex-col overflow-hidden min-h-0">
 
-                {/* Active Tab Content */}
-                <div className="flex-1 overflow-auto min-h-0 bg-white dark:bg-slate-900">
-                  {activeIdeTabId ? (() => {
-                    const w = widgets.find(x => x.id === activeIdeTabId);
-                    if (!w) return (
-                      <div className="flex flex-col items-center justify-center h-full text-slate-400 dark:text-slate-600 gap-3">
-                        <Sparkles size={32} className="opacity-30" />
-                        <p className="text-xs font-semibold">Tab not found</p>
+                {/* Editor panels row (left + optional right split) */}
+                <div className="flex-1 flex overflow-hidden min-h-0 relative">
+
+                  {/* LEFT PANEL */}
+                  <div
+                    className="flex flex-col overflow-hidden min-h-0 min-w-0"
+                    style={{ width: ideSplitMode ? `${splitLeftWidthPct}%` : '100%' }}
+                  >
+                    {/* Left panel tab title bar */}
+                    {ideSplitMode && (
+                      <div className="h-7 bg-slate-100/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 px-3 flex items-center gap-2 shrink-0">
+                        <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                          {activeIdeTabId ? widgets.find(x => x.id === activeIdeTabId)?.title.replace(/^[^\w]+/, '') || activeIdeTabId : 'No Tab'}
+                        </span>
+                        <span className="ml-auto text-[7px] text-slate-400 dark:text-slate-600 font-bold uppercase">LEFT</span>
                       </div>
-                    );
-                    // Render the full page for tabs that have original components
-                    if (w.id === 'live_auctions') return <div className="size-full overflow-auto no-scrollbar"><ClientAuctions /></div>;
-                    if (w.id === 'property_search') return <div className="size-full overflow-auto no-scrollbar"><ClientProperties /></div>;
-                    if (w.id === 'my_lists') return <div className="size-full overflow-auto no-scrollbar"><ClientLists /></div>;
-                    // For all other widgets, render their content inside a styled wrapper
-                    return (
-                      <div className="size-full overflow-auto p-6 bg-slate-50/50 dark:bg-slate-950/50">
-                        <div className="max-w-5xl mx-auto">
-                          <div className="mb-5 flex items-center gap-3">
-                            <div className="size-9 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-md">
-                              <Sparkles size={16} className="text-white" />
-                            </div>
-                            <div>
-                              <h1 className="text-lg font-black text-slate-900 dark:text-white">{w.title}</h1>
-                              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Widget ID: {w.id} · Type: {w.type}</p>
-                            </div>
+                    )}
+                    {/* Left panel content */}
+                    <div className="flex-1 overflow-auto min-h-0 bg-white dark:bg-slate-900">
+                      {activeIdeTabId ? (() => {
+                        const w = widgets.find(x => x.id === activeIdeTabId);
+                        if (!w) return null;
+                        // Route to full page components
+                        if (w.id === 'live_auctions') return <div className="size-full overflow-auto"><ClientAuctions /></div>;
+                        if (w.id === 'property_search') return <div className="size-full overflow-auto"><ClientProperties /></div>;
+                        if (w.id === 'my_lists') return <div className="size-full overflow-auto"><ClientLists /></div>;
+                        // Route to embedded widget content
+                        return (
+                          <div className="size-full overflow-auto p-4 select-text">
+                            {/* ── All widget types rendered inline ── */}
+
+                            {w.type === 'shortcuts' && (
+                              <div className="h-full flex flex-col items-center justify-center gap-4">
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Quick Access</p>
+                                <div className="grid grid-cols-3 gap-4 max-w-xs">
+                                  {[
+                                    { label: 'Live Auctions', icon: Calendar, id: 'live_auctions', color: 'from-amber-400 to-orange-500' },
+                                    { label: 'Property Search', icon: Search, id: 'property_search', color: 'from-blue-400 to-cyan-500' },
+                                    { label: 'My Lists', icon: Folder, id: 'my_lists', color: 'from-purple-400 to-pink-500' },
+                                    { label: 'Missions', icon: Gavel, id: 'field_missions', color: 'from-emerald-400 to-teal-500' },
+                                    { label: 'Settings', icon: Settings, id: 'settings', color: 'from-slate-400 to-slate-600' },
+                                    { label: 'Billing', icon: CreditCard, id: 'billings', color: 'from-indigo-400 to-indigo-600' },
+                                  ].map(app => {
+                                    const Icon = app.icon;
+                                    return (
+                                      <button
+                                        key={app.id}
+                                        onClick={() => {
+                                          setWidgets(prev => prev.map(ww => ww.id === app.id ? { ...ww, visible: true } : ww));
+                                          setActiveIdeTabId(app.id);
+                                        }}
+                                        className="flex flex-col items-center gap-2 group"
+                                      >
+                                        <div className={`size-14 rounded-2xl bg-gradient-to-br ${app.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                                          <Icon size={24} className="text-white" />
+                                        </div>
+                                        <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400">{app.label}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+
+                            {(w.type === 'metrics_deed' || w.type === 'metrics_foreclosure' || w.type === 'metrics_lien') && (
+                              <div className="h-full flex items-center justify-center">
+                                <div className="text-center">
+                                  <div className="text-6xl font-black text-slate-900 dark:text-white mb-2">
+                                    {w.type === 'metrics_deed' ? marketCounts.deed.toLocaleString() :
+                                     w.type === 'metrics_foreclosure' ? marketCounts.foreclosure.toLocaleString() :
+                                     marketCounts.lien.toLocaleString()}
+                                  </div>
+                                  <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">{w.title.replace(/^[^\w]+/, '')}</div>
+                                </div>
+                              </div>
+                            )}
+
+                            {w.type === 'map' && (
+                              <div className="h-full min-h-[400px]">
+                                <InvestmentHeatmap stateStats={stateStats} />
+                              </div>
+                            )}
+
+                            {w.type === 'chart' && (
+                              <div className="h-full min-h-[300px] flex flex-col gap-3">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Monthly Auction Trends</h2>
+                                <div className="flex-1 min-h-[260px]">
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={monthlyStats}>
+                                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                                      <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                                      <YAxis tick={{ fontSize: 10 }} />
+                                      <RechartsTooltip />
+                                      <Line type="monotone" dataKey="deed_count" stroke={CHART_COLORS.deed} strokeWidth={2} dot={false} />
+                                      <Line type="monotone" dataKey="foreclosure_count" stroke={CHART_COLORS.foreclosure} strokeWidth={2} dot={false} />
+                                      <Line type="monotone" dataKey="lien_count" stroke={CHART_COLORS.lien} strokeWidth={2} dot={false} />
+                                    </LineChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              </div>
+                            )}
+
+                            {w.type === 'yield' && (
+                              <div className="h-full min-h-[300px] flex flex-col gap-3">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Yield Breakdown Analytics</h2>
+                                <div className="flex-1 min-h-[260px]">
+                                  <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                      <Pie data={[
+                                        { name: 'Tax Deeds', value: marketCounts.deed },
+                                        { name: 'Foreclosures', value: marketCounts.foreclosure },
+                                        { name: 'Tax Liens', value: marketCounts.lien },
+                                      ]} dataKey="value" cx="50%" cy="50%" outerRadius={100} label>
+                                        {[CHART_COLORS.deed, CHART_COLORS.foreclosure, CHART_COLORS.lien].map((c, i) => <Cell key={i} fill={c} />)}
+                                      </Pie>
+                                      <RechartsTooltip />
+                                    </PieChart>
+                                  </ResponsiveContainer>
+                                </div>
+                              </div>
+                            )}
+
+                            {w.type === 'recommended_deals' && (
+                              <div className="space-y-3">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Top Recommended Deals</h2>
+                                {dbTopDeals.slice(0, 8).map(p => (
+                                  <div key={p.id} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-start gap-3">
+                                    <div className="size-9 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shrink-0">
+                                      <TrendingUp size={14} className="text-white" />
+                                    </div>
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{p.address || 'Property'}</p>
+                                      <p className="text-[10px] text-slate-500 dark:text-slate-400">{p.county}, {p.state}</p>
+                                    </div>
+                                    <div className="ml-auto text-right shrink-0">
+                                      <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">${(p.assessed_value || 0).toLocaleString()}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                                {dbTopDeals.length === 0 && <p className="text-xs text-slate-400 italic">Loading deals...</p>}
+                              </div>
+                            )}
+
+                            {w.type === 'dossier' && (
+                              <div className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Featured Property Dossier</h2>
+                                {selectedProperty ? (
+                                  <div className="space-y-3">
+                                    <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 border border-indigo-500/20">
+                                      <p className="font-bold text-slate-900 dark:text-white">{selectedProperty.address}</p>
+                                      <p className="text-xs text-slate-500">{selectedProperty.county}, {selectedProperty.state}</p>
+                                    </div>
+                                    {[
+                                      { label: 'Parcel ID', val: selectedProperty.parcel_id },
+                                      { label: 'Assessed Value', val: `$${(selectedProperty.assessed_value || 0).toLocaleString()}` },
+                                      { label: 'Status', val: selectedProperty.availability_status },
+                                    ].map(r => (
+                                      <div key={r.label} className="flex justify-between text-xs border-b border-slate-100 dark:border-slate-800 pb-2">
+                                        <span className="font-semibold text-slate-500">{r.label}</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">{r.val || '—'}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-slate-400 italic">Select a property to view its dossier.</p>
+                                )}
+                              </div>
+                            )}
+
+                            {w.type === 'property_details' && (
+                              <div className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Deep Property Details</h2>
+                                {selectedProperty ? (
+                                  <div className="space-y-3">
+                                    <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                                      <p className="font-bold text-slate-900 dark:text-white">{selectedProperty.address}</p>
+                                      <p className="text-xs text-slate-500">{selectedProperty.county}, {selectedProperty.state}</p>
+                                    </div>
+                                    {Object.entries(selectedProperty).slice(0, 12).map(([key, val]) => (
+                                      <div key={key} className="flex justify-between text-xs border-b border-slate-100 dark:border-slate-800 pb-2 gap-2">
+                                        <span className="font-semibold text-slate-500 capitalize shrink-0">{key.replace(/_/g, ' ')}</span>
+                                        <span className="font-bold text-slate-900 dark:text-white text-right truncate">{String(val) || '—'}</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="text-xs text-slate-400 italic">Select a property from Property Search to view details.</p>
+                                )}
+                              </div>
+                            )}
+
+                            {w.type === 'field_missions' && (
+                              <div className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Field Task Missions</h2>
+                                <div className="grid grid-cols-2 gap-3 mb-4">
+                                  <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-500/20 text-center">
+                                    <p className="text-2xl font-black text-emerald-600">{availableTasks.length}</p>
+                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Available</p>
+                                  </div>
+                                  <div className="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-500/20 text-center">
+                                    <p className="text-2xl font-black text-indigo-600">{myClaimedTasks.length}</p>
+                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">My Tasks</p>
+                                  </div>
+                                </div>
+                                {tasksLoading ? <p className="text-xs text-slate-400 italic">Loading tasks...</p> : availableTasks.slice(0, 6).map(t => (
+                                  <div key={t.id} className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800 flex items-start gap-3">
+                                    <Gavel size={14} className="text-amber-500 mt-0.5 shrink-0" />
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{t.title}</p>
+                                      <p className="text-[10px] text-slate-500">{t.description?.slice(0, 60)}...</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {w.type === 'connect' && (
+                              <div className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">API Integrations Hub</h2>
+                                {Object.entries(apiStatuses).map(([api, status]) => (
+                                  <div key={api} className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800">
+                                    <div className="flex items-center gap-3">
+                                      <div className={`size-2.5 rounded-full ${status === 'active' ? 'bg-emerald-500 animate-pulse' : status === 'failed' ? 'bg-red-500' : 'bg-amber-500 animate-pulse'}`} />
+                                      <span className="text-xs font-bold text-slate-900 dark:text-white uppercase">{api.toUpperCase()}</span>
+                                    </div>
+                                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded ${status === 'active' ? 'bg-emerald-500/10 text-emerald-600' : status === 'failed' ? 'bg-red-500/10 text-red-600' : 'bg-amber-500/10 text-amber-600'}`}>
+                                      {status}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {w.type === 'settings' && (
+                              <div className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Workbench Settings</h2>
+                                <div className="space-y-3">
+                                  <label className="flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800">
+                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Show Coordinates HUD</span>
+                                    <input type="checkbox" checked={showCoordinatesHud} onChange={e => setShowCoordinatesHud(e.target.checked)} className="accent-indigo-500" />
+                                  </label>
+                                  <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800">
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-2">Grid Spacing: {gridSpacing}px</label>
+                                    <input type="range" min={12} max={48} value={gridSpacing} onChange={e => setGridSpacing(Number(e.target.value))} className="w-full accent-indigo-500" />
+                                  </div>
+                                  <div className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800">
+                                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-2">Rendering Quality</label>
+                                    <div className="flex gap-2">
+                                      {(['fast', 'balanced', 'hq'] as const).map(q => (
+                                        <button key={q} onClick={() => setRenderingFilter(q)} className={`flex-1 py-1.5 rounded-lg text-[9px] font-bold uppercase transition-colors ${renderingFilter === q ? 'bg-indigo-500 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>{q}</button>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {w.type === 'profile' && (
+                              <div className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">User Profile</h2>
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 border border-indigo-500/20 flex items-center gap-4">
+                                  <div className="size-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center text-white font-black text-xl shadow-lg">
+                                    {(currentUser?.email || 'U').charAt(0).toUpperCase()}
+                                  </div>
+                                  <div>
+                                    <p className="font-black text-slate-900 dark:text-white">{userNickname || currentUser?.email}</p>
+                                    <p className="text-xs text-slate-500">{currentUser?.email}</p>
+                                    <span className="text-[9px] font-bold uppercase px-2 py-0.5 bg-indigo-500/10 text-indigo-600 rounded mt-1 inline-block">{billingPlan.toUpperCase()}</span>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+
+                            {w.type === 'team' && (
+                              <div className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Corporate Team Roster</h2>
+                                {teamMembers.slice(0, 8).map((m, i) => (
+                                  <div key={i} className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800">
+                                    <div className="size-8 rounded-lg bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white font-black text-xs">
+                                      {(m.email || m.name || 'U').charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                      <p className="text-xs font-bold text-slate-900 dark:text-white">{m.name || m.email}</p>
+                                      <p className="text-[10px] text-slate-500 capitalize">{m.role || 'member'}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                                {teamMembers.length === 0 && <p className="text-xs text-slate-400 italic">No team members found.</p>}
+                              </div>
+                            )}
+
+                            {w.type === 'logs' && (
+                              <div className="h-full flex flex-col gap-3">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Activity Console Logs</h2>
+                                <div className="flex-1 bg-slate-950 rounded-xl p-4 overflow-auto font-mono text-[9px] space-y-1 min-h-[300px]">
+                                  {terminalLogs.slice().reverse().map((entry, i) => (
+                                    <div key={i} className="flex items-start gap-2">
+                                      <span className="text-emerald-500 shrink-0">›</span>
+                                      <span className="text-slate-300">{entry}</span>
+                                    </div>
+                                  ))}
+                                  {terminalLogs.length === 0 && <span className="text-slate-600 italic">No activity logged yet.</span>}
+                                </div>
+                              </div>
+                            )}
+
+                            {w.type === 'billings' && (
+                              <div className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Billings & Subscriptions</h2>
+                                <div className={`p-4 rounded-xl border ${billingPlan === 'elite' ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10 border-purple-500/20' : billingPlan === 'pro' ? 'bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 border-indigo-500/20' : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'}`}>
+                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Current Plan</p>
+                                  <p className="text-2xl font-black text-slate-900 dark:text-white uppercase">{billingPlan}</p>
+                                </div>
+                                <div className="space-y-2">
+                                  {[{ label: 'Pro', price: '$49/mo', tier: 'pro' as const }, { label: 'Elite', price: '$149/mo', tier: 'elite' as const }].map(p => (
+                                    <button key={p.tier} onClick={() => setBillingPlan(p.tier)} className={`w-full p-3 rounded-xl border text-left transition-colors ${billingPlan === p.tier ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-950/20' : 'border-slate-200 dark:border-slate-700 hover:border-indigo-300'}`}>
+                                      <span className="text-xs font-black text-slate-900 dark:text-white">{p.label}</span>
+                                      <span className="float-right text-xs font-bold text-indigo-600">{p.price}</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {w.type === 'company' && (
+                              <div className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Active Company Hub</h2>
+                                {activeCompany ? (
+                                  <div className="p-4 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+                                    <p className="font-black text-slate-900 dark:text-white">{activeCompany.name}</p>
+                                    <p className="text-xs text-slate-500">{activeCompany.address || 'No address'}</p>
+                                  </div>
+                                ) : <p className="text-xs text-slate-400 italic">No active company selected.</p>}
+                                {companies.slice(0, 5).map(co => (
+                                  <button key={co.id} onClick={() => selectCompany(co.id)} className={`w-full p-3 rounded-xl border text-left transition-colors ${activeCompany?.id === co.id ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/20' : 'border-slate-200 dark:border-slate-700 hover:border-amber-300'}`}>
+                                    <span className="text-xs font-bold text-slate-900 dark:text-white">{co.name}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+
+                            {w.type === 'notifications' && (
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h2 className="text-sm font-black text-slate-800 dark:text-white">System Notifications</h2>
+                                  <button onClick={handleMarkAllAsRead} className="text-[9px] font-bold text-indigo-600 hover:text-indigo-800">Mark all read</button>
+                                </div>
+                                {notifications.slice(0, 8).map(n => (
+                                  <div key={n.id} className={`p-3 rounded-xl border flex items-start gap-3 ${n.read ? 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700' : 'bg-indigo-50 dark:bg-indigo-950/20 border-indigo-500/20'}`}>
+                                    <Bell size={12} className={n.read ? 'text-slate-400 mt-0.5' : 'text-indigo-500 mt-0.5'} />
+                                    <div className="min-w-0">
+                                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{n.title}</p>
+                                      <p className="text-[10px] text-slate-500">{n.body}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                                {notifications.length === 0 && <p className="text-xs text-slate-400 italic">No notifications.</p>}
+                              </div>
+                            )}
+
+                            {w.type === 'node_canvas' && (
+                              <div className="h-full min-h-[400px] flex flex-col gap-3">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Deal Flow Node Canvas</h2>
+                                <div className="flex-1 min-h-[320px] relative bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-700 rounded-xl overflow-hidden">
+                                  <svg className="absolute inset-0 size-full" onMouseMove={handleSvgMouseMove} onMouseUp={() => setDraggingNodeId(null)} onMouseLeave={() => setDraggingNodeId(null)}>
+                                    <defs>
+                                      <linearGradient id="ideActiveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.8" />
+                                        <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
+                                      </linearGradient>
+                                      <linearGradient id="ideCompletedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" stopColor="#10B981" stopOpacity="0.8" />
+                                        <stop offset="100%" stopColor="#059669" stopOpacity="0.8" />
+                                      </linearGradient>
+                                    </defs>
+                                    {nodeConnections.map((conn, idx) => {
+                                      const from = dealFlowNodes.find(n => n.id === conn.from);
+                                      const to = dealFlowNodes.find(n => n.id === conn.to);
+                                      if (!from || !to) return null;
+                                      const isCompleted = to.status === 'completed' && from.status === 'completed';
+                                      const isActive = !isCompleted && (to.status !== 'pending' || from.status !== 'pending');
+                                      return (
+                                        <path key={idx} d={drawBezier(from, to)}
+                                          stroke={isCompleted ? 'url(#ideCompletedGrad)' : isActive ? 'url(#ideActiveGrad)' : '#94A3B8'}
+                                          strokeWidth={isActive ? 2.5 : 1.5} fill="none" />
+                                      );
+                                    })}
+                                    {dealFlowNodes.map(n => (
+                                      <foreignObject key={n.id} x={n.x - 40} y={n.y - 18} width={80} height={36}
+                                        onMouseDown={e => { e.stopPropagation(); setDraggingNodeId(n.id); }}
+                                        onClick={() => handleNodeClick(n.id)}
+                                      >
+                                        <div className={`size-full rounded-lg flex items-center justify-center text-[9px] font-black text-white cursor-pointer shadow-md border-2 ${n.status === 'completed' ? 'bg-emerald-500 border-emerald-400' : n.status === 'active' ? 'bg-indigo-500 border-indigo-400' : 'bg-slate-600 border-slate-500'}`}>
+                                          {n.label}
+                                        </div>
+                                      </foreignObject>
+                                    ))}
+                                  </svg>
+                                </div>
+                              </div>
+                            )}
+
+                            {w.type === 'rehab_calc' && (
+                              <div className="space-y-4">
+                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Rehab & ROI Calculator</h2>
+                                {[
+                                  { label: 'Purchase Price', value: rehabPurchasePrice, set: setRehabPurchasePrice, min: 0, max: 2000000, step: 1000 },
+                                  { label: 'Rehab Cost', value: rehabCost, set: setRehabCost, min: 0, max: 500000, step: 500 },
+                                  { label: 'Annual Taxes', value: rehabTaxes, set: setRehabTaxes, min: 0, max: 50000, step: 500 },
+                                  { label: 'ARV (After Repair)', value: rehabARV, set: setRehabARV, min: 0, max: 3000000, step: 1000 },
+                                ].map(field => (
+                                  <div key={field.label}>
+                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 flex justify-between">
+                                      <span>{field.label}</span>
+                                      <span className="text-indigo-600">${field.value.toLocaleString()}</span>
+                                    </label>
+                                    <input type="range" min={field.min} max={field.max} step={field.step} value={field.value}
+                                      onChange={e => field.set(Number(e.target.value))}
+                                      className="w-full mt-1 accent-indigo-500" />
+                                  </div>
+                                ))}
+                                <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
+                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Net ROI</p>
+                                  <p className={`text-3xl font-black ${rehabARV - rehabPurchasePrice - rehabCost - rehabTaxes > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                                    ${(rehabARV - rehabPurchasePrice - rehabCost - rehabTaxes).toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {(w.type === 'property_comparator' || w.type === 'contacts_search' || w.type === 'create_task' || w.type === 'support_center') && (
+                              <div className="h-full flex items-center justify-center">
+                                <div className="text-center space-y-3">
+                                  <div className="size-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center mx-auto shadow-lg">
+                                    <Sparkles size={28} className="text-white" />
+                                  </div>
+                                  <h2 className="text-base font-black text-slate-900 dark:text-white">{w.title.replace(/^[^\w]+/, '')}</h2>
+                                  <p className="text-xs text-slate-400 max-w-xs">This widget's full content is available in Canvas Mode. Switch the layout to interact with it as a floating window.</p>
+                                  <button
+                                    onClick={() => { setLayoutTemplate('canvas'); logConsoleActivity(`Switched to Canvas Mode for widget: "${w.title}"`); }}
+                                    className="px-4 py-2 rounded-xl bg-indigo-500 text-white text-xs font-bold hover:bg-indigo-600 transition-colors"
+                                  >
+                                    Open in Canvas Mode
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+
                           </div>
-                          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
-                            <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-8">
-                              Switch to <strong>Canvas Mode</strong> to interact with this widget on the infinite canvas, or use the left sidebar to navigate.
-                            </p>
+                        );
+                      })() : (
+                        <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400 dark:text-slate-600">
+                          <Sparkles size={48} className="opacity-20" />
+                          <div className="text-center">
+                            <p className="text-sm font-bold text-slate-500 dark:text-slate-500">No active tab</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">Click any shortcut icon or widget toggle to open a page here</p>
                           </div>
                         </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* SPLIT DIVIDER */}
+                  {ideSplitMode && (
+                    <div
+                      onMouseDown={handleSplitDividerMouseDown}
+                      className="w-1 bg-slate-200 dark:bg-slate-800 hover:bg-indigo-500 active:bg-indigo-600 cursor-col-resize shrink-0 transition-colors group relative z-10"
+                      title="Drag to resize panels"
+                    >
+                      <div className="absolute inset-y-0 -inset-x-1 group-hover:bg-indigo-500/10" />
+                    </div>
+                  )}
+
+                  {/* RIGHT PANEL (Split View) */}
+                  {ideSplitMode && splitIdeTabId && (
+                    <div
+                      className="flex flex-col overflow-hidden min-h-0 min-w-0"
+                      style={{ width: `${100 - splitLeftWidthPct}%` }}
+                    >
+                      {/* Right panel tab title bar */}
+                      <div className="h-7 bg-slate-100/80 dark:bg-slate-950/80 border-b border-emerald-500/30 px-3 flex items-center gap-2 shrink-0">
+                        <LayoutGrid size={9} className="text-emerald-500 shrink-0" />
+                        <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                          {widgets.find(x => x.id === splitIdeTabId)?.title.replace(/^[^\w]+/, '') || splitIdeTabId}
+                        </span>
+                        <span className="ml-auto text-[7px] text-emerald-500 font-bold uppercase">RIGHT</span>
+                        <button onClick={() => { setIdeSplitMode(false); setSplitIdeTabId(null); }} className="text-slate-400 hover:text-red-500 transition-colors">
+                          <X size={9} />
+                        </button>
                       </div>
-                    );
-                  })() : (
-                    <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400 dark:text-slate-600">
-                      <Sparkles size={48} className="opacity-20" />
-                      <div className="text-center">
-                        <p className="text-sm font-bold text-slate-500 dark:text-slate-500">No active tab</p>
-                        <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">Click any shortcut icon or widget toggle to open a page here</p>
+                      {/* Right panel content */}
+                      <div className="flex-1 overflow-auto min-h-0 bg-white dark:bg-slate-900 border-l border-emerald-500/20">
+                        {(() => {
+                          const w = widgets.find(x => x.id === splitIdeTabId);
+                          if (!w) return null;
+                          if (w.id === 'live_auctions') return <div className="size-full overflow-auto"><ClientAuctions /></div>;
+                          if (w.id === 'property_search') return <div className="size-full overflow-auto"><ClientProperties /></div>;
+                          if (w.id === 'my_lists') return <div className="size-full overflow-auto"><ClientLists /></div>;
+                          // For other types just show a simple info panel in split
+                          return (
+                            <div className="p-4 space-y-3">
+                              <div className="flex items-center gap-3">
+                                <div className="size-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow">
+                                  <Sparkles size={14} className="text-white" />
+                                </div>
+                                <div>
+                                  <h3 className="text-sm font-black text-slate-900 dark:text-white">{w.title.replace(/^[^\w]+/, '')}</h3>
+                                  <p className="text-[10px] text-slate-500">Split Panel · {w.id}</p>
+                                </div>
+                              </div>
+                              <p className="text-xs text-slate-400">This widget's full content is rendered in Canvas Mode. The split panel supports <strong>Live Auctions</strong>, <strong>Property Search</strong>, and <strong>My Lists</strong> as full-page views.</p>
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   )}
                 </div>
 
                 {/* Bottom Terminal Panel */}
-                <div className="h-44 bg-slate-950 border-t border-slate-800 flex flex-col shrink-0">
+                <div className="h-40 bg-slate-950 border-t border-slate-800 flex flex-col shrink-0">
                   <div className="flex items-center gap-1 px-3 py-1 border-b border-slate-800 shrink-0">
                     {['Terminal', 'Console', 'Problems'].map((tab, i) => (
-                      <button key={tab} className={`px-3 py-1 text-[8.5px] font-bold uppercase tracking-wider rounded-t transition-all ${i === 0 ? 'text-white bg-slate-800 border border-slate-700 border-b-slate-800' : 'text-slate-500 hover:text-slate-300'}`}>
+                      <button key={tab} className={`px-3 py-1 text-[8.5px] font-bold uppercase tracking-wider rounded-t transition-all ${i === 0 ? 'text-white bg-slate-800 border border-slate-700' : 'text-slate-500 hover:text-slate-300'}`}>
                         {tab}
                       </button>
                     ))}
@@ -2015,8 +2571,8 @@ export const ClientWorkbench: React.FC = () => {
                 </div>
               </div>
 
-              {/* Right Agent Panel */}
-              <div className="w-64 bg-white/95 dark:bg-slate-900/95 border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 overflow-y-auto no-scrollbar">
+              {/* Right Agent Panel — hidden on small screens */}
+              <div className="hidden md:flex w-56 bg-white/95 dark:bg-slate-900/95 border-l border-slate-200 dark:border-slate-800 flex-col shrink-0 overflow-y-auto no-scrollbar">
                 <div className="p-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
                   <div className="flex items-center gap-2">
                     <div className="size-6 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-sm">
@@ -2024,38 +2580,61 @@ export const ClientWorkbench: React.FC = () => {
                     </div>
                     <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Agent Panel</span>
                   </div>
-                  <p className="text-[7.5px] text-slate-400 dark:text-slate-500 mt-1 font-medium uppercase tracking-wider">Antigravity AI · Context-Aware</p>
+                  <p className="text-[7.5px] text-slate-400 dark:text-slate-500 mt-1 font-medium uppercase tracking-wider">Antigravity AI</p>
                 </div>
 
                 <div className="p-3 space-y-3 flex-1">
-                  {/* Workspace Status */}
-                  <div className="p-2.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-955/10 border border-indigo-500/15">
-                    <p className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1.5">Workspace Status</p>
+                  <div className="p-2.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/10 border border-indigo-500/15">
+                    <p className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1.5">Workspace</p>
                     <div className="space-y-1">
                       <div className="flex justify-between text-[8px]">
                         <span className="text-slate-500 font-semibold">Open Tabs</span>
                         <span className="font-black text-slate-900 dark:text-white">{widgets.filter(w => w.visible).length}</span>
                       </div>
                       <div className="flex justify-between text-[8px]">
-                        <span className="text-slate-500 font-semibold">Active Tab</span>
-                        <span className="font-black text-indigo-600 dark:text-indigo-400 truncate max-w-[80px]">{activeIdeTabId || '—'}</span>
+                        <span className="text-slate-500 font-semibold">Active</span>
+                        <span className="font-black text-indigo-600 dark:text-indigo-400 truncate max-w-[60px] text-right">{activeIdeTabId || '—'}</span>
                       </div>
                       <div className="flex justify-between text-[8px]">
-                        <span className="text-slate-500 font-semibold">Layout</span>
-                        <span className="font-black text-emerald-600 dark:text-emerald-400">IDE Mode</span>
+                        <span className="text-slate-500 font-semibold">Split</span>
+                        <span className={`font-black ${ideSplitMode ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>{ideSplitMode ? 'ON' : 'OFF'}</span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Quick Actions */}
+                  {/* Split mode toggle */}
+                  <button
+                    onClick={() => {
+                      if (ideSplitMode) {
+                        setIdeSplitMode(false);
+                        setSplitIdeTabId(null);
+                      } else {
+                        const tabs = widgets.filter(x => x.visible);
+                        if (tabs.length >= 2) {
+                          const other = tabs.find(x => x.id !== activeIdeTabId);
+                          if (other) {
+                            setSplitIdeTabId(other.id);
+                            setIdeSplitMode(true);
+                            logConsoleActivity(`Split view activated: "${other.title.replace(/^[^\w]+/, '')}"`);
+                          }
+                        }
+                      }
+                    }}
+                    className={`w-full flex items-center justify-center gap-2 py-2 rounded-xl text-[9px] font-black uppercase transition-colors border ${ideSplitMode ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-red-500/10 hover:text-red-600 hover:border-red-500/20' : 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20 hover:bg-indigo-500/20'}`}
+                  >
+                    <LayoutGrid size={10} />
+                    {ideSplitMode ? 'Close Split' : 'Split View'}
+                  </button>
+
                   <div>
-                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Quick Actions</p>
-                    <div className="space-y-1.5">
+                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Quick Open</p>
+                    <div className="space-y-1">
                       {[
-                        { label: 'Open Live Auctions', id: 'live_auctions', icon: Calendar },
-                        { label: 'Open Property Search', id: 'property_search', icon: Search },
-                        { label: 'Open Watchlists', id: 'my_lists', icon: Folder },
-                        { label: 'Open Node Canvas', id: 'node_canvas', icon: Layers },
+                        { label: 'Live Auctions', id: 'live_auctions', icon: Calendar },
+                        { label: 'Property Search', id: 'property_search', icon: Search },
+                        { label: 'My Lists', id: 'my_lists', icon: Folder },
+                        { label: 'Node Canvas', id: 'node_canvas', icon: Layers },
+                        { label: 'Field Missions', id: 'field_missions', icon: Gavel },
                       ].map(action => {
                         const Icon = action.icon;
                         return (
@@ -2064,11 +2643,11 @@ export const ClientWorkbench: React.FC = () => {
                             onClick={() => {
                               setWidgets(prev => prev.map(w => w.id === action.id ? { ...w, visible: true } : w));
                               setActiveIdeTabId(action.id);
-                              logConsoleActivity(`Opened "${action.label}" tab in IDE workspace.`);
+                              logConsoleActivity(`Opened "${action.label}" tab.`);
                             }}
-                            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors border border-transparent hover:border-slate-200 dark:hover:border-slate-800"
+                            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
                           >
-                            <Icon size={11} className="text-indigo-500 shrink-0" />
+                            <Icon size={10} className="text-indigo-500 shrink-0" />
                             <span className="text-[8.5px] font-bold text-slate-700 dark:text-slate-300 truncate">{action.label}</span>
                           </button>
                         );
@@ -2076,12 +2655,11 @@ export const ClientWorkbench: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Activity Log Summary */}
                   <div>
-                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Recent Activity</p>
-                    <div className="space-y-1.5">
-                      {terminalLogs.slice(-4).reverse().map((entry, i) => (
-                        <div key={i} className="text-[7.5px] text-slate-500 dark:text-slate-500 leading-tight border-l-2 border-indigo-500/30 pl-2 py-0.5">
+                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Activity</p>
+                    <div className="space-y-1">
+                      {terminalLogs.slice(-5).reverse().map((entry, i) => (
+                        <div key={i} className="text-[7.5px] text-slate-500 dark:text-slate-500 leading-tight border-l-2 border-indigo-500/30 pl-2 py-0.5 truncate" title={entry}>
                           {entry}
                         </div>
                       ))}
@@ -2193,7 +2771,7 @@ export const ClientWorkbench: React.FC = () => {
                 </div>
 
                 {/* Window Inner Content Scroll Area */}
-                <div className="flex-1 w-full overflow-auto p-4 select-text">
+                <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col">
 
                   {/* Widget 1: Smartphone shortcuts */}
                   {w.type === 'shortcuts' && (
