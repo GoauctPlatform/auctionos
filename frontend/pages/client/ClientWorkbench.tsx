@@ -22,6 +22,10 @@ import { Settings as OriginalSettings } from '../Settings';
 import ActivityLogsPage from './ActivityLogsPage';
 import BillingPage from './BillingPage';
 import AboutPage from '../AboutPage';
+import DisclaimerPage from '../DisclaimerPage';
+import PrivacyPolicyPage from '../PrivacyPolicyPage';
+import TermsOfServicePage from '../TermsOfServicePage';
+import { useTour } from '../../context/TourContext';
 import { TrainingPage, CommunityPage, GroupsPage } from './EcosystemPages';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
@@ -117,7 +121,7 @@ interface Widget {
 
 interface OverlayWindow {
   id: string;
-  type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about';
+  type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy';
   title: string;
   x: number;
   y: number;
@@ -146,6 +150,7 @@ const DEFAULT_WIDGETS: Widget[] = [
 export const ClientWorkbench: React.FC = () => {
   const navigate = useNavigate();
   const { activeCompany, companies, selectCompany } = useCompany();
+  const { startTour } = useTour();
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // States
@@ -389,7 +394,7 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const openOverlayWindow = (
-    type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups',
+    type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy',
     title: string,
     data?: any
   ) => {
@@ -412,7 +417,7 @@ export const ClientWorkbench: React.FC = () => {
       if (type === 'property_details') {
         w = 880;
         h = 620;
-      } else if (type === 'about') {
+      } else if (type === 'about' || type === 'disclaimer' || type === 'terms' || type === 'privacy') {
         w = 680;
         h = 500;
       } else if (type === 'training') {
@@ -2493,7 +2498,63 @@ export const ClientWorkbench: React.FC = () => {
   return (
     <div className="w-full flex-1 flex flex-col h-full min-h-0 overflow-hidden select-none bg-slate-50 dark:bg-slate-950 font-display">
 
+      {/* ─── WORKBENCH SYSTEM TOP BAR (Mission Control Header) ─── */}
+      <div className="w-full h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-850 px-4 flex justify-between items-center shrink-0 z-40 select-none">
+        {/* Left Side: Brand Logo & Mission Control */}
+        <div id="tour-welcome-header" className="flex items-center gap-2.5">
+          <div className="size-6 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
+            <span className="material-symbols-outlined text-[15px]">gavel</span>
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5 leading-none">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-105">
+                GoAuct Mission Control
+              </span>
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            </div>
+            <span className="text-[7.5px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
+              Workspace v4.0 · Client Node
+            </span>
+          </div>
+        </div>
 
+        {/* Center: Live Compliance Announcement Ticker */}
+        <div id="tour-announcements" className="hidden lg:flex items-center gap-3 bg-slate-50 dark:bg-slate-955/60 border border-slate-200/20 dark:border-slate-850 px-3.5 py-1.5 rounded-xl max-w-sm overflow-hidden relative">
+          <div className="flex items-center gap-1.5 text-cyan-600 dark:text-cyan-400 shrink-0 text-[8.5px] font-extrabold uppercase tracking-wider">
+            <span className="size-1.5 rounded-full bg-cyan-500 animate-pulse" />
+            <span>Compliance:</span>
+          </div>
+          <div className="relative w-52 h-4 overflow-hidden">
+            <div className="absolute flex flex-col gap-1 text-[8.5px] font-bold text-slate-600 dark:text-slate-400 animate-marquee whitespace-nowrap">
+              <span className="h-[18px] flex items-center">📢 FL deeds deadline extended to May 30</span>
+              <span className="h-[18px] flex items-center">🔥 AI Yield calibrated for all 67 counties</span>
+              <span className="h-[18px] flex items-center">⚡ Real-time county data syncer running</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Side: Quick Action Buttons & Status Indicators */}
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-slate-400 dark:text-slate-550 uppercase">
+            <span>Grid Zoom:</span>
+            <button
+              onClick={() => setZoomScale(1.0)}
+              className="text-slate-655 dark:text-slate-300 hover:text-indigo-500 transition-colors bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-black active:scale-95"
+              title="Reset Zoom"
+            >
+              {Math.round(zoomScale * 100)}%
+            </button>
+          </div>
+          <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
+          <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-slate-400 dark:text-slate-550 uppercase">
+            <span>Status:</span>
+            <span className="text-emerald-500 dark:text-emerald-400 font-extrabold flex items-center gap-1">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Connected
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* ─── MAIN WORKBENCH PANEL ─── */}
       <div className="flex-1 flex w-full overflow-hidden relative">
@@ -2558,7 +2619,15 @@ export const ClientWorkbench: React.FC = () => {
               return (
                 <button
                   key={shortcut.id}
-                  id={shortcut.id === 'settings' ? 'tour-nav-account-settings' : shortcut.id === 'field_missions' ? 'tour-nav-field-missions' : shortcut.id === 'live_auctions' ? 'tour-nav-live-auctions' : shortcut.id === 'property_search' ? 'tour-nav-property-search' : shortcut.id === 'my_lists' ? 'tour-nav-my-lists' : undefined}
+                  id={
+                    shortcut.id === 'settings' ? 'tour-nav-account-settings' :
+                    shortcut.id === 'field_missions' ? 'tour-nav-field-missions' :
+                    shortcut.id === 'live_auctions' ? 'tour-nav-live-auctions' :
+                    shortcut.id === 'property_search' ? 'tour-nav-property-search' :
+                    shortcut.id === 'my_lists' ? 'tour-nav-my-lists' :
+                    shortcut.id === 'billings_and_plans' ? 'tour-upgrade-button' :
+                    undefined
+                  }
                   title={shortcut.label}
                   onClick={() => {
                     if (shortcut.id === 'notifications') {
@@ -3924,6 +3993,11 @@ export const ClientWorkbench: React.FC = () => {
             {widgets.filter(w => w.visible).map(w => (
               <div
                 key={w.id}
+                id={
+                  w.id === 'map' ? 'tour-yield-heatmap' :
+                  w.id === 'recommended_deals' ? 'tour-suggested-deals' :
+                  undefined
+                }
                 onClick={() => focusWidget(w.id)}
                 style={{
                   position: 'absolute',
@@ -6160,6 +6234,21 @@ export const ClientWorkbench: React.FC = () => {
                     <AboutPage standalone={false} />
                   </div>
                 )}
+                {w.type === 'disclaimer' && (
+                  <div className="p-6 dark:bg-slate-950 min-h-full overflow-y-auto custom-scrollbar">
+                    <DisclaimerPage standalone={false} />
+                  </div>
+                )}
+                {w.type === 'terms' && (
+                  <div className="p-6 dark:bg-slate-950 min-h-full overflow-y-auto custom-scrollbar">
+                    <TermsOfServicePage standalone={false} />
+                  </div>
+                )}
+                {w.type === 'privacy' && (
+                  <div className="p-6 dark:bg-slate-950 min-h-full overflow-y-auto custom-scrollbar">
+                    <PrivacyPolicyPage standalone={false} />
+                  </div>
+                )}
                 {w.type === 'training' && (
                   <div className="p-6 dark:bg-slate-950 min-h-full">
                     <TrainingPage />
@@ -6285,7 +6374,16 @@ export const ClientWorkbench: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-3 border-r border-slate-200 dark:border-slate-800 pr-3">
+          <div className="flex items-center gap-2.5 border-r border-slate-200 dark:border-slate-800 pr-3">
+            <button
+              onClick={() => startTour('investor')}
+              className="flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-650 dark:hover:bg-emerald-700 text-white px-2 py-0.5 rounded-md transition-all active:scale-95 shadow-sm mr-2"
+              title="Launch Onboarding Tour"
+            >
+              <Play size={8} fill="currentColor" />
+              <span>Page Tour</span>
+            </button>
+            <span className="w-[1px] h-3 bg-slate-200 dark:bg-slate-800/80 mr-2.5" />
             <button
               onClick={() => openOverlayWindow('about', 'About GoAuct OS')}
               className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
@@ -6293,19 +6391,19 @@ export const ClientWorkbench: React.FC = () => {
               About
             </button>
             <button
-              onClick={() => alert('Corporate Disclaimer: All investment strategies and auction bids involve high risk of loss. No information contained in GoAuct OS should be construed as investment advice.')}
+              onClick={() => openOverlayWindow('disclaimer', 'Corporate Disclaimer')}
               className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
             >
               Disclaimer
             </button>
             <button
-              onClick={() => alert('Terms of Service: Access to GoAuct OS is provided under our standard corporate licensing agreements.')}
+              onClick={() => openOverlayWindow('terms', 'Terms of Service')}
               className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
             >
               Terms
             </button>
             <button
-              onClick={() => alert('Privacy Policy: We utilize enterprise-grade encryption to protect proprietary watchlists and property data.')}
+              onClick={() => openOverlayWindow('privacy', 'Privacy Policy')}
               className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
             >
               Privacy

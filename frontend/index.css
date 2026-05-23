@@ -370,3 +370,15 @@
     color: var(--accent-text) !important;
   }
 }
+
+/* ─── CUSTOM COMPLIANCE TICKER MARQUEE ─── */
+@keyframes marquee-vertical {
+  0%, 25% { transform: translateY(0); }
+  30%, 55% { transform: translateY(-18px); }
+  60%, 85% { transform: translateY(-36px); }
+  90%, 100% { transform: translateY(0); }
+}
+
+.animate-marquee {
+  animation: marquee-vertical 12s infinite ease-in-out;
+}
