@@ -239,16 +239,20 @@ const ClientLayout: React.FC = () => {
     dropdown: accountDropdown,
   });
 
-  const isMainDashboard = location.pathname === '/client' || location.pathname === '/client/';
+  const isMainDashboard = false;
   const isWorkbench = location.pathname.startsWith('/client/workbench');
+  const hideHeader = location.pathname.startsWith('/client/workbench') || 
+                     location.pathname === '/client' || 
+                     location.pathname === '/client/' ||
+                     location.pathname.includes('/properties/');
 
   return (
-    <div className={`w-full bg-slate-50 dark:bg-[#0f172a] font-display flex flex-col relative ${isWorkbench ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+    <div className={`w-full bg-slate-50 dark:bg-[#0f172a] font-display flex flex-col relative ${hideHeader ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       {/* Dynamic Background Layer */}
       <div className="fixed inset-0 bg-mesh-gradient pointer-events-none z-0" />
 
       {/* Header Navigation */}
-      {!isWorkbench && (
+      {!hideHeader && (
         <header className="bg-white/70 dark:bg-[#1a2634]/70 backdrop-blur-md border-b border-[#e7ecf3] dark:border-slate-700/50 sticky top-0 z-50">
           <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12">
           <div className="flex justify-between h-16">
@@ -570,7 +574,7 @@ const ClientLayout: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 w-full flex flex-col min-w-0 overflow-hidden">
-        <div className={`flex-1 bg-slate-50 dark:bg-slate-900 flex flex-col ${isWorkbench ? 'overflow-hidden' : 'overflow-auto'}`}>
+        <div className={`flex-1 bg-slate-50 dark:bg-slate-900 flex flex-col ${hideHeader ? 'overflow-hidden' : 'overflow-auto'}`}>
           {isMainDashboard && (
             <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12 mt-6 w-full shrink-0">
               <div className="glass-card p-4.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-blue-500/25 bg-blue-50/50 dark:bg-blue-955/10 text-slate-800 dark:text-slate-100">
@@ -610,7 +614,7 @@ const ClientLayout: React.FC = () => {
       {/* Tour Guide Overlay */}
       <TourOverlay />
 
-      {!isWorkbench && <Footer />}
+      {!hideHeader && <Footer />}
     </div>
   );
 };
