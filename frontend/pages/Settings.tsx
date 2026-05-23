@@ -233,15 +233,6 @@ export const Settings: React.FC = () => {
                                             previewClass: 'bg-[#0a0f1c] border border-[#00e5e5]/20',
                                             previewAccent: 'bg-[#00e5e5]',
                                             previewText: 'text-slate-100'
-                                        },
-                                        {
-                                            key: 'system',
-                                            label: 'System Preference',
-                                            icon: 'desktop_windows',
-                                            desc: 'Syncs automatically with your operating system display.',
-                                            previewClass: 'bg-gradient-to-r from-white to-[#0f172a] border border-slate-300 dark:border-slate-700',
-                                            previewAccent: 'bg-blue-500',
-                                            previewText: 'text-blue-500'
                                         }
                                     ].map((t) => {
                                         const isSelected = theme === t.key;
@@ -364,14 +355,6 @@ export const Settings: React.FC = () => {
                                         desc: 'Mockup Premium: deep black, glassmorphic cards, neon cian.',
                                         previewClass: 'bg-[#0a0f1c] border border-[#00e5e5]/20',
                                         previewAccent: 'bg-[#00e5e5]'
-                                    },
-                                    {
-                                        key: 'system',
-                                        label: 'System Preference',
-                                        icon: 'desktop_windows',
-                                        desc: 'Syncs automatically with your operating system display.',
-                                        previewClass: 'bg-gradient-to-r from-white to-[#0f172a] border border-slate-300 dark:border-slate-700',
-                                        previewAccent: 'bg-blue-500'
                                     }
                                 ].map((t) => {
                                     const isSelected = theme === t.key;
