@@ -243,6 +243,43 @@
   }
 
   .dark {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --accent-glow: rgba(59, 130, 246, 0.15);
+    --accent-text: #60a5fa;
+
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-muted: #64748b;
+
+    --border: #334155;
+    --border-focus: #3b82f6;
+
+    --success: #10b981;
+    --success-bg: rgba(16, 185, 129, 0.1);
+    --warning: #f59e0b;
+    --warning-bg: rgba(245, 158, 11, 0.12);
+    --danger: #ef4444;
+    --danger-bg: rgba(239, 68, 68, 0.12);
+
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+    --shadow-glow: none;
+
+    /* Glassmorphism Classic Dark */
+    --glass-bg: rgba(30, 41, 59, 0.8);
+    --glass-border: rgba(51, 65, 85, 0.5);
+    --glass-blur: 12px;
+
+    /* Neumorphism Classic Dark */
+    --neu-flat: 12px 12px 24px #0b111e, -12px -12px 24px #131c30;
+    --neu-inset: inset 6px 6px 12px #0b111e, inset -6px -6px 12px #17243c;
+  }
+
+  .dark.cyberpunk {
     --bg-primary: #0a0f1c;
     --bg-secondary: #111827;
     --bg-tertiary: #1a2338;
@@ -250,8 +287,7 @@
     --accent: #00e5e5;
     --accent-hover: #00f5ff;
     --accent-glow: rgba(0, 229, 229, 0.3);
-    --accent-text: #00e5e5;
-    /* Neon on dark background passes WCAG contrast cleanly */
+    --accent-text: #00e5e5; /* Neon on dark background passes WCAG contrast cleanly */
 
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;

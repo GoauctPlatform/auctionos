@@ -102,43 +102,43 @@ export const INVESTOR_TOUR_STEPS: TourStep[] = [
     target: '#tour-properties-filters',
     title: 'Refined Real Estate Explorer 🎯',
     content: 'Filter listings by state, county, zip code, acreage, building sizes, or direct tax bid values to isolate highly profitable opportunities.',
-    path: '/client/properties'
+    path: '/client'
   },
   {
     target: '#tour-nav-my-lists',
     title: 'Personalized Watchlists 📁',
     content: 'Save distressed properties, track BPOs, and organize your investment pipeline. Let\'s check out your watchlists!',
-    path: '/client/properties'
+    path: '/client'
   },
   {
     target: '#tour-lists-folders',
     title: 'Watchlist Folder Silos 📂',
     content: 'Organize properties by state and county automatically. Write private shared notes, view state silhouttes, and collaborate in real-time.',
-    path: '/client/lists'
+    path: '/client'
   },
   {
     target: '#tour-nav-field-missions',
     title: 'Field Team Operations 🚗',
     content: 'Need localized visual check-ups on distressed homes? Coordinate certified field runners to verify physical structures.',
-    path: '/client/lists'
+    path: '/client'
   },
   {
     target: '#tour-missions-dashboard',
     title: 'Field Missions Control 📋',
     content: 'Deploy runners, track on-site condition questionnaires, and verify occupant risk or property damage in real-time.',
-    path: '/client/tasks'
+    path: '/client'
   },
   {
     target: '#tour-nav-account-settings',
     title: 'Workspace Settings & Team ⚙️',
     content: 'Configure your active company profile, manage teammates (Managers & Agents), and check API usage logs.',
-    path: '/client/tasks'
+    path: '/client'
   },
   {
     target: '#tour-upgrade-button',
     title: 'Linear Telemetry & Upgrades 💳',
     content: 'Track monthly search quotas and team limit linear bars in real-time. Upgrade securely via Stripe links to unlock unlimited research scope.',
-    path: '/client/settings'
+    path: '/client'
   },
   {
     target: 'none',
@@ -153,19 +153,19 @@ export const LIVE_AUCTIONS_TOUR_STEPS: TourStep[] = [
     target: '#tour-nav-live-auctions',
     title: 'Live Auctions Portal 🔨',
     content: 'Welcome to your premium Live Auctions chamber! Now that you are on a paid plan, you have unlocked real-time bidding calendars.',
-    path: '/client/auctions'
+    path: '/client'
   },
   {
     target: '#tour-auctions-calendar',
     title: 'Premium Auction Calendar 📅',
     content: 'Track upcoming deed, foreclosure, or tax lien auctions day-by-day across all US counties. Stay synchronized with bidding times easily.',
-    path: '/client/auctions'
+    path: '/client'
   },
   {
     target: '#tour-auctions-filters',
     title: 'County Registry Connectors 🔗',
     content: 'Filter scheduled events by state, count parcels scheduled under the gavel, and click straight to official county platforms to submit bids.',
-    path: '/client/auctions'
+    path: '/client'
   }
 ];
 
