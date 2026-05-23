@@ -24,7 +24,7 @@ import {
   Compass, Map, BarChart2, Folder, Terminal, Award,
   HelpCircle, ShieldCheck, RefreshCw, FileText, CheckCircle,
   Smartphone, Settings, Layout, Layers, X, Maximize2, Minimize2,
-  Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight,
+  Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
   Gavel, Calendar, ShieldAlert, Search, Plus, Filter, ArrowRight,
   Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare,
   MousePointer, TrendingUp
@@ -197,18 +197,99 @@ export const ClientWorkbench: React.FC = () => {
       return DEFAULT_WIDGETS;
     }
   });
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [activePane, setActivePane] = useState<'explorer' | 'presets' | 'info'>('explorer');
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
+    const saved = localStorage.getItem('goauct_workbench_sidebarOpen');
+    return saved === null ? true : saved === 'true';
+  });
+  const [activePane, setActivePane] = useState<'explorer' | 'presets' | 'info'>(() => {
+    return (localStorage.getItem('goauct_workbench_activePane') as 'explorer' | 'presets' | 'info') || 'explorer';
+  });
   const [selectedState, setSelectedState] = useState<string>('');
 
   // IDE Mode & Node Canvas Custom States
-  const [layoutTemplate, setLayoutTemplate] = useState<'canvas' | 'ide'>('canvas');
-  const [activeIdeTabId, setActiveIdeTabId] = useState<string | null>('live_auctions');
+  const [layoutTemplate, setLayoutTemplate] = useState<'canvas' | 'ide'>(() => {
+    return (localStorage.getItem('goauct_workbench_layoutTemplate') as 'canvas' | 'ide') || 'canvas';
+  });
+  const [activeIdeTabId, setActiveIdeTabId] = useState<string | null>(() => {
+    return localStorage.getItem('goauct_workbench_activeIdeTabId') || 'live_auctions';
+  });
   // Split panel states
-  const [ideSplitMode, setIdeSplitMode] = useState(false);
-  const [splitIdeTabId, setSplitIdeTabId] = useState<string | null>(null);
-  const [splitLeftWidthPct, setSplitLeftWidthPct] = useState(50);
+  const [ideSplitMode, setIdeSplitMode] = useState<boolean>(() => {
+    return localStorage.getItem('goauct_workbench_ideSplitMode') === 'true';
+  });
+  const [splitIdeTabId, setSplitIdeTabId] = useState<string | null>(() => {
+    return localStorage.getItem('goauct_workbench_splitIdeTabId');
+  });
+  const [splitLeftWidthPct, setSplitLeftWidthPct] = useState<number>(() => {
+    const saved = localStorage.getItem('goauct_workbench_splitLeftWidthPct');
+    return saved ? Number(saved) : 50;
+  });
   const splitDraggingRef = useRef(false);
+
+  // Bottom and Right Panel dynamic types and minimization
+  const [bottomPanelType, setBottomPanelType] = useState<string>(() => {
+    return localStorage.getItem('goauct_workbench_bottomPanelType') || 'terminal';
+  });
+  const [rightPanelType, setRightPanelType] = useState<string>(() => {
+    return localStorage.getItem('goauct_workbench_rightPanelType') || 'agent';
+  });
+  const [bottomPanelMinimized, setBottomPanelMinimized] = useState<boolean>(() => {
+    return localStorage.getItem('goauct_workbench_bottomPanelMinimized') === 'true';
+  });
+  const [rightPanelMinimized, setRightPanelMinimized] = useState<boolean>(() => {
+    return localStorage.getItem('goauct_workbench_rightPanelMinimized') === 'true';
+  });
+
+  // Persist state variables to localStorage
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_sidebarOpen', String(sidebarOpen));
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_activePane', activePane);
+  }, [activePane]);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_layoutTemplate', layoutTemplate);
+  }, [layoutTemplate]);
+
+  useEffect(() => {
+    if (activeIdeTabId) {
+      localStorage.setItem('goauct_workbench_activeIdeTabId', activeIdeTabId);
+    }
+  }, [activeIdeTabId]);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_ideSplitMode', String(ideSplitMode));
+  }, [ideSplitMode]);
+
+  useEffect(() => {
+    if (splitIdeTabId) {
+      localStorage.setItem('goauct_workbench_splitIdeTabId', splitIdeTabId);
+    } else {
+      localStorage.removeItem('goauct_workbench_splitIdeTabId');
+    }
+  }, [splitIdeTabId]);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_splitLeftWidthPct', String(splitLeftWidthPct));
+  }, [splitLeftWidthPct]);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_bottomPanelType', bottomPanelType);
+  }, [bottomPanelType]);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_rightPanelType', rightPanelType);
+  }, [rightPanelType]);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_bottomPanelMinimized', String(bottomPanelMinimized));
+  }, [bottomPanelMinimized]);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_rightPanelMinimized', String(rightPanelMinimized));
+  }, [rightPanelMinimized]);
   const [nodeCanvasTool, setNodeCanvasTool] = useState<'select' | 'connect'>('select');
   const [nodeConnections, setNodeConnections] = useState<Array<{ from: string, to: string }>>([
     { from: '1', to: '2' },
@@ -1472,6 +1553,520 @@ export const ClientWorkbench: React.FC = () => {
   }, [totals]);
 
   const activeCode = selectedState ? resolveStateCode(selectedState) : null;
+
+  const renderWidgetById = (id: string | null) => {
+    if (!id) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400 dark:text-slate-600 bg-white dark:bg-slate-900 select-none">
+          <Sparkles size={48} className="opacity-20" />
+          <div className="text-center">
+            <p className="text-sm font-bold text-slate-500 dark:text-slate-500">No active view</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">Select a view to render here</p>
+          </div>
+        </div>
+      );
+    }
+    const w = widgets.find(x => x.id === id);
+    if (!w) return <p className="text-xs text-slate-400 italic p-4 bg-white dark:bg-slate-900">Widget not found</p>;
+    
+    // Route to full page components
+    if (w.id === 'live_auctions') return <div className="size-full overflow-auto bg-white dark:bg-slate-900"><ClientAuctions /></div>;
+    if (w.id === 'property_search') return <div className="size-full overflow-auto bg-white dark:bg-slate-900"><ClientProperties /></div>;
+    if (w.id === 'my_lists') return <div className="size-full overflow-auto bg-white dark:bg-slate-900"><ClientLists /></div>;
+
+    // Route to embedded widget content
+    return (
+      <div className="size-full overflow-auto p-4 select-text flex flex-col min-h-0 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
+        {w.type === 'shortcuts' && (
+          <div className="h-full flex flex-col items-center justify-center gap-4">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Quick Access</p>
+            <div className="grid grid-cols-3 gap-4 max-w-xs">
+              {[
+                { label: 'Live Auctions', icon: Calendar, id: 'live_auctions', color: 'from-amber-400 to-orange-500' },
+                { label: 'Property Search', icon: Search, id: 'property_search', color: 'from-blue-400 to-cyan-500' },
+                { label: 'My Lists', icon: Folder, id: 'my_lists', color: 'from-purple-400 to-pink-500' },
+                { label: 'Missions', icon: Gavel, id: 'field_missions', color: 'from-emerald-400 to-teal-500' },
+                { label: 'Settings', icon: Settings, id: 'settings', color: 'from-slate-400 to-slate-600' },
+                { label: 'Billing', icon: CreditCard, id: 'billings', color: 'from-indigo-400 to-indigo-600' },
+              ].map(app => {
+                const Icon = app.icon;
+                return (
+                  <button
+                    key={app.id}
+                    onClick={() => {
+                      setWidgets(prev => prev.map(ww => ww.id === app.id ? { ...ww, visible: true } : ww));
+                      setActiveIdeTabId(app.id);
+                    }}
+                    className="flex flex-col items-center gap-2 group"
+                  >
+                    <div className={`size-14 rounded-2xl bg-gradient-to-br ${app.color} flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform`}>
+                      <Icon size={24} className="text-white" />
+                    </div>
+                    <span className="text-[9px] font-bold text-slate-600 dark:text-slate-400">{app.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {(w.type === 'metrics_deed' || w.type === 'metrics_foreclosure' || w.type === 'metrics_lien') && (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center">
+              <div className="text-6xl font-black text-slate-900 dark:text-white mb-2">
+                {w.type === 'metrics_deed' ? marketCounts.deed.toLocaleString() :
+                 w.type === 'metrics_foreclosure' ? marketCounts.foreclosure.toLocaleString() :
+                 marketCounts.lien.toLocaleString()}
+              </div>
+              <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">{w.title.replace(/^[^\w]+/, '')}</div>
+            </div>
+          </div>
+        )}
+
+        {w.type === 'map' && (
+          <div className="h-full min-h-[400px]">
+            <InvestmentHeatmap stateStats={stateStats} />
+          </div>
+        )}
+
+        {w.type === 'chart' && (
+          <div className="h-full min-h-[300px] flex flex-col gap-3">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Monthly Auction Trends</h2>
+            <div className="flex-1 min-h-[260px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={monthlyStats}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} />
+                  <RechartsTooltip />
+                  <Line type="monotone" dataKey="deed_count" stroke={CHART_COLORS.deed} strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="foreclosure_count" stroke={CHART_COLORS.foreclosure} strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="lien_count" stroke={CHART_COLORS.lien} strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {w.type === 'yield' && (
+          <div className="h-full min-h-[300px] flex flex-col gap-3">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Yield Breakdown Analytics</h2>
+            <div className="flex-1 min-h-[260px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={[
+                    { name: 'Tax Deeds', value: marketCounts.deed },
+                    { name: 'Foreclosures', value: marketCounts.foreclosure },
+                    { name: 'Tax Liens', value: marketCounts.lien },
+                  ]} dataKey="value" cx="50%" cy="50%" outerRadius={100} label>
+                    {[CHART_COLORS.deed, CHART_COLORS.foreclosure, CHART_COLORS.lien].map((c, i) => <Cell key={i} fill={c} />)}
+                  </Pie>
+                  <RechartsTooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
+        {w.type === 'recommended_deals' && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Top Recommended Deals</h2>
+            {dbTopDeals.slice(0, 8).map(p => (
+              <div key={p.id} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-start gap-3">
+                <div className="size-9 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shrink-0">
+                  <TrendingUp size={14} className="text-white" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{p.address || 'Property'}</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">{p.county}, {p.state}</p>
+                </div>
+                <div className="ml-auto text-right shrink-0">
+                  <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">${(p.assessed_value || 0).toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
+            {dbTopDeals.length === 0 && <p className="text-xs text-slate-400 italic">Loading deals...</p>}
+          </div>
+        )}
+
+        {w.type === 'dossier' && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Featured Property Dossier</h2>
+            {selectedProperty ? (
+              <div className="space-y-3">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 border border-indigo-500/20">
+                  <p className="font-bold text-slate-900 dark:text-white">{selectedProperty.address}</p>
+                  <p className="text-xs text-slate-500">{selectedProperty.county}, {selectedProperty.state}</p>
+                </div>
+                {[
+                  { label: 'Parcel ID', val: selectedProperty.parcel_id },
+                  { label: 'Assessed Value', val: `$${(selectedProperty.assessed_value || 0).toLocaleString()}` },
+                  { label: 'Status', val: selectedProperty.availability_status },
+                ].map(r => (
+                  <div key={r.label} className="flex justify-between text-xs border-b border-slate-100 dark:border-slate-800 pb-2">
+                    <span className="font-semibold text-slate-500">{r.label}</span>
+                    <span className="font-bold text-slate-900 dark:text-white">{r.val || '—'}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 italic">Select a property to view its dossier.</p>
+            )}
+          </div>
+        )}
+
+        {w.type === 'property_details' && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Deep Property Details</h2>
+            {selectedProperty ? (
+              <div className="space-y-3">
+                <div className="p-4 rounded-xl bg-gradient-to-br from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                  <p className="font-bold text-slate-900 dark:text-white">{selectedProperty.address}</p>
+                  <p className="text-xs text-slate-500">{selectedProperty.county}, {selectedProperty.state}</p>
+                </div>
+                {Object.entries(selectedProperty).slice(0, 12).map(([key, val]) => (
+                  <div key={key} className="flex justify-between text-xs border-b border-slate-100 dark:border-slate-800 pb-2 gap-2">
+                    <span className="font-semibold text-slate-500 capitalize shrink-0">{key.replace(/_/g, ' ')}</span>
+                    <span className="font-bold text-slate-900 dark:text-white truncate">{String(val || '—')}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 italic">Select a property to view deep details.</p>
+            )}
+          </div>
+        )}
+
+        {w.type === 'field_missions' && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Field Missions Panel</h2>
+            <div className="flex gap-2">
+              <div className="flex-1 p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-center">
+                <p className="text-xs text-slate-400 font-bold uppercase">Available</p>
+                <p className="text-lg font-black text-indigo-500">{availableTasks.length}</p>
+              </div>
+              <div className="flex-1 p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-center">
+                <p className="text-xs text-slate-400 font-bold uppercase">Claimed</p>
+                <p className="text-lg font-black text-emerald-500">{myClaimedTasks.length}</p>
+              </div>
+            </div>
+            {tasksLoading ? (
+              <p className="text-xs text-slate-400 italic">Loading missions...</p>
+            ) : (
+              <div className="space-y-2">
+                {availableTasks.slice(0, 4).map(t => (
+                  <div key={t.id} className="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs">
+                    <div>
+                      <p className="font-bold text-slate-800 dark:text-white">{t.title}</p>
+                      <p className="text-[10px] text-slate-400">Reward: <span className="font-bold text-indigo-500">${t.reward_amount}</span></p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {w.type === 'connect' && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">GoAuct OS Connect Panel</h2>
+            <div className="space-y-2">
+              {[
+                { name: 'National Registrars', status: 'Online', latency: '42ms' },
+                { name: 'Attom API', status: 'Online', latency: '120ms' },
+                { name: 'ZenRows Scrapers', status: 'Standby', latency: '—' },
+              ].map(api => (
+                <div key={api.name} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs">
+                  <span className="font-bold text-slate-800 dark:text-white">{api.name}</span>
+                  <div className="text-right">
+                    <span className="font-black text-emerald-500 block">{api.status}</span>
+                    <span className="text-[9px] text-slate-400">{api.latency}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {w.type === 'settings' && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Workspace Configuration</h2>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 flex justify-between">
+                  <span>Zoom Level</span>
+                  <span className="text-indigo-600">{Math.round(zoomScale * 100)}%</span>
+                </label>
+                <input type="range" min="0.5" max="2" step="0.1" value={zoomScale}
+                  onChange={e => setZoomScale(Number(e.target.value))}
+                  className="w-full mt-1 accent-indigo-500" />
+              </div>
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 space-y-2">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Layout Template</p>
+                <div className="flex gap-2">
+                  {(['canvas', 'ide'] as const).map(mode => (
+                    <button key={mode} onClick={() => setLayoutTemplate(mode)}
+                      className={`flex-1 py-1.5 rounded-lg text-xs font-bold uppercase transition-all ${layoutTemplate === mode ? 'bg-indigo-500 text-white shadow' : 'bg-slate-100 dark:bg-slate-900 text-slate-500 hover:text-slate-700'}`}>
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {w.type === 'profile' && (
+          <div className="space-y-4 text-center">
+            <div className="size-16 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center mx-auto text-xl font-black text-white shadow-lg">
+              GU
+            </div>
+            <div>
+              <h2 className="text-base font-black text-slate-900 dark:text-white">Gustavo Dev</h2>
+              <p className="text-xs text-slate-400">Chief Real Estate Strategist</p>
+            </div>
+            <div className="p-3 bg-indigo-50/50 dark:bg-indigo-950/10 rounded-2xl border border-indigo-500/10 text-xs">
+              <span className="font-bold text-indigo-600 dark:text-indigo-400">Enterprise Access Tier</span>
+            </div>
+          </div>
+        )}
+
+        {w.type === 'team' && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Team Workspace Roster</h2>
+            {[
+              { name: 'Sarah Connor', role: 'Property Inspector', status: 'On Field' },
+              { name: 'John Doe', role: 'Title Researcher', status: 'Researching' },
+              { name: 'Gustavo Dev', role: 'Workbench Admin', status: 'Online' },
+            ].map(member => (
+              <div key={member.name} className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex justify-between items-center text-xs">
+                <div>
+                  <p className="font-bold text-slate-800 dark:text-white">{member.name}</p>
+                  <p className="text-[9px] text-slate-400">{member.role}</p>
+                </div>
+                <span className="font-bold text-indigo-600 dark:text-indigo-400">{member.status}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {w.type === 'logs' && (
+          <div className="h-full flex flex-col gap-3 min-h-[300px]">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Live Activity Logs</h2>
+            <div className="flex-1 bg-slate-950 p-3 rounded-xl border border-slate-800 font-mono text-[9px] text-slate-300 overflow-y-auto space-y-1 min-h-[220px]">
+              {terminalLogs.map((log, idx) => (
+                <div key={idx} className="opacity-90 hover:opacity-100 flex items-start gap-1">
+                  <span className="text-emerald-500 shrink-0 font-bold">›</span>
+                  <span>{log}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {w.type === 'billings' && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Workbench Subscriptions</h2>
+            <div className="p-4 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg">
+              <p className="text-[10px] font-bold uppercase tracking-widest opacity-80">Current Plan</p>
+              <p className="text-2xl font-black mt-1">Enterprise Plus</p>
+              <p className="text-xs mt-2 opacity-95">All state scraper channels activated.</p>
+            </div>
+          </div>
+        )}
+
+        {w.type === 'company' && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Active Company Hub</h2>
+            {activeCompany ? (
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-3">
+                <div>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Active Corporate Entity</p>
+                  <p className="text-base font-black text-slate-900 dark:text-white mt-0.5">{activeCompany.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{activeCompany.address || 'No Address'}</p>
+                </div>
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Switch Entity</p>
+                  <div className="space-y-1">
+                    {companies.map(co => (
+                      <button
+                        key={co.id}
+                        onClick={() => { selectCompany(co.id); logConsoleActivity(`Entity switched to: "${co.name}"`); }}
+                        className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors text-xs ${activeCompany.id === co.id ? 'bg-indigo-500/10 text-indigo-600 font-bold' : 'hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-300'}`}
+                      >
+                        <span>{co.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-400 italic">No active company context.</p>
+            )}
+          </div>
+        )}
+
+        {w.type === 'notifications' && (
+          <div className="space-y-3">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">System Feed Notification</h2>
+            {[
+              { title: 'New Sheriff Auction Mapped', desc: '14 properties parsed in Broward County.', time: '5m ago' },
+              { title: 'ZenRows API Cap Reached', desc: 'Auto-switched to reserve Attom parser.', time: '1h ago' },
+              { title: 'Missions Database Backed Up', desc: 'Weekly automated snapshot completed.', time: '4h ago' },
+            ].map((n, i) => (
+              <div key={i} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs">
+                <div className="flex justify-between items-start">
+                  <p className="font-bold text-slate-800 dark:text-white">{n.title}</p>
+                  <span className="text-[9px] text-slate-400 font-semibold">{n.time}</span>
+                </div>
+                <p className="text-slate-500 dark:text-slate-400 mt-1 text-[11px]">{n.desc}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {w.type === 'node_canvas' && (
+          <div className="space-y-4 h-full min-h-[360px] flex flex-col min-w-0">
+            <div className="flex items-center justify-between shrink-0">
+              <h2 className="text-sm font-black text-slate-800 dark:text-white">Deal Flow Logic Graph</h2>
+              <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-[9px] font-bold">
+                {[
+                  { id: 'select', label: 'Pointer' },
+                  { id: 'connect', label: 'Connect' }
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setNodeCanvasTool(opt.id as any)}
+                    className={`px-2 py-1 rounded-md transition-colors ${nodeCanvasTool === opt.id ? 'bg-indigo-500 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'}`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+            <div className="flex-1 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-950/20 overflow-hidden relative min-h-[220px]">
+              <svg className="absolute inset-0 pointer-events-none w-full h-full">
+                {nodeConnections.map((conn, idx) => {
+                  const fromEl = document.getElementById(`node-${conn.from}`);
+                  const toEl = document.getElementById(`node-${conn.to}`);
+                  if (!fromEl || !toEl) return null;
+                  const fromRect = fromEl.getBoundingClientRect();
+                  const toRect = toEl.getBoundingClientRect();
+                  const parentEl = fromEl.parentElement;
+                  if (!parentEl) return null;
+                  const parentRect = parentEl.getBoundingClientRect();
+                  
+                  const startX = (fromRect.left + fromRect.width / 2) - parentRect.left;
+                  const startY = (fromRect.top + fromRect.height / 2) - parentRect.top;
+                  const endX = (toRect.left + toRect.width / 2) - parentRect.left;
+                  const endY = (toRect.top + toRect.height / 2) - parentRect.top;
+                  
+                  const midX = (startX + endX) / 2;
+                  
+                  return (
+                    <g key={idx}>
+                      <path
+                        d={`M ${startX} ${startY} C ${midX} ${startY}, ${midX} ${endY}, ${endX} ${endY}`}
+                        stroke="#6366f1"
+                        strokeWidth="1.5"
+                        fill="none"
+                        strokeDasharray="4 2"
+                        className="opacity-60"
+                      />
+                    </g>
+                  );
+                })}
+              </svg>
+              
+              <div className="absolute inset-0 p-4 grid grid-cols-2 gap-3 overflow-y-auto no-scrollbar">
+                {[
+                  { id: '1', name: 'Scraped Leads', status: '124 Records' },
+                  { id: '2', name: 'AI Value Assessor', status: 'Filtering' },
+                  { id: '3', name: 'ZenRows Registry Check', status: 'Running' },
+                  { id: '4', name: 'Top ROI Pipeline', status: '12 Qualified' },
+                  { id: '5', name: 'Tax Lien Watcher', status: 'Monitoring' },
+                  { id: '6', name: 'Corporate Purchase Hub', status: '3 Approved' },
+                ].map(node => (
+                  <div
+                    key={node.id}
+                    id={`node-${node.id}`}
+                    onClick={() => {
+                      if (nodeCanvasTool === 'connect') {
+                        if (!nodeConnectSourceId) {
+                          setNodeConnectSourceId(node.id);
+                          logConsoleActivity(`Connecting source selected: node ${node.id}`);
+                        } else {
+                          if (nodeConnectSourceId !== node.id) {
+                            setNodeConnections(prev => [...prev, { from: nodeConnectSourceId, to: node.id }]);
+                            logConsoleActivity(`Created link from node ${nodeConnectSourceId} to ${node.id}`);
+                          }
+                          setNodeConnectSourceId(null);
+                        }
+                      }
+                    }}
+                    className={`p-2.5 rounded-xl border transition-all text-left bg-white dark:bg-slate-900 cursor-pointer ${nodeConnectSourceId === node.id ? 'border-indigo-500 ring-2 ring-indigo-500/20' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md'}`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <div className="size-2 rounded-full bg-indigo-500" />
+                      <p className="text-[10px] font-black text-slate-800 dark:text-white truncate">{node.name}</p>
+                    </div>
+                    <p className="text-[8.5px] text-slate-400 mt-1 font-semibold">{node.status}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {w.type === 'rehab_calc' && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white">Rehab & ROI Calculator</h2>
+            {[
+              { label: 'Purchase Price', value: rehabPurchasePrice, set: setRehabPurchasePrice, min: 0, max: 2000000, step: 1000 },
+              { label: 'Rehab Cost', value: rehabCost, set: setRehabCost, min: 0, max: 500000, step: 500 },
+              { label: 'Annual Taxes', value: rehabTaxes, set: setRehabTaxes, min: 0, max: 50000, step: 500 },
+              { label: 'ARV (After Repair)', value: rehabARV, set: setRehabARV, min: 0, max: 3000000, step: 1000 },
+            ].map(field => (
+              <div key={field.label}>
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 flex justify-between">
+                  <span>{field.label}</span>
+                  <span className="text-indigo-600">${field.value.toLocaleString()}</span>
+                </label>
+                <input type="range" min={field.min} max={field.max} step={field.step} value={field.value}
+                  onChange={e => field.set(Number(e.target.value))}
+                  className="w-full mt-1 accent-indigo-500" />
+              </div>
+            ))}
+            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Net ROI</p>
+              <p className={`text-3xl font-black ${rehabARV - rehabPurchasePrice - rehabCost - rehabTaxes > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                ${(rehabARV - rehabPurchasePrice - rehabCost - rehabTaxes).toLocaleString()}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {(w.type === 'property_comparator' || w.type === 'contacts_search' || w.type === 'create_task' || w.type === 'support_center') && (
+          <div className="h-full flex items-center justify-center">
+            <div className="text-center space-y-3">
+              <div className="size-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center mx-auto shadow-lg">
+                <Sparkles size={28} className="text-white" />
+              </div>
+              <h2 className="text-base font-black text-slate-900 dark:text-white">{w.title.replace(/^[^\w]+/, '')}</h2>
+              <p className="text-xs text-slate-400 max-w-xs">This widget's full content is available in Canvas Mode. Switch the layout to interact with it as a floating window.</p>
+              <button
+                onClick={() => { setLayoutTemplate('canvas'); logConsoleActivity(`Switched to Canvas Mode for widget: "${w.title}"`); }}
+                className="px-4 py-2 rounded-xl bg-indigo-500 text-white text-xs font-bold hover:bg-indigo-600 transition-colors"
+              >
+                Open in Canvas Mode
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="w-full flex-1 flex flex-col h-full min-h-0 overflow-hidden select-none bg-slate-50 dark:bg-slate-950 font-display">
