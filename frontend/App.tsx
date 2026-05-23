@@ -218,6 +218,15 @@ function App() {
           </Route>
         </Routes>
         <TourOverlay />
+        
+        {/* Global Corporate Fixed Logo Watermark */}
+        <div className="fixed bottom-4 right-4 md:bottom-5 md:right-5 z-[99999] pointer-events-none select-none" aria-hidden="true">
+          <img 
+            src="logo-watermark.png" 
+            alt="" 
+            className="w-12 h-12 md:w-16 md:h-16 object-contain opacity-[0.04] dark:opacity-[0.12] rounded-xl transition-opacity duration-300"
+          />
+        </div>
         </TourProvider>
       </HashRouter>
     </AuthProvider>

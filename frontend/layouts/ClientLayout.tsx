@@ -618,15 +618,6 @@ const ClientLayout: React.FC = () => {
       <TourOverlay />
 
       {!hideHeader && <Footer />}
-
-      {/* Corporate Fixed Logo Watermark */}
-      <div className="fixed bottom-5 right-5 z-[99999] pointer-events-none select-none">
-        <img 
-          src="logo-watermark.png" 
-          alt="Corporate Watermark" 
-          className="w-16 h-16 object-contain opacity-[0.06] dark:opacity-[0.14]"
-        />
-      </div>
     </div>
   );
 };

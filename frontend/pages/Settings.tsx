@@ -230,7 +230,7 @@ export const Settings: React.FC = () => {
                                             label: 'Cyberpunk Tech',
                                             icon: 'rocket_launch',
                                             desc: 'Mockup Premium: deep black, glassmorphic cards, neon cian.',
-                                            previewClass: 'bg-[#050814] border border-[#00e5e5]/20',
+                                            previewClass: 'bg-[#0a0f1c] border border-[#00e5e5]/20',
                                             previewAccent: 'bg-[#00e5e5]',
                                             previewText: 'text-slate-100'
                                         },
@@ -362,7 +362,7 @@ export const Settings: React.FC = () => {
                                         label: 'Cyberpunk Tech',
                                         icon: 'rocket_launch',
                                         desc: 'Mockup Premium: deep black, glassmorphic cards, neon cian.',
-                                        previewClass: 'bg-[#050814] border border-[#00e5e5]/20',
+                                        previewClass: 'bg-[#0a0f1c] border border-[#00e5e5]/20',
                                         previewAccent: 'bg-[#00e5e5]'
                                     },
                                     {

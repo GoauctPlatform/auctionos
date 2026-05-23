@@ -261,8 +261,8 @@
 }
 
 .dark.cyberpunk {
-  --bg-primary: #050814;
-  --bg-secondary: rgba(10, 15, 30, 0.7);
+  --bg-primary: #0a0f1c;
+  --bg-secondary: rgba(17, 24, 39, 0.75);
   --bg-tertiary: rgba(26, 35, 56, 0.55);
   
   --accent: #00e5e5;
