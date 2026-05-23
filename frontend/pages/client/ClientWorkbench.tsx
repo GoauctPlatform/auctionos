@@ -18,6 +18,10 @@ import ClientProperties from './ClientProperties';
 import ClientLists from './ClientLists';
 import { InvestorTasksDashboard } from './InvestorTasksDashboard';
 import PropertyDetailPage from '../admin/PropertyDetailPage';
+import { Settings as OriginalSettings } from '../Settings';
+import ActivityLogsPage from './ActivityLogsPage';
+import BillingPage from './BillingPage';
+import AboutPage from '../AboutPage';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, PieChart, Pie, Cell
@@ -112,7 +116,7 @@ interface Widget {
 
 interface OverlayWindow {
   id: string;
-  type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details';
+  type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about';
   title: string;
   x: number;
   y: number;
@@ -125,43 +129,17 @@ interface OverlayWindow {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'shortcuts', type: 'shortcuts', title: 'Quick Access Tools', x: 20, y: 20, w: 320, h: 480, visible: true, zIndex: 10 },
-  { id: 'metrics_deed', type: 'metrics_deed', title: 'Tax Deeds Total', x: 360, y: 20, w: 260, h: 140, visible: true, zIndex: 11 },
-  { id: 'metrics_foreclosure', type: 'metrics_foreclosure', title: 'Foreclosures Total', x: 640, y: 20, w: 260, h: 140, visible: true, zIndex: 12 },
-  { id: 'metrics_lien', type: 'metrics_lien', title: 'Tax Liens Total', x: 920, y: 20, w: 260, h: 140, visible: true, zIndex: 13 },
-  { id: 'map', type: 'map', title: 'National Yield Heatmap', x: 360, y: 180, w: 820, h: 430, visible: true, zIndex: 14 },
-  { id: 'recommended_deals', type: 'recommended_deals', title: 'Top Recommended Deals', x: 1200, y: 20, w: 450, h: 590, visible: true, zIndex: 15 },
-  
-  // Expanded full-page geometries for IDE-style floating windows
-  { id: 'live_auctions', type: 'live_auctions', title: 'Live Auctions Finder', x: 20, y: 520, w: 1050, h: 680, visible: true, zIndex: 16 },
-  { id: 'property_search', type: 'property_search', title: 'Property Search & Listing', x: 490, y: 1220, w: 1100, h: 700, visible: true, zIndex: 17 },
-  { id: 'my_lists', type: 'my_lists', title: 'Saved Lists & Folders', x: 1610, y: 1220, w: 1050, h: 680, visible: true, zIndex: 21 },
-
-  { id: 'chart', type: 'chart', title: 'Monthly Auction Trends', x: 1200, y: 630, w: 450, h: 390, visible: true, zIndex: 18 },
-  { id: 'dossier', type: 'dossier', title: 'Featured Property Dossier', x: 1670, y: 20, w: 380, h: 590, visible: true, zIndex: 19 },
-  { id: 'yield', type: 'yield', title: 'Yield Breakdown Analytics', x: 1670, y: 630, w: 380, h: 390, visible: true, zIndex: 20 },
-  
-  // 11 New V4.0 absolute widgets sequentially mapped to the right-hand canvas quadrants (2080px to 3800px)
-  { id: 'field_missions', type: 'field_missions', title: 'Field Task Missions', x: 2080, y: 520, w: 360, h: 500, visible: true, zIndex: 22 },
-  { id: 'connect', type: 'connect', title: 'API Integrations Hub', x: 2460, y: 20, w: 380, h: 480, visible: true, zIndex: 23 },
-  { id: 'settings', type: 'settings', title: 'Workbench Settings', x: 2460, y: 520, w: 380, h: 500, visible: true, zIndex: 24 },
-  { id: 'profile', type: 'profile', title: 'User Profile Card', x: 2860, y: 20, w: 360, h: 480, visible: true, zIndex: 25 },
-  { id: 'team', type: 'team', title: 'Corporate Team Roster', x: 2860, y: 520, w: 360, h: 500, visible: true, zIndex: 26 },
-  { id: 'logs', type: 'logs', title: 'Activity Console Logs', x: 3240, y: 20, w: 420, h: 480, visible: true, zIndex: 27 },
-  { id: 'billings', type: 'billings', title: 'Billings & Subscriptions', x: 3240, y: 520, w: 420, h: 500, visible: true, zIndex: 28 },
-  { id: 'company', type: 'company', title: 'Active Company Hub', x: 3680, y: 20, w: 300, h: 230, visible: true, zIndex: 29 },
-  { id: 'notifications', type: 'notifications', title: 'System Notifications', x: 3680, y: 270, w: 300, h: 230, visible: true, zIndex: 30 },
-  { id: 'property_details', type: 'property_details', title: 'Deep Property Details', x: 3680, y: 520, w: 300, h: 500, visible: true, zIndex: 31 },
-
-  // New V5.0 Real-Logic Widgets
-  { id: 'create_task', type: 'create_task', title: 'Create Mission Task', x: 2080, y: 1040, w: 360, h: 420, visible: true, zIndex: 32 },
-  { id: 'support_center', type: 'support_center', title: 'Support & Help Center', x: 2460, y: 1040, w: 380, h: 420, visible: true, zIndex: 33 },
-
-  // V5.1 Premium Interactive Real Estate Widgets
-  { id: 'node_canvas', type: 'node_canvas', title: 'Node-based Canvas with Auto Layout and Edge Connections', x: 2080, y: 1480, w: 520, h: 480, visible: true, zIndex: 34 },
-  { id: 'rehab_calc', type: 'rehab_calc', title: 'Rehab & ROI Calculator', x: 2620, y: 1480, w: 380, h: 420, visible: true, zIndex: 35 },
-  { id: 'property_comparator', type: 'property_comparator', title: 'Property Compare Matrix', x: 3020, y: 1480, w: 400, h: 420, visible: true, zIndex: 36 },
-  { id: 'contacts_search', type: 'contacts_search', title: 'State & County Registrar Directory', x: 3440, y: 1480, w: 380, h: 420, visible: true, zIndex: 37 }
+  { id: 'metrics_deed', type: 'metrics_deed', title: 'Tax Deeds Total', x: 20, y: 20, w: 260, h: 140, visible: true, zIndex: 11 },
+  { id: 'metrics_foreclosure', type: 'metrics_foreclosure', title: 'Foreclosures Total', x: 300, y: 20, w: 260, h: 140, visible: true, zIndex: 12 },
+  { id: 'metrics_lien', type: 'metrics_lien', title: 'Tax Liens Total', x: 580, y: 20, w: 260, h: 140, visible: true, zIndex: 13 },
+  { id: 'map', type: 'map', title: 'National Yield Heatmap', x: 20, y: 180, w: 820, h: 430, visible: true, zIndex: 14 },
+  { id: 'recommended_deals', type: 'recommended_deals', title: 'Top Recommended Deals', x: 860, y: 20, w: 450, h: 590, visible: true, zIndex: 15 },
+  { id: 'chart', type: 'chart', title: 'Monthly Auction Trends', x: 860, y: 630, w: 450, h: 390, visible: true, zIndex: 18 },
+  { id: 'dossier', type: 'dossier', title: 'Featured Property Dossier', x: 1330, y: 20, w: 380, h: 590, visible: true, zIndex: 19 },
+  { id: 'yield', type: 'yield', title: 'Yield Breakdown Analytics', x: 1330, y: 630, w: 380, h: 390, visible: true, zIndex: 20 },
+  { id: 'rehab_calc', type: 'rehab_calc', title: 'Rehab & ROI Calculator', x: 1730, y: 20, w: 380, h: 420, visible: true, zIndex: 35 },
+  { id: 'support_center', type: 'support_center', title: 'Support & Help Center', x: 1730, y: 460, w: 380, h: 420, visible: true, zIndex: 33 },
+  { id: 'company', type: 'company', title: 'Active Company Hub', x: 2130, y: 20, w: 300, h: 230, visible: true, zIndex: 29 }
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -217,15 +195,25 @@ export const ClientWorkbench: React.FC = () => {
     const saved = localStorage.getItem('goauct_workbench_sidebarOpen');
     return saved === null ? true : saved === 'true';
   });
-  const [activePane, setActivePane] = useState<'explorer' | 'presets' | 'info'>(() => {
-    return (localStorage.getItem('goauct_workbench_activePane') as 'explorer' | 'presets' | 'info') || 'explorer';
+  const [activePane, setActivePane] = useState<'explorer' | 'presets' | 'info' | 'notifications'>(() => {
+    return (localStorage.getItem('goauct_workbench_activePane') as any) || 'explorer';
   });
+  const [upcomingAuctionsCount, setUpcomingAuctionsCount] = useState<number>(0);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+
+  useEffect(() => {
+    ClientDataService.getLists().then(lists => {
+      const hasUpcoming = lists
+        .filter((l: any) => l.has_upcoming_auction)
+        .reduce((acc: number, curr: any) => acc + (curr.upcoming_auctions_count || 0), 0);
+      setUpcomingAuctionsCount(hasUpcoming);
+    }).catch(() => {});
+  }, []);
+
   const [selectedState, setSelectedState] = useState<string>('');
 
   // IDE Mode & Node Canvas Custom States
-  const [layoutTemplate, setLayoutTemplate] = useState<'canvas' | 'ide'>(() => {
-    return (localStorage.getItem('goauct_workbench_layoutTemplate') as 'canvas' | 'ide') || 'canvas';
-  });
+  const layoutTemplate = 'canvas';
   const [activeIdeTabId, setActiveIdeTabId] = useState<string | null>(() => {
     return localStorage.getItem('goauct_workbench_activeIdeTabId') || 'live_auctions';
   });
@@ -321,6 +309,14 @@ export const ClientWorkbench: React.FC = () => {
     };
   };
 
+  const startCustomPresetCreation = () => {
+    setBackupWidgetsBeforeCreate(JSON.parse(JSON.stringify(widgets)));
+    setWidgets(prev => prev.map(w => ({ ...w, visible: false })));
+    setIsCreatingPreset(true);
+    setNewPresetName('');
+    logConsoleActivity('Started layout preset customization. Starting from an empty blueprint.');
+  };
+
   const toggleWidgetInPreset = (id: string) => {
     setWidgets(prev => {
       const match = prev.find(w => w.id === id);
@@ -392,7 +388,7 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const openOverlayWindow = (
-    type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details',
+    type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about',
     title: string,
     data?: any
   ) => {
@@ -410,8 +406,15 @@ export const ClientWorkbench: React.FC = () => {
 
       const viewportW = window.innerWidth;
       const viewportH = window.innerHeight;
-      const w = type === 'property_details' ? 880 : 1050;
-      const h = type === 'property_details' ? 620 : 680;
+      let w = 1050;
+      let h = 680;
+      if (type === 'property_details') {
+        w = 880;
+        h = 620;
+      } else if (type === 'about') {
+        w = 680;
+        h = 500;
+      }
       const x = Math.max((viewportW - w) / 2 + (prev.length * 20) % 200, 40);
       const y = Math.max((viewportH - h) / 2 + (prev.length * 20) % 200, 60);
       const zIndex = Math.max(...prev.map(x => x.zIndex), 0) + 1;
@@ -611,9 +614,7 @@ export const ClientWorkbench: React.FC = () => {
     localStorage.setItem('goauct_workbench_activePane', activePane);
   }, [activePane]);
 
-  useEffect(() => {
-    localStorage.setItem('goauct_workbench_layoutTemplate', layoutTemplate);
-  }, [layoutTemplate]);
+
 
   useEffect(() => {
     if (activeIdeTabId) {
@@ -2487,52 +2488,16 @@ export const ClientWorkbench: React.FC = () => {
             <div className="flex items-center gap-1.5">
               <h2 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white leading-none">GoAuct OS</h2>
               <span className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.25 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 rounded-md">
-                {layoutTemplate === 'ide' ? 'V3.5 IDE Mode' : 'V3.5 Infinite Canvas'}
+                V3.5 Infinite Canvas
               </span>
             </div>
             <p className="text-[8.5px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
-              {layoutTemplate === 'ide' ? 'Tabbed developer workspace with system diagnostics' : 'Pannable zoom viewport with custom analytical widgets'}
+              Pannable zoom viewport with custom analytical widgets
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Template Layout Toggler */}
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900/60 p-0.5 rounded-lg border border-slate-200/50 dark:border-slate-800 flex shadow-sm mr-2 select-none">
-            <button
-              onClick={() => {
-                setLayoutTemplate('canvas');
-                logConsoleActivity('Switched workspace layout to Infinite Canvas Mode.');
-              }}
-              className={`text-[8px] font-black uppercase px-2 py-1 rounded-md transition-all ${
-                layoutTemplate === 'canvas'
-                  ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-slate-450 dark:text-slate-550 hover:text-slate-700 dark:hover:text-slate-350'
-              }`}
-            >
-              Canvas
-            </button>
-            <button
-              onClick={() => {
-                setLayoutTemplate('ide');
-                const open = widgets.filter(w => w.visible);
-                if (open.length > 0 && (!activeIdeTabId || !widgets.find(w => w.id === activeIdeTabId)?.visible)) {
-                  setActiveIdeTabId(open[0].id);
-                } else if (open.length === 0) {
-                  setWidgets(prev => prev.map(w => w.id === 'live_auctions' ? { ...w, visible: true } : w));
-                  setActiveIdeTabId('live_auctions');
-                }
-                logConsoleActivity('Switched workspace layout to IDE Developer Workspace Mode.');
-              }}
-              className={`text-[8px] font-black uppercase px-2 py-1 rounded-md transition-all ${
-                layoutTemplate === 'ide'
-                  ? 'bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm'
-                  : 'text-slate-450 dark:text-slate-550 hover:text-slate-700 dark:hover:text-slate-350'
-              }`}
-            >
-              IDE Mode
-            </button>
-          </div>
 
           {selectedState && (
             <button
@@ -2600,64 +2565,52 @@ export const ClientWorkbench: React.FC = () => {
             <div className="w-8 h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
 
             {[
-              { id: 'shortcuts', icon: Smartphone, label: 'Quick Access Tools' },
               { id: 'live_auctions', icon: Calendar, label: 'Live Auctions Finder' },
               { id: 'property_search', icon: Search, label: 'Property Search & Listing' },
               { id: 'my_lists', icon: Folder, label: 'Saved Lists & Folders' },
-              { id: 'node_canvas', icon: Layers, label: 'Node-based Canvas with Auto Layout and Edge Connections' },
-              { id: 'rehab_calc', icon: Activity, label: 'Rehab & ROI Calculator' },
-              { id: 'property_comparator', icon: LayoutGrid, label: 'Property Compare Matrix' },
-              { id: 'contacts_search', icon: Users, label: 'Registrar Directory' },
-              { id: 'settings', icon: Settings, label: 'Workbench Settings' },
-              { id: 'logs', icon: Terminal, label: 'Activity Console Logs' }
+              { id: 'field_missions', icon: Activity, label: 'Field Task Missions' },
+              { id: 'team_and_logs', icon: Users, label: 'Team & Activity Logs' },
+              { id: 'billings_and_plans', icon: CreditCard, label: 'Billing & Plans' },
+              { id: 'notifications', icon: Bell, label: 'System Notifications' },
+              { id: 'settings', icon: Settings, label: 'Workbench Settings' }
             ].map(shortcut => {
               const Icon = shortcut.icon;
-              const widget = widgets.find(w => w.id === shortcut.id);
-              const isVisible = widget?.visible;
+              const isVisible = shortcut.id === 'notifications' 
+                ? activePane === 'notifications' && sidebarOpen 
+                : overlayWindows.some(w => w.id === shortcut.id && !w.isMinimized);
+
               return (
                 <button
                   key={shortcut.id}
                   title={shortcut.label}
                   onClick={() => {
-                    if (['my_lists', 'live_auctions', 'property_search', 'field_missions'].includes(shortcut.id)) {
-                      openOverlayWindow(shortcut.id as any, shortcut.label);
-                    } else {
-                      setWidgets(prev => {
-                        const match = prev.find(w => w.id === shortcut.id);
-                        const nextZ = highestZIndex + 1;
-                        setHighestZIndex(nextZ);
-                        
-                        return prev.map(w => 
-                          w.id === shortcut.id 
-                            ? { ...w, visible: true, zIndex: nextZ } 
-                            : w
-                        );
-                      });
-                      
-                      if (layoutTemplate === 'ide') {
-                        setActiveIdeTabId(shortcut.id);
-                        logConsoleActivity(`Opened tab in workspace: "${shortcut.label}"`);
+                    if (shortcut.id === 'notifications') {
+                      if (activePane === 'notifications' && sidebarOpen) {
+                        setSidebarOpen(false);
                       } else {
-                        const match = widgets.find(w => w.id === shortcut.id);
-                        if (match) {
-                          const targetX = -match.x + (window.innerWidth - match.w) / 2;
-                          const targetY = -match.y + (window.innerHeight - match.h) / 2;
-                          setPanX(targetX);
-                          setPanY(targetY);
-                          setZoomScale(1.0);
-                          logConsoleActivity(`Focused and centered on widget: "${match.title}"`);
-                        }
+                        setActivePane('notifications');
+                        setSidebarOpen(true);
                       }
+                    } else {
+                      openOverlayWindow(shortcut.id as any, shortcut.label);
                     }
                   }}
-                  className={`relative p-2 rounded-xl transition-all ${
+                  className={`relative p-2.5 rounded-xl transition-all ${
                     isVisible
-                      ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-955/10 border border-indigo-500/10'
+                      ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-955/10 border border-indigo-500/10 shadow-sm'
                       : 'text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900/40'
                   }`}
                 >
-                  {isVisible && (
+                  {isVisible && shortcut.id !== 'notifications' && (
                     <div className="absolute right-1 bottom-1 size-1.5 rounded-full bg-emerald-500 shadow-sm border border-white dark:border-slate-950" />
+                  )}
+                  {shortcut.id === 'notifications' && upcomingAuctionsCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 text-[6.5px] font-black text-white items-center justify-center border border-white dark:border-slate-950">
+                        {upcomingAuctionsCount}
+                      </span>
+                    </span>
                   )}
                   <Icon size={16} />
                 </button>
@@ -2985,6 +2938,37 @@ export const ClientWorkbench: React.FC = () => {
                 </>
               )}
 
+
+              {activePane === 'notifications' && (
+                <>
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">System Alerts</h3>
+                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Live Watchlists Updates</p>
+                  </div>
+
+                  <div className="flex flex-col space-y-2.5 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
+                    {upcomingAuctionsCount > 0 ? (
+                      <div
+                        onClick={() => openOverlayWindow('my_lists', 'Saved Lists & Folders')}
+                        className="p-3 rounded-xl bg-orange-50/50 dark:bg-orange-955/10 border border-orange-500/20 text-left transition-all cursor-pointer flex gap-2.5 hover:border-orange-500/40"
+                      >
+                        <div className="size-6 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-[14px]">gavel</span>
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">Upcoming Auctions</p>
+                          <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">You have {upcomingAuctionsCount} watchlisted properties going to auction within the next 7 days.</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-8 text-center text-slate-400 dark:text-slate-500 font-bold text-[9px] uppercase tracking-wider">
+                        <Bell size={24} className="mx-auto mb-2 opacity-30 text-indigo-400" />
+                        <span>All caught up!</span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
 
               {activePane === 'info' && (
                 <>
@@ -6170,6 +6154,26 @@ export const ClientWorkbench: React.FC = () => {
                 {w.type === 'live_auctions' && <ClientAuctions />}
                 {w.type === 'property_search' && <ClientProperties />}
                 {w.type === 'field_missions' && <InvestorTasksDashboard />}
+                {w.type === 'settings' && (
+                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                    <OriginalSettings />
+                  </div>
+                )}
+                {w.type === 'team_and_logs' && (
+                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                    <ActivityLogsPage />
+                  </div>
+                )}
+                {w.type === 'billings_and_plans' && (
+                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                    <BillingPage />
+                  </div>
+                )}
+                {w.type === 'about' && (
+                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                    <AboutPage standalone={false} />
+                  </div>
+                )}
                 {w.type === 'property_details' && (
                   <div className="size-full overflow-y-auto no-scrollbar scrollbar-none">
                     <PropertyDetailPage readOnly={true} overrideId={w.data?.propertyId} />
@@ -6279,17 +6283,39 @@ export const ClientWorkbench: React.FC = () => {
           </span>
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-[7.5px] font-bold text-emerald-500 flex items-center gap-1">
-            <span className="size-1.5 rounded-full bg-emerald-500" />
-            feature/newinterface
-          </span>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 border-r border-slate-200 dark:border-slate-800 pr-3">
+            <button
+              onClick={() => openOverlayWindow('about', 'About GoAuct OS')}
+              className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
+            >
+              About
+            </button>
+            <button
+              onClick={() => alert('Corporate Disclaimer: All investment strategies and auction bids involve high risk of loss. No information contained in GoAuct OS should be construed as investment advice.')}
+              className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
+            >
+              Disclaimer
+            </button>
+            <button
+              onClick={() => alert('Terms of Service: Access to GoAuct OS is provided under our standard corporate licensing agreements.')}
+              className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
+            >
+              Terms
+            </button>
+            <button
+              onClick={() => alert('Privacy Policy: We utilize enterprise-grade encryption to protect proprietary watchlists and property data.')}
+              className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
+            >
+              Privacy
+            </button>
+          </div>
           <div className="flex items-center gap-1 text-[8.5px] font-semibold text-slate-455 dark:text-slate-500">
             <Layers size={10} />
-            <span>{layoutTemplate === 'ide' ? `Tabs: ${widgets.filter(w => w.visible).length}` : `Windows: ${widgets.filter(w => w.visible).length}`}</span>
+            <span>Active Windows: {widgets.filter(w => w.visible).length}</span>
           </div>
-          <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border ${layoutTemplate === 'ide' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20' : 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20'}`}>
-            {layoutTemplate === 'ide' ? 'IDE Mode' : 'Canvas Mode'}
+          <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20">
+            Canvas Mode
           </span>
         </div>
       </div>
