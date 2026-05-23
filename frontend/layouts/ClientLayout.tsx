@@ -248,8 +248,9 @@ const ClientLayout: React.FC = () => {
       <div className="fixed inset-0 bg-mesh-gradient pointer-events-none z-0" />
 
       {/* Header Navigation */}
-      <header className="bg-white/70 dark:bg-[#1a2634]/70 backdrop-blur-md border-b border-[#e7ecf3] dark:border-slate-700/50 sticky top-0 z-50">
-        <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12">
+      {!isWorkbench && (
+        <header className="bg-white/70 dark:bg-[#1a2634]/70 backdrop-blur-md border-b border-[#e7ecf3] dark:border-slate-700/50 sticky top-0 z-50">
+          <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12">
           <div className="flex justify-between h-16">
             <div className="flex">
               {/* Brand Logo */}
@@ -565,6 +566,7 @@ const ClientLayout: React.FC = () => {
           </div>
         )}
       </header>
+      )}
 
       {/* Main Content Area */}
       <main className="flex-1 w-full flex flex-col min-w-0 overflow-hidden">

@@ -22,6 +22,7 @@ import { Settings as OriginalSettings } from '../Settings';
 import ActivityLogsPage from './ActivityLogsPage';
 import BillingPage from './BillingPage';
 import AboutPage from '../AboutPage';
+import { TrainingPage, CommunityPage, GroupsPage } from './EcosystemPages';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, PieChart, Pie, Cell
@@ -195,7 +196,7 @@ export const ClientWorkbench: React.FC = () => {
     const saved = localStorage.getItem('goauct_workbench_sidebarOpen');
     return saved === null ? true : saved === 'true';
   });
-  const [activePane, setActivePane] = useState<'explorer' | 'presets' | 'info' | 'notifications'>(() => {
+  const [activePane, setActivePane] = useState<'explorer' | 'presets' | 'info' | 'notifications' | 'connect'>(() => {
     return (localStorage.getItem('goauct_workbench_activePane') as any) || 'explorer';
   });
   const [upcomingAuctionsCount, setUpcomingAuctionsCount] = useState<number>(0);
@@ -388,7 +389,7 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const openOverlayWindow = (
-    type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about',
+    type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups',
     title: string,
     data?: any
   ) => {
@@ -414,6 +415,15 @@ export const ClientWorkbench: React.FC = () => {
       } else if (type === 'about') {
         w = 680;
         h = 500;
+      } else if (type === 'training') {
+        w = 1100;
+        h = 720;
+      } else if (type === 'community') {
+        w = 1000;
+        h = 680;
+      } else if (type === 'groups') {
+        w = 1050;
+        h = 700;
       }
       const x = Math.max((viewportW - w) / 2 + (prev.length * 20) % 200, 40);
       const y = Math.max((viewportH - h) / 2 + (prev.length * 20) % 200, 60);
@@ -2480,22 +2490,7 @@ export const ClientWorkbench: React.FC = () => {
 
       {/* ─── HEADER (Topo) ─── */}
       <div className="w-full h-14 bg-white/70 dark:bg-slate-900/60 border-b border-slate-200/80 dark:border-slate-800/60 px-5 flex items-center justify-between backdrop-blur-md shrink-0 z-30">
-        <div className="flex items-center gap-3">
-          <div className="size-8 rounded-xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-md">
-            <Sparkles size={16} className="text-white animate-pulse" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <h2 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white leading-none">GoAuct OS</h2>
-              <span className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.25 bg-cyan-100 dark:bg-cyan-900/40 text-cyan-600 dark:text-cyan-400 rounded-md">
-                V3.5 Infinite Canvas
-              </span>
-            </div>
-            <p className="text-[8.5px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
-              Pannable zoom viewport with custom analytical widgets
-            </p>
-          </div>
-        </div>
+        <div className="flex items-center gap-3" />
 
         <div className="flex items-center gap-2">
 
@@ -2569,6 +2564,7 @@ export const ClientWorkbench: React.FC = () => {
               { id: 'property_search', icon: Search, label: 'Property Search & Listing' },
               { id: 'my_lists', icon: Folder, label: 'Saved Lists & Folders' },
               { id: 'field_missions', icon: Activity, label: 'Field Task Missions' },
+              { id: 'connect', icon: Compass, label: 'Connect Hub' },
               { id: 'team_and_logs', icon: Users, label: 'Team & Activity Logs' },
               { id: 'billings_and_plans', icon: CreditCard, label: 'Billing & Plans' },
               { id: 'notifications', icon: Bell, label: 'System Notifications' },
@@ -2577,6 +2573,8 @@ export const ClientWorkbench: React.FC = () => {
               const Icon = shortcut.icon;
               const isVisible = shortcut.id === 'notifications' 
                 ? activePane === 'notifications' && sidebarOpen 
+                : shortcut.id === 'connect'
+                ? activePane === 'connect' && sidebarOpen
                 : overlayWindows.some(w => w.id === shortcut.id && !w.isMinimized);
 
               return (
@@ -2591,6 +2589,13 @@ export const ClientWorkbench: React.FC = () => {
                         setActivePane('notifications');
                         setSidebarOpen(true);
                       }
+                    } else if (shortcut.id === 'connect') {
+                      if (activePane === 'connect' && sidebarOpen) {
+                        setSidebarOpen(false);
+                      } else {
+                        setActivePane('connect');
+                        setSidebarOpen(true);
+                      }
                     } else {
                       openOverlayWindow(shortcut.id as any, shortcut.label);
                     }
@@ -2601,7 +2606,7 @@ export const ClientWorkbench: React.FC = () => {
                       : 'text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900/40'
                   }`}
                 >
-                  {isVisible && shortcut.id !== 'notifications' && (
+                  {isVisible && shortcut.id !== 'notifications' && shortcut.id !== 'connect' && (
                     <div className="absolute right-1 bottom-1 size-1.5 rounded-full bg-emerald-500 shadow-sm border border-white dark:border-slate-950" />
                   )}
                   {shortcut.id === 'notifications' && upcomingAuctionsCount > 0 && (
@@ -2923,6 +2928,56 @@ export const ClientWorkbench: React.FC = () => {
                         <span>All caught up!</span>
                       </div>
                     )}
+                  </div>
+                </>
+              )}
+
+              {activePane === 'connect' && (
+                <>
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Connect Hub</h3>
+                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Networking & Training Modules</p>
+                  </div>
+
+                  <div className="flex flex-col space-y-2.5 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
+                    <button
+                      onClick={() => openOverlayWindow('training', 'Training Center')}
+                      className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-955/10 border border-blue-500/20 text-left transition-all hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-slate-900/40 flex gap-2.5 group w-full"
+                    >
+                      <div className="size-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <span className="material-symbols-outlined text-[14px]">school</span>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">Training Center</p>
+                        <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">Investor learning paths, state manuals, and platform tutorials.</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => openOverlayWindow('community', 'Community & Updates')}
+                      className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-955/10 border border-emerald-500/20 text-left transition-all hover:border-emerald-500/40 hover:bg-slate-50 dark:hover:bg-slate-900/40 flex gap-2.5 group w-full"
+                    >
+                      <div className="size-6 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <span className="material-symbols-outlined text-[14px]">forum</span>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">Community & News</p>
+                        <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">Real-estate updates, market reviews, and Florida/Texas analytics.</p>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => openOverlayWindow('groups', 'Mastermind Groups')}
+                      className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-955/10 border border-purple-500/20 text-left transition-all hover:border-purple-500/40 hover:bg-slate-50 dark:hover:bg-slate-900/40 flex gap-2.5 group w-full"
+                    >
+                      <div className="size-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        <span className="material-symbols-outlined text-[14px]">hub</span>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">Mastermind Groups</p>
+                        <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">Facebook & Discord Matrix inner circles of enterprise members.</p>
+                      </div>
+                    </button>
                   </div>
                 </>
               )}
@@ -6115,6 +6170,21 @@ export const ClientWorkbench: React.FC = () => {
                 {w.type === 'about' && (
                   <div className="p-6 dark:bg-slate-950 min-h-full">
                     <AboutPage standalone={false} />
+                  </div>
+                )}
+                {w.type === 'training' && (
+                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                    <TrainingPage />
+                  </div>
+                )}
+                {w.type === 'community' && (
+                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                    <CommunityPage />
+                  </div>
+                )}
+                {w.type === 'groups' && (
+                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                    <GroupsPage />
                   </div>
                 )}
                 {w.type === 'property_details' && (
