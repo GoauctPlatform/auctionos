@@ -133,35 +133,35 @@ const DEFAULT_WIDGETS: Widget[] = [
   { id: 'recommended_deals', type: 'recommended_deals', title: 'Top Recommended Deals', x: 1200, y: 20, w: 450, h: 590, visible: true, zIndex: 15 },
   
   // Expanded full-page geometries for IDE-style floating windows
-  { id: 'live_auctions', type: 'live_auctions', title: '📅 Live Auctions Finder', x: 20, y: 520, w: 1050, h: 680, visible: true, zIndex: 16 },
-  { id: 'property_search', type: 'property_search', title: '🔍 Property Search & Listing', x: 490, y: 1220, w: 1100, h: 700, visible: true, zIndex: 17 },
-  { id: 'my_lists', type: 'my_lists', title: '📂 Saved Lists & Folders', x: 1610, y: 1220, w: 1050, h: 680, visible: true, zIndex: 21 },
+  { id: 'live_auctions', type: 'live_auctions', title: 'Live Auctions Finder', x: 20, y: 520, w: 1050, h: 680, visible: true, zIndex: 16 },
+  { id: 'property_search', type: 'property_search', title: 'Property Search & Listing', x: 490, y: 1220, w: 1100, h: 700, visible: true, zIndex: 17 },
+  { id: 'my_lists', type: 'my_lists', title: 'Saved Lists & Folders', x: 1610, y: 1220, w: 1050, h: 680, visible: true, zIndex: 21 },
 
   { id: 'chart', type: 'chart', title: 'Monthly Auction Trends', x: 1200, y: 630, w: 450, h: 390, visible: true, zIndex: 18 },
   { id: 'dossier', type: 'dossier', title: 'Featured Property Dossier', x: 1670, y: 20, w: 380, h: 590, visible: true, zIndex: 19 },
   { id: 'yield', type: 'yield', title: 'Yield Breakdown Analytics', x: 1670, y: 630, w: 380, h: 390, visible: true, zIndex: 20 },
   
   // 11 New V4.0 absolute widgets sequentially mapped to the right-hand canvas quadrants (2080px to 3800px)
-  { id: 'field_missions', type: 'field_missions', title: '⚔️ Field Task Missions', x: 2080, y: 520, w: 360, h: 500, visible: true, zIndex: 22 },
-  { id: 'connect', type: 'connect', title: '🔗 API Integrations Hub', x: 2460, y: 20, w: 380, h: 480, visible: true, zIndex: 23 },
-  { id: 'settings', type: 'settings', title: '⚙️ Workbench Settings', x: 2460, y: 520, w: 380, h: 500, visible: true, zIndex: 24 },
-  { id: 'profile', type: 'profile', title: '👤 User Profile Card', x: 2860, y: 20, w: 360, h: 480, visible: true, zIndex: 25 },
-  { id: 'team', type: 'team', title: '👥 Corporate Team Roster', x: 2860, y: 520, w: 360, h: 500, visible: true, zIndex: 26 },
-  { id: 'logs', type: 'logs', title: '💻 Activity Console Logs', x: 3240, y: 20, w: 420, h: 480, visible: true, zIndex: 27 },
-  { id: 'billings', type: 'billings', title: '💳 Billings & Subscriptions', x: 3240, y: 520, w: 420, h: 500, visible: true, zIndex: 28 },
-  { id: 'company', type: 'company', title: '🏢 Active Company Hub', x: 3680, y: 20, w: 300, h: 230, visible: true, zIndex: 29 },
-  { id: 'notifications', type: 'notifications', title: '🔔 System Notifications', x: 3680, y: 270, w: 300, h: 230, visible: true, zIndex: 30 },
-  { id: 'property_details', type: 'property_details', title: '🔍 Deep Property Details', x: 3680, y: 520, w: 300, h: 500, visible: true, zIndex: 31 },
+  { id: 'field_missions', type: 'field_missions', title: 'Field Task Missions', x: 2080, y: 520, w: 360, h: 500, visible: true, zIndex: 22 },
+  { id: 'connect', type: 'connect', title: 'API Integrations Hub', x: 2460, y: 20, w: 380, h: 480, visible: true, zIndex: 23 },
+  { id: 'settings', type: 'settings', title: 'Workbench Settings', x: 2460, y: 520, w: 380, h: 500, visible: true, zIndex: 24 },
+  { id: 'profile', type: 'profile', title: 'User Profile Card', x: 2860, y: 20, w: 360, h: 480, visible: true, zIndex: 25 },
+  { id: 'team', type: 'team', title: 'Corporate Team Roster', x: 2860, y: 520, w: 360, h: 500, visible: true, zIndex: 26 },
+  { id: 'logs', type: 'logs', title: 'Activity Console Logs', x: 3240, y: 20, w: 420, h: 480, visible: true, zIndex: 27 },
+  { id: 'billings', type: 'billings', title: 'Billings & Subscriptions', x: 3240, y: 520, w: 420, h: 500, visible: true, zIndex: 28 },
+  { id: 'company', type: 'company', title: 'Active Company Hub', x: 3680, y: 20, w: 300, h: 230, visible: true, zIndex: 29 },
+  { id: 'notifications', type: 'notifications', title: 'System Notifications', x: 3680, y: 270, w: 300, h: 230, visible: true, zIndex: 30 },
+  { id: 'property_details', type: 'property_details', title: 'Deep Property Details', x: 3680, y: 520, w: 300, h: 500, visible: true, zIndex: 31 },
 
   // New V5.0 Real-Logic Widgets
-  { id: 'create_task', type: 'create_task', title: '⚔️ Create Mission Task', x: 2080, y: 1040, w: 360, h: 420, visible: true, zIndex: 32 },
-  { id: 'support_center', type: 'support_center', title: '💬 Support & Help Center', x: 2460, y: 1040, w: 380, h: 420, visible: true, zIndex: 33 },
+  { id: 'create_task', type: 'create_task', title: 'Create Mission Task', x: 2080, y: 1040, w: 360, h: 420, visible: true, zIndex: 32 },
+  { id: 'support_center', type: 'support_center', title: 'Support & Help Center', x: 2460, y: 1040, w: 380, h: 420, visible: true, zIndex: 33 },
 
   // V5.1 Premium Interactive Real Estate Widgets
-  { id: 'node_canvas', type: 'node_canvas', title: '🧬 Node-based Canvas with Auto Layout and Edge Connections', x: 2080, y: 1480, w: 520, h: 480, visible: true, zIndex: 34 },
-  { id: 'rehab_calc', type: 'rehab_calc', title: '🔨 Rehab & ROI Calculator', x: 2620, y: 1480, w: 380, h: 420, visible: true, zIndex: 35 },
-  { id: 'property_comparator', type: 'property_comparator', title: '📊 Property Compare Matrix', x: 3020, y: 1480, w: 400, h: 420, visible: true, zIndex: 36 },
-  { id: 'contacts_search', type: 'contacts_search', title: '📞 State & County Registrar Directory', x: 3440, y: 1480, w: 380, h: 420, visible: true, zIndex: 37 }
+  { id: 'node_canvas', type: 'node_canvas', title: 'Node-based Canvas with Auto Layout and Edge Connections', x: 2080, y: 1480, w: 520, h: 480, visible: true, zIndex: 34 },
+  { id: 'rehab_calc', type: 'rehab_calc', title: 'Rehab & ROI Calculator', x: 2620, y: 1480, w: 380, h: 420, visible: true, zIndex: 35 },
+  { id: 'property_comparator', type: 'property_comparator', title: 'Property Compare Matrix', x: 3020, y: 1480, w: 400, h: 420, visible: true, zIndex: 36 },
+  { id: 'contacts_search', type: 'contacts_search', title: 'State & County Registrar Directory', x: 3440, y: 1480, w: 380, h: 420, visible: true, zIndex: 37 }
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -281,6 +281,115 @@ export const ClientWorkbench: React.FC = () => {
       localStorage.removeItem('goauct_workbench_activeOverlayWindowId');
     }
   }, [activeOverlayWindowId]);
+
+  // Custom Workspace Presets Interface & States
+  interface CustomPreset {
+    id: string;
+    label: string;
+    desc: string;
+    favorite: boolean;
+    widgets: { id: string; x: number; y: number; w: number; h: number; visible: boolean; }[];
+  }
+
+  const [customPresets, setCustomPresets] = useState<CustomPreset[]>(() => {
+    try {
+      const saved = localStorage.getItem('goauct_workbench_customPresets');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Failed to parse customPresets', e);
+    }
+    return [];
+  });
+
+  const [isCreatingPreset, setIsCreatingPreset] = useState(false);
+  const [newPresetName, setNewPresetName] = useState('');
+  const [backupWidgetsBeforeCreate, setBackupWidgetsBeforeCreate] = useState<Widget[] | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_workbench_customPresets', JSON.stringify(customPresets));
+  }, [customPresets]);
+
+  const arrangeWidgetNearSidebar = (id: string, index: number) => {
+    const col = index % 2;
+    const row = Math.floor(index / 2);
+    // Standard sizes and placement safe from overlapping left navigation panels
+    return {
+      x: 80 + col * 380,
+      y: 40 + row * 400,
+      w: 350,
+      h: 380,
+    };
+  };
+
+  const toggleWidgetInPreset = (id: string) => {
+    setWidgets(prev => {
+      const match = prev.find(w => w.id === id);
+      if (!match) return prev;
+
+      const nextVisible = !match.visible;
+      let newCoords = {};
+      if (nextVisible) {
+        const visibleCount = prev.filter(w => w.visible).length;
+        newCoords = arrangeWidgetNearSidebar(id, visibleCount);
+      }
+
+      return prev.map(w =>
+        w.id === id
+          ? { ...w, visible: nextVisible, ...newCoords }
+          : w
+      );
+    });
+  };
+
+  const saveCustomPreset = () => {
+    if (!newPresetName.trim()) {
+      alert('Please enter a preset name.');
+      return;
+    }
+
+    const newPreset: CustomPreset = {
+      id: `custom_${Date.now()}`,
+      label: newPresetName.trim(),
+      desc: 'Custom user-defined widget layout',
+      favorite: false,
+      widgets: widgets.map(w => ({
+        id: w.id,
+        x: w.x,
+        y: w.y,
+        w: w.w,
+        h: w.h,
+        visible: w.visible
+      }))
+    };
+
+    setCustomPresets(prev => [...prev, newPreset]);
+    setIsCreatingPreset(false);
+    setNewPresetName('');
+    setBackupWidgetsBeforeCreate(null);
+    logConsoleActivity(`Created custom preset: "${newPreset.label}"`);
+  };
+
+  const cancelCustomPresetCreation = () => {
+    if (backupWidgetsBeforeCreate) {
+      setWidgets(backupWidgetsBeforeCreate);
+    }
+    setIsCreatingPreset(false);
+    setNewPresetName('');
+    setBackupWidgetsBeforeCreate(null);
+    logConsoleActivity('Cancelled custom preset creation.');
+  };
+
+  const deleteCustomPreset = (id: string) => {
+    setCustomPresets(prev => prev.filter(p => p.id !== id));
+    logConsoleActivity(`Deleted custom preset: "${id}"`);
+  };
+
+  const toggleFavoriteCustomPreset = (id: string) => {
+    setCustomPresets(prev =>
+      prev.map(p => (p.id === id ? { ...p, favorite: !p.favorite } : p))
+    );
+    logConsoleActivity(`Toggled favorite status for preset: "${id}"`);
+  };
 
   const openOverlayWindow = (
     type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details',
@@ -1681,12 +1790,31 @@ export const ClientWorkbench: React.FC = () => {
     return () => clearTimeout(timer);
   }, [propSearchQuery, propStateSelect, propCountySelect]);
 
-  // Toggle widget visibility
   const toggleVisibility = (id: string) => {
     let wasVisible = false;
     setWidgets(prev => {
       wasVisible = prev.find(w => w.id === id)?.visible || false;
-      return prev.map(w => w.id === id ? { ...w, visible: !w.visible } : w);
+      const targetNextVisible = !wasVisible;
+
+      // Coordinated tool suites
+      const set1 = ['recommended_deals', 'dossier', 'rehab_calc'];
+      const set2 = ['map', 'chart', 'yield'];
+
+      let idsToSync: string[] = [];
+      if (set1.includes(id)) idsToSync = set1;
+      else if (set2.includes(id)) idsToSync = set2;
+
+      return prev.map(w => {
+        if (w.id === id) {
+          return { ...w, visible: targetNextVisible };
+        }
+        if (idsToSync.includes(w.id)) {
+          if (targetNextVisible) {
+            return { ...w, visible: true };
+          }
+        }
+        return w;
+      });
     });
     
     if (layoutTemplate === 'ide') {
@@ -1710,28 +1838,49 @@ export const ClientWorkbench: React.FC = () => {
       focusWidget(id);
     }
   };
-
-  // Presets arranger
-  const applyPreset = (preset: 'default' | 'map_focus' | 'analytics_focus' | 'dossier_focus') => {
+  const applyPreset = (presetId: string) => {
     let nextZ = highestZIndex;
     const incrementZ = () => {
       nextZ += 1;
       return nextZ;
     };
 
-    // Zoom and center coordinates reset during preset apply for premium visual setup!
     setZoomScale(1.0);
     setPanX(0);
     setPanY(0);
+
+    // Check if it's a custom preset
+    const custom = customPresets.find(p => p.id === presetId);
+    if (custom) {
+      setWidgets(prev => {
+        const updated = prev.map(w => {
+          const saved = custom.widgets.find(sw => sw.id === w.id);
+          if (saved) {
+            return { ...w, x: saved.x, y: saved.y, w: saved.w, h: saved.h, visible: saved.visible, zIndex: incrementZ() };
+          }
+          return { ...w, visible: false };
+        });
+        setHighestZIndex(nextZ);
+        return updated;
+      });
+      logConsoleActivity(`Applied custom preset: "${custom.label}"`);
+      return;
+    }
 
     setWidgets(prev => {
       const updated = prev.map(w => {
         let coords = { x: w.x, y: w.y, w: w.w, h: w.h, visible: true, zIndex: incrementZ() };
 
-        if (preset === 'default') {
-          const match = DEFAULT_WIDGETS.find(d => d.id === w.id);
-          if (match) coords = { ...match, zIndex: incrementZ() };
-        } else if (preset === 'map_focus') {
+        if (presetId === 'default') {
+          // Standard analytical set: deeds, foreclosures, liens, map, recommended deals visible. All others hidden.
+          const visibleIds = ['metrics_deed', 'metrics_foreclosure', 'metrics_lien', 'map', 'recommended_deals'];
+          if (visibleIds.includes(w.id)) {
+            const match = DEFAULT_WIDGETS.find(d => d.id === w.id);
+            if (match) coords = { ...match, visible: true, zIndex: incrementZ() };
+          } else {
+            coords = { ...w, visible: false };
+          }
+        } else if (presetId === 'map_focus') {
           if (w.id === 'map') {
             coords = { x: 20, y: 20, w: 1060, h: 560, visible: true, zIndex: incrementZ() };
           } else if (w.id === 'dossier') {
@@ -1741,7 +1890,7 @@ export const ClientWorkbench: React.FC = () => {
           } else {
             coords = { ...w, visible: false };
           }
-        } else if (preset === 'analytics_focus') {
+        } else if (presetId === 'analytics_focus') {
           if (w.id === 'map') {
             coords = { x: 20, y: 20, w: 760, h: 440, visible: true, zIndex: incrementZ() };
           } else if (w.id === 'chart') {
@@ -1753,7 +1902,7 @@ export const ClientWorkbench: React.FC = () => {
           } else {
             coords = { ...w, visible: false };
           }
-        } else if (preset === 'dossier_focus') {
+        } else if (presetId === 'dossier_focus') {
           if (w.id === 'dossier') {
             coords = { x: 380, y: 20, w: 760, h: 640, visible: true, zIndex: incrementZ() };
           } else if (w.id === 'shortcuts') {
@@ -2451,16 +2600,16 @@ export const ClientWorkbench: React.FC = () => {
             <div className="w-8 h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
 
             {[
-              { id: 'shortcuts', icon: Smartphone, label: '📱 Quick Access Tools' },
-              { id: 'live_auctions', icon: Calendar, label: '📅 Live Auctions Finder' },
-              { id: 'property_search', icon: Search, label: '🔍 Property Search & Listing' },
-              { id: 'my_lists', icon: Folder, label: '📂 Saved Lists & Folders' },
-              { id: 'node_canvas', icon: Layers, label: '🧬 Node-based Canvas with Auto Layout and Edge Connections' },
-              { id: 'rehab_calc', icon: Activity, label: '🔨 Rehab & ROI Calculator' },
-              { id: 'property_comparator', icon: LayoutGrid, label: '📊 Property Compare Matrix' },
-              { id: 'contacts_search', icon: Users, label: '📞 Registrar Directory' },
-              { id: 'settings', icon: Settings, label: '⚙️ Workbench Settings' },
-              { id: 'logs', icon: Terminal, label: '💻 Activity Console Logs' }
+              { id: 'shortcuts', icon: Smartphone, label: 'Quick Access Tools' },
+              { id: 'live_auctions', icon: Calendar, label: 'Live Auctions Finder' },
+              { id: 'property_search', icon: Search, label: 'Property Search & Listing' },
+              { id: 'my_lists', icon: Folder, label: 'Saved Lists & Folders' },
+              { id: 'node_canvas', icon: Layers, label: 'Node-based Canvas with Auto Layout and Edge Connections' },
+              { id: 'rehab_calc', icon: Activity, label: 'Rehab & ROI Calculator' },
+              { id: 'property_comparator', icon: LayoutGrid, label: 'Property Compare Matrix' },
+              { id: 'contacts_search', icon: Users, label: 'Registrar Directory' },
+              { id: 'settings', icon: Settings, label: 'Workbench Settings' },
+              { id: 'logs', icon: Terminal, label: 'Activity Console Logs' }
             ].map(shortcut => {
               const Icon = shortcut.icon;
               const widget = widgets.find(w => w.id === shortcut.id);
@@ -2516,6 +2665,31 @@ export const ClientWorkbench: React.FC = () => {
             })}
           </div>
 
+          {/* Minimalist circular Zoom Controls in Sidebar Ribbon footer */}
+          <div className="flex flex-col gap-1 items-center w-full border-t border-slate-100 dark:border-slate-800/85 pt-3">
+            <button
+              onClick={() => setZoomScale(prev => Math.min(2.0, parseFloat((prev + 0.1).toFixed(2))))}
+              className="size-7 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900/40 text-sm font-extrabold transition-all"
+              title="Zoom In"
+            >
+              +
+            </button>
+            <button
+              onClick={() => { setZoomScale(1.0); setPanX(0); setPanY(0); }}
+              className="text-[7.5px] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-extrabold uppercase py-1 select-none tracking-wider text-center"
+              title="Reset Zoom"
+            >
+              100%
+            </button>
+            <button
+              onClick={() => setZoomScale(prev => Math.max(0.3, parseFloat((prev - 0.1).toFixed(2))))}
+              className="size-7 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900/40 text-sm font-extrabold transition-all"
+              title="Zoom Out"
+            >
+              -
+            </button>
+          </div>
+
           <div className="flex flex-col gap-4 items-center w-full border-t border-slate-100 dark:border-slate-800/85 pt-4">
             {/* Toggle Workbench Drawer */}
             {sidebarOpen ? (
@@ -2562,7 +2736,7 @@ export const ClientWorkbench: React.FC = () => {
                   </div>
 
                   <div className="flex flex-col space-y-1.5">
-                    {widgets.map(w => (
+                    {widgets.filter(w => !['my_lists', 'live_auctions', 'property_search', 'field_missions', 'property_details'].includes(w.type)).map(w => (
                       <button
                         key={w.id}
                         onClick={() => toggleVisibility(w.id)}
@@ -2628,81 +2802,189 @@ export const ClientWorkbench: React.FC = () => {
 
               {activePane === 'presets' && (
                 <>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Workspace Template</h3>
-                    <p className="text-[8px] font-bold text-slate-455 uppercase tracking-widest mt-0.5">Choose layout behavior</p>
-                  </div>
+                  {isCreatingPreset ? (
+                    <div className="flex flex-col space-y-4 select-none">
+                      <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Create Layout Preset</h3>
+                        <p className="text-[8px] font-bold text-slate-455 uppercase tracking-widest mt-0.5">Customize your empty blueprint</p>
+                      </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      onClick={() => {
-                        setLayoutTemplate('canvas');
-                        logConsoleActivity('Switched workspace layout to Infinite Canvas Mode.');
-                      }}
-                      className={`p-2.5 rounded-xl border text-center transition-all ${
-                        layoutTemplate === 'canvas'
-                          ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm'
-                          : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-450 dark:text-slate-500'
-                      }`}
-                    >
-                      <LayoutGrid size={14} className="mx-auto mb-1" />
-                      <span className="text-[9px] font-black uppercase tracking-wider">Canvas</span>
-                    </button>
-                    <button
-                      onClick={() => {
-                        setLayoutTemplate('ide');
-                        const open = widgets.filter(w => w.visible);
-                        if (open.length > 0 && (!activeIdeTabId || !widgets.find(w => w.id === activeIdeTabId)?.visible)) {
-                          setActiveIdeTabId(open[0].id);
-                        } else if (open.length === 0) {
-                          setWidgets(prev => prev.map(w => w.id === 'live_auctions' ? { ...w, visible: true } : w));
-                          setActiveIdeTabId('live_auctions');
-                        }
-                        logConsoleActivity('Switched workspace layout to IDE Developer Workspace Mode.');
-                      }}
-                      className={`p-2.5 rounded-xl border text-center transition-all ${
-                        layoutTemplate === 'ide'
-                          ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm'
-                          : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-450 dark:text-slate-500'
-                      }`}
-                    >
-                      <Terminal size={14} className="mx-auto mb-1" />
-                      <span className="text-[9px] font-black uppercase tracking-wider">IDE Mode</span>
-                    </button>
-                  </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Preset Name</label>
+                        <input
+                          type="text"
+                          value={newPresetName}
+                          onChange={(e) => setNewPresetName(e.target.value)}
+                          placeholder="e.g. My Yield Room"
+                          className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-bold"
+                        />
+                      </div>
 
-                  <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
+                      <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
 
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Layout Presets</h3>
-                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Quick window arrangements</p>
-                  </div>
+                      <div className="flex flex-col space-y-1.5">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Add Workspace Tools</span>
+                        {widgets
+                          .filter(w => !['my_lists', 'live_auctions', 'property_search', 'field_missions', 'property_details'].includes(w.type))
+                          .map(w => (
+                            <button
+                              key={w.id}
+                              onClick={() => toggleWidgetInPreset(w.id)}
+                              className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${
+                                w.visible
+                                  ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold'
+                                  : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-850 text-slate-455 dark:text-slate-600 font-semibold'
+                              }`}
+                            >
+                              <span className="text-xs truncate">{w.title}</span>
+                              {w.visible ? (
+                                <span className="size-2 rounded-full bg-indigo-500" />
+                              ) : (
+                                <span className="size-2 rounded-full border border-slate-400" />
+                              )}
+                            </button>
+                          ))}
+                      </div>
 
-                  <div className="flex flex-col space-y-2">
-                    {[
-                      { id: 'default', label: 'Default Layout', desc: 'Full widgets analytical grid', icon: LayoutGrid },
-                      { id: 'map_focus', label: '🗺️ Map Focus', desc: 'Maximizes geographical yields', icon: Map },
-                      { id: 'analytics_focus', label: '📈 Analytics Center', desc: 'Aligns charts side-by-side', icon: BarChart2 },
-                      { id: 'dossier_focus', label: '🏠 Deep Dossier', desc: 'Prioritizes property inspect details', icon: Folder }
-                    ].map(p => {
-                      const Icon = p.icon;
-                      return (
+                      <div className="flex items-center gap-2 pt-2">
                         <button
-                          key={p.id}
-                          onClick={() => applyPreset(p.id as any)}
-                          className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-left transition-colors group"
+                          onClick={saveCustomPreset}
+                          className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
                         >
-                          <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
-                            <Icon size={14} />
-                            <span>{p.label}</span>
-                          </div>
-                          <p className="text-[9px] text-slate-450 dark:text-slate-500 mt-1 leading-normal font-semibold">{p.desc}</p>
+                          Save
                         </button>
-                      );
-                    })}
-                  </div>
+                        <button
+                          onClick={cancelCustomPresetCreation}
+                          className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Workspace Template</h3>
+                        <p className="text-[8px] font-bold text-slate-455 uppercase tracking-widest mt-0.5">Choose layout behavior</p>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => {
+                            setLayoutTemplate('canvas');
+                            logConsoleActivity('Switched workspace layout to Infinite Canvas Mode.');
+                          }}
+                          className={`p-2.5 rounded-xl border text-center transition-all ${
+                            layoutTemplate === 'canvas'
+                              ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm'
+                              : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-450 dark:text-slate-500'
+                          }`}
+                        >
+                          <LayoutGrid size={14} className="mx-auto mb-1" />
+                          <span className="text-[9px] font-black uppercase tracking-wider">Canvas</span>
+                        </button>
+                        <button
+                          onClick={() => {
+                            setLayoutTemplate('ide');
+                            const open = widgets.filter(w => w.visible);
+                            if (open.length > 0 && (!activeIdeTabId || !widgets.find(w => w.id === activeIdeTabId)?.visible)) {
+                              setActiveIdeTabId(open[0].id);
+                            } else if (open.length === 0) {
+                              setWidgets(prev => prev.map(w => w.id === 'live_auctions' ? { ...w, visible: true } : w));
+                              setActiveIdeTabId('live_auctions');
+                            }
+                            logConsoleActivity('Switched workspace layout to IDE Developer Workspace Mode.');
+                          }}
+                          className={`p-2.5 rounded-xl border text-center transition-all ${
+                            layoutTemplate === 'ide'
+                              ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold shadow-sm'
+                              : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-slate-450 dark:text-slate-500'
+                          }`}
+                        >
+                          <Terminal size={14} className="mx-auto mb-1" />
+                          <span className="text-[9px] font-black uppercase tracking-wider">IDE Mode</span>
+                        </button>
+                      </div>
+
+                      <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Layout Presets</h3>
+                          <p className="text-[8px] font-bold text-slate-455 uppercase tracking-widest mt-0.5">Quick window arrangements</p>
+                        </div>
+                        <button
+                          onClick={startCustomPresetCreation}
+                          className="px-2.5 py-1 text-[8.5px] font-black bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg uppercase tracking-wider shadow-sm transition-all"
+                        >
+                          + Create
+                        </button>
+                      </div>
+
+                      <div className="flex flex-col space-y-2 max-h-[360px] overflow-y-auto pr-1">
+                        {/* Standard Presets */}
+                        {[
+                          { id: 'default', label: 'Default Layout', desc: 'Full widgets analytical grid', icon: LayoutGrid },
+                          { id: 'map_focus', label: 'Map Focus', desc: 'Maximizes geographical yields', icon: Map },
+                          { id: 'analytics_focus', label: 'Analytics Center', desc: 'Aligns charts side-by-side', icon: BarChart2 },
+                          { id: 'dossier_focus', label: 'Deep Dossier', desc: 'Prioritizes property inspect details', icon: Folder }
+                        ].map(p => {
+                          const Icon = p.icon;
+                          return (
+                            <button
+                              key={p.id}
+                              onClick={() => applyPreset(p.id)}
+                              className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-left transition-colors group"
+                            >
+                              <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
+                                <Icon size={14} />
+                                <span>{p.label}</span>
+                              </div>
+                              <p className="text-[9px] text-slate-455 dark:text-slate-500 mt-1 leading-normal font-semibold">{p.desc}</p>
+                            </button>
+                          );
+                        })}
+
+                        {/* Custom Presets list */}
+                        {customPresets.map(p => (
+                          <div
+                            key={p.id}
+                            className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-left flex flex-col space-y-1 relative group"
+                          >
+                            <div className="flex items-center justify-between">
+                              <button
+                                onClick={() => applyPreset(p.id)}
+                                className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
+                              >
+                                <Layout size={14} className="text-indigo-400" />
+                                <span>{p.label}</span>
+                              </button>
+                              <div className="flex items-center gap-1.5">
+                                <button
+                                  onClick={() => toggleFavoriteCustomPreset(p.id)}
+                                  className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${p.favorite ? 'text-amber-500' : 'text-slate-400'}`}
+                                  title="Favorite preset"
+                                >
+                                  ★
+                                </button>
+                                <button
+                                  onClick={() => deleteCustomPreset(p.id)}
+                                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-red-500 transition-colors"
+                                  title="Delete preset"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
+                            </div>
+                            <p className="text-[9px] text-slate-455 dark:text-slate-500 leading-normal font-semibold font-bold">Custom widget layout</p>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
                 </>
               )}
+
 
               {activePane === 'info' && (
                 <>
@@ -3566,6 +3848,93 @@ export const ClientWorkbench: React.FC = () => {
                 opacity: 0.16,
               }}
             />
+
+            {/* Dynamic SVG Connection Arrows Layer */}
+            <svg className="absolute inset-0 pointer-events-none w-full h-full z-0">
+              <defs>
+                <marker
+                  id="arrow-head"
+                  viewBox="0 0 10 10"
+                  refX="8"
+                  refY="5"
+                  markerWidth="5"
+                  markerHeight="5"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366f1" />
+                </marker>
+                <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.85" />
+                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.85" />
+                </linearGradient>
+              </defs>
+              <style>{`
+                @keyframes edge-flow {
+                  to {
+                    stroke-dashoffset: -40;
+                  }
+                }
+                .edge-animation {
+                  animation: edge-flow 1.5s linear infinite;
+                }
+                .custom-scrollbar::-webkit-scrollbar {
+                  width: 6px;
+                  height: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                  background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                  background: #cbd5e1;
+                  border-radius: 4px;
+                }
+                .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+                  background: #334155;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                  background: #94a3b8;
+                }
+              `}</style>
+              {/* Render connections */}
+              {(() => {
+                const connections: { from: string; to: string }[] = [
+                  // Set 1: Deals Suite
+                  { from: 'recommended_deals', to: 'dossier' },
+                  { from: 'dossier', to: 'rehab_calc' },
+                  // Set 2: GIS Suite
+                  { from: 'map', to: 'chart' },
+                  { from: 'chart', to: 'yield' }
+                ];
+
+                return connections.map((conn, idx) => {
+                  const w1 = widgets.find(w => w.id === conn.from);
+                  const w2 = widgets.find(w => w.id === conn.to);
+
+                  if (!w1 || !w2 || !w1.visible || !w2.visible) return null;
+
+                  const x1 = w1.x + w1.w / 2;
+                  const y1 = w1.y + w1.h / 2;
+                  const x2 = w2.x + w2.w / 2;
+                  const y2 = w2.y + w2.h / 2;
+
+                  const midX = (x1 + x2) / 2;
+                  const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+
+                  return (
+                    <path
+                      key={idx}
+                      d={path}
+                      stroke="url(#edge-gradient)"
+                      strokeWidth="2.5"
+                      fill="none"
+                      strokeDasharray="6 4"
+                      markerEnd="url(#arrow-head)"
+                      className="edge-animation"
+                    />
+                  );
+                });
+              })()}
+            </svg>
 
             {/* Absolute-positioned widgets list */}
             {widgets.filter(w => w.visible).map(w => (
@@ -5725,34 +6094,7 @@ export const ClientWorkbench: React.FC = () => {
               <span>Scale Factor:</span>
               <span className="text-indigo-400 font-extrabold">{Math.round(zoomScale * 100)}%</span>
             </div>
-
-            <div className="flex items-center gap-1.5 bg-slate-800/80 rounded-lg p-0.5">
-              <button
-                onClick={() => setZoomScale(prev => Math.max(0.3, parseFloat((prev - 0.1).toFixed(2))))}
-                className="size-5 rounded hover:bg-slate-700 flex items-center justify-center text-xs font-black"
-                title="Zoom Out"
-              >
-                -
-              </button>
-              <button
-                onClick={() => {
-                  setZoomScale(1.0);
-                  setPanX(0);
-                  setPanY(0);
-                }}
-                className="px-2 py-0.5 rounded hover:bg-slate-700 text-[8px] uppercase tracking-wider font-extrabold"
-                title="Reset Canvas View"
-              >
-                100%
-              </button>
-              <button
-                onClick={() => setZoomScale(prev => Math.min(2.0, parseFloat((prev + 0.1).toFixed(2))))}
-                className="size-5 rounded hover:bg-slate-700 flex items-center justify-center text-xs font-black"
-                title="Zoom In"
-              >
-                +
-              </button>
-            </div>
+            {/* Zoom controls moved to the sidebar ribbon bottom for superior layout flow */}
           </div>
 
         </div>
@@ -5823,7 +6165,7 @@ export const ClientWorkbench: React.FC = () => {
               </div>
 
               {/* Window Content Container */}
-              <div className="flex-1 overflow-hidden min-h-0 bg-white dark:bg-slate-950 relative">
+              <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-slate-950 relative custom-scrollbar">
                 {w.type === 'my_lists' && <ClientLists />}
                 {w.type === 'live_auctions' && <ClientAuctions />}
                 {w.type === 'property_search' && <ClientProperties />}
