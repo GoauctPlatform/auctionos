@@ -84,15 +84,23 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white leading-tight flex items-center gap-2">
                         {property.address || property.parcel_id || 'Unknown Property'}
-                        {isUnlocked && (
-                            <button 
-                                onClick={handleToggleExpand}
-                                className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-400 hover:text-slate-600 dark:text-slate-500 transition-all cursor-pointer"
-                                title={isExpanded ? "Collapse Details" : "Expand Details"}
-                            >
-                                {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-                            </button>
-                        )}
+                        <button 
+                            onClick={isUnlocked ? handleToggleExpand : handleUnlockAndSync}
+                            disabled={syncing}
+                            className={`p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-450 hover:text-slate-655 dark:text-slate-500 transition-all cursor-pointer ${syncing ? 'animate-spin text-indigo-500' : ''}`}
+                            title={syncing ? "Syncing..." : isUnlocked ? (isExpanded ? "Collapse Details" : "Expand Details") : "Expand Details"}
+                        >
+                            {syncing ? (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="animate-spin" aria-hidden="true">
+                                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                                    <path d="M3 3v5h5" />
+                                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                                    <path d="M16 16h5v5" />
+                                </svg>
+                            ) : (
+                                (isUnlocked && isExpanded) ? <ChevronUp size={20} /> : <ChevronDown size={20} />
+                            )}
+                        </button>
                     </h2>
                     <p className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-[18px] text-slate-400">location_on</span>
@@ -246,29 +254,7 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                         </div>
                     </>
                 )
-            ) : (
-                <div className="bg-gradient-to-r from-violet-50 to-indigo-50 dark:from-slate-900/60 dark:to-slate-800/40 rounded-xl p-6 border border-violet-100/80 dark:border-violet-950/30 shadow-sm flex flex-col items-center text-center gap-4 transition-all mt-4">
-                    <div className="p-3 bg-violet-100 dark:bg-violet-950/50 rounded-full text-violet-600 dark:text-violet-400">
-                        <span className="material-symbols-outlined text-[32px] block">lock</span>
-                    </div>
-                    <div className="max-w-md">
-                        <h4 className="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
-                            Real-Time Property Registry Integration
-                        </h4>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold leading-relaxed mt-2">
-                            Syncing verifies official registry records to retrieve the latest valuations, transactions, and building permits, automatically updating and refreshing all dashboard modules with real-time live data.
-                        </p>
-                    </div>
-                    <button 
-                        onClick={handleUnlockAndSync}
-                        disabled={syncing}
-                        className="flex items-center gap-2 px-6 py-3 rounded-xl text-xs font-black uppercase tracking-wider bg-violet-600 hover:bg-violet-500 dark:bg-violet-600 dark:hover:bg-violet-500 text-white shadow-lg shadow-violet-500/20 hover:shadow-xl transition-all cursor-pointer disabled:opacity-50"
-                    >
-                        <span className={`material-symbols-outlined text-[18px] ${syncing ? 'animate-spin' : ''}`}>sync</span>
-                        {syncing ? 'Syncing & Unlocking...' : 'Unlock Property Details'}
-                    </button>
-                </div>
-            )}
+            ) : null}
         </div>
     );
 };
