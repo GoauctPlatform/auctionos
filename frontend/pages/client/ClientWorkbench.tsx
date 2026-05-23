@@ -33,7 +33,7 @@ import {
   Smartphone, Settings, Layout, Layers, X, Maximize2, Minimize2, Minus,
   Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
   Gavel, Calendar, ShieldAlert, Search, Plus, Filter, ArrowRight,
-  Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare,
+  Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare, LogOut,
   MousePointer, TrendingUp
 } from 'lucide-react';
 
@@ -447,6 +447,11 @@ export const ClientWorkbench: React.FC = () => {
 
     setActiveOverlayWindowId(id);
     logConsoleActivity(`Opened overlay window: "${title}"`);
+  };
+
+  const handleLogout = () => {
+    AuthService.logout();
+    navigate('/login');
   };
 
   const focusOverlayWindow = (id: string) => {
@@ -2488,34 +2493,7 @@ export const ClientWorkbench: React.FC = () => {
   return (
     <div className="w-full flex-1 flex flex-col h-full min-h-0 overflow-hidden select-none bg-slate-50 dark:bg-slate-950 font-display">
 
-      {/* ─── HEADER (Topo) ─── */}
-      <div className="w-full h-14 bg-white/70 dark:bg-slate-900/60 border-b border-slate-200/80 dark:border-slate-800/60 px-5 flex items-center justify-between backdrop-blur-md shrink-0 z-30">
-        <div className="flex items-center gap-3" />
 
-        <div className="flex items-center gap-2">
-
-          {selectedState && (
-            <button
-              onClick={() => setSelectedState('')}
-              className="text-[8px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 px-2 py-1.5 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-            >
-              Clear filter ({selectedState})
-            </button>
-          )}
-          <button
-            onClick={() => applyPreset('default')}
-            className="text-[8px] font-bold uppercase tracking-widest bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-white/15 px-2.5 py-1.5 rounded-lg transition-colors"
-          >
-            Reset Windows
-          </button>
-          <Link
-            to="/client"
-            className="flex items-center gap-1.5 text-[8.5px] font-black uppercase tracking-widest bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-1.5 rounded-lg shadow-sm transition-all active:scale-95 animate-pulse"
-          >
-            Go Back Dashboard
-          </Link>
-        </div>
-      </div>
 
       {/* ─── MAIN WORKBENCH PANEL ─── */}
       <div className="flex-1 flex w-full overflow-hidden relative">
@@ -2580,6 +2558,7 @@ export const ClientWorkbench: React.FC = () => {
               return (
                 <button
                   key={shortcut.id}
+                  id={shortcut.id === 'settings' ? 'tour-nav-account-settings' : shortcut.id === 'field_missions' ? 'tour-nav-field-missions' : shortcut.id === 'live_auctions' ? 'tour-nav-live-auctions' : shortcut.id === 'property_search' ? 'tour-nav-property-search' : shortcut.id === 'my_lists' ? 'tour-nav-my-lists' : undefined}
                   title={shortcut.label}
                   onClick={() => {
                     if (shortcut.id === 'notifications') {
@@ -2649,6 +2628,15 @@ export const ClientWorkbench: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-4 items-center w-full border-t border-slate-100 dark:border-slate-800/85 pt-4">
+            {/* Sign Out Button */}
+            <button
+              onClick={handleLogout}
+              title="Sign Out of GoAuct OS"
+              className="p-2 text-slate-400 dark:text-slate-655 hover:text-red-500 dark:hover:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/20 transition-all active:scale-95"
+            >
+              <LogOut size={18} />
+            </button>
+
             {/* Toggle Workbench Drawer */}
             {sidebarOpen ? (
               <button

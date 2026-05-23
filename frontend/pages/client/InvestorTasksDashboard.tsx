@@ -28,10 +28,6 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
 
     useEffect(() => {
         const currentUser = AuthService.getCurrentUser();
-        if (currentUser?.subscription_tier === 'trial') {
-            navigate('/client/trial-limit?feature=tasks', { replace: true });
-            return;
-        }
 
         fetchTasks();
         
@@ -151,6 +147,34 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
             default: return <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold uppercase">{status}</span>;
         }
     };
+
+    const currentUser = AuthService.getCurrentUser();
+    if (currentUser?.subscription_tier === 'trial') {
+        return (
+            <div className="flex flex-col items-center justify-center p-8 py-16 text-center max-w-lg mx-auto size-full min-h-[60vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl backdrop-blur-md">
+                <div className="size-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
+                    <span className="material-symbols-outlined text-4xl text-amber-500 animate-bounce">lock</span>
+                </div>
+                <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-extrabold uppercase tracking-widest mb-3 border border-amber-500/20">
+                    Premium Feature Locked
+                </span>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
+                    Field Missions (BPO)
+                </h3>
+                <p className="text-slate-650 dark:text-slate-400 text-sm leading-relaxed mb-8 font-medium">
+                    Your current account is in **Trial Mode**. Publishing BPO (Broker Price Opinion) tasks, skip tracing vacancy runners, and real-time field tasks mapping are restricted to **Pro** and **Enterprise** subscribers.
+                </p>
+                <button
+                    onClick={() => {
+                        window.dispatchEvent(new CustomEvent('open-workbench-widget', { detail: { widgetId: 'billings_and_plans' } }));
+                    }}
+                    className="w-full max-w-xs py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold rounded-2xl shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
+                >
+                    Upgrade Plan Now
+                </button>
+            </div>
+        );
+    }
 
     if (loading) return <div className="p-8 text-center">Loading your BPO Missions...</div>;
 

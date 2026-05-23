@@ -226,4 +226,69 @@
                 radial-gradient(at 100% 100%, rgba(10, 132, 255, 0.1) 0, transparent 60%),
                 radial-gradient(at 0% 100%, rgba(0, 229, 229, 0.1) 0, transparent 60%);
   }
+
+  /* ==========================================================================
+     GLOBAL UNIFIED LIGHT/DARK THEME MAPPINGS
+     ========================================================================== */
+  
+  /* Primary backgrounds and card elements */
+  .bg-white {
+    background-color: var(--bg-secondary) !important;
+  }
+  .bg-slate-50 {
+    background-color: var(--bg-primary) !important;
+  }
+  .bg-slate-100 {
+    background-color: var(--bg-tertiary) !important;
+  }
+  
+  /* Slate & gray borders alignment */
+  .border-slate-100, .border-slate-200, .border-slate-250 {
+    border-color: var(--border) !important;
+  }
+  
+  /* Core typography layers contrast */
+  .text-slate-900, .text-slate-800, .text-slate-950 {
+    color: var(--text-primary) !important;
+  }
+  .text-slate-700, .text-slate-600 {
+    color: var(--text-secondary) !important;
+  }
+  .text-slate-500, .text-slate-400 {
+    color: var(--text-muted) !important;
+  }
+
+  /* Dark mode mappings override */
+  .dark .bg-slate-900 {
+    background-color: var(--bg-secondary) !important;
+  }
+  .dark .bg-slate-950 {
+    background-color: var(--bg-primary) !important;
+  }
+  .dark .bg-slate-800 {
+    background-color: var(--bg-tertiary) !important;
+  }
+  .dark .border-slate-700, .dark .border-slate-800 {
+    border-color: var(--border) !important;
+  }
+  .dark .text-slate-100, .dark .text-slate-200 {
+    color: var(--text-primary) !important;
+  }
+  .dark .text-slate-350, .dark .text-slate-400 {
+    color: var(--text-secondary) !important;
+  }
+  .dark .text-slate-550, .dark .text-slate-500, .dark .text-slate-600 {
+    color: var(--text-muted) !important;
+  }
+
+  /* Dynamic Active Primary Actions & Buttons */
+  .bg-blue-600, .bg-indigo-600, .bg-primary {
+    background-color: var(--accent) !important;
+  }
+  .hover\:bg-blue-700:hover, .hover\:bg-indigo-700:hover, .hover\:bg-primary-hover:hover {
+    background-color: var(--accent-hover) !important;
+  }
+  .text-blue-600, .text-indigo-600, .text-primary {
+    color: var(--accent-text) !important;
+  }
 }

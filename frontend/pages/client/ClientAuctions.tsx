@@ -17,12 +17,7 @@ const ClientAuctions: React.FC = () => {
     const navigate = useNavigate();
     const { startTour } = useTour();
 
-    // Trial Plan access barrier
-    React.useEffect(() => {
-        if (user?.subscription_tier === 'trial') {
-            navigate('/client/trial-limit', { replace: true });
-        }
-    }, [user, navigate]);
+
 
     // Deep-linking: Initialize filters from URL query parameters
     React.useEffect(() => {
@@ -55,6 +50,33 @@ const ClientAuctions: React.FC = () => {
     };
 
     const hasActiveFilters = Object.values(filters).some(val => val !== undefined && val !== '');
+
+    if (user?.subscription_tier === 'trial') {
+        return (
+            <div className="flex flex-col items-center justify-center p-8 py-16 text-center max-w-lg mx-auto size-full min-h-[60vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl backdrop-blur-md">
+                <div className="size-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
+                    <span className="material-symbols-outlined text-4xl text-amber-500 animate-bounce">lock</span>
+                </div>
+                <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-extrabold uppercase tracking-widest mb-3 border border-amber-500/20">
+                    Premium Feature Locked
+                </span>
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
+                    Live Auctions Calendar
+                </h3>
+                <p className="text-slate-650 dark:text-slate-400 text-sm leading-relaxed mb-8 font-medium">
+                    Your current account is in **Trial Mode**. Detailed county-level Live Auctions calendar and historical bidding timelines are restricted to **Pro** and **Enterprise** subscribers.
+                </p>
+                <button
+                    onClick={() => {
+                        window.dispatchEvent(new CustomEvent('open-workbench-widget', { detail: { widgetId: 'billings_and_plans' } }));
+                    }}
+                    className="w-full max-w-xs py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold rounded-2xl shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
+                >
+                    Upgrade Plan Now
+                </button>
+            </div>
+        );
+    }
 
     return (
         <div className="p-6 w-full space-y-6 px-4 sm:px-8 lg:px-12">

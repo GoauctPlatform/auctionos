@@ -162,7 +162,7 @@ function App() {
               </CompanyProvider>
             </ProtectedRoute>
           }>
-            <Route index element={<ClientDashboard />} />
+            <Route index element={<ClientWorkbench />} />
             <Route path="dashboard-v2" element={<ClientDashboardV2 />} />
             <Route path="workbench" element={<ClientWorkbench />} />
             <Route path="auctions" element={<ClientAuctions />} />
