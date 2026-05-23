@@ -96,16 +96,20 @@ function App() {
   // Theme Persistence
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('goauct_theme') || 'system';
-    if (savedTheme === 'dark') {
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.remove('cyberpunk');
+    
+    if (savedTheme === 'cyberpunk') {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.add('cyberpunk');
+    } else if (savedTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else if (savedTheme === 'light') {
-      document.documentElement.classList.remove('dark');
+      // kept clean
     } else {
       // System preference
       if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
       }
     }
   }, []);

@@ -57,42 +57,7 @@
 /* ==========================================================================
    DARK THEME (Cyberpunk Tech / Premium Dark)
    ========================================================================== */
-.dark {
-  --bg-primary: #0a0f1c;
-  --bg-secondary: #111827;
-  --bg-tertiary: #1a2338;
-  
-  --accent: #00e5e5;
-  --accent-hover: #00f5ff;
-  --accent-glow: rgba(0, 229, 229, 0.3);
-  --accent-text: #00e5e5; /* Neon on dark background passes WCAG contrast cleanly */
-  
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #6b7280;
-  
-  --border: #334155;
-  --border-focus: #00e5e5;
-  
-  --success: #22d3ee;
-  --success-bg: rgba(34, 211, 238, 0.1);
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.12);
-  --danger: #f87171;
-  --danger-bg: rgba(248, 113, 113, 0.12);
-  
-  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
-  --shadow-glow: 0 0 15px rgba(0, 229, 229, 0.2);
-  
-  /* Glassmorphism Dark */
-  --glass-bg: rgba(17, 24, 39, 0.65);
-  --glass-border: rgba(51, 65, 85, 0.35);
-  --glass-blur: 16px;
-  
-  /* Neumorphism Dark (Cyberpunk) */
-  --neu-flat: 12px 12px 24px #05070e, -12px -12px 24px #0f172a;
-  --neu-inset: inset 6px 6px 12px #05070e, inset -6px -6px 12px #151e33;
-}
+
 
 @layer base {
   body {
@@ -257,6 +222,80 @@
   .text-slate-500, .text-slate-400 {
     color: var(--text-muted) !important;
   }
+
+ .dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-glow: rgba(59, 130, 246, 0.15);
+  --accent-text: #60a5fa;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #64748b;
+  
+  --border: #334155;
+  --border-focus: #3b82f6;
+  
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.1);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.12);
+  
+  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --shadow-glow: none;
+  
+  /* Glassmorphism Classic Dark */
+  --glass-bg: rgba(30, 41, 59, 0.8);
+  --glass-border: rgba(51, 65, 85, 0.5);
+  --glass-blur: 12px;
+  
+  /* Neumorphism Classic Dark */
+  --neu-flat: 12px 12px 24px #0b111e, -12px -12px 24px #131c30;
+  --neu-inset: inset 6px 6px 12px #0b111e, inset -6px -6px 12px #17243c;
+}
+
+.dark.cyberpunk {
+  --bg-primary: #050814;
+  --bg-secondary: rgba(10, 15, 30, 0.7);
+  --bg-tertiary: rgba(26, 35, 56, 0.55);
+  
+  --accent: #00e5e5;
+  --accent-hover: #00f5ff;
+  --accent-glow: rgba(0, 229, 229, 0.35);
+  --accent-text: #00e5e5;
+  
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  
+  --border: rgba(0, 229, 229, 0.18);
+  --border-focus: #00e5e5;
+  
+  --success: #22d3ee;
+  --success-bg: rgba(34, 211, 238, 0.12);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.12);
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.12);
+  
+  --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 229, 229, 0.08);
+  --shadow-glow: 0 0 20px rgba(0, 229, 229, 0.35);
+  
+  /* Glassmorphism Dark Mockup-Aligned */
+  --glass-bg: rgba(10, 15, 30, 0.75);
+  --glass-border: rgba(0, 229, 229, 0.18);
+  --glass-blur: 16px;
+  
+  /* Neumorphism Cyberpunk Dark */
+  --neu-flat: 12px 12px 24px #02040a, -12px -12px 24px #080c1e;
+  --neu-inset: inset 6px 6px 12px #02040a, inset -6px -6px 12px #0c1432;
+}
 
   /* Dark mode mappings override */
   .dark .bg-slate-900 {

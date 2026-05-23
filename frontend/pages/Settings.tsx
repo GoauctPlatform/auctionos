@@ -34,11 +34,19 @@ export const Settings: React.FC = () => {
     const handleThemeChange = (t: string) => {
         setTheme(t);
         localStorage.setItem('goauct_theme', t);
-        if (t === 'dark') document.documentElement.classList.add('dark');
-        else if (t === 'light') document.documentElement.classList.remove('dark');
-        else {
+        
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove('cyberpunk');
+        
+        if (t === 'cyberpunk') {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.add('cyberpunk');
+        } else if (t === 'dark') {
+            document.documentElement.classList.add('dark');
+        } else if (t === 'light') {
+            // kept clean
+        } else {
             if (window.matchMedia('(prefers-color-scheme: dark)').matches) document.documentElement.classList.add('dark');
-            else document.documentElement.classList.remove('dark');
         }
     };
 
@@ -210,10 +218,19 @@ export const Settings: React.FC = () => {
                                         },
                                         {
                                             key: 'dark',
-                                            label: 'Cyberpunk Tech',
+                                            label: 'Obsidian Premium',
                                             icon: 'dark_mode',
-                                            desc: 'Premium dark mode with neon cyan highlights.',
-                                            previewClass: 'bg-[#0a0f1c] border border-slate-800',
+                                            desc: 'Classic corporate dark mode with clean slate panels.',
+                                            previewClass: 'bg-[#0f172a] border border-slate-800',
+                                            previewAccent: 'bg-indigo-500',
+                                            previewText: 'text-slate-200'
+                                        },
+                                        {
+                                            key: 'cyberpunk',
+                                            label: 'Cyberpunk Tech',
+                                            icon: 'rocket_launch',
+                                            desc: 'Mockup Premium: deep black, glassmorphic cards, neon cian.',
+                                            previewClass: 'bg-[#050814] border border-[#00e5e5]/20',
                                             previewAccent: 'bg-[#00e5e5]',
                                             previewText: 'text-slate-100'
                                         },
@@ -222,7 +239,7 @@ export const Settings: React.FC = () => {
                                             label: 'System Preference',
                                             icon: 'desktop_windows',
                                             desc: 'Syncs automatically with your operating system display.',
-                                            previewClass: 'bg-gradient-to-r from-white to-[#0a0f1c] border border-slate-300 dark:border-slate-700',
+                                            previewClass: 'bg-gradient-to-r from-white to-[#0f172a] border border-slate-300 dark:border-slate-700',
                                             previewAccent: 'bg-blue-500',
                                             previewText: 'text-blue-500'
                                         }
@@ -334,10 +351,18 @@ export const Settings: React.FC = () => {
                                     },
                                     {
                                         key: 'dark',
-                                        label: 'Cyberpunk Tech',
+                                        label: 'Obsidian Premium',
                                         icon: 'dark_mode',
-                                        desc: 'Premium dark mode with neon cyan highlights.',
-                                        previewClass: 'bg-[#0a0f1c] border border-slate-800',
+                                        desc: 'Classic corporate dark mode with clean slate panels.',
+                                        previewClass: 'bg-[#0f172a] border border-slate-800',
+                                        previewAccent: 'bg-indigo-500'
+                                    },
+                                    {
+                                        key: 'cyberpunk',
+                                        label: 'Cyberpunk Tech',
+                                        icon: 'rocket_launch',
+                                        desc: 'Mockup Premium: deep black, glassmorphic cards, neon cian.',
+                                        previewClass: 'bg-[#050814] border border-[#00e5e5]/20',
                                         previewAccent: 'bg-[#00e5e5]'
                                     },
                                     {
@@ -345,7 +370,7 @@ export const Settings: React.FC = () => {
                                         label: 'System Preference',
                                         icon: 'desktop_windows',
                                         desc: 'Syncs automatically with your operating system display.',
-                                        previewClass: 'bg-gradient-to-r from-white to-[#0a0f1c] border border-slate-300 dark:border-slate-700',
+                                        previewClass: 'bg-gradient-to-r from-white to-[#0f172a] border border-slate-300 dark:border-slate-700',
                                         previewAccent: 'bg-blue-500'
                                     }
                                 ].map((t) => {
