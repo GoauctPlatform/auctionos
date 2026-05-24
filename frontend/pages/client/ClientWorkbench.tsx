@@ -711,7 +711,7 @@ export const ClientWorkbench: React.FC = () => {
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
 
   // Interactive Live Metrics
-  const [marketCounts, setMarketCounts] = useState({ deed: 430, foreclosure: 852, lien: 594 });
+  const [marketCounts, setMarketCounts] = useState({ deed: 0, foreclosure: 0, lien: 0 });
 
   // Infinite Canvas physics states with persistent localStorage fallback
   const [zoomScale, setZoomScale] = useState(() => {
@@ -1217,21 +1217,11 @@ export const ClientWorkbench: React.FC = () => {
       setStateStats(Array.isArray(stats) ? stats : []);
       setMonthlyStats(Array.isArray(monthly) ? monthly : []);
 
-      // Fallback: use beautiful mock top deals if the database returns empty results
-      if (!topScored || topScored.length === 0) {
-        const mockDeals: Property[] = [
-          { id: 9901, parcel_id: '01-3104-001-0010', address: '124 Brickell Ave', county: 'Miami-Dade', state: 'FL', assessed_value: 1240000, opening_bid: 12500, deal_score: 98, availability_status: 'available' } as any,
-          { id: 9902, parcel_id: '02-4205-002-0020', address: '780 Las Olas Blvd', county: 'Broward', state: 'FL', assessed_value: 850000, opening_bid: 9200, deal_score: 94, availability_status: 'available' } as any,
-          { id: 9903, parcel_id: '03-5306-003-0030', address: '310 Park Ave', county: 'Orange', state: 'FL', assessed_value: 640000, opening_bid: 7800, deal_score: 91, availability_status: 'available' } as any,
-          { id: 9904, parcel_id: '04-6407-004-0040', address: '550 Clematis St', county: 'Palm Beach', state: 'FL', assessed_value: 480000, opening_bid: 5600, deal_score: 87, availability_status: 'available' } as any
-        ];
-        setDbTopDeals(mockDeals);
-        setSelectedProperty(mockDeals[0]);
+      setDbTopDeals(Array.isArray(topScored) ? (topScored as Property[]) : []);
+      if (Array.isArray(topScored) && topScored.length > 0) {
+        setSelectedProperty(topScored[0] as Property);
       } else {
-        setDbTopDeals(Array.isArray(topScored) ? (topScored as Property[]) : []);
-        if (Array.isArray(topScored) && topScored.length > 0) {
-          setSelectedProperty(topScored[0] as Property);
-        }
+        setSelectedProperty(null);
       }
 
       // De-duplicate Deeds + Sheriff Sales (sheriff sales have Deed tax_status)
@@ -1244,53 +1234,15 @@ export const ClientWorkbench: React.FC = () => {
       // Sort merged deeds by parcels_count desc
       mergedDeeds.sort((a: any, b: any) => (b.parcels_count || 0) - (a.parcels_count || 0));
 
-      // Fallback: use high-quality mock deeds if database returns 0 items
-      if (mergedDeeds.length === 0) {
-        setDeedsAuctions([
-          { id: 9001, name: 'Miami-Dade Tax Deed Sale', county: 'Miami-Dade', state: 'FL', parcels_count: 85, properties_count: 85, auction_date: new Date(Date.now() + 5*86400000).toISOString().split('T')[0], register_link: 'https://miamidade.realforeclose.com/', list_link: 'https://miamidade.realforeclose.com/', tax_status: 'Deed' } as any,
-          { id: 9002, name: 'Orange County Clerk Outcry Sale', county: 'Orange', state: 'FL', parcels_count: 42, properties_count: 42, auction_date: new Date(Date.now() + 3*86400000).toISOString().split('T')[0], register_link: 'https://www.orangeclerk.realforeclose.com/', list_link: 'https://www.orangeclerk.realforeclose.com/', tax_status: 'Deed' } as any,
-          { id: 9003, name: 'Broward County Deed Event', county: 'Broward', state: 'FL', parcels_count: 63, properties_count: 63, auction_date: new Date(Date.now() + 7*86400000).toISOString().split('T')[0], register_link: 'https://www.broward.realforeclose.com/', list_link: 'https://www.broward.realforeclose.com/', tax_status: 'Deed' } as any
-        ]);
-      } else {
-        setDeedsAuctions(mergedDeeds);
-      }
+      setDeedsAuctions(mergedDeeds);
+      setForeclosureAuctions(foreRes?.items || []);
+      setLiensAuctions(lienRes?.items || []);
 
-      // Fallback: use high-quality mock foreclosures if database returns 0 items
-      if (!foreRes?.items || foreRes.items.length === 0) {
-        setForeclosureAuctions([
-          { id: 9101, name: 'Palm Beach County Foreclosure Auction', county: 'Palm Beach', state: 'FL', parcels_count: 120, properties_count: 120, auction_date: new Date(Date.now() + 1*86400000).toISOString().split('T')[0], register_link: 'https://palmbeach.realforeclose.com/', list_link: 'https://palmbeach.realforeclose.com/', tax_status: 'Foreclosure' } as any,
-          { id: 9102, name: 'Hillsborough Sheriff Foreclosure Sale', county: 'Hillsborough', state: 'FL', parcels_count: 94, properties_count: 94, auction_date: new Date(Date.now() + 6*86400000).toISOString().split('T')[0], register_link: 'https://hillsborough.realforeclose.com/', list_link: 'https://hillsborough.realforeclose.com/', tax_status: 'Foreclosure' } as any
-        ]);
-      } else {
-        setForeclosureAuctions(foreRes.items);
-      }
-
-      // Fallback: use high-quality mock liens if database returns 0 items
-      if (!lienRes?.items || lienRes.items.length === 0) {
-        setLiensAuctions([
-          { id: 9201, name: 'Duval County Tax Certificate Sale', county: 'Duval', state: 'FL', parcels_count: 1500, properties_count: 1500, auction_date: new Date(Date.now() + 25*86400000).toISOString().split('T')[0], register_link: 'https://duval.realax.com/', list_link: 'https://duval.realax.com/', tax_status: 'Lien' } as any,
-          { id: 9202, name: 'Pinellas County Lien Bid', county: 'Pinellas', state: 'FL', parcels_count: 340, properties_count: 340, auction_date: new Date(Date.now() + 12*86400000).toISOString().split('T')[0], register_link: 'https://pinellas.realax.com/', list_link: 'https://pinellas.realax.com/', tax_status: 'Lien' } as any
-        ]);
-      } else {
-        setLiensAuctions(lienRes.items);
-      }
-
-      // Live metrics & robust fallback logic
-      let activeDeeds = metrics?.deed ?? deedRes?.total ?? 0;
-      let activeForeclosures = metrics?.foreclosure ?? foreRes?.total ?? 0;
-      let activeLiens = metrics?.lien ?? lienRes?.total ?? 0;
-
-      // If all database aggregates are 0 (e.g., local development empty database), fall back to beautiful mock dashboard metrics
-      if (activeDeeds === 0 && activeForeclosures === 0 && activeLiens === 0) {
-        activeDeeds = 430;
-        activeForeclosures = 852;
-        activeLiens = 594;
-      }
-
+      // Live metrics from database/API
       setMarketCounts({
-        deed: activeDeeds,
-        foreclosure: activeForeclosures,
-        lien: activeLiens
+        deed: metrics?.deed ?? deedRes?.total ?? 0,
+        foreclosure: metrics?.foreclosure ?? foreRes?.total ?? 0,
+        lien: metrics?.lien ?? lienRes?.total ?? 0
       });
 
       setSyncTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
