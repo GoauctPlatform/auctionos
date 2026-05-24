@@ -294,9 +294,7 @@ export const Landing: React.FC = () => {
 
         // Force light mode on Landing Page
         const hadDark = document.documentElement.classList.contains('dark');
-        const hadCyberpunk = document.documentElement.classList.contains('cyberpunk');
         document.documentElement.classList.remove('dark');
-        document.documentElement.classList.remove('cyberpunk');
 
         const interval = setInterval(() => {
             setActiveHeroTab((prev) => (prev + 1) % heroLines.length);
@@ -306,7 +304,6 @@ export const Landing: React.FC = () => {
             clearInterval(interval);
             // Restore theme classes on unmount
             if (hadDark) document.documentElement.classList.add('dark');
-            if (hadCyberpunk) document.documentElement.classList.add('cyberpunk');
         };
     }, []);
 

@@ -96,12 +96,8 @@ function App() {
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('goauct_theme') || 'system';
     document.documentElement.classList.remove('dark');
-    document.documentElement.classList.remove('cyberpunk');
     
-    if (savedTheme === 'cyberpunk') {
-      document.documentElement.classList.add('dark');
-      document.documentElement.classList.add('cyberpunk');
-    } else if (savedTheme === 'dark') {
+    if (savedTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else if (savedTheme === 'light') {
       // kept clean

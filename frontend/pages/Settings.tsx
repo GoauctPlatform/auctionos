@@ -36,12 +36,8 @@ export const Settings: React.FC = () => {
         localStorage.setItem('goauct_theme', t);
         
         document.documentElement.classList.remove('dark');
-        document.documentElement.classList.remove('cyberpunk');
         
-        if (t === 'cyberpunk') {
-            document.documentElement.classList.add('dark');
-            document.documentElement.classList.add('cyberpunk');
-        } else if (t === 'dark') {
+        if (t === 'dark') {
             document.documentElement.classList.add('dark');
         } else if (t === 'light') {
             // kept clean
@@ -205,11 +201,11 @@ export const Settings: React.FC = () => {
                             {/* Theme Visual Selector */}
                             <div className="space-y-3 pt-2">
                                 <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Appearance</label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {[
                                         {
                                             key: 'light',
-                                            label: 'Corporate Clean',
+                                            label: 'Corporate Clean (Light)',
                                             icon: 'light_mode',
                                             desc: 'Bright, high-contrast crisp light corporate aesthetic.',
                                             previewClass: 'bg-white border border-slate-200',
@@ -218,21 +214,12 @@ export const Settings: React.FC = () => {
                                         },
                                         {
                                             key: 'dark',
-                                            label: 'Obsidian Premium',
+                                            label: 'VS Dark (Dark)',
                                             icon: 'dark_mode',
-                                            desc: 'Classic corporate dark mode with clean slate panels.',
-                                            previewClass: 'bg-[#0f172a] border border-slate-800',
-                                            previewAccent: 'bg-indigo-500',
-                                            previewText: 'text-slate-200'
-                                        },
-                                        {
-                                            key: 'cyberpunk',
-                                            label: 'Cyberpunk Tech',
-                                            icon: 'rocket_launch',
-                                            desc: 'Mockup Premium: deep black, glassmorphic cards, neon cian.',
-                                            previewClass: 'bg-[#0a0f1c] border border-[#00e5e5]/20',
-                                            previewAccent: 'bg-[#00e5e5]',
-                                            previewText: 'text-slate-100'
+                                            desc: 'Visual Studio Code inspired dark mode. Charcoal background with soft green and classic blue highlights.',
+                                            previewClass: 'bg-[#1E1E1E] border border-[#3E3E42]',
+                                            previewAccent: 'bg-[#007ACC]',
+                                            previewText: 'text-[#D4D4D4]'
                                         }
                                     ].map((t) => {
                                         const isSelected = theme === t.key;
@@ -256,7 +243,7 @@ export const Settings: React.FC = () => {
                                                     <div className="flex justify-between items-center">
                                                         <div className="flex gap-0.5 items-center">
                                                             <div className={`w-1 h-1 rounded-full ${t.previewAccent}`} />
-                                                            <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-700/80" />
+                                                            <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-750/80" />
                                                         </div>
                                                         <div className={`w-2 h-1 rounded-full ${t.previewAccent} opacity-80`} />
                                                     </div>
@@ -272,7 +259,7 @@ export const Settings: React.FC = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-
+ 
                                                 <div className="flex items-center gap-1.5 mb-1 w-full">
                                                     <span className={`material-symbols-outlined text-[16px] ${
                                                         isSelected ? 'text-blue-500 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
@@ -330,11 +317,11 @@ export const Settings: React.FC = () => {
                                 <h4 className="text-md font-semibold text-slate-900 dark:text-white">Appearance</h4>
                                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Customize the workspace design and interface themes.</p>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {[
                                     {
                                         key: 'light',
-                                        label: 'Corporate Clean',
+                                        label: 'Corporate Clean (Light)',
                                         icon: 'light_mode',
                                         desc: 'Bright, high-contrast crisp light corporate aesthetic.',
                                         previewClass: 'bg-white border border-slate-200',
@@ -342,19 +329,11 @@ export const Settings: React.FC = () => {
                                     },
                                     {
                                         key: 'dark',
-                                        label: 'Obsidian Premium',
+                                        label: 'VS Dark (Dark)',
                                         icon: 'dark_mode',
-                                        desc: 'Classic corporate dark mode with clean slate panels.',
-                                        previewClass: 'bg-[#0f172a] border border-slate-800',
-                                        previewAccent: 'bg-indigo-500'
-                                    },
-                                    {
-                                        key: 'cyberpunk',
-                                        label: 'Cyberpunk Tech',
-                                        icon: 'rocket_launch',
-                                        desc: 'Mockup Premium: deep black, glassmorphic cards, neon cian.',
-                                        previewClass: 'bg-[#0a0f1c] border border-[#00e5e5]/20',
-                                        previewAccent: 'bg-[#00e5e5]'
+                                        desc: 'Visual Studio Code inspired dark mode. Charcoal background with soft green and classic blue highlights.',
+                                        previewClass: 'bg-[#1E1E1E] border border-[#3E3E42]',
+                                        previewAccent: 'bg-[#007ACC]'
                                     }
                                 ].map((t) => {
                                     const isSelected = theme === t.key;
@@ -378,7 +357,7 @@ export const Settings: React.FC = () => {
                                                 <div className="flex justify-between items-center">
                                                     <div className="flex gap-0.5 items-center">
                                                         <div className={`w-1 h-1 rounded-full ${t.previewAccent}`} />
-                                                        <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-700/80" />
+                                                        <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-750/80" />
                                                     </div>
                                                     <div className={`w-2 h-1 rounded-full ${t.previewAccent} opacity-80`} />
                                                 </div>
@@ -394,7 +373,7 @@ export const Settings: React.FC = () => {
                                                     </div>
                                                 </div>
                                             </div>
-
+ 
                                             <div className="flex items-center gap-1.5 mb-1 w-full">
                                                 <span className={`material-symbols-outlined text-[16px] ${
                                                     isSelected ? 'text-blue-500 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'

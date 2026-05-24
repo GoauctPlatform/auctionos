@@ -195,10 +195,10 @@
   }
 
   .dark .bg-mesh-gradient {
-    background: radial-gradient(at 0% 0%, rgba(0, 229, 229, 0.15) 0, transparent 60%),
-      radial-gradient(at 100% 0%, rgba(18, 179, 182, 0.15) 0, transparent 60%),
-      radial-gradient(at 100% 100%, rgba(10, 132, 255, 0.1) 0, transparent 60%),
-      radial-gradient(at 0% 100%, rgba(0, 229, 229, 0.1) 0, transparent 60%);
+    background: radial-gradient(at 0% 0%, rgba(0, 122, 204, 0.08) 0, transparent 60%),
+      radial-gradient(at 100% 0%, rgba(106, 153, 85, 0.06) 0, transparent 60%),
+      radial-gradient(at 100% 100%, rgba(0, 122, 204, 0.05) 0, transparent 60%),
+      radial-gradient(at 0% 100%, rgba(106, 153, 85, 0.05) 0, transparent 60%);
   }
 
   /* ==========================================================================
@@ -243,77 +243,40 @@
   }
 
   .dark {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-tertiary: #334155;
+    --bg-primary: #1E1E1E;
+    --bg-secondary: #252526;
+    --bg-tertiary: #2D2D30;
 
-    --accent: #3b82f6;
-    --accent-hover: #2563eb;
-    --accent-glow: rgba(59, 130, 246, 0.15);
-    --accent-text: #60a5fa;
+    --accent: #007ACC;
+    --accent-hover: #0098FF;
+    --accent-glow: rgba(0, 122, 204, 0.25);
+    --accent-text: #9CDCFE;
 
-    --text-primary: #f8fafc;
-    --text-secondary: #cbd5e1;
-    --text-muted: #64748b;
+    --text-primary: #D4D4D4;
+    --text-secondary: #C5C5C5;
+    --text-muted: #808080;
 
-    --border: #334155;
-    --border-focus: #3b82f6;
+    --border: #3E3E42;
+    --border-focus: #007ACC;
 
-    --success: #10b981;
-    --success-bg: rgba(16, 185, 129, 0.1);
-    --warning: #f59e0b;
-    --warning-bg: rgba(245, 158, 11, 0.12);
-    --danger: #ef4444;
-    --danger-bg: rgba(239, 68, 68, 0.12);
+    --success: #6A9955;
+    --success-bg: rgba(106, 153, 85, 0.1);
+    --warning: #CCA700;
+    --warning-bg: rgba(204, 167, 0, 0.12);
+    --danger: #F48771;
+    --danger-bg: rgba(244, 135, 113, 0.12);
 
-    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
     --shadow-glow: none;
 
-    /* Glassmorphism Classic Dark */
-    --glass-bg: rgba(30, 41, 59, 0.8);
-    --glass-border: rgba(51, 65, 85, 0.5);
-    --glass-blur: 12px;
-
-    /* Neumorphism Classic Dark */
-    --neu-flat: 12px 12px 24px #0b111e, -12px -12px 24px #131c30;
-    --neu-inset: inset 6px 6px 12px #0b111e, inset -6px -6px 12px #17243c;
-  }
-
-  .dark.cyberpunk {
-    --bg-primary: #0a0f1c;
-    --bg-secondary: #111827;
-    --bg-tertiary: #1a2338;
-
-    --accent: #00e5e5;
-    --accent-hover: #00f5ff;
-    --accent-glow: rgba(0, 229, 229, 0.3);
-    --accent-text: #00e5e5; /* Neon on dark background passes WCAG contrast cleanly */
-
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-    --text-muted: #6b7280;
-
-    --border: #334155;
-    --border-focus: #00e5e5;
-
-    --success: #22d3ee;
-    --success-bg: rgba(34, 211, 238, 0.1);
-    --warning: #f59e0b;
-    --warning-bg: rgba(245, 158, 11, 0.12);
-    --danger: #f87171;
-    --danger-bg: rgba(248, 113, 113, 0.12);
-
-    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
-    --shadow-glow: 0 0 15px rgba(0, 229, 229, 0.2);
-
-    /* Glassmorphism Dark */
-    --glass-bg: rgba(17, 24, 39, 0.65);
-    --glass-border: rgba(51, 65, 85, 0.35);
+    /* Glassmorphism VS Dark */
+    --glass-bg: rgba(37, 37, 38, 0.85);
+    --glass-border: rgba(62, 62, 66, 0.6);
     --glass-blur: 16px;
 
-    /* Neumorphism Dark (Cyberpunk) */
-    --neu-flat: 12px 12px 24px #05070e, -12px -12px 24px #0f172a;
-    --neu-inset: inset 6px 6px 12px #05070e, inset -6px -6px 12px #151e33;
+    /* Neumorphism VS Dark */
+    --neu-flat: 12px 12px 24px #151515, -12px -12px 24px #282828;
+    --neu-inset: inset 6px 6px 12px #151515, inset -6px -6px 12px #282828;
   }
 
 
