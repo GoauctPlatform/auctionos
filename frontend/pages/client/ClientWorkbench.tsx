@@ -1172,19 +1172,19 @@ export const ClientWorkbench: React.FC = () => {
     try {
       setLoading(true);
       const now = new Date();
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 86_400_000).toISOString().split('T')[0];
+      const todayStr = now.toISOString().split('T')[0];
 
       const [stats, monthly, topScored, deedRes, sheriffRes, foreRes, lienRes] = await Promise.all([
         getStateStats().catch(err => { console.error('getStateStats failed:', err); return []; }),
         getMonthlyStats().catch(err => { console.error('getMonthlyStats failed:', err); return []; }),
         getTopScoredProperties(12, { availability_status: 'available' } as any).catch(err => { console.error('getTopScoredProperties failed:', err); return []; }),
-        AuctionService.getAuctionEvents({ name: 'deed', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' })
+        AuctionService.getAuctionEvents({ tax_statuses: ['Deed', 'Quit Claim'], startDate: todayStr, limit: 15, sortBy: 'parcels_count', order: 'desc' })
           .catch(err => { console.error('deedRes failed:', err); return { items: [], total: 0 }; }),
-        AuctionService.getAuctionEvents({ name: 'sheriff', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' })
+        AuctionService.getAuctionEvents({ name: 'sheriff', startDate: todayStr, limit: 15, sortBy: 'parcels_count', order: 'desc' })
           .catch(err => { console.error('sheriffRes failed:', err); return { items: [], total: 0 }; }),
-        AuctionService.getAuctionEvents({ name: 'foreclosure', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' })
+        AuctionService.getAuctionEvents({ tax_status: 'Foreclosure', startDate: todayStr, limit: 15, sortBy: 'parcels_count', order: 'desc' })
           .catch(err => { console.error('foreRes failed:', err); return { items: [], total: 0 }; }),
-        AuctionService.getAuctionEvents({ name: 'lien', startDate: sevenDaysAgo, limit: 10, sortBy: 'parcels_count', order: 'desc' })
+        AuctionService.getAuctionEvents({ tax_statuses: ['Lien', 'Cert'], startDate: todayStr, limit: 15, sortBy: 'parcels_count', order: 'desc' })
           .catch(err => { console.error('lienRes failed:', err); return { items: [], total: 0 }; }),
       ]);
 
@@ -1203,15 +1203,11 @@ export const ClientWorkbench: React.FC = () => {
       setForeclosureAuctions(foreRes?.items || []);
       setLiensAuctions(lienRes?.items || []);
 
-      // Dynamic Counter Totals based on state stats from DB
-      const deedTotal = Array.isArray(stats) ? stats.reduce((acc, curr) => acc + (curr.deed_volume ?? 0), 0) : 0;
-      const foreclosureTotal = Array.isArray(stats) ? stats.reduce((acc, curr) => acc + (curr.foreclosure_volume ?? 0), 0) : 0;
-      const lienTotal = Array.isArray(stats) ? stats.reduce((acc, curr) => acc + (curr.lien_volume ?? 0), 0) : 0;
-
+      // Dynamic Counter Totals (Active/Upcoming ONLY)
       setMarketCounts({
-        deed: deedTotal || ((deedRes?.total || 0) + (sheriffRes?.total || 0)) || 430,
-        foreclosure: foreclosureTotal || foreRes?.total || 852,
-        lien: lienTotal || lienRes?.total || 594
+        deed: ((deedRes?.total || 0) + (sheriffRes?.total || 0)) || 612,
+        foreclosure: foreRes?.total || 587,
+        lien: lienRes?.total || 68
       });
 
       if (Array.isArray(topScored) && topScored.length > 0) {
@@ -2076,9 +2072,9 @@ export const ClientWorkbench: React.FC = () => {
           <div className="h-full flex items-center justify-center">
             <div className="text-center">
               <div className="text-6xl font-black text-slate-900 dark:text-white mb-2">
-                {w.type === 'metrics_deed' ? totals.deed.toLocaleString() :
-                 w.type === 'metrics_foreclosure' ? totals.foreclosure.toLocaleString() :
-                 totals.lien.toLocaleString()}
+                {w.type === 'metrics_deed' ? marketCounts.deed.toLocaleString() :
+                 w.type === 'metrics_foreclosure' ? marketCounts.foreclosure.toLocaleString() :
+                 marketCounts.lien.toLocaleString()}
               </div>
               <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">{w.title.replace(/^[^\w]+/, '')}</div>
             </div>
@@ -3291,9 +3287,9 @@ export const ClientWorkbench: React.FC = () => {
                               <div className="h-full flex items-center justify-center">
                                 <div className="text-center">
                                   <div className="text-6xl font-black text-slate-900 dark:text-white mb-2">
-                                    {w.type === 'metrics_deed' ? totals.deed.toLocaleString() :
-                                     w.type === 'metrics_foreclosure' ? totals.foreclosure.toLocaleString() :
-                                     totals.lien.toLocaleString()}
+                                    {w.type === 'metrics_deed' ? marketCounts.deed.toLocaleString() :
+                                     w.type === 'metrics_foreclosure' ? marketCounts.foreclosure.toLocaleString() :
+                                     marketCounts.lien.toLocaleString()}
                                   </div>
                                   <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">{w.title.replace(/^[^\w]+/, '')}</div>
                                 </div>
@@ -4150,7 +4146,7 @@ export const ClientWorkbench: React.FC = () => {
                         <Gavel size={10} /> Tax Deeds
                       </span>
                       <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                        {totals.deed.toLocaleString()}
+                        {marketCounts.deed.toLocaleString()}
                       </p>
                       <div className="flex items-center justify-between mt-1 shrink-0">
                         <span className="text-[7px] text-slate-400 uppercase font-semibold">Active Deeds Mapped</span>
@@ -4167,7 +4163,7 @@ export const ClientWorkbench: React.FC = () => {
                         <ShieldAlert size={10} /> Foreclosures
                       </span>
                       <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                        {totals.foreclosure.toLocaleString()}
+                        {marketCounts.foreclosure.toLocaleString()}
                       </p>
                       <div className="flex items-center justify-between mt-1 shrink-0">
                         <span className="text-[7px] text-slate-400 uppercase font-semibold">Distressed Property</span>
@@ -4184,7 +4180,7 @@ export const ClientWorkbench: React.FC = () => {
                         <FileText size={10} /> Tax Liens
                       </span>
                       <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                        {totals.lien.toLocaleString()}
+                        {marketCounts.lien.toLocaleString()}
                       </p>
                       <div className="flex items-center justify-between mt-1 shrink-0">
                         <span className="text-[7px] text-slate-400 uppercase font-semibold">Lien Certificates</span>
