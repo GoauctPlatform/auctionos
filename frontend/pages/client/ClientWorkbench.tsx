@@ -6342,21 +6342,21 @@ export const ClientWorkbench: React.FC = () => {
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-slate-950/85 backdrop-blur-md rounded-2xl border border-slate-700/50 flex items-center gap-3 z-[200] shadow-2xl transition-all select-none">
           {/* Core Shortcuts to open windows */}
           {[
-            { id: 'dashboard_grid', label: 'Dashboard Grid', icon: LayoutDashboard, color: 'hover:text-blue-400 text-blue-500' },
+            { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
             { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
             { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-405 text-cyan-500' },
             { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'hover:text-purple-400 text-purple-500' },
             { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
           ].map(item => {
             const Icon = item.icon;
-            const isOpen = item.id === 'dashboard_grid' ? false : overlayWindows.some(w => w.type === item.id);
-            const isMin = item.id === 'dashboard_grid' ? false : overlayWindows.find(w => w.type === item.id)?.isMinimized;
+            const isOpen = item.id === 'workbench_home' ? false : overlayWindows.some(w => w.type === item.id);
+            const isMin = item.id === 'workbench_home' ? false : overlayWindows.find(w => w.type === item.id)?.isMinimized;
             return (
               <button
                 key={item.id}
                 onClick={() => {
-                  if (item.id === 'dashboard_grid') {
-                    navigate('/client/dashboard-v2');
+                  if (item.id === 'workbench_home') {
+                    navigate('/client');
                     return;
                   }
                   const match = overlayWindows.find(w => w.type === item.id);

@@ -618,7 +618,7 @@ const ClientLayout: React.FC = () => {
       {!isWorkbenchWorkspace && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-slate-950/85 backdrop-blur-md rounded-2xl border border-slate-700/50 flex items-center gap-3 z-[9999] shadow-2xl transition-all select-none">
           {[
-            { id: 'dashboard', label: 'Workbench', path: '/client/workbench', icon: LayoutGrid, color: 'hover:text-blue-405 text-blue-500' },
+            { id: 'dashboard', label: 'Workbench', path: '/client', icon: LayoutGrid, color: 'hover:text-blue-405 text-blue-500' },
             { id: 'live_auctions', label: 'Auctions', path: '/client/auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
             { id: 'property_search', label: 'Search', path: '/client/properties', icon: Search, color: 'hover:text-cyan-405 text-cyan-500' },
             { id: 'my_lists', label: 'My Lists', path: '/client/lists', icon: Folder, color: 'hover:text-purple-400 text-purple-500' },
