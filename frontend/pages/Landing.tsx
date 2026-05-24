@@ -40,6 +40,8 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
     const containerRef = React.useRef<HTMLDivElement>(null);
     const videoRef = React.useRef<HTMLVideoElement>(null);
     const [progress, setProgress] = React.useState(0);
+    const [videoSrc, setVideoSrc] = React.useState<string | null>(null);
+    const [videoLoaded, setVideoLoaded] = React.useState(false);
 
     const handleScroll = React.useCallback(() => {
         if (!containerRef.current || !videoRef.current) return;
@@ -69,7 +71,17 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
         }
     }, []);
 
+    // Lazy load the video in the background after initial paint is complete
     React.useEffect(() => {
+        const timer = setTimeout(() => {
+            setVideoSrc("/hero-video.mp4");
+        }, 600); // 600ms gives plenty of time for HTML/JS/CSS/Fonts to render first
+        return () => clearTimeout(timer);
+    }, []);
+
+    React.useEffect(() => {
+        if (!videoSrc) return;
+
         window.addEventListener('scroll', handleScroll, { passive: true });
         handleScroll(); // Trigger once on mount
 
@@ -81,11 +93,13 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
                     .then(() => {
                         video.pause();
                         video.currentTime = 0.001;
+                        setVideoLoaded(true); // Fade out poster, fade in video
                         handleScroll();
                     })
                     .catch((err) => {
                         console.log("Video preload auto-play prevented:", err);
                         video.currentTime = 0.001;
+                        setVideoLoaded(true); // Safe fallback fade-in
                         handleScroll();
                     });
             };
@@ -103,7 +117,7 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
         }
 
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [handleScroll]);
+    }, [videoSrc, handleScroll]);
 
     // Narrative mapping based on video progress
     let step = 0;
@@ -117,19 +131,33 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
         <div ref={containerRef} className="relative w-full z-10" style={{ height: '300vh' }}>
             <div className="sticky top-0 w-full h-screen overflow-hidden bg-black flex flex-col items-center justify-center">
                 
-                {/* Background Video */}
-                <video 
-                    ref={videoRef}
-                    className="absolute inset-0 w-full h-full object-cover opacity-90"
-                    src="/hero-video.mp4"
-                    preload="auto"
-                    muted
-                    playsInline
-                    controls={false}
+                {/* Immediate Poster Placeholder Image (Preloaded & Ultra lightweight 218KB) */}
+                <img 
+                    src="/hero-poster.jpg"
+                    alt=""
+                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 z-0 ${
+                        videoLoaded ? 'opacity-0 pointer-events-none' : 'opacity-90'
+                    }`}
                 />
+
+                {/* Background Video (Injected after 600ms, then plays/pauses to cache frames, then elegant fade-in) */}
+                {videoSrc && (
+                    <video 
+                        ref={videoRef}
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 z-10 ${
+                            videoLoaded ? 'opacity-90' : 'opacity-0'
+                        }`}
+                        src={videoSrc}
+                        preload="auto"
+                        muted
+                        playsInline
+                        controls={false}
+                    />
+                )}
                 
                 {/* Gradient Overlays for cinematic depth */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80" />
+
                 <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50" />
                 
                 {/* Fixed Header Layer */}
