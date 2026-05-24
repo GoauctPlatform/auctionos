@@ -168,25 +168,25 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
                     <img 
                         src="/hero-poster.jpg"
                         alt=""
-                        className="absolute inset-0 w-full h-full object-cover opacity-90 z-0"
-                        style={{
-                            transform: 'translate3d(0,0,0)',
-                            backfaceVisibility: 'hidden'
-                        }}
-                    />
-                )}
-
-                {/* Background Video (Injected after 600ms, then plays/pauses to cache frames, then elegant fade-in) */}
-                {videoSrc && (
-                    <video 
-                        ref={videoRef}
                         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 z-10 ${
-                            videoLoaded ? 'opacity-90' : 'opacity-0'
+                            videoLoaded ? 'opacity-0' : 'opacity-90'
                         }`}
                         style={{
                             transform: 'translate3d(0,0,0)',
                             backfaceVisibility: 'hidden',
                             willChange: 'opacity'
+                        }}
+                    />
+                )}
+
+                {/* Background Video (Injected after 500ms, then plays/pauses to cache frames) */}
+                {videoSrc && (
+                    <video 
+                        ref={videoRef}
+                        className="absolute inset-0 w-full h-full object-cover opacity-90 z-0"
+                        style={{
+                            transform: 'translate3d(0,0,0)',
+                            backfaceVisibility: 'hidden'
                         }}
                         src={videoSrc}
                         preload="auto"
