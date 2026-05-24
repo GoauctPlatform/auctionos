@@ -44,6 +44,7 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
     const [videoLoaded, setVideoLoaded] = React.useState(false);
 
     const requestRef = React.useRef<number | null>(null);
+    const latestTargetRef = React.useRef<number>(0);
 
     const handleScroll = React.useCallback(() => {
         if (!containerRef.current || !videoRef.current) return;
@@ -57,61 +58,35 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
         const scrollProgress = currentScroll / maxScroll;
         setProgress(scrollProgress);
         
-        // Debounce video scrubbing to next animation frame to prevent decode stutter
-        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        const video = videoRef.current;
+        const duration = video.duration;
+        const activeDuration = (duration && isFinite(duration)) ? duration : 18;
+        const targetTime = scrollProgress * activeDuration;
         
-        requestRef.current = requestAnimationFrame(() => {
-            if (!videoRef.current) return;
-            const duration = videoRef.current.duration;
-            if (duration && isFinite(duration)) {
-                const targetTime = scrollProgress * duration;
-                if (isFinite(targetTime)) {
-                    videoRef.current.currentTime = targetTime;
+        if (isFinite(targetTime)) {
+            latestTargetRef.current = targetTime;
+            
+            // Debounce video scrubbing to next animation frame to prevent decode stutter
+            if (requestRef.current) cancelAnimationFrame(requestRef.current);
+            
+            requestRef.current = requestAnimationFrame(() => {
+                const vid = videoRef.current;
+                if (!vid) return;
+                
+                // CRITICAL: Prevent hardware decoder congestion by ignoring requests while seeking
+                if (!vid.seeking) {
+                    vid.currentTime = targetTime;
                 }
-            } else {
-                // fallback if duration not available yet
-                const targetTime = scrollProgress * 18;
-                if (isFinite(targetTime)) {
-                    videoRef.current.currentTime = targetTime;
-                }
-            }
-        });
+            });
+        }
     }, []);
 
-    // Preload the video as a Blob in memory (the "frontend volume" cache) to guarantee fluid scrubbing
+    // Delay starting the source loading slightly to prioritize critical page elements (first paint, fonts, CSS)
     React.useEffect(() => {
-        let active = true;
-        let blobUrl: string | null = null;
-
-        const preloadVideo = async () => {
-            try {
-                const response = await fetch("/hero-video.mp4");
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                const blob = await response.blob();
-                if (active) {
-                    blobUrl = URL.createObjectURL(blob);
-                    setVideoSrc(blobUrl);
-                }
-            } catch (error) {
-                console.error("Error preloading video as Blob, falling back to standard source:", error);
-                if (active) {
-                    setVideoSrc("/hero-video.mp4");
-                }
-            }
-        };
-
-        // Delay starting the preloading slightly to prioritize critical page elements (first paint, fonts, CSS)
         const timer = setTimeout(() => {
-            preloadVideo();
+            setVideoSrc("/hero-video.mp4");
         }, 500);
-
-        return () => {
-            active = false;
-            clearTimeout(timer);
-            if (blobUrl) {
-                URL.revokeObjectURL(blobUrl);
-            }
-        };
+        return () => clearTimeout(timer);
     }, []);
 
     React.useEffect(() => {
@@ -139,15 +114,25 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
                     });
             };
 
+            // Catch-up mechanism: when a seek finishes, align with the final scroll position if needed
+            const handleSeeked = () => {
+                const target = latestTargetRef.current;
+                if (!video.seeking && Math.abs(video.currentTime - target) > 0.1) {
+                    video.currentTime = target;
+                }
+            };
+
             if (video.readyState >= 2) {
                 initVideo();
             } else {
                 video.addEventListener('canplay', initVideo);
             }
+            video.addEventListener('seeked', handleSeeked);
 
             return () => {
                 window.removeEventListener('scroll', handleScroll);
                 video.removeEventListener('canplay', initVideo);
+                video.removeEventListener('seeked', handleSeeked);
             };
         }
 
