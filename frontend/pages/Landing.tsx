@@ -41,32 +41,69 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
     const videoRef = React.useRef<HTMLVideoElement>(null);
     const [progress, setProgress] = React.useState(0);
 
-    React.useEffect(() => {
-        const handleScroll = () => {
-            if (!containerRef.current || !videoRef.current) return;
-            const { top, height } = containerRef.current.getBoundingClientRect();
-            const viewportHeight = window.innerHeight;
-            // The container is 300vh. Scroll progress starts when top <= 0, and ends when top <= -(height - viewportHeight).
-            const maxScroll = height - viewportHeight;
-            let currentScroll = -top;
-            if (currentScroll < 0) currentScroll = 0;
-            if (currentScroll > maxScroll) currentScroll = maxScroll;
-            const scrollProgress = currentScroll / maxScroll;
-            setProgress(scrollProgress);
-            
-            // Map scrollProgress (0 to 1) to video currentTime (0 to duration)
-            const duration = videoRef.current.duration || 18; // approx 18s
+    const handleScroll = React.useCallback(() => {
+        if (!containerRef.current || !videoRef.current) return;
+        const { top, height } = containerRef.current.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        // The container is 300vh. Scroll progress starts when top <= 0, and ends when top <= -(height - viewportHeight).
+        const maxScroll = height - viewportHeight;
+        let currentScroll = -top;
+        if (currentScroll < 0) currentScroll = 0;
+        if (currentScroll > maxScroll) currentScroll = maxScroll;
+        const scrollProgress = currentScroll / maxScroll;
+        setProgress(scrollProgress);
+        
+        // Map scrollProgress (0 to 1) to video currentTime (0 to duration)
+        const duration = videoRef.current.duration;
+        if (duration && isFinite(duration)) {
             const targetTime = scrollProgress * duration;
-            // Avoid errors if video isn't ready
             if (isFinite(targetTime)) {
                 videoRef.current.currentTime = targetTime;
             }
-        };
+        } else {
+            // fallback if duration not available yet
+            const targetTime = scrollProgress * 18;
+            if (isFinite(targetTime)) {
+                videoRef.current.currentTime = targetTime;
+            }
+        }
+    }, []);
 
+    React.useEffect(() => {
         window.addEventListener('scroll', handleScroll, { passive: true });
         handleScroll(); // Trigger once on mount
+
+        const video = videoRef.current;
+        if (video) {
+            const initVideo = () => {
+                // Play and immediately pause to force decode the first frame
+                video.play()
+                    .then(() => {
+                        video.pause();
+                        video.currentTime = 0.001;
+                        handleScroll();
+                    })
+                    .catch((err) => {
+                        console.log("Video preload auto-play prevented:", err);
+                        video.currentTime = 0.001;
+                        handleScroll();
+                    });
+            };
+
+            if (video.readyState >= 2) {
+                initVideo();
+            } else {
+                video.addEventListener('canplay', initVideo);
+            }
+
+            return () => {
+                window.removeEventListener('scroll', handleScroll);
+                video.removeEventListener('canplay', initVideo);
+            };
+        }
+
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+    }, [handleScroll]);
 
     // Narrative mapping based on video progress
     let step = 0;
@@ -83,7 +120,7 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
                 {/* Background Video */}
                 <video 
                     ref={videoRef}
-                    className="absolute inset-0 w-full h-full object-cover opacity-60"
+                    className="absolute inset-0 w-full h-full object-cover opacity-90"
                     src="/hero-video.mp4"
                     preload="auto"
                     muted
@@ -156,6 +193,7 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
         </div>
     );
 };
+
 
 // ─── Main Landing Page ────────────────────────────────────────────────────────
 export const Landing: React.FC = () => {
@@ -453,7 +491,7 @@ export const Landing: React.FC = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#070d1a] font-sans text-slate-900 dark:text-slate-50 overflow-x-hidden selection:bg-emerald-500 selection:text-white">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#070d1a] font-sans text-slate-900 dark:text-slate-50 selection:bg-emerald-500 selection:text-white">
 
             {/* BG Ambience */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
