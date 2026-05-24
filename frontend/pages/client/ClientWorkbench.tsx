@@ -1203,11 +1203,15 @@ export const ClientWorkbench: React.FC = () => {
       setForeclosureAuctions(foreRes?.items || []);
       setLiensAuctions(lienRes?.items || []);
 
-      // Dynamic Counter Totals
+      // Dynamic Counter Totals based on state stats from DB
+      const deedTotal = Array.isArray(stats) ? stats.reduce((acc, curr) => acc + (curr.deed_volume ?? 0), 0) : 0;
+      const foreclosureTotal = Array.isArray(stats) ? stats.reduce((acc, curr) => acc + (curr.foreclosure_volume ?? 0), 0) : 0;
+      const lienTotal = Array.isArray(stats) ? stats.reduce((acc, curr) => acc + (curr.lien_volume ?? 0), 0) : 0;
+
       setMarketCounts({
-        deed: ((deedRes?.total || 0) + (sheriffRes?.total || 0)) || 430,
-        foreclosure: foreRes?.total || 852,
-        lien: lienRes?.total || 594
+        deed: deedTotal || ((deedRes?.total || 0) + (sheriffRes?.total || 0)) || 430,
+        foreclosure: foreclosureTotal || foreRes?.total || 852,
+        lien: lienTotal || lienRes?.total || 594
       });
 
       if (Array.isArray(topScored) && topScored.length > 0) {
@@ -2072,9 +2076,9 @@ export const ClientWorkbench: React.FC = () => {
           <div className="h-full flex items-center justify-center">
             <div className="text-center">
               <div className="text-6xl font-black text-slate-900 dark:text-white mb-2">
-                {w.type === 'metrics_deed' ? marketCounts.deed.toLocaleString() :
-                 w.type === 'metrics_foreclosure' ? marketCounts.foreclosure.toLocaleString() :
-                 marketCounts.lien.toLocaleString()}
+                {w.type === 'metrics_deed' ? totals.deed.toLocaleString() :
+                 w.type === 'metrics_foreclosure' ? totals.foreclosure.toLocaleString() :
+                 totals.lien.toLocaleString()}
               </div>
               <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">{w.title.replace(/^[^\w]+/, '')}</div>
             </div>
@@ -3287,9 +3291,9 @@ export const ClientWorkbench: React.FC = () => {
                               <div className="h-full flex items-center justify-center">
                                 <div className="text-center">
                                   <div className="text-6xl font-black text-slate-900 dark:text-white mb-2">
-                                    {w.type === 'metrics_deed' ? marketCounts.deed.toLocaleString() :
-                                     w.type === 'metrics_foreclosure' ? marketCounts.foreclosure.toLocaleString() :
-                                     marketCounts.lien.toLocaleString()}
+                                    {w.type === 'metrics_deed' ? totals.deed.toLocaleString() :
+                                     w.type === 'metrics_foreclosure' ? totals.foreclosure.toLocaleString() :
+                                     totals.lien.toLocaleString()}
                                   </div>
                                   <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">{w.title.replace(/^[^\w]+/, '')}</div>
                                 </div>
@@ -4146,7 +4150,7 @@ export const ClientWorkbench: React.FC = () => {
                         <Gavel size={10} /> Tax Deeds
                       </span>
                       <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                        {marketCounts.deed.toLocaleString()}
+                        {totals.deed.toLocaleString()}
                       </p>
                       <div className="flex items-center justify-between mt-1 shrink-0">
                         <span className="text-[7px] text-slate-400 uppercase font-semibold">Active Deeds Mapped</span>
@@ -4163,7 +4167,7 @@ export const ClientWorkbench: React.FC = () => {
                         <ShieldAlert size={10} /> Foreclosures
                       </span>
                       <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                        {marketCounts.foreclosure.toLocaleString()}
+                        {totals.foreclosure.toLocaleString()}
                       </p>
                       <div className="flex items-center justify-between mt-1 shrink-0">
                         <span className="text-[7px] text-slate-400 uppercase font-semibold">Distressed Property</span>
@@ -4180,7 +4184,7 @@ export const ClientWorkbench: React.FC = () => {
                         <FileText size={10} /> Tax Liens
                       </span>
                       <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                        {marketCounts.lien.toLocaleString()}
+                        {totals.lien.toLocaleString()}
                       </p>
                       <div className="flex items-center justify-between mt-1 shrink-0">
                         <span className="text-[7px] text-slate-400 uppercase font-semibold">Lien Certificates</span>
