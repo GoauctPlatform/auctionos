@@ -42,6 +42,7 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
     const [progress, setProgress] = React.useState(0);
     const [videoSrc, setVideoSrc] = React.useState<string | null>(null);
     const [videoLoaded, setVideoLoaded] = React.useState(false);
+    const [showPoster, setShowPoster] = React.useState(true);
 
     const requestRef = React.useRef<number | null>(null);
     const latestTargetRef = React.useRef<number>(0);
@@ -88,6 +89,17 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
         }, 500);
         return () => clearTimeout(timer);
     }, []);
+
+    // Completely unmount the poster image from the DOM after the 1000ms cross-fade completes.
+    // This resolves Chrome/Safari GPU rendering conflicts and Z-fighting which cause flickering.
+    React.useEffect(() => {
+        if (videoLoaded) {
+            const timer = setTimeout(() => {
+                setShowPoster(false);
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [videoLoaded]);
 
     React.useEffect(() => {
         if (!videoSrc) return;
@@ -152,13 +164,20 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
             <div className="sticky top-0 w-full h-screen overflow-hidden bg-black flex flex-col items-center justify-center">
                 
                 {/* Immediate Poster Placeholder Image (Preloaded & Ultra lightweight 218KB) */}
-                <img 
-                    src="/hero-poster.jpg"
-                    alt=""
-                    className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 z-0 ${
-                        videoLoaded ? 'opacity-0 pointer-events-none' : 'opacity-90'
-                    }`}
-                />
+                {showPoster && (
+                    <img 
+                        src="/hero-poster.jpg"
+                        alt=""
+                        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 z-0 ${
+                            videoLoaded ? 'opacity-0 pointer-events-none' : 'opacity-90'
+                        }`}
+                        style={{
+                            transform: 'translate3d(0,0,0)',
+                            backfaceVisibility: 'hidden',
+                            willChange: 'opacity'
+                        }}
+                    />
+                )}
 
                 {/* Background Video (Injected after 600ms, then plays/pauses to cache frames, then elegant fade-in) */}
                 {videoSrc && (
@@ -167,6 +186,11 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
                         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 z-10 ${
                             videoLoaded ? 'opacity-90' : 'opacity-0'
                         }`}
+                        style={{
+                            transform: 'translate3d(0,0,0)',
+                            backfaceVisibility: 'hidden',
+                            willChange: 'opacity'
+                        }}
                         src={videoSrc}
                         preload="auto"
                         muted
