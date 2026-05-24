@@ -43,6 +43,8 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
     const [videoSrc, setVideoSrc] = React.useState<string | null>(null);
     const [videoLoaded, setVideoLoaded] = React.useState(false);
 
+    const requestRef = React.useRef<number | null>(null);
+
     const handleScroll = React.useCallback(() => {
         if (!containerRef.current || !videoRef.current) return;
         const { top, height } = containerRef.current.getBoundingClientRect();
@@ -55,20 +57,25 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
         const scrollProgress = currentScroll / maxScroll;
         setProgress(scrollProgress);
         
-        // Map scrollProgress (0 to 1) to video currentTime (0 to duration)
-        const duration = videoRef.current.duration;
-        if (duration && isFinite(duration)) {
-            const targetTime = scrollProgress * duration;
-            if (isFinite(targetTime)) {
-                videoRef.current.currentTime = targetTime;
+        // Debounce video scrubbing to next animation frame to prevent decode stutter
+        if (requestRef.current) cancelAnimationFrame(requestRef.current);
+        
+        requestRef.current = requestAnimationFrame(() => {
+            if (!videoRef.current) return;
+            const duration = videoRef.current.duration;
+            if (duration && isFinite(duration)) {
+                const targetTime = scrollProgress * duration;
+                if (isFinite(targetTime)) {
+                    videoRef.current.currentTime = targetTime;
+                }
+            } else {
+                // fallback if duration not available yet
+                const targetTime = scrollProgress * 18;
+                if (isFinite(targetTime)) {
+                    videoRef.current.currentTime = targetTime;
+                }
             }
-        } else {
-            // fallback if duration not available yet
-            const targetTime = scrollProgress * 18;
-            if (isFinite(targetTime)) {
-                videoRef.current.currentTime = targetTime;
-            }
-        }
+        });
     }, []);
 
     // Lazy load the video in the background after initial paint is complete
