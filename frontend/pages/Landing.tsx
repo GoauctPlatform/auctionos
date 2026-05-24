@@ -292,10 +292,22 @@ export const Landing: React.FC = () => {
             metaDesc.setAttribute('content', 'GoAuct is the premier intelligence platform for real estate investors, realtors, and field agents. Discover tax deeds, liens, foreclosures and build profitable partnerships.');
         }
 
+        // Force light mode on Landing Page
+        const hadDark = document.documentElement.classList.contains('dark');
+        const hadCyberpunk = document.documentElement.classList.contains('cyberpunk');
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.remove('cyberpunk');
+
         const interval = setInterval(() => {
             setActiveHeroTab((prev) => (prev + 1) % heroLines.length);
         }, 4000);
-        return () => clearInterval(interval);
+
+        return () => {
+            clearInterval(interval);
+            // Restore theme classes on unmount
+            if (hadDark) document.documentElement.classList.add('dark');
+            if (hadCyberpunk) document.documentElement.classList.add('cyberpunk');
+        };
     }, []);
 
     const features = [
@@ -596,8 +608,11 @@ export const Landing: React.FC = () => {
                             <Link to="/about" className="text-sm text-slate-600 dark:text-slate-300 hover:text-blue-600 transition-colors">About Us</Link>
                             <Link to="/login" className="text-sm text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors">Sign In</Link>
                         </div>
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => navigate('/signup')} className="px-5 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">
+                        <div className="flex items-center gap-2 sm:gap-3">
+                            <Link to="/login" className="md:hidden text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 hover:text-slate-950 dark:hover:text-white px-2.5 py-2 transition-all">
+                                Sign In
+                            </Link>
+                            <button onClick={() => navigate('/signup')} className="px-4 sm:px-5 py-2 sm:py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-xs sm:text-sm transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 whitespace-nowrap">
                                 Get Started Free
                             </button>
                         </div>

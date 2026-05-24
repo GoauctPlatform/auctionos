@@ -38,7 +38,7 @@ import {
   Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
   Gavel, Calendar, ShieldAlert, Search, Plus, Filter, ArrowRight,
   Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare, LogOut,
-  MousePointer, TrendingUp
+  MousePointer, TrendingUp, Lock, Unlock, LayoutDashboard
 } from 'lucide-react';
 
 const CHART_COLORS = {
@@ -693,12 +693,40 @@ export const ClientWorkbench: React.FC = () => {
   // Interactive Live Metrics
   const [marketCounts, setMarketCounts] = useState({ deed: 430, foreclosure: 852, lien: 594 });
 
-  // Infinite Canvas physics states
-  const [zoomScale, setZoomScale] = useState(1.0);
-  const [panX, setPanX] = useState(0);
-  const [panY, setPanY] = useState(0);
+  // Infinite Canvas physics states with persistent localStorage fallback
+  const [zoomScale, setZoomScale] = useState(() => {
+    const saved = localStorage.getItem('goauct_canvas_zoom');
+    return saved ? Number(saved) : 1.0;
+  });
+  const [panX, setPanX] = useState(() => {
+    const saved = localStorage.getItem('goauct_canvas_pan_x');
+    return saved ? Number(saved) : 0;
+  });
+  const [panY, setPanY] = useState(() => {
+    const saved = localStorage.getItem('goauct_canvas_pan_y');
+    return saved ? Number(saved) : 0;
+  });
+  const [isCanvasLocked, setIsCanvasLocked] = useState(() => {
+    const saved = localStorage.getItem('goauct_canvas_locked');
+    return saved === 'true';
+  });
+
   const [isPanningCanvas, setIsPanningCanvas] = useState(false);
   const panStartRef = useRef({ x: 0, y: 0 });
+
+  // Sync state changes to localStorage
+  useEffect(() => {
+    localStorage.setItem('goauct_canvas_zoom', String(zoomScale));
+  }, [zoomScale]);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_canvas_pan_x', String(panX));
+    localStorage.setItem('goauct_canvas_pan_y', String(panY));
+  }, [panX, panY]);
+
+  useEffect(() => {
+    localStorage.setItem('goauct_canvas_locked', String(isCanvasLocked));
+  }, [isCanvasLocked]);
 
   // Widget communication active states
   const [recommendedTab, setRecommendedTab] = useState<'deals' | 'deeds' | 'foreclosures' | 'liens'>('deals');
@@ -1666,6 +1694,7 @@ export const ClientWorkbench: React.FC = () => {
     if (!canvasElement) return;
 
     const handleWheel = (e: WheelEvent) => {
+      if (isCanvasLocked) return;
       e.preventDefault();
       const zoomFactor = 0.04;
       const direction = e.deltaY < 0 ? 1 : -1;
@@ -1679,10 +1708,11 @@ export const ClientWorkbench: React.FC = () => {
     return () => {
       canvasElement.removeEventListener('wheel', handleWheel);
     };
-  }, []);
+  }, [isCanvasLocked]);
 
   // Background Canvas pan handlers
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    if (isCanvasLocked) return;
     if (
       e.target === canvasRef.current || 
       (e.target as HTMLElement).classList.contains('canvas-grid') || 
@@ -1698,6 +1728,7 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const handleCanvasTouchStart = (e: React.TouchEvent) => {
+    if (isCanvasLocked) return;
     if (
       e.target === canvasRef.current || 
       (e.target as HTMLElement).classList.contains('canvas-grid') || 
@@ -2671,30 +2702,6 @@ export const ClientWorkbench: React.FC = () => {
             })}
           </div>
 
-          {/* Minimalist circular Zoom Controls in Sidebar Ribbon footer */}
-          <div className="flex flex-col gap-1 items-center w-full border-t border-slate-100 dark:border-slate-800/85 pt-3">
-            <button
-              onClick={() => setZoomScale(prev => Math.min(2.0, parseFloat((prev + 0.1).toFixed(2))))}
-              className="size-7 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900/40 text-sm font-extrabold transition-all"
-              title="Zoom In"
-            >
-              +
-            </button>
-            <button
-              onClick={() => { setZoomScale(1.0); setPanX(0); setPanY(0); }}
-              className="text-[7.5px] text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 font-extrabold uppercase py-1 select-none tracking-wider text-center"
-              title="Reset Zoom"
-            >
-              100%
-            </button>
-            <button
-              onClick={() => setZoomScale(prev => Math.max(0.3, parseFloat((prev - 0.1).toFixed(2))))}
-              className="size-7 rounded-xl flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-900/40 text-sm font-extrabold transition-all"
-              title="Zoom Out"
-            >
-              -
-            </button>
-          </div>
 
           <div className="flex flex-col gap-4 items-center w-full border-t border-slate-100 dark:border-slate-800/85 pt-4">
             {/* Sign Out Button */}
@@ -6139,7 +6146,50 @@ export const ClientWorkbench: React.FC = () => {
             ))}
           </div>
 
+          {/* Infinite Canvas Floating Zoom & Lock Panel (Bottom-Left) */}
+          <div className="absolute bottom-4 left-4 z-[100] flex flex-col items-center gap-2 p-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xl select-none">
+            {/* Lock Button */}
+            <button
+              onClick={() => setIsCanvasLocked(prev => !prev)}
+              className={`size-8 rounded-xl flex items-center justify-center transition-all ${
+                isCanvasLocked 
+                  ? 'bg-red-500/10 text-red-500 border border-red-500/25 hover:bg-red-500/20 shadow-sm' 
+                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-650'
+              }`}
+              title={isCanvasLocked ? "Canvas is Locked (Click to Unlock)" : "Canvas is Unlocked (Click to Lock)"}
+            >
+              {isCanvasLocked ? <Lock size={14} /> : <Unlock size={14} />}
+            </button>
 
+            <div className="w-6 h-[1px] bg-slate-200 dark:bg-slate-800" />
+
+            {/* Zoom In (+) */}
+            <button
+              onClick={() => setZoomScale(prev => Math.min(2.0, parseFloat((prev + 0.1).toFixed(2))))}
+              className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
+              title="Zoom In"
+            >
+              +
+            </button>
+
+            {/* Reset Zoom Indicator */}
+            <button
+              onClick={() => { setZoomScale(1.0); setPanX(0); setPanY(0); }}
+              className="text-[9px] font-black text-slate-450 hover:text-indigo-500 dark:hover:text-indigo-400 py-1 transition-colors select-none tracking-tight text-center"
+              title="Reset Zoom to 100%"
+            >
+              {Math.round(zoomScale * 100)}%
+            </button>
+
+            {/* Zoom Out (-) */}
+            <button
+              onClick={() => setZoomScale(prev => Math.max(0.3, parseFloat((prev - 0.1).toFixed(2))))}
+              className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
+              title="Zoom Out"
+            >
+              -
+            </button>
+          </div>
 
         </div>
         )}
@@ -6292,18 +6342,23 @@ export const ClientWorkbench: React.FC = () => {
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-slate-950/85 backdrop-blur-md rounded-2xl border border-slate-700/50 flex items-center gap-3 z-[200] shadow-2xl transition-all select-none">
           {/* Core Shortcuts to open windows */}
           {[
+            { id: 'dashboard_grid', label: 'Dashboard Grid', icon: LayoutDashboard, color: 'hover:text-blue-400 text-blue-500' },
             { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
             { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-405 text-cyan-500' },
             { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'hover:text-purple-400 text-purple-500' },
             { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
           ].map(item => {
             const Icon = item.icon;
-            const isOpen = overlayWindows.some(w => w.type === item.id);
-            const isMin = overlayWindows.find(w => w.type === item.id)?.isMinimized;
+            const isOpen = item.id === 'dashboard_grid' ? false : overlayWindows.some(w => w.type === item.id);
+            const isMin = item.id === 'dashboard_grid' ? false : overlayWindows.find(w => w.type === item.id)?.isMinimized;
             return (
               <button
                 key={item.id}
                 onClick={() => {
+                  if (item.id === 'dashboard_grid') {
+                    navigate('/client/dashboard-v2');
+                    return;
+                  }
                   const match = overlayWindows.find(w => w.type === item.id);
                   if (match) {
                     if (match.isMinimized) {

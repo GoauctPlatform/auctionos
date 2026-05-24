@@ -6,7 +6,7 @@ import { AuthService } from '../services/auth.service';
 import { ClientDataService } from '../services/property.service';
 import { CompanySelector } from '../components/CompanySelector';
 import { Dialog, Typography, TextField, Button, Box } from '@mui/material';
-import { Mail, ShieldAlert, Loader2, RefreshCw } from 'lucide-react';
+import { Mail, ShieldAlert, Loader2, RefreshCw, Calendar, Search, Folder, Gavel, LayoutGrid } from 'lucide-react';
 import api from '../services/api';
 import { useTour } from '../context/TourContext';
 import { TourOverlay } from '../components/TourOverlay';
@@ -613,6 +613,35 @@ const ClientLayout: React.FC = () => {
 
       {/* Tour Guide Overlay */}
       <TourOverlay />
+
+      {/* Persistent macOS-style Dock for all non-workbench investor pages */}
+      {!isWorkbenchWorkspace && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-slate-950/85 backdrop-blur-md rounded-2xl border border-slate-700/50 flex items-center gap-3 z-[9999] shadow-2xl transition-all select-none">
+          {[
+            { id: 'dashboard', label: 'Workbench', path: '/client/workbench', icon: LayoutGrid, color: 'hover:text-blue-405 text-blue-500' },
+            { id: 'live_auctions', label: 'Auctions', path: '/client/auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
+            { id: 'property_search', label: 'Search', path: '/client/properties', icon: Search, color: 'hover:text-cyan-405 text-cyan-500' },
+            { id: 'my_lists', label: 'My Lists', path: '/client/lists', icon: Folder, color: 'hover:text-purple-400 text-purple-500' },
+            { id: 'field_missions', label: 'Missions', path: '/client/tasks', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
+          ].map(item => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <button
+                key={item.id}
+                onClick={() => navigate(item.path)}
+                className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 ${item.color} ${isActive ? 'bg-slate-800 border border-slate-700' : 'bg-transparent'}`}
+                title={item.label}
+              >
+                <Icon size={18} />
+                {isActive && (
+                  <span className="absolute bottom-1 size-1 bg-indigo-500 rounded-full animate-pulse" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {!hideHeader && <Footer />}
     </div>
