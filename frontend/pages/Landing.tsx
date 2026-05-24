@@ -35,6 +35,128 @@ const PersonaCard: React.FC<{
     </div>
 );
 
+// ─── Scroll-Linked Hero Video ────────────────────────────────────────────────
+const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = ({ navigate }) => {
+    const containerRef = React.useRef<HTMLDivElement>(null);
+    const videoRef = React.useRef<HTMLVideoElement>(null);
+    const [progress, setProgress] = React.useState(0);
+
+    React.useEffect(() => {
+        const handleScroll = () => {
+            if (!containerRef.current || !videoRef.current) return;
+            const { top, height } = containerRef.current.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            // The container is 300vh. Scroll progress starts when top <= 0, and ends when top <= -(height - viewportHeight).
+            const maxScroll = height - viewportHeight;
+            let currentScroll = -top;
+            if (currentScroll < 0) currentScroll = 0;
+            if (currentScroll > maxScroll) currentScroll = maxScroll;
+            const scrollProgress = currentScroll / maxScroll;
+            setProgress(scrollProgress);
+            
+            // Map scrollProgress (0 to 1) to video currentTime (0 to duration)
+            const duration = videoRef.current.duration || 18; // approx 18s
+            const targetTime = scrollProgress * duration;
+            // Avoid errors if video isn't ready
+            if (isFinite(targetTime)) {
+                videoRef.current.currentTime = targetTime;
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        handleScroll(); // Trigger once on mount
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Narrative mapping based on video progress
+    let step = 0;
+    if (progress > 0.777) {
+        step = 2; // 14-18s
+    } else if (progress > 0.5) {
+        step = 1; // 9-14s
+    }
+
+    return (
+        <div ref={containerRef} className="relative w-full z-10" style={{ height: '300vh' }}>
+            <div className="sticky top-0 w-full h-screen overflow-hidden bg-black flex flex-col items-center justify-center">
+                
+                {/* Background Video */}
+                <video 
+                    ref={videoRef}
+                    className="absolute inset-0 w-full h-full object-cover opacity-60"
+                    src="/hero-video.mp4"
+                    preload="auto"
+                    muted
+                    playsInline
+                    controls={false}
+                />
+                
+                {/* Gradient Overlays for cinematic depth */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/80" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-transparent to-black/50" />
+                
+                {/* Fixed Header Layer */}
+                <div className="absolute top-32 left-0 right-0 z-20 flex flex-col items-center">
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/50 border border-slate-700/50 backdrop-blur-md mb-4 shadow-2xl">
+                        <span className="flex h-2 w-2 relative">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                        </span>
+                        <span className="text-[11px] font-bold tracking-widest text-emerald-400 uppercase">GoAuct Platform V2</span>
+                    </div>
+                </div>
+
+                {/* Narrative Text Container */}
+                <div className="relative z-20 flex flex-col items-center justify-center h-full max-w-5xl px-4 text-center">
+                    
+                    {/* Step 0 */}
+                    <div className={`absolute transition-all duration-700 transform ${step === 0 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 -translate-y-8 scale-95 pointer-events-none'}`}>
+                        <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter text-white mb-6 drop-shadow-2xl">
+                            The Spreadsheet &amp; File Chaos
+                        </h1>
+                        <p className="text-xl md:text-3xl font-medium text-slate-300">
+                            The Old Way
+                        </p>
+                    </div>
+
+                    {/* Step 1 */}
+                    <div className={`absolute transition-all duration-700 transform ${step === 1 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'}`}>
+                        <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-emerald-400 mb-6 drop-shadow-2xl">
+                            GPS BPO Field Marketplace
+                        </h1>
+                        <p className="text-xl md:text-3xl font-medium text-slate-300">
+                            Deploy verified runners instantly.
+                        </p>
+                    </div>
+
+                    {/* Step 2 */}
+                    <div className={`absolute transition-all duration-700 transform ${step === 2 ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95 pointer-events-none'}`}>
+                        <h1 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-violet-400 mb-6 drop-shadow-2xl">
+                            Centralized Cure &amp; AI Scoring
+                        </h1>
+                        <p className="text-xl md:text-3xl font-medium text-slate-300">
+                            Precision due diligence, on-demand.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Call to action appears at the very end */}
+                <div className={`absolute bottom-20 left-0 right-0 z-30 flex justify-center transition-all duration-1000 ${progress > 0.9 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10 pointer-events-none'}`}>
+                    <button onClick={() => navigate('/signup')} className="px-10 py-5 bg-white text-black rounded-full font-bold text-lg hover:scale-105 transition-all shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+                        Enter Ecosystem
+                    </button>
+                </div>
+                
+                {/* Scroll Indicator */}
+                <div className={`absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 transition-opacity duration-500 ${progress > 0.9 ? 'opacity-0' : 'opacity-50'}`}>
+                    <span className="text-white text-[10px] uppercase tracking-[0.3em] font-bold">Scroll</span>
+                    <div className="w-px h-12 bg-gradient-to-b from-white/50 to-transparent" />
+                </div>
+            </div>
+        </div>
+    );
+};
+
 // ─── Main Landing Page ────────────────────────────────────────────────────────
 export const Landing: React.FC = () => {
     const navigate = useNavigate();
@@ -367,36 +489,8 @@ export const Landing: React.FC = () => {
                 </div>
             </nav>
 
-            {/* ── Section 1: Hero ───────────────────────────────────────────────────────── */}
-            <main className="relative z-10 pt-40 pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex flex-col items-center text-center">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 mb-8 animate-pulse">
-                    <span className="flex h-2 w-2 relative">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
-                    </span>
-                    <span className="text-[11px] font-bold tracking-widest text-blue-700 dark:text-blue-300 uppercase">GoAuct Platform V2</span>
-                </div>
-
-                <div className="h-24 sm:h-28 md:h-32 mb-6 flex items-center justify-center">
-                    <h1 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-emerald-500 leading-tight">
-                        {heroLines[activeHeroTab]}
-                    </h1>
-                </div>
-
-                <p className="text-lg md:text-2xl text-slate-600 dark:text-slate-400 mb-10 max-w-3xl mx-auto leading-relaxed font-medium">
-                    The integrated PropTech intelligence ecosystem for <span className="text-slate-900 dark:text-white font-bold">investors</span>, <span className="text-slate-900 dark:text-white font-bold">realtors</span>, and <span className="text-slate-900 dark:text-white font-bold">field agents</span> to master the U.S. distressed property market.
-                </p>
-
-                <div className="flex flex-col sm:flex-row gap-4 justify-center items-center w-full max-w-md mx-auto">
-                    <button onClick={() => navigate('/signup')} className="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-2xl font-bold text-lg hover:from-blue-500 hover:to-indigo-500 transition-all shadow-xl hover:shadow-2xl hover:shadow-blue-500/30 hover:-translate-y-1">
-                        Start for Free
-                    </button>
-                    <button onClick={() => alert('Demo video coming soon!')} className="w-full sm:w-auto px-8 py-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-white rounded-2xl font-bold text-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-all flex items-center justify-center gap-2">
-                        <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">play_circle</span>
-                        Watch 90s Demo
-                    </button>
-                </div>
-            </main>
+            {/* ── Section 1: Hero (Scroll Video) ────────────────────────────────────────── */}
+            <ScrollHeroVideo navigate={navigate} />
 
             {/* ── Section 2: Social Proof Bar ───────────────────────────────────────────── */}
             <div className="relative z-10 border-y border-slate-200/50 dark:border-slate-800/50 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm py-10">

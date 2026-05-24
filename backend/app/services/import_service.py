@@ -53,7 +53,7 @@ class ImportService:
             asyncio.run(import_service.process_properties_csv_file(temp_path, job_id))
 
     @staticmethod
-    async def process_properties_csv_file(file_path: str, job_id: str):
+    async def process_properties_csv_file(file_path: str, job_id: str, skip_rows: int = 0):
         try:
             # Using chunksize to keep memory footprint low
             chunk_size = 500
@@ -70,7 +70,8 @@ class ImportService:
                 except: return None
 
             # Iterate in chunks
-            for chunk in pd.read_csv(file_path, dtype=str, chunksize=chunk_size):
+            skip_range = range(1, skip_rows + 1) if skip_rows > 0 else None
+            for chunk in pd.read_csv(file_path, dtype=str, chunksize=chunk_size, skiprows=skip_range):
                 total_rows += len(chunk)
                 
                 details_batch = []
@@ -283,7 +284,7 @@ class ImportService:
                                 conn.execute(query_h, history_batch)
                         
                         success_count += len(details_batch)
-                        print(f"Job {job_id}: Progress: {total_rows} rows read... ({success_count} successfully saved to DB)")
+                        print(f"Job {job_id}: Progress: {total_rows + skip_rows} rows read... ({success_count + skip_rows} successfully saved to DB)")
                         break # Break loop on successful insert
 
                     except OperationalError as oe:

@@ -19,7 +19,7 @@ from app.services.import_service import import_service
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-async def run_import(file_path: str, import_type: str = "properties"):
+async def run_import(file_path: str, import_type: str = "properties", skip_rows: int = 0):
     if not os.path.exists(file_path):
         # Try relative to app root
         root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -58,8 +58,11 @@ async def run_import(file_path: str, import_type: str = "properties"):
             print("Processing as HISTORY...")
             await import_service.process_history_mapping_csv(content, job_id)
         else:
-            print("Processing as PROPERTIES...")
-            await import_service.process_properties_csv_file(file_path, job_id)
+            if skip_rows > 0:
+                print(f"Processing as PROPERTIES (skipping first {skip_rows} rows)...")
+            else:
+                print("Processing as PROPERTIES...")
+            await import_service.process_properties_csv_file(file_path, job_id, skip_rows=skip_rows)
         print("\nRemote import process completed successfully.")
     except Exception as e:
         print(f"Failed to run remote import: {e}")
@@ -79,5 +82,12 @@ if __name__ == "__main__":
         sys.argv.pop(idx+1)
         sys.argv.pop(idx)
         
+    skip_rows = 0
+    if "--skip" in sys.argv:
+        idx = sys.argv.index("--skip")
+        skip_rows = int(sys.argv[idx+1])
+        sys.argv.pop(idx+1)
+        sys.argv.pop(idx)
+        
     file_path = sys.argv[1]
-    asyncio.run(run_import(file_path, import_type))
+    asyncio.run(run_import(file_path, import_type, skip_rows))
