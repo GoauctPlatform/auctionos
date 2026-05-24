@@ -293,16 +293,50 @@
     background-color: var(--bg-tertiary) !important;
   }
 
+  /* Opacity variants for dark bg */
+  .dark .bg-slate-900\/50,
+  .dark .bg-slate-900\/80,
+  .dark .bg-slate-900\/30,
+  .dark .bg-slate-900\/20 {
+    background-color: color-mix(in srgb, var(--bg-secondary) 70%, transparent) !important;
+  }
+
+  .dark .bg-slate-800\/50,
+  .dark .bg-slate-800\/30,
+  .dark .bg-slate-800\/10 {
+    background-color: color-mix(in srgb, var(--bg-tertiary) 50%, transparent) !important;
+  }
+
+  /* nav / header hover states */
+  .dark .hover\:bg-slate-800:hover {
+    background-color: var(--bg-tertiary) !important;
+  }
+
+  .dark .hover\:bg-slate-700:hover {
+    background-color: var(--bg-tertiary) !important;
+  }
+
   .dark .border-slate-700,
   .dark .border-slate-800 {
     border-color: var(--border) !important;
   }
 
+  .dark .border-slate-700\/50 {
+    border-color: color-mix(in srgb, var(--border) 50%, transparent) !important;
+  }
+
+  /* Ring overrides */
+  .dark .ring-slate-700 {
+    --tw-ring-color: var(--border);
+  }
+
   .dark .text-slate-100,
-  .dark .text-slate-200 {
+  .dark .text-slate-200,
+  .dark .text-white {
     color: var(--text-primary) !important;
   }
 
+  .dark .text-slate-300,
   .dark .text-slate-350,
   .dark .text-slate-400 {
     color: var(--text-secondary) !important;
@@ -314,23 +348,38 @@
     color: var(--text-muted) !important;
   }
 
-  /* Dynamic Active Primary Actions & Buttons */
-  .bg-blue-600,
-  .bg-indigo-600,
-  .bg-primary {
+  /* Dynamic Active Primary Actions & Buttons (scoped to dark) */
+  .dark .bg-blue-600,
+  .dark .bg-indigo-600,
+  .dark .bg-primary {
     background-color: var(--accent) !important;
   }
 
-  .hover\:bg-blue-700:hover,
-  .hover\:bg-indigo-700:hover,
-  .hover\:bg-primary-hover:hover {
+  .dark .hover\:bg-blue-700:hover,
+  .dark .hover\:bg-indigo-700:hover,
+  .dark .hover\:bg-primary-hover:hover {
     background-color: var(--accent-hover) !important;
   }
 
-  .text-blue-600,
-  .text-indigo-600,
-  .text-primary {
+  .dark .text-blue-600,
+  .dark .text-indigo-600,
+  .dark .text-primary {
     color: var(--accent-text) !important;
+  }
+
+  /* Success/active states in dark */
+  .dark .text-emerald-600,
+  .dark .text-emerald-500 {
+    color: var(--success) !important;
+  }
+
+  /* Dividers */
+  .dark .divide-slate-700 > * + * {
+    border-color: var(--border) !important;
+  }
+
+  .dark .divide-slate-800 > * + * {
+    border-color: var(--border) !important;
   }
 }
 
