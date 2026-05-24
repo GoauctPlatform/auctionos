@@ -174,7 +174,7 @@ export const AuctionList: React.FC = () => {
             </div>
 
             {viewMode === 'list' ? (
-                <div className="bg-white dark:bg-[#1a2634] rounded-xl border border-[#e7ecf3] dark:border-slate-700 overflow-hidden">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-[#e7ecf3] dark:border-slate-700 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shadow-sm">
@@ -253,7 +253,7 @@ export const AuctionList: React.FC = () => {
                     </div>
                 </div>
             ) : (
-                <div className="bg-white dark:bg-[#1a2634] rounded-xl border border-[#e7ecf3] dark:border-slate-700 p-6">
+                <div className="bg-white dark:bg-slate-900 rounded-xl border border-[#e7ecf3] dark:border-slate-700 p-6">
                     <div className="grid grid-cols-7 gap-4">
                         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                             <div key={day} className="text-center text-sm font-medium text-slate-500 py-2">

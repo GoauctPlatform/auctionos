@@ -24,7 +24,7 @@ const ConsultantLayout: React.FC = () => {
 
     return (
         <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-900 font-display flex flex-col">
-            <header className="bg-white dark:bg-[#1a2634] border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
+            <header className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-50">
                 <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12">
                     <div className="flex justify-between h-16">
                         <div className="flex items-center gap-6">

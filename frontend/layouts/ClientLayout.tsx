@@ -246,7 +246,7 @@ const ClientLayout: React.FC = () => {
                                location.pathname === '/client/';
 
   return (
-    <div className={`w-full bg-slate-50 dark:bg-slate-950 font-display flex flex-col relative ${isWorkbenchWorkspace ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+    <div className={`w-full bg-slate-50 dark:bg-slate-900 font-display flex flex-col relative ${isWorkbenchWorkspace ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       {/* Dynamic Background Layer */}
       <div className="fixed inset-0 bg-mesh-gradient pointer-events-none z-0" />
 
@@ -573,7 +573,7 @@ const ClientLayout: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 w-full flex flex-col min-w-0 overflow-hidden">
-        <div className={`flex-1 bg-slate-50 dark:bg-slate-950 flex flex-col ${isWorkbenchWorkspace ? 'overflow-hidden' : 'overflow-auto'}`}>
+        <div className={`flex-1 bg-slate-50 dark:bg-slate-900 flex flex-col ${isWorkbenchWorkspace ? 'overflow-hidden' : 'overflow-auto'}`}>
           {isMainDashboard && (
             <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12 mt-6 w-full shrink-0">
               <div className="glass-card p-4.5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border border-blue-500/25 bg-blue-50/50 dark:bg-blue-955/10 text-slate-800 dark:text-slate-100">
@@ -609,7 +609,7 @@ const ClientLayout: React.FC = () => {
 
       {/* Persistent macOS-style Dock for all non-workbench investor pages */}
       {!isWorkbenchWorkspace && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-950 dark:bg-slate-950/90 backdrop-blur-md rounded-2xl border border-slate-700/50 flex items-center gap-3 z-[9999] shadow-2xl transition-all select-none">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-800 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-slate-700/50 flex items-center gap-3 z-[9999] shadow-2xl transition-all select-none">
           {[
             { id: 'dashboard', label: 'Workbench', path: '/client', icon: LayoutGrid, color: 'hover:text-blue-405 text-blue-500' },
             { id: 'live_auctions', label: 'Auctions', path: '/client/auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
