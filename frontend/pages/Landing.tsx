@@ -453,7 +453,7 @@ export const Landing: React.FC = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-[#070d1a] font-sans text-slate-900 dark:text-slate-50 overflow-hidden selection:bg-emerald-500 selection:text-white">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#070d1a] font-sans text-slate-900 dark:text-slate-50 overflow-x-hidden selection:bg-emerald-500 selection:text-white">
 
             {/* BG Ambience */}
             <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none">
