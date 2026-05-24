@@ -109,25 +109,31 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
 
         const video = videoRef.current;
         if (video) {
+            let initialSeekDone = false;
+
             const initVideo = () => {
-                // Play and immediately pause to force decode the first frame
-                video.play()
-                    .then(() => {
-                        video.pause();
-                        video.currentTime = 0.001;
-                        setVideoLoaded(true); // Fade out poster, fade in video
-                        handleScroll();
-                    })
-                    .catch((err) => {
-                        console.log("Video preload auto-play prevented:", err);
-                        video.currentTime = 0.001;
-                        setVideoLoaded(true); // Safe fallback fade-in
-                        handleScroll();
+                if (initialSeekDone) return;
+                
+                const onInitialSeek = () => {
+                    initialSeekDone = true;
+                    video.removeEventListener('seeked', onInitialSeek);
+                    // Double rAF ensures the browser has physically painted the frame to the GPU
+                    requestAnimationFrame(() => {
+                        requestAnimationFrame(() => {
+                            setVideoLoaded(true);
+                            handleScroll();
+                        });
                     });
+                };
+                
+                video.addEventListener('seeked', onInitialSeek);
+                // Seeking to a frame forces the browser decoder to grab it without a play/pause promise flash
+                video.currentTime = 0.1;
             };
 
             // Catch-up mechanism: when a seek finishes, align with the final scroll position if needed
             const handleSeeked = () => {
+                if (!initialSeekDone) return;
                 const target = latestTargetRef.current;
                 if (!video.seeking && Math.abs(video.currentTime - target) > 0.1) {
                     video.currentTime = target;
@@ -138,12 +144,14 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
                 initVideo();
             } else {
                 video.addEventListener('canplay', initVideo);
+                video.addEventListener('loadeddata', initVideo);
             }
             video.addEventListener('seeked', handleSeeked);
 
             return () => {
                 window.removeEventListener('scroll', handleScroll);
                 video.removeEventListener('canplay', initVideo);
+                video.removeEventListener('loadeddata', initVideo);
                 video.removeEventListener('seeked', handleSeeked);
             };
         }
@@ -169,26 +177,27 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
                         src="/hero-poster.jpg"
                         alt=""
                         className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 z-10 ${
-                            videoLoaded ? 'opacity-0' : 'opacity-90'
+                            videoLoaded ? 'opacity-0' : 'opacity-100'
                         }`}
                         style={{
-                            transform: 'translate3d(0,0,0)',
+                            transform: 'translateZ(0)',
                             backfaceVisibility: 'hidden',
                             willChange: 'opacity'
                         }}
                     />
                 )}
 
-                {/* Background Video (Injected after 500ms, then plays/pauses to cache frames) */}
+                {/* Background Video (Injected after 500ms, then seeks to cache frame) */}
                 {videoSrc && (
                     <video 
                         ref={videoRef}
-                        className="absolute inset-0 w-full h-full object-cover opacity-90 z-0"
+                        className="absolute inset-0 w-full h-full object-cover opacity-100 z-0"
                         style={{
-                            transform: 'translate3d(0,0,0)',
+                            transform: 'translateZ(0)',
                             backfaceVisibility: 'hidden'
                         }}
                         src={videoSrc}
+                        poster="/hero-poster.jpg"
                         preload="auto"
                         muted
                         playsInline
