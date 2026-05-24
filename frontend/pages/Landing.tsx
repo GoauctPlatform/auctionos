@@ -78,12 +78,40 @@ const ScrollHeroVideo: React.FC<{ navigate: ReturnType<typeof useNavigate> }> = 
         });
     }, []);
 
-    // Lazy load the video in the background after initial paint is complete
+    // Preload the video as a Blob in memory (the "frontend volume" cache) to guarantee fluid scrubbing
     React.useEffect(() => {
+        let active = true;
+        let blobUrl: string | null = null;
+
+        const preloadVideo = async () => {
+            try {
+                const response = await fetch("/hero-video.mp4");
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const blob = await response.blob();
+                if (active) {
+                    blobUrl = URL.createObjectURL(blob);
+                    setVideoSrc(blobUrl);
+                }
+            } catch (error) {
+                console.error("Error preloading video as Blob, falling back to standard source:", error);
+                if (active) {
+                    setVideoSrc("/hero-video.mp4");
+                }
+            }
+        };
+
+        // Delay starting the preloading slightly to prioritize critical page elements (first paint, fonts, CSS)
         const timer = setTimeout(() => {
-            setVideoSrc("/hero-video.mp4");
-        }, 600); // 600ms gives plenty of time for HTML/JS/CSS/Fonts to render first
-        return () => clearTimeout(timer);
+            preloadVideo();
+        }, 500);
+
+        return () => {
+            active = false;
+            clearTimeout(timer);
+            if (blobUrl) {
+                URL.revokeObjectURL(blobUrl);
+            }
+        };
     }, []);
 
     React.useEffect(() => {
