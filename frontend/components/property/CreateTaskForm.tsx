@@ -278,7 +278,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
                                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                                     {CHECKLIST_CATEGORIES.map(category => (
                                         <div key={category.id} className="border border-slate-200/60 dark:border-slate-800/60 rounded-2xl overflow-hidden bg-white/30 dark:bg-slate-800/20 backdrop-blur-md shadow-sm">
-                                            <div className="bg-slate-50/50 dark:bg-slate-800/40 px-4 py-2 border-b border-slate-200/50 dark:border-slate-850/50">
+                                            <div className="bg-slate-50/50 dark:bg-slate-800/40 px-4 py-2 border-b border-slate-200/50 dark:border-slate-800/50">
                                                 <h4 className="font-bold text-slate-800 dark:text-slate-200 text-xs uppercase tracking-wider">{category.label}</h4>
                                             </div>
                                             <div className="p-3 space-y-2">

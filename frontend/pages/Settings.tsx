@@ -243,7 +243,7 @@ export const Settings: React.FC = () => {
                                                     <div className="flex justify-between items-center">
                                                         <div className="flex gap-0.5 items-center">
                                                             <div className={`w-1 h-1 rounded-full ${t.previewAccent}`} />
-                                                            <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-750/80" />
+                                                            <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-700/80" />
                                                         </div>
                                                         <div className={`w-2 h-1 rounded-full ${t.previewAccent} opacity-80`} />
                                                     </div>
@@ -357,7 +357,7 @@ export const Settings: React.FC = () => {
                                                 <div className="flex justify-between items-center">
                                                     <div className="flex gap-0.5 items-center">
                                                         <div className={`w-1 h-1 rounded-full ${t.previewAccent}`} />
-                                                        <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-750/80" />
+                                                        <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-700/80" />
                                                     </div>
                                                     <div className={`w-2 h-1 rounded-full ${t.previewAccent} opacity-80`} />
                                                 </div>

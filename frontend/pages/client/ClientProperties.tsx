@@ -112,7 +112,7 @@ const ClientProperties: React.FC = () => {
                     Create Custom Property
                 </Button>
             </div>
-            <div id="tour-properties-filters" className="sticky top-0 z-40 pt-2 pb-1 bg-[#F8FAFC] dark:bg-slate-950/80 backdrop-blur-md -mx-4 px-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
+            <div id="tour-properties-filters" className="sticky top-0 z-40 pt-2 pb-1 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md -mx-4 px-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
                 <PropertyFilters 
                     onFilterChange={setFilters} 
                     readOnly={true} 

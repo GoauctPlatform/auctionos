@@ -185,7 +185,7 @@ const AgentLayout: React.FC = () => {
 
                 <div className="flex-1 flex overflow-hidden">
                     <aside className={`
-                        fixed inset-y-0 left-0 z-40 bg-white dark:bg-slate-850
+                        fixed inset-y-0 left-0 z-40 bg-white dark:bg-slate-800
                         border-r border-slate-200 dark:border-slate-800 flex flex-col
                         transform transition-all duration-300 ease-in-out
                         ${mobileOpen ? 'translate-x-0 w-64' : '-translate-x-full w-64'}
@@ -205,7 +205,7 @@ const AgentLayout: React.FC = () => {
                             <NavLink to="/agent/withdraw" onClick={() => setMobileOpen(false)} className={({isActive}) => `block p-3 rounded-xl transition-colors ${isActive ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 font-medium' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}>Earnings</NavLink>
                         </nav>
                         <div className="p-4 border-t border-slate-200 dark:border-slate-800">
-                            <button onClick={handleLogout} className="w-full p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-850 rounded-lg flex items-center justify-center gap-2">
+                            <button onClick={handleLogout} className="w-full p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg flex items-center justify-center gap-2">
                                 <span className="material-symbols-outlined text-[18px]">logout</span>
                                 Logout
                             </button>
@@ -220,7 +220,7 @@ const AgentLayout: React.FC = () => {
                     {/* Main content */}
                     <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
                         {/* Universal Top Bar */}
-                        <header className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-750 shrink-0 z-20">
+                        <header className="flex items-center justify-between px-4 py-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-800 shrink-0 z-20">
                             <div className="flex items-center gap-3">
                                 <button onClick={() => setMobileOpen(true)} className="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700">
                                     <span className="material-symbols-outlined">menu</span>

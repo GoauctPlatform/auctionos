@@ -2561,7 +2561,7 @@ export const ClientWorkbench: React.FC = () => {
     <div className="w-full flex-1 flex flex-col h-full min-h-0 overflow-hidden select-none bg-slate-50 dark:bg-slate-950 font-display">
 
       {/* ─── WORKBENCH SYSTEM TOP BAR (Mission Control Header) ─── */}
-      <div className="w-full h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-850 px-4 flex justify-between items-center shrink-0 z-40 select-none">
+      <div className="w-full h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex justify-between items-center shrink-0 z-40 select-none">
         {/* Left Side: Brand Logo & Mission Control */}
         <div id="tour-welcome-header" className="flex items-center gap-2.5">
           <div className="size-6 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
@@ -2813,7 +2813,7 @@ export const ClientWorkbench: React.FC = () => {
                         className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${
                           w.visible
                             ? 'bg-blue-50/50 dark:bg-blue-950/10 border-blue-500/20 text-blue-700 dark:text-blue-400 font-bold'
-                            : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-850 text-slate-455 dark:text-slate-600 font-semibold'
+                            : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
                         }`}
                       >
                         <div className="flex items-center gap-2 text-xs">
@@ -2905,7 +2905,7 @@ export const ClientWorkbench: React.FC = () => {
                               className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${
                                 w.visible
                                   ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold'
-                                  : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-850 text-slate-455 dark:text-slate-600 font-semibold'
+                                  : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
                               }`}
                             >
                               <span className="text-xs truncate">{w.title}</span>
@@ -4064,7 +4064,7 @@ export const ClientWorkbench: React.FC = () => {
                   height: w.h,
                   zIndex: w.zIndex,
                 }}
-                className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-slate-850 bg-white/75 dark:bg-slate-900/70 backdrop-blur-md group/window rounded-xl"
+                className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-slate-800 bg-white/75 dark:bg-slate-900/70 backdrop-blur-md group/window rounded-xl"
               >
                 {/* Window Title Bar (Drag Handle) */}
                 <div
@@ -4175,7 +4175,7 @@ export const ClientWorkbench: React.FC = () => {
                         </div>
 
                         {/* Info details inside phone */}
-                        <div className="bg-slate-900 dark:bg-slate-800 p-2.5 rounded-2xl border border-slate-850 flex items-center gap-2 select-none">
+                        <div className="bg-slate-900 dark:bg-slate-800 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-2 select-none">
                           <Award className="text-cyan-400 shrink-0" size={14} />
                           <div className="text-[7px] leading-tight">
                             <p className="font-extrabold text-white">SYSTEM ONLINE</p>
@@ -4241,7 +4241,7 @@ export const ClientWorkbench: React.FC = () => {
 
                   {/* GIS Heatmap widget */}
                   {w.type === 'map' && (
-                    <div className="size-full min-h-[160px] relative flex items-center justify-center bg-slate-50/20 dark:bg-slate-955/10 rounded-xl overflow-hidden">
+                    <div className="size-full min-h-[160px] relative flex items-center justify-center bg-slate-50/20 dark:bg-slate-800/10 rounded-xl overflow-hidden">
                       {loading ? (
                         <RefreshCw className="animate-spin text-blue-500" size={24} />
                       ) : (
@@ -4271,7 +4271,7 @@ export const ClientWorkbench: React.FC = () => {
                             className={`px-3 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1 ${
                               recommendedTab === tab.id
                                 ? 'bg-indigo-500 text-white shadow-sm'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-750'
+                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
                             }`}
                           >
                             {tab.label}
@@ -4489,7 +4489,7 @@ export const ClientWorkbench: React.FC = () => {
 
                   {/* Widget 5: Property Search */}
                   {w.type === 'property_search' && (
-                    <div className="size-full overflow-auto bg-[#F8FAFC] dark:bg-slate-955/80 rounded-lg no-scrollbar scrollbar-none">
+                    <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900/80 rounded-lg no-scrollbar scrollbar-none">
                       <ClientProperties />
                     </div>
                   )}
@@ -4530,7 +4530,7 @@ export const ClientWorkbench: React.FC = () => {
                                           <div className="w-1.5 h-1.5 rounded-full" style={{ background: entry.color }} />
                                           <span className="text-slate-500 dark:text-slate-400">{entry.name}</span>
                                         </div>
-                                        <span className="font-bold text-slate-955 dark:text-white">{entry.value}</span>
+                                        <span className="font-bold text-slate-900 dark:text-white">{entry.value}</span>
                                       </div>
                                     ))}
                                   </div>
@@ -4583,7 +4583,7 @@ export const ClientWorkbench: React.FC = () => {
                             </div>
                           </div>
 
-                          <div className="flex items-center justify-between text-[9px] bg-slate-50/30 dark:bg-slate-800/10 px-2 py-1.5 rounded-lg border border-slate-200/30 dark:border-slate-850">
+                          <div className="flex items-center justify-between text-[9px] bg-slate-50/30 dark:bg-slate-800/10 px-2 py-1.5 rounded-lg border border-slate-200/30 dark:border-slate-800">
                             <span className="text-slate-550 flex items-center gap-1 font-semibold">
                               <ShieldCheck size={12} className="text-emerald-500 animate-pulse" /> FEMA Hazard:
                             </span>
@@ -4874,7 +4874,7 @@ export const ClientWorkbench: React.FC = () => {
                           return (
                             <div key={api.key} className="p-3 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/80 rounded-xl flex flex-col justify-between">
                               <div>
-                                <span className="text-[9px] font-black text-slate-955 dark:text-white block">{api.label}</span>
+                                <span className="text-[9px] font-black text-slate-900 dark:text-white block">{api.label}</span>
                                 <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">{api.desc}</span>
                               </div>
                               <div className="flex items-center gap-1.5 mt-2 shrink-0">
@@ -5218,17 +5218,17 @@ export const ClientWorkbench: React.FC = () => {
                         {/* Itemized paid invoices ledger */}
                         <div>
                           <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2">Paid Invoices Ledger</span>
-                          <div className="border border-slate-200 dark:border-slate-855 rounded-xl overflow-hidden bg-white dark:bg-slate-900/40">
+                          <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900/40">
                             <table className="w-full text-left text-[9px] border-collapse">
                               <thead>
-                                <tr className="bg-slate-50/70 dark:bg-slate-850/50 border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-black tracking-wider">
+                                <tr className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-black tracking-wider">
                                   <th className="p-2">Invoice</th>
                                   <th className="p-2">Date</th>
                                   <th className="p-2 text-right">Amount</th>
                                   <th className="p-2 text-center">Status</th>
                                 </tr>
                               </thead>
-                              <tbody className="divide-y divide-slate-100 dark:divide-slate-850">
+                              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {billingInvoices.map((inv, idx) => (
                                   <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 font-semibold text-slate-600 dark:text-slate-355">
                                     <td className="p-2 font-bold text-slate-900 dark:text-white">{inv.id}</td>
@@ -5315,7 +5315,7 @@ export const ClientWorkbench: React.FC = () => {
                               key={n.id}
                               className={`p-2.5 rounded-xl border flex items-start gap-2.5 transition-all relative ${
                                 n.read
-                                  ? 'bg-slate-50/30 dark:bg-slate-900/10 border-slate-200 dark:border-slate-850 opacity-60'
+                                  ? 'bg-slate-50/30 dark:bg-slate-900/10 border-slate-200 dark:border-slate-800 opacity-60'
                                   : n.type === 'warning'
                                     ? 'bg-amber-50/30 dark:bg-amber-955/5 border-amber-500/20 text-slate-800 dark:text-slate-300'
                                     : n.type === 'success'
@@ -5336,7 +5336,7 @@ export const ClientWorkbench: React.FC = () => {
                                   <button
                                     id={`mark-read-${n.id}`}
                                     onClick={() => handleMarkAsRead(n.id)}
-                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-850 rounded text-slate-400 hover:text-indigo-500"
+                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-indigo-500"
                                     title="Mark Read"
                                   >
                                     <Check size={10} />
@@ -5394,7 +5394,7 @@ export const ClientWorkbench: React.FC = () => {
                             <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-center">
                               <div>
                                 <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">Nearby Rated Public Schools</span>
-                                <span className="text-[10px] font-extrabold text-slate-850 dark:text-slate-200 mt-1.5 block leading-none">K-12 Educational Index Rating</span>
+                                <span className="text-[10px] font-extrabold text-slate-900 dark:text-slate-200 mt-1.5 block leading-none">K-12 Educational Index Rating</span>
                               </div>
                               <span className="text-[11px] font-black text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded">
                                 {selectedProperty.deal_score && selectedProperty.deal_score > 82 ? 'Rated A+' : 'Rated B'}
@@ -5724,7 +5724,7 @@ export const ClientWorkbench: React.FC = () => {
                       <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin space-y-4">
                         {/* Agent Grid Tracker */}
                         <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
-                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 rounded-xl flex flex-col justify-between h-20">
+                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-slate-900 dark:text-slate-200">Agent Alpha</span>
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
@@ -5735,7 +5735,7 @@ export const ClientWorkbench: React.FC = () => {
                             </div>
                           </div>
 
-                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 rounded-xl flex flex-col justify-between h-20">
+                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-slate-900 dark:text-slate-200">Agent Beta</span>
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
@@ -5746,7 +5746,7 @@ export const ClientWorkbench: React.FC = () => {
                             </div>
                           </div>
 
-                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 rounded-xl flex flex-col justify-between h-20">
+                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-slate-900 dark:text-slate-200">Agent Gamma</span>
                               <span className="h-1.5 w-1.5 rounded-full bg-[#0D8BFF] animate-pulse" />
@@ -5757,7 +5757,7 @@ export const ClientWorkbench: React.FC = () => {
                             </div>
                           </div>
 
-                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 rounded-xl flex flex-col justify-between h-20">
+                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
                             <div className="flex items-center justify-between">
                               <span className="font-bold text-slate-400">Agent Delta</span>
                               <span className="h-1.5 w-1.5 rounded-full bg-slate-550" />
@@ -5777,7 +5777,7 @@ export const ClientWorkbench: React.FC = () => {
                           </span>
 
                           <div className="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-thin">
-                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 font-mono text-[8px]">
+                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
                               <div>
                                 <p className="font-bold text-slate-900 dark:text-slate-200">#FL-440263-AP</p>
                                 <p className="text-slate-500 text-[7px] mt-0.5">Orange County, FL // Drive-by SOP</p>
@@ -5785,7 +5785,7 @@ export const ClientWorkbench: React.FC = () => {
                               <span className="text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Pending</span>
                             </div>
 
-                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 font-mono text-[8px]">
+                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
                               <div>
                                 <p className="font-bold text-slate-900 dark:text-slate-200">#TX-118490-DE</p>
                                 <p className="text-slate-500 text-[7px] mt-0.5">Harris County, TX // Photos required</p>
@@ -5793,7 +5793,7 @@ export const ClientWorkbench: React.FC = () => {
                               <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Scheduled</span>
                             </div>
 
-                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 font-mono text-[8px]">
+                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
                               <div>
                                 <p className="font-bold text-slate-900 dark:text-slate-200">#CA-889312-LA</p>
                                 <p className="text-slate-500 text-[7px] mt-0.5">Los Angeles, CA // Occupancy check</p>
@@ -5820,7 +5820,7 @@ export const ClientWorkbench: React.FC = () => {
 
                       <div className="flex-1 flex flex-col justify-center">
                         {/* Pipeline flowchart */}
-                        <div className="flex items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-955/40 rounded-xl border border-slate-200/40 dark:border-slate-850 relative overflow-hidden">
+                        <div className="flex items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200/40 dark:border-slate-800 relative overflow-hidden">
                           
                           {/* Connecting pipeline line */}
                           <div className="absolute top-1/2 left-8 right-8 h-[1.5px] bg-gradient-to-r from-[#0D8BFF]/40 via-[#13B8B5]/40 to-emerald-500/40 -translate-y-1/2 hidden sm:block" />
@@ -5903,7 +5903,7 @@ export const ClientWorkbench: React.FC = () => {
                       </div>
 
                       {/* SVG Mini Workspace */}
-                      <div className="flex-1 min-h-0 relative bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-850 rounded-xl overflow-hidden select-none">
+                      <div className="flex-1 min-h-0 relative bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 rounded-xl overflow-hidden select-none">
                         <svg
                           className="absolute inset-0 size-full"
                           onMouseMove={handleSvgMouseMove}
@@ -6040,7 +6040,7 @@ export const ClientWorkbench: React.FC = () => {
                             <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Connect</span>
                           </button>
 
-                          <div className="w-[1px] h-3.5 bg-slate-200 dark:bg-slate-850" />
+                          <div className="w-[1px] h-3.5 bg-slate-200 dark:bg-slate-800" />
 
                           <button
                             onClick={() => {
@@ -6240,7 +6240,7 @@ export const ClientWorkbench: React.FC = () => {
                                 </tr>
                               </thead>
                               <tbody>
-                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
                                   <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Top Pick</td>
                                   {props.map((p, idx) => (
                                     <td key={p.id || idx} className="py-2 px-2 text-center">
@@ -6254,7 +6254,7 @@ export const ClientWorkbench: React.FC = () => {
                                     </td>
                                   ))}
                                 </tr>
-                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
                                   <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">County</td>
                                   {props.map((p, idx) => (
                                     <td key={p.id || idx} className="py-2 px-2 text-center text-slate-600 dark:text-slate-400 font-bold truncate max-w-[80px]">
@@ -6262,7 +6262,7 @@ export const ClientWorkbench: React.FC = () => {
                                     </td>
                                   ))}
                                 </tr>
-                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
                                   <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Yield Score</td>
                                   {props.map((p, idx) => (
                                     <td key={p.id || idx} className="py-2 px-2 text-center font-extrabold text-indigo-500">
@@ -6270,7 +6270,7 @@ export const ClientWorkbench: React.FC = () => {
                                     </td>
                                   ))}
                                 </tr>
-                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
                                   <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Opening Bid</td>
                                   {props.map((p, idx) => (
                                     <td key={p.id || idx} className="py-2 px-2 text-center text-slate-900 dark:text-white font-extrabold">
@@ -6278,7 +6278,7 @@ export const ClientWorkbench: React.FC = () => {
                                     </td>
                                   ))}
                                 </tr>
-                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
                                   <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Assessed Value</td>
                                   {props.map((p, idx) => (
                                     <td key={p.id || idx} className="py-2 px-2 text-center text-slate-600 dark:text-slate-400 font-bold">
@@ -6286,7 +6286,7 @@ export const ClientWorkbench: React.FC = () => {
                                     </td>
                                   ))}
                                 </tr>
-                                <tr className="border-b border-slate-100 dark:border-slate-850/50">
+                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
                                   <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Property Type</td>
                                   {props.map((p, idx) => (
                                     <td key={p.id || idx} className="py-2 px-2 text-center text-slate-500 capitalize">
@@ -6306,7 +6306,7 @@ export const ClientWorkbench: React.FC = () => {
                                 <select
                                   value={compareProp1?.id || ''}
                                   onChange={(e) => setCompareProp1(dbTopDeals.find(p => p.id === e.target.value) || null)}
-                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
+                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
                                 >
                                   <option value="">Slot 1...</option>
                                   {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
@@ -6314,7 +6314,7 @@ export const ClientWorkbench: React.FC = () => {
                                 <select
                                   value={compareProp2?.id || ''}
                                   onChange={(e) => setCompareProp2(dbTopDeals.find(p => p.id === e.target.value) || null)}
-                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
+                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
                                 >
                                   <option value="">Slot 2...</option>
                                   {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
@@ -6322,7 +6322,7 @@ export const ClientWorkbench: React.FC = () => {
                                 <select
                                   value={compareProp3?.id || ''}
                                   onChange={(e) => setCompareProp3(dbTopDeals.find(p => p.id === e.target.value) || null)}
-                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-750 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
+                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
                                 >
                                   <option value="">Slot 3...</option>
                                   {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
@@ -6363,7 +6363,7 @@ export const ClientWorkbench: React.FC = () => {
                               <select
                                 value={contactsSearchState}
                                 onChange={(e) => setContactsSearchState(e.target.value)}
-                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[9px] focus:outline-none"
+                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[9px] focus:outline-none"
                               >
                                 <option value="FL">Florida</option>
                                 <option value="AL">Alabama</option>
@@ -6376,7 +6376,7 @@ export const ClientWorkbench: React.FC = () => {
                               <select
                                 value={contactsSearchCounty}
                                 onChange={(e) => setContactsSearchCounty(e.target.value)}
-                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[9px] focus:outline-none"
+                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[9px] focus:outline-none"
                               >
                                 {contactsCountyList.map(c => <option key={c} value={c}>{c}</option>)}
                               </select>
@@ -6389,7 +6389,7 @@ export const ClientWorkbench: React.FC = () => {
                               value={contactsQuery}
                               onChange={(e) => setContactsQuery(e.target.value)}
                               placeholder="Search appraiser, GIS, collectors..."
-                              className="w-full pl-7 pr-2.5 py-1.5 bg-slate-50 dark:bg-slate-850 border border-slate-200 dark:border-slate-700 rounded-lg text-[9.5px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none"
+                              className="w-full pl-7 pr-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[9.5px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none"
                             />
                             <Search className="absolute left-2.5 top-2.5 text-slate-400" size={10} />
                           </div>
@@ -6406,7 +6406,7 @@ export const ClientWorkbench: React.FC = () => {
                           ) : (
                             <div className="space-y-1.5">
                               {filteredList.map((contact, idx) => (
-                                <div key={idx} className="p-2.5 bg-slate-50/50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-850 rounded-xl flex items-center justify-between gap-3">
+                                <div key={idx} className="p-2.5 bg-slate-50/50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between gap-3">
                                   <div className="min-w-0">
                                     <div className="flex items-center gap-1.5">
                                       <span className="text-[9px] font-extrabold text-slate-900 dark:text-white truncate max-w-[130px]">{contact.name || 'Official Agency'}</span>
@@ -6735,7 +6735,7 @@ export const ClientWorkbench: React.FC = () => {
       </div>
 
       {/* ─── FOOTER (Status Bar) ─── */}
-      <div className="w-full h-8 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-850 px-5 flex justify-between items-center shrink-0 z-30 select-none">
+      <div className="w-full h-8 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 px-5 flex justify-between items-center shrink-0 z-30 select-none">
         <div className="flex items-center gap-2">
           <span className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>

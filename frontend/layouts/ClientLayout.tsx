@@ -252,7 +252,7 @@ const ClientLayout: React.FC = () => {
 
       {/* Header Navigation */}
       {!hideHeader && (
-        <header className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-md border-b border-[#e7ecf3] dark:border-slate-700/50 sticky top-0 z-50">
+        <header className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700/50 sticky top-0 z-50">
           <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-12">
           <div className="flex justify-between h-16">
             <div className="flex">
@@ -264,7 +264,7 @@ const ClientLayout: React.FC = () => {
                 <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold text-sm">
                   <span className="material-symbols-outlined text-[20px]">gavel</span>
                 </div>
-                <span className="text-[#0d131b] dark:text-white text-lg font-bold hidden md:block">
+                <span className="text-slate-900 dark:text-white text-lg font-bold hidden md:block">
                   GoAuct
                 </span>
               </div>
