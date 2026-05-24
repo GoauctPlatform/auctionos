@@ -1,5 +1,5 @@
 const isProd = import.meta.env.PROD;
-const defaultProdApi = 'https://goauct-production.up.railway.app/api/v1';
+const defaultProdApi = 'https://auctionos-production.up.railway.app/api/v1';
 
 export const API_URL = isProd
     ? (import.meta.env.VITE_API_URL || defaultProdApi)

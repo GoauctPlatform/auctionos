@@ -139,6 +139,10 @@ origins = [
     "https://goauct-production-82cf.up.railway.app", # Potential staging alias
     "https://goauct.com",
     "https://www.goauct.com",
+    "https://auctionos.up.railway.app",
+    "http://auctionos.up.railway.app",
+    "https://auctionos-production.up.railway.app",
+    "http://auctionos-production.up.railway.app",
 ]
 
 if settings.BACKEND_CORS_ORIGINS:
@@ -153,7 +157,7 @@ origins = list(set([o.rstrip('/') for o in origins if o]))
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex="https://(goauct.*\\.up\\.railway\\.app|.*\\.goauct\\.com|goauct\\.com)",
+    allow_origin_regex="https://((goauct|auctionos).*\\.up\\.railway\\.app|.*\\.(goauct|auctionos)\\.com|(goauct|auctionos)\\.com)",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
