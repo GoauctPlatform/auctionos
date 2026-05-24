@@ -198,7 +198,6 @@ const ClientLayout: React.FC = () => {
 
   let navItems: NavItem[] = [
     { icon: 'home', label: 'Home', path: '/client', end: true },
-    { icon: 'science', label: 'Dashboard V2', path: '/client/dashboard-v2' },
     { icon: 'biotech', label: 'IDE Workbench', path: '/client/workbench' },
     { icon: 'campaign', label: 'Live Auctions', path: '/client/auctions' },
     { icon: 'location_on', label: 'Property Search', path: '/client/properties' },
@@ -588,12 +587,6 @@ const ClientLayout: React.FC = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0 w-full md:w-auto mt-2 md:mt-0">
-                  <Link
-                    to="/client/dashboard-v2"
-                    className="flex-1 md:flex-none text-center px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-slate-700 dark:text-slate-250 border border-slate-200 dark:border-white/10 font-bold text-[9.5px] uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95"
-                  >
-                    V2 Modular Grid
-                  </Link>
                   <Link
                     to="/client/workbench"
                     className="flex-1 md:flex-none text-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9.5px] uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-95 whitespace-nowrap"

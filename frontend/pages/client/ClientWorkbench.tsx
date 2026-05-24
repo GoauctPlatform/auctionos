@@ -11,6 +11,7 @@ import { AuthService } from '../../services/auth.service';
 import { AuctionEvent, Property } from '../../types';
 import { useCompany } from '../../context/CompanyContext';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
+import { API_URL } from '../../services/httpClient';
 
 // Original rich page modules for IDE-style floating windows
 import ClientAuctions from './ClientAuctions';
@@ -38,7 +39,7 @@ import {
   Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
   Gavel, Calendar, ShieldAlert, Search, Plus, Filter, ArrowRight,
   Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare, LogOut,
-  MousePointer, TrendingUp, Lock, Unlock, LayoutDashboard, ExternalLink
+  MousePointer, TrendingUp, Lock, Unlock, LayoutDashboard, ExternalLink, Database
 } from 'lucide-react';
 
 const CHART_COLORS = {
@@ -109,7 +110,7 @@ interface Widget {
   id: string;
   type: 'shortcuts' | 'metrics_deed' | 'metrics_foreclosure' | 'metrics_lien' | 'map' | 'recommended_deals' | 'live_auctions' | 'property_search' | 'chart' | 'dossier' | 'yield' |
         'my_lists' | 'field_missions' | 'connect' | 'settings' | 'profile' | 'team' | 'logs' | 'billings' | 'company' | 'notifications' | 'property_details' | 'create_task' | 'support_center' |
-        'node_canvas' | 'rehab_calc' | 'property_comparator' | 'contacts_search';
+        'node_canvas' | 'rehab_calc' | 'property_comparator' | 'contacts_search' | 'field_coordination' | 'acquisition_pipeline';
   title: string;
   x: number; // left offset in pixels
   y: number; // top offset in pixels
@@ -144,7 +145,9 @@ const DEFAULT_WIDGETS: Widget[] = [
   { id: 'yield', type: 'yield', title: 'Yield Breakdown Analytics', x: 1330, y: 630, w: 380, h: 390, visible: true, zIndex: 20 },
   { id: 'rehab_calc', type: 'rehab_calc', title: 'Rehab & ROI Calculator', x: 1730, y: 20, w: 380, h: 420, visible: true, zIndex: 35 },
   { id: 'support_center', type: 'support_center', title: 'Support & Help Center', x: 1730, y: 460, w: 380, h: 420, visible: true, zIndex: 33 },
-  { id: 'company', type: 'company', title: 'Active Company Hub', x: 2130, y: 20, w: 300, h: 230, visible: true, zIndex: 29 }
+  { id: 'company', type: 'company', title: 'Active Company Hub', x: 2130, y: 20, w: 300, h: 230, visible: true, zIndex: 29 },
+  { id: 'field_coordination', type: 'field_coordination', title: 'Field Operation Coordination', x: 2130, y: 270, w: 380, h: 420, visible: true, zIndex: 30 },
+  { id: 'acquisition_pipeline', type: 'acquisition_pipeline', title: 'Real Estate Acquisition Pipelines', x: 2130, y: 710, w: 380, h: 320, visible: true, zIndex: 31 }
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -217,6 +220,23 @@ export const ClientWorkbench: React.FC = () => {
   }, []);
 
   const [selectedState, setSelectedState] = useState<string>('');
+
+  // Dynamic admin announcements state
+  const [announcements, setAnnouncements] = useState<{ id: number; title: string; message: string; type: string }[]>([]);
+  const [annIndex, setAnnIndex] = useState(0);
+
+  useEffect(() => {
+    fetch(`${API_URL}/admin/announcements/`)
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setAnnouncements(Array.isArray(data) ? data : []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (announcements.length < 2) return;
+    const t = setInterval(() => setAnnIndex(i => (i + 1) % announcements.length), 5000);
+    return () => clearInterval(t);
+  }, [announcements.length]);
 
   // IDE Mode & Node Canvas Custom States
   const layoutTemplate = 'canvas';
@@ -2564,7 +2584,7 @@ export const ClientWorkbench: React.FC = () => {
           </div>
         )}
 
-        {(w.type === 'property_comparator' || w.type === 'contacts_search' || w.type === 'create_task' || w.type === 'support_center') && (
+        {(w.type === 'property_comparator' || w.type === 'contacts_search' || w.type === 'create_task' || w.type === 'support_center' || w.type === 'field_coordination' || w.type === 'acquisition_pipeline') && (
           <div className="h-full flex items-center justify-center">
             <div className="text-center space-y-3">
               <div className="size-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center mx-auto shadow-lg">
@@ -2608,20 +2628,37 @@ export const ClientWorkbench: React.FC = () => {
           </div>
         </div>
 
-        {/* Center: Live Compliance Announcement Ticker */}
-        <div id="tour-announcements" className="hidden lg:flex items-center gap-3 bg-slate-50 dark:bg-slate-955/60 border border-slate-200/20 dark:border-slate-850 px-3.5 py-1.5 rounded-xl max-w-sm overflow-hidden relative">
-          <div className="flex items-center gap-1.5 text-cyan-600 dark:text-cyan-400 shrink-0 text-[8.5px] font-extrabold uppercase tracking-wider">
-            <span className="size-1.5 rounded-full bg-cyan-500 animate-pulse" />
-            <span>Compliance:</span>
-          </div>
-          <div className="relative w-52 h-4 overflow-hidden">
-            <div className="absolute flex flex-col gap-1 text-[8.5px] font-bold text-slate-600 dark:text-slate-400 animate-marquee whitespace-nowrap">
-              <span className="h-[18px] flex items-center">📢 FL deeds deadline extended to May 30</span>
-              <span className="h-[18px] flex items-center">🔥 AI Yield calibrated for all 67 counties</span>
-              <span className="h-[18px] flex items-center">⚡ Real-time county data syncer running</span>
+        {/* Center: Live Dynamic Announcement Ticker */}
+        {(() => {
+          const DEFAULT_ANNOUNCEMENTS = [
+            { id: -1, title: 'Compliance', message: 'FL deeds deadline extended to May 30', type: 'info' },
+            { id: -2, title: 'AI Calibration', message: 'AI Yield calibrated for all 67 counties', type: 'update' },
+            { id: -3, title: 'County Sync', message: 'Real-time county data syncer running', type: 'success' }
+          ];
+          const activeAnnouncements = announcements.length > 0 ? announcements : DEFAULT_ANNOUNCEMENTS;
+          const currentAnn = activeAnnouncements[annIndex % activeAnnouncements.length];
+          const typeMap: Record<string, { bg: string; icon: string; textClass: string; color: string }> = {
+            info:    { bg: 'bg-blue-500/10 border-blue-500/25',    icon: '📢', textClass: 'text-blue-600 dark:text-blue-400', color: 'bg-blue-500' },
+            warning: { bg: 'bg-amber-500/10 border-amber-500/25',  icon: '⚠️', textClass: 'text-amber-600 dark:text-amber-400', color: 'bg-amber-500' },
+            success: { bg: 'bg-emerald-500/10 border-emerald-500/25', icon: '✅', textClass: 'text-emerald-600 dark:text-emerald-400', color: 'bg-emerald-500' },
+            update:  { bg: 'bg-purple-500/10 border-purple-500/25', icon: '✨', textClass: 'text-purple-600 dark:text-purple-400', color: 'bg-purple-500' },
+          };
+          const cfg = typeMap[currentAnn?.type] || typeMap.info;
+
+          return (
+            <div id="tour-announcements" className={`hidden lg:flex items-center gap-3 border px-3.5 py-1 rounded-xl max-w-sm overflow-hidden relative transition-all duration-300 ${cfg.bg}`}>
+              <div className={`flex items-center gap-1 shrink-0 text-[8px] font-extrabold uppercase tracking-wider ${cfg.textClass}`}>
+                <span className={`size-1 rounded-full animate-pulse ${cfg.color}`} />
+                <span>{currentAnn?.title}:</span>
+              </div>
+              <div className="relative w-52 h-4 overflow-hidden flex items-center">
+                <span className="text-[8px] font-bold text-slate-600 dark:text-slate-350 truncate">
+                  {cfg.icon} {currentAnn?.message}
+                </span>
+              </div>
             </div>
-          </div>
-        </div>
+          );
+        })()}
 
         {/* Right Side: Quick Action Buttons & Status Indicators */}
         <div className="flex items-center gap-4">
@@ -2854,6 +2891,8 @@ export const ClientWorkbench: React.FC = () => {
                           {w.type === 'rehab_calc' && <Activity size={13} />}
                           {w.type === 'property_comparator' && <LayoutGrid size={13} />}
                           {w.type === 'contacts_search' && <Smartphone size={13} />}
+                          {w.type === 'field_coordination' && <Users size={13} />}
+                          {w.type === 'acquisition_pipeline' && <Layers size={13} />}
                           <span className="truncate max-w-[130px]">{w.title}</span>
                         </div>
                         {w.visible ? <Eye size={12} /> : <EyeOff size={12} />}
@@ -5717,6 +5756,178 @@ export const ClientWorkbench: React.FC = () => {
                       )}
                     </div>
                   )}
+
+                  {/* Field Operation Coordination Widget (field_coordination) */}
+                  {w.type === 'field_coordination' && (
+                    <div className="size-full flex flex-col justify-between">
+                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 justify-between items-center select-none">
+                        <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                          <Users size={11} className="text-cyan-500" /> On-site Agents Telemetry
+                        </span>
+                        <span className="text-[8px] font-mono bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                          Live Active
+                        </span>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin space-y-4">
+                        {/* Agent Grid Tracker */}
+                        <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
+                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 rounded-xl flex flex-col justify-between h-20">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-900 dark:text-slate-200">Agent Alpha</span>
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            </div>
+                            <div>
+                              <p className="text-slate-500 text-[8px]">LOC: Orlando, FL</p>
+                              <p className="text-[#13B8B5] text-[8px] font-bold mt-0.5">GEO-LOCK: SUCCESS</p>
+                            </div>
+                          </div>
+
+                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 rounded-xl flex flex-col justify-between h-20">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-900 dark:text-slate-200">Agent Beta</span>
+                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            </div>
+                            <div>
+                              <p className="text-slate-500 text-[8px]">LOC: Houston, TX</p>
+                              <p className="text-[#13B8B5] text-[8px] font-bold mt-0.5">GEO-LOCK: SUCCESS</p>
+                            </div>
+                          </div>
+
+                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 rounded-xl flex flex-col justify-between h-20">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-900 dark:text-slate-200">Agent Gamma</span>
+                              <span className="h-1.5 w-1.5 rounded-full bg-[#0D8BFF] animate-pulse" />
+                            </div>
+                            <div>
+                              <p className="text-slate-500 text-[8px]">LOC: Los Angeles, CA</p>
+                              <p className="text-[#0D8BFF] text-[8px] font-bold mt-0.5">IN TRANSIT</p>
+                            </div>
+                          </div>
+
+                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 rounded-xl flex flex-col justify-between h-20">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-slate-400">Agent Delta</span>
+                              <span className="h-1.5 w-1.5 rounded-full bg-slate-550" />
+                            </div>
+                            <div>
+                              <p className="text-slate-500 text-[8px]">LOC: Philadelphia, PA</p>
+                              <p className="text-slate-500 text-[8px] font-bold mt-0.5">STANDBY</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Pending Inspections queue */}
+                        <div className="pt-3 border-t border-slate-200/50 dark:border-slate-800/80">
+                          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 font-mono flex items-center justify-between">
+                            <span>Pending Field Inspections</span>
+                            <span className="text-[#13B8B5]">3 Queue</span>
+                          </span>
+
+                          <div className="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-thin">
+                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 font-mono text-[8px]">
+                              <div>
+                                <p className="font-bold text-slate-900 dark:text-slate-200">#FL-440263-AP</p>
+                                <p className="text-slate-500 text-[7px] mt-0.5">Orange County, FL // Drive-by SOP</p>
+                              </div>
+                              <span className="text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Pending</span>
+                            </div>
+
+                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 font-mono text-[8px]">
+                              <div>
+                                <p className="font-bold text-slate-900 dark:text-slate-200">#TX-118490-DE</p>
+                                <p className="text-slate-500 text-[7px] mt-0.5">Harris County, TX // Photos required</p>
+                              </div>
+                              <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Scheduled</span>
+                            </div>
+
+                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-850 font-mono text-[8px]">
+                              <div>
+                                <p className="font-bold text-slate-900 dark:text-slate-200">#CA-889312-LA</p>
+                                <p className="text-slate-500 text-[7px] mt-0.5">Los Angeles, CA // Occupancy check</p>
+                              </div>
+                              <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Scheduled</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Real Estate Acquisition Pipelines (acquisition_pipeline) */}
+                  {w.type === 'acquisition_pipeline' && (
+                    <div className="size-full flex flex-col justify-between">
+                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 justify-between items-center select-none">
+                        <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                          <Layers size={11} className="text-indigo-500" /> Operational Workflow Pipeline
+                        </span>
+                        <span className="text-[8px] font-mono bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                          Active Map
+                        </span>
+                      </div>
+
+                      <div className="flex-1 flex flex-col justify-center">
+                        {/* Pipeline flowchart */}
+                        <div className="flex items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-955/40 rounded-xl border border-slate-200/40 dark:border-slate-850 relative overflow-hidden">
+                          
+                          {/* Connecting pipeline line */}
+                          <div className="absolute top-1/2 left-8 right-8 h-[1.5px] bg-gradient-to-r from-[#0D8BFF]/40 via-[#13B8B5]/40 to-emerald-500/40 -translate-y-1/2 hidden sm:block" />
+
+                          {/* Node 1 */}
+                          <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
+                            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-md group hover:border-[#0D8BFF]/50 transition-colors">
+                              <Database className="text-slate-400 group-hover:text-[#0D8BFF] transition-colors" size={14} />
+                            </div>
+                            <div className="text-center font-mono">
+                              <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Data Intake</p>
+                              <span className="text-[6px] text-slate-400 uppercase font-bold">100% Sync</span>
+                            </div>
+                          </div>
+
+                          <ArrowRight className="text-slate-400 shrink-0 hidden sm:block" size={10} />
+
+                          {/* Node 2 */}
+                          <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
+                            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-md group hover:border-[#13B8B5]/50 transition-colors">
+                              <Search className="text-slate-400 group-hover:text-[#13B8B5] transition-colors" size={14} />
+                            </div>
+                            <div className="text-center font-mono">
+                              <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Due Diligence</p>
+                              <span className="text-[6px] text-[#13B8B5] uppercase font-bold animate-pulse">Running</span>
+                            </div>
+                          </div>
+
+                          <ArrowRight className="text-slate-400 shrink-0 hidden sm:block" size={10} />
+
+                          {/* Node 3 */}
+                          <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
+                            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-md group hover:border-[#0D8BFF]/50 transition-colors">
+                              <Activity className="text-slate-400 group-hover:text-[#0D8BFF] transition-colors" size={14} />
+                            </div>
+                            <div className="text-center font-mono">
+                              <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Bid Strategy</p>
+                              <span className="text-[6px] text-slate-450 uppercase font-bold">Ready</span>
+                            </div>
+                          </div>
+
+                          <ArrowRight className="text-slate-400 shrink-0 hidden sm:block" size={10} />
+
+                          {/* Node 4 */}
+                          <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
+                            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-[#10B981]/50 flex items-center justify-center shadow-md relative group">
+                              <div className="absolute inset-0 bg-[#10B981]/10 blur-xs rounded-xl" />
+                              <Award className="text-[#10B981] relative z-10" size={14} />
+                            </div>
+                            <div className="text-center font-mono">
+                              <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Acquisition</p>
+                              <span className="text-[6px] text-[#10B981] uppercase font-bold">Target Locked</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
 
                   {/* Deal Flow Node Engine (node_canvas) */}
                   {w.type === 'node_canvas' && (

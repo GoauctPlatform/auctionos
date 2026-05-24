@@ -38,7 +38,6 @@ import { AdminTaskMediation } from './pages/admin/AdminTaskMediation';
 // Client Portal Pages
 import ClientLayout from './layouts/ClientLayout';
 import ClientDashboard from './pages/client/ClientDashboard';
-import ClientDashboardV2 from './pages/client/ClientDashboardV2';
 import ClientWorkbench from './pages/client/ClientWorkbench';
 import ClientAuctions from './pages/client/ClientAuctions';
 import { ClientUserProperties } from './pages/client/ClientUserProperties';
@@ -167,7 +166,6 @@ function App() {
             </ProtectedRoute>
           }>
             <Route index element={<ClientWorkbench />} />
-            <Route path="dashboard-v2" element={<ClientDashboardV2 />} />
             <Route path="workbench" element={<ClientWorkbench />} />
             <Route path="auctions" element={<ClientAuctions />} />
             <Route path="my-properties" element={<ClientUserProperties />} />
