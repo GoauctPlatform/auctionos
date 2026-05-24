@@ -14,6 +14,8 @@ export const AuctionService = {
         if (filters.maxParcels) queryParams.append('max_parcels', String(filters.maxParcels));
         if (filters.skip !== undefined) queryParams.append('skip', String(filters.skip));
         if (filters.limit !== undefined) queryParams.append('limit', String(filters.limit));
+        if (filters.sort_by_date !== undefined) queryParams.append('sort_by_date', String(filters.sort_by_date));
+        if (filters.sort_by_parcels) queryParams.append('sort_by_parcels', 'true');
         if (filters.sortBy) queryParams.append('sort_by', filters.sortBy);
         if (filters.order) queryParams.append('order', filters.order);
         if (filters.tax_status) queryParams.append('tax_statuses', filters.tax_status);
@@ -25,6 +27,14 @@ export const AuctionService = {
             headers: getHeaders()
         });
         if (!response.ok) throw new Error('Failed to fetch auction events');
+        return response.json();
+    },
+
+    getMetrics: async (): Promise<{ deed: number; foreclosure: number; lien: number; total: number; as_of: string }> => {
+        const response = await fetch(`${API_URL}/auctions/metrics`, {
+            headers: getHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to fetch auction metrics');
         return response.json();
     },
 

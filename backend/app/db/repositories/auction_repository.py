@@ -24,7 +24,8 @@ class AuctionRepository:
         q: Optional[str] = None,
         tax_status: Optional[str] = None,
         tax_statuses: Optional[List[str]] = None,
-        sort_by_date: bool = True
+        sort_by_date: bool = True,
+        sort_by_parcels: bool = False
     ) -> tuple[List[Any], int]:
         query = db.query(AuctionEvent)
 
@@ -82,7 +83,9 @@ class AuctionRepository:
             if conditions:
                 query = query.filter(or_(*conditions))
 
-        if sort_by_date:
+        if sort_by_parcels:
+            query = query.order_by(AuctionEvent.parcels_count.desc().nulls_last())
+        elif sort_by_date:
             query = query.order_by(asc(AuctionEvent.auction_date))
         else:
             query = query.order_by(AuctionEvent.auction_date.desc())

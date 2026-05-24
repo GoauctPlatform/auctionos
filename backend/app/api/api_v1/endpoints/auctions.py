@@ -2,12 +2,60 @@ from typing import List, Any, Optional
 from datetime import date
 from fastapi import APIRouter, Depends, Query, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func, or_
 from app.api import deps
 from app.schemas.auction_event import AuctionEvent as AuctionEventSchema, AuctionEventCreate, AuctionEventUpdate, PaginatedAuctionResponse
 from app.db.repositories.auction_repository import auction_repo
+from app.models.auction_event import AuctionEvent
 from app.models.user import User
 
 router = APIRouter()
+
+
+@router.get("/metrics")
+def get_auction_metrics(
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """
+    Returns live counts of active auctions (auction_date >= today) grouped by tax status.
+    Deed = Tax Deed + Quit Claim, Foreclosure = Foreclosure, Lien = Lien + Cert.
+    This endpoint is public (no auth required) so the workbench widgets can display real-time totals.
+    """
+    today = date.today()
+
+    deed_count = db.query(func.count(AuctionEvent.id)).filter(
+        AuctionEvent.auction_date >= today,
+        or_(
+            AuctionEvent.tax_status.ilike("%Deed%"),
+            AuctionEvent.tax_status.ilike("%Quit Claim%")
+        )
+    ).scalar() or 0
+
+    foreclosure_count = db.query(func.count(AuctionEvent.id)).filter(
+        AuctionEvent.auction_date >= today,
+        AuctionEvent.tax_status.ilike("%Foreclosure%")
+    ).scalar() or 0
+
+    lien_count = db.query(func.count(AuctionEvent.id)).filter(
+        AuctionEvent.auction_date >= today,
+        or_(
+            AuctionEvent.tax_status.ilike("%Lien%"),
+            AuctionEvent.tax_status.ilike("%Cert%")
+        )
+    ).scalar() or 0
+
+    total_active = db.query(func.count(AuctionEvent.id)).filter(
+        AuctionEvent.auction_date >= today
+    ).scalar() or 0
+
+    return {
+        "deed": deed_count,
+        "foreclosure": foreclosure_count,
+        "lien": lien_count,
+        "total": total_active,
+        "as_of": today.isoformat()
+    }
+
 
 @router.get("/", response_model=PaginatedAuctionResponse)
 def read_auctions(
@@ -24,6 +72,7 @@ def read_auctions(
     tax_status: Optional[str] = Query(None, description="Filtro singular por status de impostos/leilão (compatibilidade)"),
     tax_statuses: Optional[List[str]] = Query(None, description="Filtro por múltiplos status de impostos/leilão"),
     sort_by_date: bool = Query(False, description="Ordernar por auction_date descendente (False) ou ascendente (True)"),
+    sort_by_parcels: bool = Query(False, description="Ordenar por parcels_count descendente (mais propriedades primeiro)"),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
 ) -> Any:
@@ -41,7 +90,8 @@ def read_auctions(
         max_parcels=max_parcels,
         q=q,
         tax_statuses=tax_statuses,
-        sort_by_date=sort_by_date
+        sort_by_date=sort_by_date,
+        sort_by_parcels=sort_by_parcels
     )
     return {"items": items, "total": total}
 
