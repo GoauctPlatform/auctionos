@@ -6356,6 +6356,9 @@ export const ClientWorkbench: React.FC = () => {
                 key={item.id}
                 onClick={() => {
                   if (item.id === 'workbench_home') {
+                    setOverlayWindows(prev => prev.map(w => ({ ...w, isMinimized: true })));
+                    setActiveOverlayWindowId(null);
+                    logConsoleActivity('Minimizing all active workspace windows.');
                     navigate('/client');
                     return;
                   }
