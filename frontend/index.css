@@ -56,8 +56,48 @@
 }
 
 /* ==========================================================================
-   DARK THEME (Cyberpunk Tech / Premium Dark)
+   DARK THEME — VS Code Dark
+   Must live OUTSIDE @layer so it wins over the un-layered :root block
    ========================================================================== */
+
+.dark {
+  --bg-primary: #1E1E1E;
+  --bg-secondary: #252526;
+  --bg-tertiary: #2D2D30;
+
+  --accent: #007ACC;
+  --accent-hover: #0098FF;
+  --accent-glow: rgba(0, 122, 204, 0.25);
+  --accent-text: #9CDCFE;
+
+  --text-primary: #D4D4D4;
+  --text-secondary: #C5C5C5;
+  --text-muted: #808080;
+
+  --border: #3E3E42;
+  --border-focus: #007ACC;
+
+  --success: #6A9955;
+  --success-bg: rgba(106, 153, 85, 0.1);
+  --warning: #CCA700;
+  --warning-bg: rgba(204, 167, 0, 0.12);
+  --danger: #F48771;
+  --danger-bg: rgba(244, 135, 113, 0.12);
+
+  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+  --shadow-glow: none;
+
+  /* Glassmorphism VS Dark */
+  --glass-bg: rgba(37, 37, 38, 0.85);
+  --glass-border: rgba(62, 62, 66, 0.6);
+  --glass-blur: 16px;
+
+  /* Neumorphism VS Dark */
+  --neu-flat: 12px 12px 24px #151515, -12px -12px 24px #282828;
+  --neu-inset: inset 6px 6px 12px #151515, inset -6px -6px 12px #282828;
+
+  color-scheme: dark;
+}
 
 
 @layer base {
@@ -240,43 +280,6 @@
   .text-slate-500,
   .text-slate-400 {
     color: var(--text-muted) !important;
-  }
-
-  .dark {
-    --bg-primary: #1E1E1E;
-    --bg-secondary: #252526;
-    --bg-tertiary: #2D2D30;
-
-    --accent: #007ACC;
-    --accent-hover: #0098FF;
-    --accent-glow: rgba(0, 122, 204, 0.25);
-    --accent-text: #9CDCFE;
-
-    --text-primary: #D4D4D4;
-    --text-secondary: #C5C5C5;
-    --text-muted: #808080;
-
-    --border: #3E3E42;
-    --border-focus: #007ACC;
-
-    --success: #6A9955;
-    --success-bg: rgba(106, 153, 85, 0.1);
-    --warning: #CCA700;
-    --warning-bg: rgba(204, 167, 0, 0.12);
-    --danger: #F48771;
-    --danger-bg: rgba(244, 135, 113, 0.12);
-
-    --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
-    --shadow-glow: none;
-
-    /* Glassmorphism VS Dark */
-    --glass-bg: rgba(37, 37, 38, 0.85);
-    --glass-border: rgba(62, 62, 66, 0.6);
-    --glass-blur: 16px;
-
-    /* Neumorphism VS Dark */
-    --neu-flat: 12px 12px 24px #151515, -12px -12px 24px #282828;
-    --neu-inset: inset 6px 6px 12px #151515, inset -6px -6px 12px #282828;
   }
 
 
