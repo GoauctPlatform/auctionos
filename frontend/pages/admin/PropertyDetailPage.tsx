@@ -484,12 +484,12 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                     </div>
 
                     {/* BPO Due Diligence Marketplace */}
-                    <div className="bg-indigo-900 rounded-xl p-6 shadow-sm border border-indigo-800 text-white">
-                        <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                            <span className="material-symbols-outlined">real_estate_agent</span>
+                    <div className="glass-card rounded-xl p-6">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-indigo-500">real_estate_agent</span>
                             BPO Due Diligence
                         </h3>
-                        <p className="text-sm text-indigo-200 mb-4">Request a local field agent to perform a property condition check and take custom photos.</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Request a local field agent to perform a property condition check and take custom photos.</p>
                         <button
                             onClick={() => {
                                 const currentUser = AuthService.getCurrentUser();
@@ -499,7 +499,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                                     setIsBpoOpen(true);
                                 }
                             }}
-                            className="w-full py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white font-bold rounded-lg transition-colors shadow-sm"
+                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-colors shadow-sm"
                         >
                             Request Field Mission
                         </button>

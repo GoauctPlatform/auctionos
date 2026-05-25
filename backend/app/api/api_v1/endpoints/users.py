@@ -322,6 +322,22 @@ def delete_user(
     
     return user
 
+@router.delete("/bulk/inactive-trials", response_model=Any)
+def bulk_delete_inactive_trials(
+    *,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_superuser),
+) -> Any:
+    """Delete all inactive users who are on the trial tier."""
+    users_to_delete = db.query(User).filter(User.subscription_tier == "trial", User.is_active == False).all()
+    count = len(users_to_delete)
+    
+    for u in users_to_delete:
+        db.delete(u)
+        log_activity(db, current_user.id, "delete_inactive_trial", "User", u.id, {"deleted_email": u.email})
+        
+    db.commit()
+    return {"ok": True, "deleted_count": count}
 
 # ───────────────────────────────────────────────────────────
 # Multi-Company Endpoints

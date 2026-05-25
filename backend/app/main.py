@@ -190,6 +190,13 @@ async def log_requests(request: Request, call_next):
     if not request.url.path.startswith("/static"):
         logger.info(f"Request completed", extra={"status_code": response.status_code})
     
+    # Add Security Headers for Cloudflare/DDoS best practices
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
     request_id_var.reset(token)
     return response
 

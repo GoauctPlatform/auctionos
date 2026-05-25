@@ -28,7 +28,7 @@ api.interceptors.response.use(
       console.warn('Payment required or trial expired.');
       // Don't log them out, just alert and redirect to billing
       alert(error.response?.data?.detail || "Your plan has expired or limits reached. Please upgrade.");
-      window.location.href = '/#/client/billing';
+      window.location.href = '/#/client/expired';
     }
     return Promise.reject(error);
   }

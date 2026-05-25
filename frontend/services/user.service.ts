@@ -56,6 +56,18 @@ export const UserService = {
         if (!response.ok) throw new Error('Failed to delete user');
     },
 
+    deleteInactiveTrials: async (): Promise<{ deleted_count: number }> => {
+        const response = await fetch(`${API_URL}/users/bulk/inactive-trials`, {
+            method: 'DELETE',
+            headers: getHeaders()
+        });
+        if (!response.ok) {
+            const err = await response.json().catch(() => ({}));
+            throw new Error(err.detail || 'Failed to delete inactive trial users');
+        }
+        return response.json();
+    },
+
     /** Get all companies linked to a specific user (many-to-many) */
     getUserCompanies: async (userId: number): Promise<{ id: number; name: string; role: string }[]> => {
         const response = await fetch(`${API_URL}/users/${userId}/companies`, {

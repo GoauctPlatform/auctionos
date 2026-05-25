@@ -22,6 +22,7 @@ class UserCreate(BaseModel):
     role: Optional[str] = "client"
     company_id: Optional[int] = None
     company_ids: Optional[List[int]] = None   # Multi-company: primary + additional companies
+    newsletter: Optional[bool] = False
 
 
 class UserUpdate(BaseModel):

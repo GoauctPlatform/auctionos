@@ -303,22 +303,24 @@ export const PropertyEstimatesComps: React.FC<Props> = ({ property }) => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {/* ARV Card */}
                     <button 
-                        onClick={() => setArvOpen(true)}
-                        className="flex flex-col items-start p-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all text-left group h-full"
+                        disabled
+                        className="flex flex-col items-start p-4 border border-slate-200 dark:border-slate-700 rounded-xl opacity-60 cursor-not-allowed transition-all text-left group h-full relative"
                     >
+                        <span className="material-symbols-outlined absolute top-4 right-4 text-slate-400">lock</span>
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Estimated ARV</span>
-                        <span className="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                        <span className="text-2xl font-bold text-slate-900 dark:text-white transition-colors">
                             {hasData ? `$${arvEstimate.value.toLocaleString(undefined, { maximumFractionDigits: 0 })}` : 'N/A'}
                         </span>
                     </button>
 
                     {/* Rent Card */}
                     <button 
-                        onClick={() => setRentOpen(true)}
-                        className="flex flex-col items-start p-4 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-all text-left group h-full"
+                        disabled
+                        className="flex flex-col items-start p-4 border border-slate-200 dark:border-slate-700 rounded-xl opacity-60 cursor-not-allowed transition-all text-left group h-full relative"
                     >
+                        <span className="material-symbols-outlined absolute top-4 right-4 text-slate-400">lock</span>
                         <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Estimated Rent</span>
-                        <span className="text-2xl font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors">
+                        <span className="text-2xl font-bold text-slate-900 dark:text-white transition-colors">
                             {rentEstimate.monthlyRent > 0 ? `$${rentEstimate.monthlyRent.toLocaleString()}/mo` : 'N/A'}
                         </span>
                     </button>

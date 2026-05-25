@@ -5,6 +5,8 @@ import { API_BASE_URL } from '../services/httpClient';
 import api from '../services/api';
 import { ChevronLeft, PencilLine, RotateCcw } from 'lucide-react';
 import { PhotoViewerLightbox } from '../components/PhotoViewerLightbox';
+import { QRCodeSVG } from 'qrcode.react';
+import html2canvas from 'html2canvas';
 
 import { PropertyBasicInfo } from '../components/property/PropertyBasicInfo';
 import { PropertyPurchaseOptions } from '../components/property/PropertyPurchaseOptions';
@@ -42,6 +44,9 @@ const PropertyDetails: React.FC = () => {
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxImages, setLightboxImages] = useState<string[]>([]);
     const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0);
+
+    const propertyDetailsRef = React.useRef<HTMLDivElement>(null);
+    const [exporting, setExporting] = useState(false);
 
     // ── Override / Edit Mode ──────────────────────────────────────────────────
     // Activated by: ?edit=true URL param (auto-set when user tries to create a dup property)
@@ -133,11 +138,38 @@ const PropertyDetails: React.FC = () => {
         }
     };
 
+    const handleExport = async (format: 'jpeg' | 'pdf') => {
+        if (!propertyDetailsRef.current) return;
+        
+        if (format === 'pdf') {
+            window.print();
+            return;
+        }
+
+        setExporting(true);
+        try {
+            // A brief timeout to let the UI update if needed
+            await new Promise(r => setTimeout(r, 100));
+            const canvas = await html2canvas(propertyDetailsRef.current, { useCORS: true, scale: 2 });
+            const link = document.createElement('a');
+            link.download = `GoAuct-Property-${property.parcel_id || 'Export'}.jpeg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        } catch (e) {
+            console.error('Export failed', e);
+            alert('Export failed');
+        } finally {
+            setExporting(false);
+        }
+    };
+
     if (loading) return <div className="p-8 text-center text-slate-500">Loading details...</div>;
     if (!property) return <div className="p-8 text-center text-red-500">Property not found.</div>;
 
+    const currentUrl = window.location.href;
+
     return (
-        <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6">
+        <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6" ref={propertyDetailsRef}>
             <div className="flex items-center justify-between">
                 <button
                     onClick={() => navigate('/inventory')}
@@ -174,6 +206,28 @@ const PropertyDetails: React.FC = () => {
                         <PencilLine size={13} />
                         {isEditing ? 'Editing...' : 'Customize My View'}
                     </button>
+                    <div className="relative group">
+                        <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-slate-800 text-white hover:bg-slate-700">
+                            <span className="material-symbols-outlined text-[16px]">download</span>
+                            {exporting ? 'Exporting...' : 'Export'}
+                        </button>
+                        <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                            <button onClick={() => handleExport('jpeg')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">As JPEG</button>
+                            <button onClick={() => handleExport('pdf')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">As PDF (Print)</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {/* Print-only QR Code Header */}
+            <div className="hidden print:flex items-center justify-between mb-8 border-b pb-4">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-900">GoAuct Property Intelligence</h1>
+                    <p className="text-sm text-slate-500">Generated automatically from the GoAuct Platform</p>
+                </div>
+                <div className="flex flex-col items-center">
+                    <QRCodeSVG value={currentUrl} size={64} />
+                    <span className="text-[10px] mt-1 text-slate-500">Scan to view online</span>
                 </div>
             </div>
 
@@ -334,12 +388,12 @@ const PropertyDetails: React.FC = () => {
                     </div>
 
                     {/* BPO Due Diligence Marketplace */}
-                    <div className="bg-indigo-900 rounded-xl p-6 shadow-sm border border-indigo-800 text-white">
-                        <h3 className="text-lg font-bold mb-2 flex items-center gap-2">
-                            <span className="material-symbols-outlined">real_estate_agent</span>
+                    <div className="glass-card rounded-xl p-6">
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-indigo-500">real_estate_agent</span>
                             BPO Due Diligence
                         </h3>
-                        <p className="text-sm text-indigo-200 mb-4">Request a local field agent to perform a property condition check and take custom photos.</p>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Request a local field agent to perform a property condition check and take custom photos.</p>
                         <button
                             onClick={() => {
                                 const currentUser = AuthService.getCurrentUser();
@@ -349,7 +403,7 @@ const PropertyDetails: React.FC = () => {
                                     setIsBpoOpen(true);
                                 }
                             }}
-                            className="w-full py-2.5 bg-indigo-500 hover:bg-indigo-400 text-white font-bold rounded-lg transition-colors shadow-sm"
+                            className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-colors shadow-sm"
                         >
                             Request Field Mission
                         </button>

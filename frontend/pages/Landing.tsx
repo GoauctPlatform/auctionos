@@ -278,6 +278,7 @@ export const Landing: React.FC = () => {
     const navigate = useNavigate();
     const [activeHeroTab, setActiveHeroTab] = useState(0);
     const [activeStoryStep, setActiveStoryStep] = useState(0);
+    const [showCookieBanner, setShowCookieBanner] = useState(false);
 
     const heroLines = [
         "Find the deal before anyone else.",
@@ -300,12 +301,21 @@ export const Landing: React.FC = () => {
             setActiveHeroTab((prev) => (prev + 1) % heroLines.length);
         }, 4000);
 
+        if (!localStorage.getItem('cookieConsent')) {
+            setShowCookieBanner(true);
+        }
+
         return () => {
             clearInterval(interval);
             // Restore theme classes on unmount
             if (hadDark) document.documentElement.classList.add('dark');
         };
     }, []);
+
+    const acceptCookies = () => {
+        localStorage.setItem('cookieConsent', 'true');
+        setShowCookieBanner(false);
+    };
 
     const features = [
         { icon: 'gavel', title: 'Live Auctions', description: 'Real-time tracking of tax deeds, liens, and foreclosures with advanced filtering by type and state.', color: 'bg-gradient-to-br from-blue-500 to-blue-600' },
@@ -917,6 +927,37 @@ export const Landing: React.FC = () => {
                     </div>
                 </div>
             </footer>
+
+            {/* ── Cookie Banner (LGPD Compliant) ────────────────────────────────── */}
+            {showCookieBanner && (
+                <div className="fixed bottom-0 left-0 right-0 z-[100] bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] p-4 sm:p-6 animate-in slide-in-from-bottom-8 duration-500">
+                    <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div className="text-sm text-slate-700 dark:text-slate-300 pr-0 md:pr-8">
+                            <h4 className="font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-blue-500 text-[18px]">cookie</span>
+                                We Value Your Privacy
+                            </h4>
+                            <p className="leading-relaxed">
+                                GoAuct uses cookies to ensure you get the best experience on our platform, analyze site traffic, and personalize content. By clicking "Accept All", you consent to our use of cookies in accordance with our <Link to="/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">Privacy Policy</Link> and <Link to="/terms" className="text-blue-600 dark:text-blue-400 hover:underline">Terms of Service</Link> (compliant with LGPD/GDPR).
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
+                            <button 
+                                onClick={() => setShowCookieBanner(false)}
+                                className="px-4 py-2 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                            >
+                                Decline Optional
+                            </button>
+                            <button 
+                                onClick={acceptCookies}
+                                className="px-6 py-2.5 bg-blue-600 text-white text-sm font-bold rounded-xl shadow-md hover:bg-blue-700 transition-all active:scale-95 whitespace-nowrap"
+                            >
+                                Accept All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

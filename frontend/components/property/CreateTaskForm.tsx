@@ -118,12 +118,11 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
 
     const clearChecklist = () => setSelectedChecklist({});
 
-    // Dynamic visual price structure
     const getPricing = () => {
         if (taskType === 'bpo') {
-            return { points: 10000, displayUsd: '$100.00', displayTestBrl: 'R$ 0.51' };
+            return { points: 10000, displayUsd: '$100.00' };
         }
-        return { points: 5000, displayUsd: '$50.00', displayTestBrl: 'R$ 0.51' };
+        return { points: 5000, displayUsd: '$50.00' };
     };
 
     const priceInfo = getPricing();
@@ -163,7 +162,7 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
             const data = await res.json();
             if (res.ok) {
                 if (data.checkout_url) {
-                    // Redirect directly to Stripe sandbox session (charging BRL 0.51)
+                    // Redirect directly to Stripe checkout session
                     window.location.href = data.checkout_url;
                 } else {
                     alert('Task created successfully (Mock Mode without Stripe).');
@@ -312,10 +311,6 @@ export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, prop
                         <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Escrow Total</p>
                         <div className="flex flex-wrap items-baseline gap-2 mt-0.5">
                             <span className="text-3xl font-black text-indigo-600 dark:text-indigo-400">{priceInfo.displayUsd}</span>
-                            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2.5 py-1 rounded-full border border-emerald-100/50 dark:border-emerald-900/30 shadow-sm flex items-center gap-1">
-                                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                Test BRL: {priceInfo.displayTestBrl}
-                            </span>
                             <span className="text-xs text-slate-400 dark:text-slate-400">({priceInfo.points} points escrowed)</span>
                         </div>
                     </div>

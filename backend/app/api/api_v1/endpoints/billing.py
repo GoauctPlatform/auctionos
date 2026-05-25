@@ -40,16 +40,16 @@ def get_stripe():
 # When you create real prices in the Stripe dashboard, update STRIPE_PRO_PRICE_ID
 # and STRIPE_ENTERPRISE_PRICE_ID environment variables.
 # ─────────────────────────────────────────────────────────────────────────────
-PLAN_PRICES_BRL_CENTS = {
-    "advanced": 51,      # R$0.51
-    "pro": 51,           # R$0.51 (Minimum for Stripe is 0.50)
-    "enterprise": 51,    # R$0.51
+PLAN_PRICES_USD_CENTS = {
+    "advanced": 6000,    # $60
+    "pro": 13000,        # $130
+    "enterprise": 35000, # $350
 }
 
 PLAN_DISPLAY_PRICES = {
-    "advanced": "R$130/mês",
-    "pro": "R$350/mês",
-    "enterprise": "R$850/mês",
+    "advanced": "$60/mo",
+    "pro": "$130/mo",
+    "enterprise": "$350/mo",
 }
 
 
@@ -182,14 +182,14 @@ def create_checkout_session(
                     },
                 )
             else:
-                # Ad-hoc one-time payment (for testing with small amounts in BRL)
-                amount_cents = PLAN_PRICES_BRL_CENTS[plan]
+                # Ad-hoc one-time payment (for testing or one-time plan purchase)
+                amount_cents = PLAN_PRICES_USD_CENTS[plan]
                 session = stripe.checkout.Session.create(
                     payment_method_types=["card"],
                     mode="payment",
                     line_items=[{
                         "price_data": {
-                            "currency": "brl",
+                            "currency": "usd",
                             "unit_amount": amount_cents,
                             "product_data": {
                                 "name": f"GoAuct {plan.capitalize()} Plan",
@@ -479,7 +479,7 @@ def create_photos_checkout(
                 line_items=[{
                     "price_data": {
                         "currency": "usd",
-                        "unit_amount": 1500,  # $15.00
+                        "unit_amount": 5000,  # $50.00
                         "product_data": {
                             "name": f"GoAuct Updated Photos – Property {property_id}",
                         },
@@ -497,6 +497,6 @@ def create_photos_checkout(
 
     # Fallback mock
     return {
-        "checkout_url": f"https://mock-stripe.com/checkout?type=photos&amount=15.0&user={current_user.id}&property={property_id}",
+        "checkout_url": f"https://mock-stripe.com/checkout?type=photos&amount=50.0&user={current_user.id}&property={property_id}",
         "message": "Redirecting to secure payment portal for Updated Photos...",
     }

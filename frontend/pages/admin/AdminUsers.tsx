@@ -281,6 +281,19 @@ const AdminUsers: React.FC = () => {
         finally { setActionLoading(null); }
     };
 
+    const handleBulkDeleteInactiveTrials = async () => {
+        if (!window.confirm('Are you sure you want to delete ALL inactive users on the trial plan? This action cannot be undone.')) return;
+        setLoading(true);
+        try {
+            const res = await UserService.deleteInactiveTrials();
+            alert(`Successfully deleted ${res.deleted_count} inactive trial users.`);
+            loadData();
+        } catch (e: any) {
+            alert(e.message || 'Failed to delete users');
+            setLoading(false);
+        }
+    };
+
     useEffect(() => { loadData(); }, [tab, consultantFilter]);
 
     const filteredUsers = useMemo(() => {
@@ -324,6 +337,15 @@ const AdminUsers: React.FC = () => {
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage user roles, permissions, and activity across the platform.</p>
                 </div>
+                {tab === 'users' && (
+                    <button
+                        onClick={handleBulkDeleteInactiveTrials}
+                        className="px-4 py-2 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 border border-red-200 dark:border-red-800"
+                    >
+                        <span className="material-symbols-outlined text-[18px]">person_remove</span>
+                        Cleanup Inactive Trials
+                    </button>
+                )}
             </div>
 
             {/* Stats Cards */}

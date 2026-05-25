@@ -50,6 +50,7 @@ import ActivityLogsPage from './pages/client/ActivityLogsPage';
 import BillingPage from './pages/client/BillingPage';
 import VerifyEmail from './pages/auth/VerifyEmail';
 import TrialLimitPage from './pages/client/TrialLimitPage';
+import TrialExpiredPage from './pages/client/TrialExpiredPage';
 import { InvestorTasksDashboard } from './pages/client/InvestorTasksDashboard';
 import { CompanyProvider } from './context/CompanyContext';
 import RealtorLayout from './pages/realtor/RealtorLayout';
@@ -183,6 +184,7 @@ function App() {
             <Route path="team" element={<ActivityLogsPage />} />
             <Route path="billing" element={<BillingPage />} />
             <Route path="trial-limit" element={<TrialLimitPage />} />
+            <Route path="expired" element={<TrialExpiredPage />} />
             <Route path="settings" element={<Settings />} />
           </Route>
 

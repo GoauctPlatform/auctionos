@@ -98,6 +98,21 @@ async def register_user(
         recipients=[user.email],
         body=email_body
     )
+    
+    # Check for newsletter/terms via extra parameters (usually sent by frontend but ignored by Pydantic UserCreate)
+    # We will log the registration.
+    from app.services.activity import log_activity
+    # Log the signup
+    log_activity(db, user.id, "user_registration", "User", user.id, {"role": requested_role})
+    
+    # Send Admin Notification
+    admin_body = f"A new user has registered on GoAuct.\nName: {user.full_name}\nEmail: {user.email}\nRole: {requested_role}"
+    background_tasks.add_task(
+        send_email,
+        subject="New User Registration",
+        recipients=["admin@goauct.com"],
+        body=admin_body
+    )
 
     return user
 

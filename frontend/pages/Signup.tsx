@@ -19,6 +19,8 @@ export const Signup: React.FC = () => {
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
+    const [newsletter, setNewsletter] = useState(true);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -33,6 +35,11 @@ export const Signup: React.FC = () => {
             return;
         }
 
+        if (!acceptedTerms) {
+            setError('You must accept the Terms of Use to register.');
+            return;
+        }
+
         setIsLoading(true);
         try {
             const response = await fetch(`${API_URL}/auth/register`, {
@@ -43,6 +50,7 @@ export const Signup: React.FC = () => {
                     password: formData.password,
                     full_name: formData.fullName,
                     role: selectedRole,
+                    newsletter: newsletter,
                 }),
             });
 
@@ -233,6 +241,32 @@ export const Signup: React.FC = () => {
                                     </p>
                                 </div>
                             )}
+
+                            {/* Terms and Newsletter */}
+                            <div className="flex flex-col gap-3 mt-2">
+                                <label className="flex items-start gap-2 cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={acceptedTerms}
+                                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                                        className="mt-0.5 text-primary focus:ring-primary rounded border-slate-300"
+                                    />
+                                    <span className="text-xs text-slate-600 dark:text-slate-400">
+                                        I accept the <a href="/terms" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Terms of Use</a> and <a href="/privacy" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a>. *
+                                    </span>
+                                </label>
+                                <label className="flex items-start gap-2 cursor-pointer">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={newsletter}
+                                        onChange={(e) => setNewsletter(e.target.checked)}
+                                        className="mt-0.5 text-primary focus:ring-primary rounded border-slate-300"
+                                    />
+                                    <span className="text-xs text-slate-600 dark:text-slate-400">
+                                        Send me updates, tips, and offers from GoAuct.
+                                    </span>
+                                </label>
+                            </div>
 
                             <button
                                 type="submit"

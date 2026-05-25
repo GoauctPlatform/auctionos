@@ -205,3 +205,61 @@ def perform_database_backup_task(job_id: int):
     except Exception as e:
         logger.error(f"Backup task failed: {e}")
         return {"status": "error", "message": str(e)}
+
+@celery_app.task(acks_late=True, name="app.tasks.revert_expired_tasks_task")
+def revert_expired_tasks_task():
+    """
+    Scans for tasks that were claimed but not submitted before the deadline.
+    Reverts them to 'open' (Available) and notifies the requester and support.
+    """
+    logger.info("Starting expired tasks check.")
+    from app.db.session import engine
+    from sqlalchemy import text
+    from datetime import datetime
+    from app.core.email import send_email
+    
+    now = datetime.utcnow()
+    
+    try:
+        with engine.begin() as conn:
+            # Find expired claimed tasks
+            query = text("""
+                SELECT t.id, t.title, t.investor_user_id, u.email as investor_email, u.full_name as investor_name
+                FROM realtor_tasks t
+                JOIN users u ON t.investor_user_id = u.id
+                WHERE t.status = 'claimed' AND t.deadline < :now
+            """)
+            expired_tasks = conn.execute(query, {"now": now}).fetchall()
+            
+            if not expired_tasks:
+                return {"status": "success", "reverted": 0}
+
+            for task in expired_tasks:
+                # Revert to open
+                update_query = text("""
+                    UPDATE realtor_tasks
+                    SET status = 'open', realtor_user_id = NULL, claimed_at = NULL, deadline = NULL
+                    WHERE id = :id
+                """)
+                conn.execute(update_query, {"id": task.id})
+                
+                # Notify requester
+                send_email(
+                    subject=f"Task Reverted to Available: {task.title}",
+                    recipients=[task.investor_email],
+                    body=f"Hello {task.investor_name or 'Investor'},\n\nYour task '{task.title}' was claimed but not completed by the deadline. We have reverted the task to 'Available' so another field agent can claim it.\n\nThank you,\nGoAuct Team"
+                )
+                
+                # Notify support
+                send_email(
+                    subject=f"System Alert: Task {task.id} Expired",
+                    recipients=["support@goauct.com"],
+                    body=f"Task '{task.title}' (ID: {task.id}) claimed by an agent has expired without submission. It has been automatically reverted to 'open'."
+                )
+            
+            logger.info(f"Reverted {len(expired_tasks)} expired tasks.")
+            return {"status": "success", "reverted": len(expired_tasks)}
+    except Exception as e:
+        logger.error(f"Expired tasks check failed: {e}")
+        return {"status": "error", "message": str(e)}
+

@@ -240,7 +240,7 @@ const ClientLayout: React.FC = () => {
 
   const isMainDashboard = false;
   const isWorkbench = location.pathname.startsWith('/client/workbench');
-  const hideHeader = location.pathname.startsWith('/client');
+  const hideHeader = isWorkbench;
   const isWorkbenchWorkspace = location.pathname.startsWith('/client/workbench') || 
                                location.pathname === '/client' || 
                                location.pathname === '/client/';
@@ -248,7 +248,7 @@ const ClientLayout: React.FC = () => {
   return (
     <div className={`w-full bg-slate-50 dark:bg-slate-900 font-display flex flex-col relative ${isWorkbenchWorkspace ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       {/* Dynamic Background Layer */}
-      <div className="fixed inset-0 bg-mesh-gradient pointer-events-none z-0" />
+
 
       {/* Header Navigation */}
       {!hideHeader && (
@@ -402,8 +402,8 @@ const ClientLayout: React.FC = () => {
                                 <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-black px-2 py-0.5 rounded-full">{upcomingAuctions} New</span>
                             )}
                         </div>
-                        <div className="max-h-[300px] overflow-y-auto">
-                            {upcomingAuctions > 0 ? (
+                        <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                            {upcomingAuctions > 0 && (
                                 <div 
                                     className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3"
                                     onClick={() => { setNotificationsOpen(false); navigate('/client/lists'); }}
@@ -416,10 +416,33 @@ const ClientLayout: React.FC = () => {
                                         <p className="text-[10px] text-slate-500">You have {upcomingAuctions} properties in your My List that are going to auction within the next 7 days.</p>
                                     </div>
                                 </div>
-                            ) : (
+                            )}
+                            
+                            {/* Static mocked notifications for consistency with sidebar */}
+                            <div className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3">
+                                <div className="mt-0.5 size-8 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-[16px]">task_alt</span>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">BPO Mission Completed</p>
+                                    <p className="text-[10px] text-slate-500">The field agent has submitted the report for 123 Main St. Review pending.</p>
+                                </div>
+                            </div>
+                            
+                            <div className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3">
+                                <div className="mt-0.5 size-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-[16px]">info</span>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">Platform Update</p>
+                                    <p className="text-[10px] text-slate-500">New analytics dashboard is now live.</p>
+                                </div>
+                            </div>
+
+                            {upcomingAuctions === 0 && (
                                 <div className="p-8 text-center text-slate-400">
                                     <span className="material-symbols-outlined text-3xl mb-2 opacity-50">notifications_paused</span>
-                                    <p className="text-xs">You're all caught up!</p>
+                                    <p className="text-xs">No other notifications</p>
                                 </div>
                             )}
                         </div>

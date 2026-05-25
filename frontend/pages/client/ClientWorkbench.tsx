@@ -11,6 +11,9 @@ import { AuthService } from '../../services/auth.service';
 import { AuctionEvent, Property } from '../../types';
 import { useCompany } from '../../context/CompanyContext';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
+import { StatCounterWidget } from '../../components/widgets/StatCounterWidget';
+import { TickerTapeWidget } from '../../components/widgets/TickerTapeWidget';
+import { RecommendedDealsWidget } from '../../components/widgets/RecommendedDealsWidget';
 import { API_URL } from '../../services/httpClient';
 
 // Original rich page modules for IDE-style floating windows
@@ -2635,6 +2638,9 @@ export const ClientWorkbench: React.FC = () => {
         </div>
       </div>
 
+      {/* ─── TICKER TAPE WIDGET (Next 30 Days) ─── */}
+      <TickerTapeWidget />
+
       {/* ─── MAIN WORKBENCH PANEL ─── */}
       <div className="flex-1 flex w-full overflow-hidden relative">
 
@@ -4190,53 +4196,17 @@ export const ClientWorkbench: React.FC = () => {
 
                   {/* Widget 2: Tax Deeds Counter */}
                   {w.type === 'metrics_deed' && (
-                    <div className="neu-card p-3 flex flex-col justify-between relative overflow-hidden h-full">
-                      <div className="absolute right-2 top-2 size-12 bg-purple-500/5 rounded-full" />
-                      <span className="text-[8px] font-black text-purple-500 uppercase tracking-widest flex items-center gap-1">
-                        <Gavel size={10} /> Tax Deeds
-                      </span>
-                      <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                        {marketCounts.deed.toLocaleString()}
-                      </p>
-                      <div className="flex items-center justify-between mt-1 shrink-0">
-                        <span className="text-[7px] text-slate-400 uppercase font-semibold">Active Deeds Mapped</span>
-                        <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                      </div>
-                    </div>
+                    <StatCounterWidget type="metrics_deed" count={marketCounts.deed} />
                   )}
 
                   {/* Widget 2: Foreclosures Counter */}
                   {w.type === 'metrics_foreclosure' && (
-                    <div className="neu-card p-3 flex flex-col justify-between relative overflow-hidden h-full">
-                      <div className="absolute right-2 top-2 size-12 bg-red-500/5 rounded-full" />
-                      <span className="text-[8px] font-black text-red-500 uppercase tracking-widest flex items-center gap-1">
-                        <ShieldAlert size={10} /> Foreclosures
-                      </span>
-                      <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                        {marketCounts.foreclosure.toLocaleString()}
-                      </p>
-                      <div className="flex items-center justify-between mt-1 shrink-0">
-                        <span className="text-[7px] text-slate-400 uppercase font-semibold">Distressed Property</span>
-                        <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                      </div>
-                    </div>
+                    <StatCounterWidget type="metrics_foreclosure" count={marketCounts.foreclosure} />
                   )}
 
                   {/* Widget 2: Tax Liens Counter */}
                   {w.type === 'metrics_lien' && (
-                    <div className="neu-card p-3 flex flex-col justify-between relative overflow-hidden h-full">
-                      <div className="absolute right-2 top-2 size-12 bg-amber-500/5 rounded-full" />
-                      <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest flex items-center gap-1">
-                        <FileText size={10} /> Tax Liens
-                      </span>
-                      <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">
-                        {marketCounts.lien.toLocaleString()}
-                      </p>
-                      <div className="flex items-center justify-between mt-1 shrink-0">
-                        <span className="text-[7px] text-slate-400 uppercase font-semibold">Lien Certificates</span>
-                        <span className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                      </div>
-                    </div>
+                    <StatCounterWidget type="metrics_lien" count={marketCounts.lien} />
                   )}
 
                   {/* GIS Heatmap widget */}
@@ -4248,7 +4218,6 @@ export const ClientWorkbench: React.FC = () => {
                         <InvestmentHeatmap
                           stats={stateStats}
                           selectedState={selectedState}
-                          onStateClick={(s) => setSelectedState(s)}
                         />
                       )}
                     </div>
@@ -4256,229 +4225,20 @@ export const ClientWorkbench: React.FC = () => {
 
                   {/* Widget 3: Top Recommended Deals & Auctions */}
                   {w.type === 'recommended_deals' && (
-                    <div className="size-full flex flex-col">
-                      {/* Tabs headers with live counts */}
-                      <div className="flex border-b border-slate-200 dark:border-slate-800 shrink-0 pb-2 mb-3 overflow-x-auto gap-1">
-                        {[
-                          { id: 'deals', label: '🥇 Top Deals', count: dbTopDeals.length },
-                          { id: 'deeds', label: 'Deeds', count: deedsAuctions.length },
-                          { id: 'foreclosures', label: 'Foreclosures', count: foreclosureAuctions.length },
-                          { id: 'liens', label: 'Liens', count: liensAuctions.length }
-                        ].map(tab => (
-                          <button
-                            key={tab.id}
-                            onClick={() => setRecommendedTab(tab.id as any)}
-                            className={`px-3 py-1 rounded-lg text-[9px] font-extrabold uppercase tracking-wider transition-all whitespace-nowrap flex items-center gap-1 ${
-                              recommendedTab === tab.id
-                                ? 'bg-indigo-500 text-white shadow-sm'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800'
-                            }`}
-                          >
-                            {tab.label}
-                            {tab.count > 0 && (
-                              <span className={`text-[8px] font-black px-1 rounded ${recommendedTab === tab.id ? 'bg-white/20 text-white' : 'bg-slate-300/50 dark:bg-slate-700 text-slate-500 dark:text-slate-300'}`}>
-                                {tab.count}
-                              </span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Tab content area */}
-                      <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-                        {recommendedTab === 'deals' && (
-                          loading ? (
-                            <div className="space-y-2">
-                              {[...Array(4)].map((_, i) => (
-                                <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
-                              ))}
-                            </div>
-                          ) : dbTopDeals.length === 0 ? (
-                            <p className="text-center text-xs text-slate-400 mt-10">No recommended deals found.</p>
-                          ) : (
-                            dbTopDeals.map((prop) => (
-                              <div
-                                key={prop.id}
-                                onClick={() => {
-                                  setSelectedProperty(prop);
-                                  focusWidget('dossier');
-                                }}
-                                className="p-3 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-indigo-500/50 transition-all cursor-pointer flex justify-between items-center group"
-                              >
-                                <div className="min-w-0 flex-1">
-                                  <div className="flex items-center gap-1.5">
-                                    <span className="text-[7.5px] font-black text-indigo-500 bg-indigo-500/10 px-1.5 py-0.25 rounded uppercase">Score: {prop.deal_score || 85}</span>
-                                    <span className="text-[7.5px] font-black text-slate-400">{prop.parcel_id || 'No Parcel'}</span>
-                                  </div>
-                                  <p className="text-[10px] font-bold text-slate-900 dark:text-white truncate mt-1 group-hover:text-indigo-500 transition-colors">
-                                    {prop.address || 'Address Hidden'}
-                                  </p>
-                                  <p className="text-[8px] text-slate-455 truncate">
-                                    {[prop.county, prop.state].filter(Boolean).join(', ')}
-                                  </p>
-                                </div>
-                                <div className="text-right shrink-0 ml-3">
-                                  <span className="text-[9px] font-extrabold text-slate-900 dark:text-white block">Est: ${(prop.assessed_value || 150000).toLocaleString()}</span>
-                                  <span className="text-[8px] font-bold text-emerald-500 block">Bid: ${(prop.opening_bid || 5000).toLocaleString()}</span>
-                                </div>
-                              </div>
-                            ))
-                          )
-                        )}
-
-                        {recommendedTab === 'deeds' && (
-                          loading ? (
-                            <div className="space-y-2">
-                              {[...Array(5)].map((_, i) => (
-                                <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
-                              ))}
-                            </div>
-                          ) : deedsAuctions.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center mt-10 gap-2">
-                              <Gavel size={28} className="text-slate-300 dark:text-slate-700" />
-                              <p className="text-xs text-slate-400">No active deed auctions found.</p>
-                            </div>
-                          ) : (
-                            deedsAuctions.map((a: any) => (
-                              <div
-                                key={a.id}
-                                className="p-3 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-purple-500/40 transition-all group"
-                              >
-                                <div className="flex justify-between items-start">
-                                  <div className="min-w-0 flex-1">
-                                    <p className="text-[10.5px] font-bold text-slate-900 dark:text-white truncate group-hover:text-purple-500 transition-colors">{a.name}</p>
-                                    <p className="text-[8.5px] text-slate-400 mt-0.5">
-                                      {[a.county, a.state].filter(Boolean).join(', ')}
-                                    </p>
-                                  </div>
-                                  <div className="flex flex-col items-end gap-1 shrink-0 ml-2">
-                                    <span className="text-[8.5px] font-black text-purple-500 bg-purple-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                      {(a.parcels_count || a.properties_count || 0).toLocaleString()} lots
-                                    </span>
-                                    <span className="text-[7.5px] text-slate-400 whitespace-nowrap">
-                                      {a.auction_date ? new Date(a.auction_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : '—'}
-                                    </span>
-                                  </div>
-                                </div>
-                                {(a.register_link || a.list_link) && (
-                                  <a
-                                    href={a.register_link || a.list_link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={e => e.stopPropagation()}
-                                    className="mt-1.5 text-[8px] font-bold text-purple-500 hover:text-purple-600 flex items-center gap-1"
-                                  >
-                                    <ExternalLink size={8} /> View / Register
-                                  </a>
-                                )}
-                              </div>
-                            ))
-                          )
-                        )}
-
-                        {recommendedTab === 'foreclosures' && (
-                          loading ? (
-                            <div className="space-y-2">
-                              {[...Array(5)].map((_, i) => (
-                                <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
-                              ))}
-                            </div>
-                          ) : foreclosureAuctions.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center mt-10 gap-2">
-                              <ShieldAlert size={28} className="text-slate-300 dark:text-slate-700" />
-                              <p className="text-xs text-slate-400">No active foreclosure auctions found.</p>
-                            </div>
-                          ) : (
-                            foreclosureAuctions.map((a: any) => (
-                              <div
-                                key={a.id}
-                                className="p-3 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-red-500/40 transition-all group"
-                              >
-                                <div className="flex justify-between items-start">
-                                  <div className="min-w-0 flex-1">
-                                    <p className="text-[10.5px] font-bold text-slate-900 dark:text-white truncate group-hover:text-red-500 transition-colors">{a.name}</p>
-                                    <p className="text-[8.5px] text-slate-400 mt-0.5">
-                                      {[a.county, a.state].filter(Boolean).join(', ')}
-                                    </p>
-                                  </div>
-                                  <div className="flex flex-col items-end gap-1 shrink-0 ml-2">
-                                    <span className="text-[8.5px] font-black text-red-500 bg-red-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                      {(a.parcels_count || a.properties_count || 0).toLocaleString()} lots
-                                    </span>
-                                    <span className="text-[7.5px] text-slate-400 whitespace-nowrap">
-                                      {a.auction_date ? new Date(a.auction_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : '—'}
-                                    </span>
-                                  </div>
-                                </div>
-                                {(a.register_link || a.list_link) && (
-                                  <a
-                                    href={a.register_link || a.list_link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={e => e.stopPropagation()}
-                                    className="mt-1.5 text-[8px] font-bold text-red-500 hover:text-red-600 flex items-center gap-1"
-                                  >
-                                    <ExternalLink size={8} /> View / Register
-                                  </a>
-                                )}
-                              </div>
-                            ))
-                          )
-                        )}
-
-                        {recommendedTab === 'liens' && (
-                          loading ? (
-                            <div className="space-y-2">
-                              {[...Array(5)].map((_, i) => (
-                                <div key={i} className="h-14 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />
-                              ))}
-                            </div>
-                          ) : liensAuctions.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center mt-10 gap-2">
-                              <FileText size={28} className="text-slate-300 dark:text-slate-700" />
-                              <p className="text-xs text-slate-400">No active tax lien auctions found.</p>
-                            </div>
-                          ) : (
-                            liensAuctions.map((a: any) => (
-                              <div
-                                key={a.id}
-                                className="p-3 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-amber-500/40 transition-all group"
-                              >
-                                <div className="flex justify-between items-start">
-                                  <div className="min-w-0 flex-1">
-                                    <p className="text-[10.5px] font-bold text-slate-900 dark:text-white truncate group-hover:text-amber-500 transition-colors">{a.name}</p>
-                                    <p className="text-[8.5px] text-slate-455 mt-0.5">
-                                      {[a.county, a.state].filter(Boolean).join(', ')}
-                                    </p>
-                                  </div>
-                                  <div className="flex flex-col items-end gap-1 shrink-0 ml-2">
-                                    <span className="text-[8.5px] font-black text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
-                                      {(a.parcels_count || a.properties_count || 0).toLocaleString()} lots
-                                    </span>
-                                    <span className="text-[7.5px] text-slate-400 whitespace-nowrap">
-                                      {a.auction_date ? new Date(a.auction_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }) : '—'}
-                                    </span>
-                                  </div>
-                                </div>
-                                {(a.register_link || a.list_link) && (
-                                  <a
-                                    href={a.register_link || a.list_link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={e => e.stopPropagation()}
-                                    className="mt-1.5 text-[8px] font-bold text-amber-500 hover:text-amber-600 flex items-center gap-1"
-                                  >
-                                    <ExternalLink size={8} /> View / Register
-                                  </a>
-                                )}
-                              </div>
-                            ))
-                          )
-                        )}
-                      </div>
-                    </div>
+                    <RecommendedDealsWidget
+                        loading={loading}
+                        dbTopDeals={dbTopDeals}
+                        deedsAuctions={deedsAuctions}
+                        foreclosureAuctions={foreclosureAuctions}
+                        liensAuctions={liensAuctions}
+                        recommendedTab={recommendedTab}
+                        setRecommendedTab={setRecommendedTab}
+                        onSelectProperty={(prop) => {
+                            setSelectedProperty(prop);
+                            focusWidget('dossier');
+                        }}
+                    />
                   )}
-
 
                   {/* Widget 4: Live Auctions Finder */}
                   {w.type === 'live_auctions' && (

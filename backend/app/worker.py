@@ -39,5 +39,9 @@ celery_app.conf.update(
             "task": "app.tasks.check_watchlists_task",
             "schedule": crontab(hour=5, minute=0),
         },
+        "check-expired-tasks-hourly": {
+            "task": "app.tasks.revert_expired_tasks_task",
+            "schedule": crontab(minute=0),
+        },
     },
 )

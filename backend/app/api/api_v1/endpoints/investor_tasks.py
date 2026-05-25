@@ -97,7 +97,7 @@ def create_task(
 
     deadline = datetime.now(timezone.utc) + timedelta(hours=payload.deadline_hours)
     
-    amount_cents = 51  # Fixed to R$0.51 (sandbox default) as requested for testing
+    amount_cents = payload.reward_points # 1 point = 1 cent USD
     checkout_url = None
     stripe_session_id = None
 
@@ -109,7 +109,7 @@ def create_task(
             mode="payment",
             line_items=[{
                 "price_data": {
-                    "currency": "brl",
+                    "currency": "usd",
                     "unit_amount": amount_cents,
                     "product_data": {
                         "name": f"GoAuct Escrow - {payload.title}",
@@ -727,7 +727,7 @@ def purchase_bpo_data(
         raise HTTPException(status_code=400, detail="Invalid purchase type.")
         
     amount_usd = prices[payload.purchase_type]
-    amount_cents = 51 # For sandbox testing, override to 51 cents
+    amount_cents = int(amount_usd * 100)
     
     checkout_url = None
     stripe_session_id = None
@@ -740,7 +740,7 @@ def purchase_bpo_data(
             mode="payment",
             line_items=[{
                 "price_data": {
-                    "currency": "brl",
+                    "currency": "usd",
                     "unit_amount": amount_cents,
                     "product_data": {
                         "name": f"GoAuct BPO Data - {payload.purchase_type.capitalize()}",

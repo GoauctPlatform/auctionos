@@ -26,11 +26,10 @@ const StatsGrid: React.FC = () => (
 
 // ─── Team Leadership Grid ─────────────────────────────────────────────────────
 const TeamGrid: React.FC = () => (
-    <div className="grid md:grid-cols-3 gap-6">
+    <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto">
         {[
-            { name: "Gustavo Mendes", role: "Chief Executive Officer", desc: "Distressed-asset investment authority with 15+ years managing nationwide institutional property portfolios.", icon: "leaderboard" },
-            { name: "Alfonso R. K.", role: "Chief Systems Architect", desc: "Former enterprise systems engineer specializing in high-concurrency geospatial databases, PostGIS, and distributed system networks.", icon: "terminal" },
-            { name: "Jessica L. Chen", role: "Director of Operations", desc: "Oversees nationwide agent due diligence marketplace. Specialist in escrow mediation, trust environments, and GPS logistics.", icon: "groups" }
+            { name: "Gustavo Gomes", role: "Co-Founder & Developer", desc: "Distressed-asset investment authority with 15+ years managing nationwide institutional property portfolios. Leads technical direction and execution.", icon: "terminal" },
+            { name: "Ricardo Cabral", role: "Co-Founder & Investor", desc: "Strategic operations and investment specialist. Leads institutional relations, deal flow acquisition, and macro-level asset scaling strategies.", icon: "leaderboard" }
         ].map(member => (
             <div key={member.name} className="p-6 bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 rounded-3xl shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
                 <div>

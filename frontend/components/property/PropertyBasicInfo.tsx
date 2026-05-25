@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Property } from '../../types';
 import { calculateDealScore, DealScoreResult } from '../../intelligence/scoringEngine';
 import { PropertyScoreModal } from './PropertyScoreModal';
-import { CircleHelp as HelpCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { CircleHelp as HelpCircle, Plus, Minus } from 'lucide-react';
 import { API_BASE_URL } from '../../services/httpClient';
 
 interface Props {
@@ -84,23 +84,6 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white leading-tight flex items-center gap-2">
                         {property.address || property.parcel_id || 'Unknown Property'}
-                        <button 
-                            onClick={isUnlocked ? handleToggleExpand : handleUnlockAndSync}
-                            disabled={syncing}
-                            className={`p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-450 hover:text-slate-655 dark:text-slate-500 transition-all cursor-pointer ${syncing ? 'animate-spin text-indigo-500' : ''}`}
-                            title={syncing ? "Syncing..." : isUnlocked ? (isExpanded ? "Collapse Details" : "Expand Details") : "Expand Details"}
-                        >
-                            {syncing ? (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="animate-spin" aria-hidden="true">
-                                    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                                    <path d="M3 3v5h5" />
-                                    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                                    <path d="M16 16h5v5" />
-                                </svg>
-                            ) : (
-                                (isUnlocked && isExpanded) ? <ChevronUp size={20} /> : <ChevronDown size={20} />
-                            )}
-                        </button>
                     </h2>
                     <p className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-[18px] text-slate-400">location_on</span>
@@ -255,6 +238,25 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                     </>
                 )
             ) : null}
+
+            {/* Expand / Collapse Button in Bottom Right */}
+            <button 
+                onClick={isUnlocked ? handleToggleExpand : handleUnlockAndSync}
+                disabled={syncing}
+                className={`absolute bottom-4 right-4 p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full text-slate-400 hover:text-indigo-500 transition-all cursor-pointer shadow-sm border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 z-10 ${syncing ? 'animate-spin text-indigo-500' : ''}`}
+                title={syncing ? "Syncing..." : isUnlocked ? (isExpanded ? "Collapse Details" : "Expand Details") : "Expand Details"}
+            >
+                {syncing ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="animate-spin" aria-hidden="true">
+                        <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                        <path d="M3 3v5h5" />
+                        <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                        <path d="M16 16h5v5" />
+                    </svg>
+                ) : (
+                    (isUnlocked && isExpanded) ? <Minus size={18} /> : <Plus size={18} />
+                )}
+            </button>
         </div>
     );
 };
