@@ -22,11 +22,23 @@ import asyncio
 from app.services.status_updater import transition_past_auctions
 
 async def run_daily_task():
+    from app.db.session import SessionLocal
+    from app.services.task_refund import check_and_refund_overdue_tasks
     while True:
         try:
             await asyncio.to_thread(transition_past_auctions)
         except Exception as e:
-            print(f"Error in daily background task: {e}")
+            print(f"Error in daily background task (transition_past_auctions): {e}")
+
+        try:
+            db = SessionLocal()
+            try:
+                await check_and_refund_overdue_tasks(db)
+            finally:
+                db.close()
+        except Exception as e:
+            print(f"Error in daily background task (check_and_refund_overdue_tasks): {e}")
+
         await asyncio.sleep(3600)  # Run every 1 hour
 
 
@@ -73,6 +85,8 @@ def run_safe_migrations():
         ("users", "company_id", "INTEGER REFERENCES companies(id) ON DELETE SET NULL", "INTEGER"),
         ("users", "created_by_id", "INTEGER REFERENCES users(id) ON DELETE SET NULL", "INTEGER"),
         ("users", "permissions", "TEXT", "TEXT"),
+        ("users", "terms_accepted", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0"),
+        ("users", "newsletter_opt_in", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0"),
         ("activity_logs", "entity_type", "VARCHAR(100)", "VARCHAR(100)"),
         ("activity_logs", "entity_id", "VARCHAR(100)", "VARCHAR(100)"),
         ("activity_logs", "metadata_json", "TEXT", "TEXT"),
@@ -96,6 +110,38 @@ def run_safe_migrations():
                 print(f"✅ Migration: Added column '{column}' to '{table}'")
             except Exception as e:
                 print(f"⚠️  Migration warning for {table}.{column}: {e}")
+
+    # Ensure community_updates table exists
+    try:
+        with engine.connect() as conn:
+            if is_postgres:
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS community_updates (
+                        id SERIAL PRIMARY KEY,
+                        date VARCHAR(100),
+                        tag VARCHAR(100),
+                        title VARCHAR(255),
+                        content TEXT,
+                        author VARCHAR(255),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """))
+            else:
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS community_updates (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        date VARCHAR(100),
+                        tag VARCHAR(100),
+                        title VARCHAR(255),
+                        content TEXT,
+                        author VARCHAR(255),
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    )
+                """))
+            conn.commit()
+            print("✅ Migration: Ensure community_updates table exists")
+    except Exception as e:
+        print(f"⚠️  Migration warning for community_updates: {e}")
 
 
 @asynccontextmanager

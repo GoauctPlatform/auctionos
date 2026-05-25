@@ -42,6 +42,13 @@ const BillingPage: React.FC = () => {
       // If plan is upgraded and no longer expired, clear the trial_expired flag
       if (res.data?.status === 'active' && res.data?.plan_type !== 'trial') {
         localStorage.removeItem('trial_expired');
+        // Fetch new profile in background to update tier context
+        try {
+          const updatedUser = await AuthService.getMe();
+          localStorage.setItem('user', JSON.stringify(updatedUser));
+        } catch (profileErr) {
+          console.error("Failed to refresh profile tier:", profileErr);
+        }
       }
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to load billing usage.');

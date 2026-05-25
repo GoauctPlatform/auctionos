@@ -41,6 +41,7 @@ def get_admin_stats(
                 (SELECT COUNT(*) FROM auction_events WHERE LOWER(tax_status) LIKE '%%foreclosure%%' OR LOWER(name) LIKE '%%foreclosure%%') AS foreclosure_count,
                 (SELECT COUNT(*) FROM auction_events WHERE LOWER(tax_status) LIKE '%%lien%%' OR LOWER(name) LIKE '%%lien%%') AS lien_count,
                 (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'trial' AND is_active = TRUE AND role = 'client') AS trial_users,
+                (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'advanced' AND is_active = TRUE AND role = 'client') AS advanced_users,
                 (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'pro' AND is_active = TRUE AND role = 'client') AS pro_users,
                 (SELECT COUNT(*) FROM users WHERE LOWER(subscription_tier) = 'enterprise' AND is_active = TRUE AND role = 'client') AS enterprise_users,
                 (SELECT COUNT(*) FROM users WHERE is_active = TRUE AND role NOT IN ('admin', 'superuser')) AS total_active_users

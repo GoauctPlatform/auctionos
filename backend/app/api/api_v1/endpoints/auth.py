@@ -74,6 +74,8 @@ async def register_user(
         role=requested_role,
         is_verified=False,
         verification_token=secrets.token_urlsafe(32),
+        terms_accepted=True,
+        newsletter_opt_in=user_in.newsletter or False,
     )
     db.add(user)
     db.commit()

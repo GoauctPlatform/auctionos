@@ -1177,3 +1177,57 @@ async def upload_attachment(
     db.commit()
     db.refresh(attachment)
     return attachment
+
+@router.delete("/attachments/{attachment_id}", response_model=Any)
+def delete_attachment(
+    *,
+    db: Session = Depends(deps.get_db),
+    attachment_id: int,
+    current_user = Depends(deps.get_current_active_user)
+) -> Any:
+    """Delete an attachment physical file and its database record."""
+    attachment = db.query(ClientAttachment).filter(ClientAttachment.id == attachment_id).first()
+    if not attachment:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+    # Authorization Check
+    is_authorized = False
+    if current_user.role in ["superuser", "admin"]:
+        is_authorized = True
+    elif attachment.user_id == current_user.id:
+        is_authorized = True
+    elif attachment.company_id is not None:
+        effective_company_id = getattr(current_user, 'active_company_id', None) or getattr(current_user, 'company_id', None)
+        if attachment.company_id == effective_company_id and current_user.role in ["manager", "owner"]:
+            is_authorized = True
+
+    if not is_authorized:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this attachment")
+
+    # Physical File Deletion
+    file_name = os.path.basename(attachment.file_path)
+    physical_path = os.path.join(UPLOAD_DIR, file_name)
+    if os.path.exists(physical_path):
+        try:
+            os.remove(physical_path)
+        except Exception as e:
+            # Log the error but don't fail the database deletion to avoid dangling records
+            print(f"Failed to physically delete file {physical_path}: {e}")
+
+    # Database record deletion
+    db.delete(attachment)
+    db.commit()
+
+    # Log the activity
+    log_activity(
+        db,
+        current_user.id,
+        "delete_attachment",
+        "ClientAttachment",
+        attachment_id,
+        {"filename": attachment.filename},
+        company_id=getattr(current_user, 'active_company_id', current_user.company_id)
+    )
+
+    return {"ok": True, "message": "Attachment deleted successfully"}
+

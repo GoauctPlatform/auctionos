@@ -12,6 +12,7 @@ interface AdminStats {
   foreclosure_count: number;
   lien_count: number;
   trial_users: number;
+  advanced_users: number;
   pro_users: number;
   enterprise_users: number;
   total_active_users: number;
@@ -172,11 +173,13 @@ export const Dashboard: React.FC = () => {
               <span className="material-symbols-outlined text-[16px] text-emerald-500">group</span>
               Active Users (Paying)
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <StatCard label="Total Active" value={stats.total_active_users} icon="people" color="text-slate-600 dark:text-slate-300" bg="bg-slate-400"
                 sub="All roles, active accounts" />
               <StatCard label="Trial" value={stats.trial_users} icon="hourglass_top" color="text-amber-600 dark:text-amber-400" bg="bg-amber-500"
                 sub="Free trial accounts" />
+              <StatCard label="Advanced" value={stats.advanced_users} icon="verified" color="text-emerald-600 dark:text-emerald-400" bg="bg-emerald-500"
+                sub="Advanced tier subscribers" />
               <StatCard label="Pro" value={stats.pro_users} icon="workspace_premium" color="text-blue-600 dark:text-blue-400" bg="bg-blue-500"
                 sub="$130/mo subscribers" />
               <StatCard label="Enterprise" value={stats.enterprise_users} icon="diamond" color="text-purple-600 dark:text-purple-400" bg="bg-purple-500"

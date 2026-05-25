@@ -12,6 +12,8 @@ interface AdminUser {
     role: UserRole;
     is_active: boolean;
     created_at?: string;
+    terms_accepted?: boolean;
+    newsletter_opt_in?: boolean;
 }
 
 interface ActivityLog {
@@ -606,6 +608,8 @@ const AdminUsers: React.FC = () => {
                                         <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">User</th>
                                         <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Role</th>
                                         <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Terms</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Newsletter</th>
                                         <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Joined</th>
                                         <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Actions</th>
                                     </tr>
@@ -639,23 +643,62 @@ const AdminUsers: React.FC = () => {
                                                     </span>
                                                 </div>
                                             </td>
+                                            <td className="px-5 py-3.5">
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${u.terms_accepted ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-955/10 dark:text-rose-400'}`}>
+                                                    {u.terms_accepted ? 'Accepted' : 'No'}
+                                                </span>
+                                            </td>
+                                            <td className="px-5 py-3.5">
+                                                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${u.newsletter_opt_in ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400' : 'bg-slate-50 text-slate-500 dark:bg-slate-800 dark:text-slate-400'}`}>
+                                                    {u.newsletter_opt_in ? 'Subscribed' : 'No'}
+                                                </span>
+                                            </td>
                                             <td className="px-5 py-3.5 text-xs text-slate-500">
                                                 {u.created_at ? new Date(u.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
                                             </td>
                                             <td className="px-5 py-3.5">
-                                                <button
-                                                    onClick={() => setEditingUser(u)}
-                                                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors opacity-0 group-hover:opacity-100"
-                                                >
-                                                    <span className="material-symbols-outlined text-[14px]">edit</span>
-                                                    Edit Access
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        onClick={() => setEditingUser(u)}
+                                                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors opacity-0 group-hover:opacity-100 animate-in fade-in duration-200"
+                                                    >
+                                                        <span className="material-symbols-outlined text-[14px]">edit</span>
+                                                        Edit
+                                                    </button>
+                                                    {u.role !== 'superuser' && (
+                                                        <button
+                                                            onClick={async () => {
+                                                                if (window.confirm(`Are you sure you want to delete ${u.email}?`)) {
+                                                                    try {
+                                                                        const res = await fetch(`${API_URL}/users/${u.id}`, {
+                                                                            method: 'DELETE',
+                                                                            headers: getHeaders()
+                                                                        });
+                                                                        if (res.ok) {
+                                                                            alert('User deleted successfully.');
+                                                                            loadData();
+                                                                        } else {
+                                                                            const err = await res.json().catch(() => ({}));
+                                                                            alert(err.detail || 'Failed to delete user.');
+                                                                        }
+                                                                    } catch (e: any) {
+                                                                        alert(e.message || 'Error occurred.');
+                                                                    }
+                                                                }
+                                                            }}
+                                                            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-200 hover:bg-red-50 dark:border-red-900/50 dark:hover:bg-red-955/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100 animate-in fade-in duration-200"
+                                                        >
+                                                            <span className="material-symbols-outlined text-[14px]">delete</span>
+                                                            Delete
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
                                     {filteredUsers.length === 0 && (
                                         <tr>
-                                            <td colSpan={5} className="py-16 text-center text-slate-400">
+                                            <td colSpan={7} className="py-16 text-center text-slate-400">
                                                 <span className="material-symbols-outlined text-3xl mb-2 block opacity-50">manage_search</span>
                                                 No users match your filters.
                                             </td>

@@ -23,7 +23,7 @@ def read_users(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(deps.get_current_active_superuser),
+    current_user: User = Depends(allow_admin_only),
 ) -> Any:
     return db.query(User).offset(skip).limit(limit).all()
 
@@ -289,7 +289,10 @@ def delete_user(
     
     # RBAC logic
     if not current_user.is_superuser:
-        if current_user.role == "client":
+        if current_user.role == "admin":
+            if user.subscription_tier != "trial" and user.is_active:
+                raise HTTPException(status_code=403, detail="Admins can only delete trial or inactive users.")
+        elif current_user.role == "client":
             # Clients can only delete their team members (Managers and Agents)
             if user.role not in ["agent", "manager"]:
                  raise HTTPException(status_code=403, detail="Not authorized to delete this type of user.")
@@ -326,7 +329,7 @@ def delete_user(
 def bulk_delete_inactive_trials(
     *,
     db: Session = Depends(deps.get_db),
-    current_user: User = Depends(deps.get_current_active_superuser),
+    current_user: User = Depends(allow_admin_only),
 ) -> Any:
     """Delete all inactive users who are on the trial tier."""
     users_to_delete = db.query(User).filter(User.subscription_tier == "trial", User.is_active == False).all()
@@ -511,7 +514,7 @@ def read_user_logs(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 100,
-    current_user: User = Depends(deps.get_current_active_superuser),
+    current_user: User = Depends(allow_admin_only),
 ) -> Any:
     return db.query(ActivityLog).filter(ActivityLog.user_id == user_id).order_by(ActivityLog.created_at.desc()).offset(skip).limit(limit).all()
 
@@ -520,7 +523,7 @@ def read_all_logs(
     db: Session = Depends(deps.get_db),
     skip: int = 0,
     limit: int = 200,
-    current_user: User = Depends(deps.get_current_active_superuser),
+    current_user: User = Depends(allow_admin_only),
 ) -> Any:
     """Fetch global activity logs for Admin visualization"""
     logs = db.query(ActivityLog).order_by(ActivityLog.created_at.desc()).offset(skip).limit(limit).all()

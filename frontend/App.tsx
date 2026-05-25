@@ -150,7 +150,7 @@ function App() {
           <Route path="/connect/training" element={<TrainingLandingPage />} />
 
           {/* Protected Routes (Admin) */}
-          <Route element={<ProtectedRoute allowedRoles={['admin', 'superuser']}><Layout /></ProtectedRoute>}>
+          <Route element={<ProtectedRoute allowedRoles={['admin', 'superuser']}><CompanyProvider><Layout /></CompanyProvider></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/auctions" element={<AuctionList filters={{}} />} />
             <Route path="/admin/auctions" element={<AdminAuctions />} />

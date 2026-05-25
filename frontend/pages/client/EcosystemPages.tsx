@@ -1,5 +1,6 @@
 import React from 'react';
 import { API_BASE_URL } from '../../services/httpClient';
+import api from '../../services/api';
 
 const PlaceholderPage: React.FC<{
   icon: string;
@@ -274,67 +275,85 @@ export const TaxSystemsPage: React.FC = () => {
     );
 };
 
-const NEWS_UPDATES = [
-    {
-        id: 1,
-        date: "April 14, 2026",
-        tag: "Market Update",
-        title: "Florida Tax Deed Surplus Laws Under Review",
-        content: "Governor's office is currently reviewing a new bill that could significantly accelerate the surplus claims process after tax deed auctions. We urge investors looking at Orange and Miami-Dade counties to monitor the timeline. We will integrate any changes into our Yield estimator immediately.",
-        author: "GoAuct Admin"
-    },
-    {
-        id: 2,
-        date: "April 10, 2026",
-        tag: "System Note",
-        title: "Texas Data Pipeline Upgrade Complete",
-        content: "We have finalized the integration with 15 new Texas counties, bringing our total coverage in the state to 98%. All new redeemable deed listings will now feature automated title scanning for secondary IRS liens.",
-        author: "System Operations"
-    },
-    {
-        id: 3,
-        date: "April 02, 2026",
-        tag: "Strategy",
-        title: "Navigating Indiana Commissioner Sales",
-        content: "A major influx of commissioner sale properties is expected next month in Marion County. Unlike traditional tax sales, these properties are cleared of all taxes and sold free and clear at highly discounted minimum bids. Ensure your search filters in GoAuct are set to capture 'Commissioner Sale' tags.",
-        author: "Investment Strategy Team"
-    }
-];
+export const CommunityPage: React.FC = () => {
+    const [newsUpdates, setNewsUpdates] = React.useState<any[]>([]);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState('');
 
-export const CommunityPage: React.FC = () => (
-    <div className="max-w-4xl mx-auto py-8 px-4 h-[calc(100vh-120px)] overflow-y-auto">
-        <div className="flex items-center gap-4 mb-8">
-            <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
-                <span className="material-symbols-outlined text-3xl text-blue-600 dark:text-blue-400">forum</span>
-            </div>
-            <div>
-                <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Community & Updates</h1>
-                <p className="text-sm text-slate-500 font-medium">Real-estate news, system updates, and strategies directly from the GoAuct team.</p>
-            </div>
-        </div>
+    React.useEffect(() => {
+        const fetchCommunityUpdates = async () => {
+            try {
+                const res = await api.get('/community/');
+                setNewsUpdates(res.data);
+            } catch (err: any) {
+                console.error("Failed to load community updates", err);
+                setError("Failed to retrieve community updates. Please try again later.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchCommunityUpdates();
+    }, []);
 
-        <div className="space-y-6 pb-12">
-            {NEWS_UPDATES.map(news => (
-                <div key={news.id} className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 sm:p-8 shadow-sm relative overflow-hidden">
-                    <div className="flex items-center gap-3 mb-4">
-                        <span className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest rounded-full">{news.tag}</span>
-                        <span className="text-sm text-slate-400 font-medium">{news.date}</span>
-                    </div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{news.title}</h2>
-                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
-                        {news.content}
-                    </p>
-                    <div className="flex items-center gap-2 border-t border-slate-100 dark:border-slate-700 pt-4 mt-2">
-                        <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
-                            <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[14px]">admin_panel_settings</span>
-                        </div>
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{news.author}</span>
-                    </div>
+    return (
+        <div className="max-w-4xl mx-auto py-8 px-4 h-[calc(100vh-120px)] overflow-y-auto">
+            <div className="flex items-center gap-4 mb-8">
+                <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
+                    <span className="material-symbols-outlined text-3xl text-blue-600 dark:text-blue-400">forum</span>
                 </div>
-            ))}
+                <div>
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Community & Updates</h1>
+                    <p className="text-sm text-slate-500 font-medium">Real-estate news, system updates, and strategies directly from the GoAuct team.</p>
+                </div>
+            </div>
+
+            {loading ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium">Loading community updates...</p>
+                </div>
+            ) : error ? (
+                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center text-red-650 dark:text-red-400 font-semibold mb-6">
+                    <span className="material-symbols-outlined text-4xl mb-2 block">warning</span>
+                    {error}
+                </div>
+            ) : newsUpdates.length === 0 ? (
+                <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-12 text-center text-slate-500 dark:text-slate-400 shadow-sm">
+                    <span className="material-symbols-outlined text-5xl mb-4 text-slate-350 dark:text-slate-650">campaign</span>
+                    <p className="text-lg font-bold mb-2">No community posts yet</p>
+                    <p className="text-sm">Check back later for news, strategies, and system notes.</p>
+                </div>
+            ) : (
+                <div className="space-y-6 pb-12">
+                    {newsUpdates.map(news => (
+                        <div key={news.id} className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-6 sm:p-8 shadow-sm relative overflow-hidden transition-all hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600">
+                            <div className="flex items-center gap-3 mb-4">
+                                <span className={`px-3 py-1 text-xs font-bold uppercase tracking-widest rounded-full ${
+                                    news.tag === 'Market Update' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
+                                    news.tag === 'System Note' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300' :
+                                    news.tag === 'Strategy' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-300' :
+                                    'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                                }`}>{news.tag}</span>
+                                <span className="text-sm text-slate-400 font-medium">{news.date}</span>
+                            </div>
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{news.title}</h2>
+                            <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6 whitespace-pre-line">
+                                {news.content}
+                            </p>
+                            <div className="flex items-center gap-2 border-t border-slate-100 dark:border-slate-700 pt-4 mt-2">
+                                <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[14px]">admin_panel_settings</span>
+                                </div>
+                                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{news.author}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
-    </div>
-);
+    );
+};
+
 
 const GROUPS_TESTIMONIALS = [
     {

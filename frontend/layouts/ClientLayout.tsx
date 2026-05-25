@@ -31,6 +31,9 @@ const ClientLayout: React.FC = () => {
   // This ensures trial_expired flag is set before rendering the workbench
   React.useEffect(() => {
     const checkTrialExpiration = async () => {
+      if (location.pathname.includes('/client/billing') || location.pathname.includes('/client/expired')) {
+        return;
+      }
       try {
         // Make a safe API call to check subscription status
         // This will trigger HTTP 402 if trial has expired
@@ -55,7 +58,7 @@ const ClientLayout: React.FC = () => {
     if (user && user.role === 'client') {
       checkTrialExpiration();
     }
-  }, [user, navigate]);
+  }, [user, navigate, location.pathname]);
 
   React.useEffect(() => {
     // If verified user hasn't completed onboarding tour, start the interactive tour!

@@ -160,26 +160,64 @@ export const PropertyUserActions: React.FC<Props> = ({
                     
                     {property.attachments && property.attachments.length > 0 ? (
                         <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto pr-1">
-                            {property.attachments.map((att: any, idx: number) => (
-                                <a
-                                    key={idx}
-                                    href={att.file_path.startsWith('http') ? att.file_path : `${API_BASE_URL}${att.file_path}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all group shadow-sm border-l-2 border-l-blue-500"
-                                >
-                                    <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                        <span className="material-symbols-outlined text-[16px] text-slate-400">description</span>
+                            {property.attachments.map((att: any, idx: number) => {
+                                const handleDelete = async (e: React.MouseEvent) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (!window.confirm(`Are you sure you want to delete "${att.filename}"?`)) {
+                                        return;
+                                    }
+                                    try {
+                                        await api.delete(`/client-data/attachments/${att.id}`);
+                                        alert("File deleted successfully!");
+                                        window.location.reload();
+                                    } catch (err: any) {
+                                        alert(err.response?.data?.detail || err.message || "Failed to delete file.");
+                                    }
+                                };
+
+                                return (
+                                    <div
+                                        key={idx}
+                                        className="flex items-center justify-between p-3 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all group shadow-sm border-l-2 border-l-blue-500"
+                                    >
+                                        <a
+                                            href={att.file_path.startsWith('http') ? att.file_path : `${API_BASE_URL}${att.file_path}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center gap-3 flex-1 min-w-0"
+                                        >
+                                            <div className="w-8 h-8 rounded-lg bg-slate-50 dark:bg-slate-800 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                <span className="material-symbols-outlined text-[16px] text-slate-400">description</span>
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 truncate">
+                                                    {att.filename}
+                                                </p>
+                                                <p className="text-[9px] text-slate-400 font-medium">Added to Cloud Storage</p>
+                                            </div>
+                                        </a>
+                                        <div className="flex items-center gap-2">
+                                            <a
+                                                href={att.file_path.startsWith('http') ? att.file_path : `${API_BASE_URL}${att.file_path}`}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                title="Download File"
+                                                className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded transition-colors text-slate-400 hover:text-blue-500"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">download</span>
+                                            </a>
+                                            <button
+                                                onClick={handleDelete}
+                                                title="Delete File"
+                                                className="p-1 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded transition-colors text-slate-350 hover:text-rose-600 dark:hover:text-rose-400"
+                                            >
+                                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-[11px] font-bold text-slate-700 dark:text-slate-300 truncate">
-                                            {att.filename}
-                                        </p>
-                                        <p className="text-[9px] text-slate-400 font-medium">Added to Cloud Storage</p>
-                                    </div>
-                                    <span className="material-symbols-outlined text-slate-300 text-[14px] group-hover:text-blue-500 group-hover:translate-x-1 transition-all">download</span>
-                                </a>
-                            ))}
+                                );
+                            })}
                         </div>
                     ) : (
                         <div className="flex flex-col items-center justify-center p-8 text-center bg-white dark:bg-slate-900 border border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">

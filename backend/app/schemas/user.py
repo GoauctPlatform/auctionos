@@ -47,6 +47,8 @@ class User(BaseModel):
     is_verified: bool = False
     property_searches_used: Optional[int] = 0
     linked_company_ids: Optional[List[int]] = []  # All company IDs this user belongs to
+    terms_accepted: Optional[bool] = False
+    newsletter_opt_in: Optional[bool] = False
 
     class Config:
         from_attributes = True

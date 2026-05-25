@@ -1078,13 +1078,13 @@ def get_property(
             # Fetch Client Attachments ALWAYS (regardless of BPO media unlock)
             if company_id:
                 att_query = text("""
-                    SELECT filename, file_path FROM client_attachments 
+                    SELECT id, filename, file_path FROM client_attachments 
                     WHERE property_id = :prop_id AND company_id = :company_id
                 """)
                 att_rows = db.execute(att_query, {"prop_id": prop_id_int, "company_id": company_id}).fetchall()
             else:
                 att_query = text("""
-                    SELECT filename, file_path FROM client_attachments 
+                    SELECT id, filename, file_path FROM client_attachments 
                     WHERE property_id = :prop_id AND user_id = :user_id AND company_id IS NULL
                 """)
                 att_rows = db.execute(att_query, {"prop_id": prop_id_int, "user_id": current_user.id}).fetchall()

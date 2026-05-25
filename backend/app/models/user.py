@@ -17,6 +17,8 @@ class User(Base):
     reset_token_expires = Column(Integer, nullable=True) # unix timestamp
     is_verified = Column(Boolean(), default=False)
     verification_token = Column(String(255), nullable=True)
+    terms_accepted = Column(Boolean(), default=False)
+    newsletter_opt_in = Column(Boolean(), default=False)
 
     # ── Billing & Usage ──────────────────────────────────────────────────────
     subscription_tier = Column(String(50), default="trial")  # 'trial', 'pro', 'enterprise'

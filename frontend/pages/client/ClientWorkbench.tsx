@@ -140,19 +140,7 @@ interface OverlayWindow {
   data?: any;
 }
 
-const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'property_metrics', type: 'property_metrics', title: 'Property Metrics', x: 20, y: 20, w: 820, h: 140, visible: true, zIndex: 11 },
-  { id: 'map', type: 'map', title: 'National Yield Heatmap', x: 20, y: 180, w: 820, h: 430, visible: true, zIndex: 14 },
-  { id: 'recommended_deals', type: 'recommended_deals', title: 'Top Recommended Deals', x: 860, y: 20, w: 450, h: 590, visible: true, zIndex: 15 },
-  { id: 'chart', type: 'chart', title: 'Monthly Auction Trends', x: 860, y: 630, w: 450, h: 390, visible: true, zIndex: 18 },
-  { id: 'dossier', type: 'dossier', title: 'Featured Property Dossier', x: 1330, y: 20, w: 380, h: 590, visible: true, zIndex: 19 },
-  { id: 'yield', type: 'yield', title: 'Yield Breakdown Analytics', x: 1330, y: 630, w: 380, h: 390, visible: true, zIndex: 20 },
-  { id: 'rehab_calc', type: 'rehab_calc', title: 'Rehab & ROI Calculator', x: 1730, y: 20, w: 380, h: 420, visible: true, zIndex: 35 },
-  { id: 'support_center', type: 'support_center', title: 'Support & Help Center', x: 1730, y: 460, w: 380, h: 420, visible: true, zIndex: 33 },
-  { id: 'company', type: 'company', title: 'Active Company Hub', x: 2130, y: 20, w: 300, h: 230, visible: true, zIndex: 29 },
-  { id: 'field_coordination', type: 'field_coordination', title: 'Field Operation Coordination', x: 2130, y: 270, w: 380, h: 420, visible: true, zIndex: 30 },
-  { id: 'acquisition_pipeline', type: 'acquisition_pipeline', title: 'Real Estate Acquisition Pipelines', x: 2130, y: 710, w: 380, h: 320, visible: true, zIndex: 31 }
-];
+const DEFAULT_WIDGETS: Widget[] = [];
 
 export const ClientWorkbench: React.FC = () => {
   const navigate = useNavigate();
@@ -2714,7 +2702,6 @@ export const ClientWorkbench: React.FC = () => {
               { id: 'connect', icon: Compass, label: 'Connect Hub' },
               { id: 'team_and_logs', icon: Users, label: 'Team & Activity Logs' },
               { id: 'billings_and_plans', icon: CreditCard, label: 'Billing & Plans' },
-              { id: 'notifications', icon: Bell, label: 'System Notifications' },
               { id: 'settings', icon: Settings, label: 'Workbench Settings' }
             ].map(shortcut => {
               const Icon = shortcut.icon;
@@ -2982,10 +2969,7 @@ export const ClientWorkbench: React.FC = () => {
                       <div className="flex flex-col space-y-2 max-h-[360px] overflow-y-auto pr-1">
                         {/* Standard Presets */}
                         {[
-                          { id: 'default', label: 'Default Layout', desc: 'Full widgets analytical grid', icon: LayoutGrid },
-                          { id: 'map_focus', label: 'Map Focus', desc: 'Maximizes geographical yields', icon: Map },
-                          { id: 'analytics_focus', label: 'Analytics Center', desc: 'Aligns charts side-by-side', icon: BarChart2 },
-                          { id: 'dossier_focus', label: 'Deep Dossier', desc: 'Prioritizes property inspect details', icon: Folder }
+                          // Empty standard presets to allow starting from scratch
                         ].map(p => {
                           const Icon = p.icon;
                           return (
