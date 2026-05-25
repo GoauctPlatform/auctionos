@@ -242,7 +242,7 @@ export const ClientWorkbench: React.FC = () => {
   }, [announcements.length]);
 
   // IDE Mode & Node Canvas Custom States
-  const layoutTemplate = 'canvas';
+  const [layoutTemplate, setLayoutTemplate] = useState<'canvas' | 'ide'>('canvas');
   const [activeIdeTabId, setActiveIdeTabId] = useState<string | null>(() => {
     return localStorage.getItem('goauct_workbench_activeIdeTabId') || 'live_auctions';
   });
