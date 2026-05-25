@@ -110,8 +110,11 @@ def get_current_usage(
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ) -> Any:
-    """Returns current usage stats vs limits for the user's plan."""
-    sub = PermissionService.get_parent_subscription(db, current_user)
+    """
+    Returns current usage stats vs limits for the user's plan.
+    Uses billing-safe subscription lookup - allows expired users to see billing page.
+    """
+    sub = PermissionService.get_parent_subscription_for_billing(db, current_user)
     limits = PLAN_LIMITS.get(sub.plan_type, PLAN_LIMITS["trial"])
 
     def _fmt(val):

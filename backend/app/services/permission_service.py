@@ -58,6 +58,47 @@ class PermissionService:
         Gets the subscription object governing the current user.
         If user is a client, it's their own subscription.
         If manager/agent, it's the subscription of the owner of their active company.
+        Raises HTTP 402 if trial is expired or subscription is not active.
+        """
+        sub = PermissionService._get_subscription_data(db, user)
+        
+        # Check if trial is expired (7 days from start_date)
+        if sub.plan_type == 'trial' and sub.start_date:
+            # Calculate days active using timezone-aware comparison
+            start_date = sub.start_date
+            if start_date.tzinfo is None:
+                # Handle naive datetime by assuming UTC
+                from datetime import timezone as dt_timezone
+                start_date = start_date.replace(tzinfo=dt_timezone.utc)
+            
+            days_active = (datetime.now(timezone.utc) - start_date).days
+            
+            # Trial expires after 7 complete days (days_active >= 7 means at least 7 days have passed)
+            if days_active >= 7:
+                sub.status = 'expired'
+                db.commit()
+                raise HTTPException(status_code=402, detail="Trial period has expired. Please upgrade your plan.")
+                
+        if sub.status != 'active':
+            raise HTTPException(status_code=402, detail=f"Subscription is {sub.status}. Please upgrade your plan.")
+            
+        return sub
+
+    @staticmethod
+    def get_parent_subscription_for_billing(db: Session, user: User) -> UserSubscription:
+        """
+        Gets the subscription object for billing/usage display purposes.
+        Does NOT raise HTTP 402 error for expired trials - allows access to billing page.
+        Returns the subscription object as-is, including expired status.
+        Used by billing endpoints to let expired users upgrade.
+        """
+        return PermissionService._get_subscription_data(db, user)
+
+    @staticmethod
+    def _get_subscription_data(db: Session, user: User) -> UserSubscription:
+        """
+        Internal method: Gets subscription data without enforcing trial expiration.
+        Fetches and syncs subscription object for the user or their company owner.
         """
         if user.role == 'client':
             sub = db.query(UserSubscription).filter(UserSubscription.user_id == user.id).first()
@@ -90,26 +131,6 @@ class PermissionService:
             db.add(sub)
             db.commit()
             db.refresh(sub)
-            
-        # Check if trial is expired (7 days from start_date)
-        if sub.plan_type == 'trial' and sub.start_date:
-            # Calculate days active using timezone-aware comparison
-            start_date = sub.start_date
-            if start_date.tzinfo is None:
-                # Handle naive datetime by assuming UTC
-                from datetime import timezone as dt_timezone
-                start_date = start_date.replace(tzinfo=dt_timezone.utc)
-            
-            days_active = (datetime.now(timezone.utc) - start_date).days
-            
-            # Trial expires after 7 complete days (days_active >= 7 means at least 7 days have passed)
-            if days_active >= 7:
-                sub.status = 'expired'
-                db.commit()
-                raise HTTPException(status_code=402, detail="Trial period has expired. Please upgrade your plan.")
-                
-        if sub.status != 'active':
-            raise HTTPException(status_code=402, detail=f"Subscription is {sub.status}. Please upgrade your plan.")
             
         return sub
 
