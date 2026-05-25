@@ -7,11 +7,28 @@ export const Layout: React.FC = () => {
   const navigate = useNavigate();
   const user = AuthService.getCurrentUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
+  const navItems = [
+    { icon: 'dashboard', label: 'Overview', path: '/dashboard' },
+    { icon: 'group', label: 'Users & Roles', path: '/users' },
     {
-      icon: 'campaign',
-      label: 'News & Announcements',
-      path: '/admin/broadcasts',
+      icon: 'build',
+      label: 'Tools',
+      dropdown: [
+        { label: 'Auctions Dashboard', path: '/admin/auctions' },
+        { label: 'Property Manager', path: '/admin/properties' },
+        { label: 'News & Announcements', path: '/admin/broadcasts' },
+      ],
+    },
+    {
+      icon: 'admin_panel_settings',
+      label: 'Admin & CRM',
+      dropdown: [
+        { label: 'User Management', path: '/admin/users' },
+        { label: 'Realtor Withdrawals', path: '/admin/withdrawals' },
+        { label: 'Conflict Mediation', path: '/admin/mediation' },
+      ],
     },
     { icon: 'settings', label: 'Settings', path: '/settings' },
   ];
