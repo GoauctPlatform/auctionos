@@ -74,11 +74,15 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: strin
     return <Navigate to="/login" replace />;
   }
 
-  // Strict Trial Lockout:
-  // If the API flagged trial_expired in local storage, block access unless they are on the expired/billing page.
+  // Trial Expiration Check:
+  // If trial_expired flag is set, only allow access to expired and billing pages.
+  // This prevents users from accessing the workbench and other protected features.
   if (AuthService.isTrialExpired()) {
     const allowedExpiredPaths = ['/client/expired', '/client/billing'];
-    if (!allowedExpiredPaths.some(p => location.pathname.includes(p))) {
+    const isAllowedPath = allowedExpiredPaths.some(p => location.pathname.includes(p));
+    
+    if (!isAllowedPath) {
+      // Redirect to expired page for any other route
       return <Navigate to="/client/expired" replace />;
     }
   }

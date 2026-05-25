@@ -91,10 +91,19 @@ class PermissionService:
             db.commit()
             db.refresh(sub)
             
-        # Check if trial is expired (7 days)
+        # Check if trial is expired (7 days from start_date)
         if sub.plan_type == 'trial' and sub.start_date:
-            days_active = (datetime.now(timezone.utc) - sub.start_date).days
-            if days_active > 7:
+            # Calculate days active using timezone-aware comparison
+            start_date = sub.start_date
+            if start_date.tzinfo is None:
+                # Handle naive datetime by assuming UTC
+                from datetime import timezone as dt_timezone
+                start_date = start_date.replace(tzinfo=dt_timezone.utc)
+            
+            days_active = (datetime.now(timezone.utc) - start_date).days
+            
+            # Trial expires after 7 complete days (days_active >= 7 means at least 7 days have passed)
+            if days_active >= 7:
                 sub.status = 'expired'
                 db.commit()
                 raise HTTPException(status_code=402, detail="Trial period has expired. Please upgrade your plan.")
