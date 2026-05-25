@@ -27,6 +27,35 @@ const ClientLayout: React.FC = () => {
                         new URLSearchParams(window.location.search).get('dev') === 'true';
   const showDevBypass = isLocal || hasDebugParam || envelopeClicks >= 5;
 
+  // CRITICAL: Check trial expiration status immediately on mount
+  // This ensures trial_expired flag is set before rendering the workbench
+  React.useEffect(() => {
+    const checkTrialExpiration = async () => {
+      try {
+        // Make a safe API call to check subscription status
+        // This will trigger HTTP 402 if trial has expired
+        const response = await api.get('/billing/usage');
+        
+        // If subscription status is expired, set the flag
+        if (response.data?.status === 'expired') {
+          localStorage.setItem('trial_expired', 'true');
+          navigate('/client/expired', { replace: true });
+        }
+      } catch (error: any) {
+        // HTTP 402 errors are handled by the API interceptor
+        // But we also check explicitly in case it wasn't caught
+        if (error.response?.status === 402) {
+          localStorage.setItem('trial_expired', 'true');
+          navigate('/client/expired', { replace: true });
+        }
+      }
+    };
+
+    // Only check if user is loaded and is a client
+    if (user && user.role === 'client') {
+      checkTrialExpiration();
+    }
+  }, [user, navigate]);
 
   React.useEffect(() => {
     // If verified user hasn't completed onboarding tour, start the interactive tour!

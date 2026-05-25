@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
+import { AuthService } from '../../services/auth.service';
 import { Shield, Zap, CheckCircle, AlertTriangle, HardDrive, Star, Lock } from 'lucide-react';
 
 interface UsageStats {
@@ -31,11 +32,17 @@ const BillingPage: React.FC = () => {
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const fetchUsage = useCallback(async () => {
     try {
       const res = await api.get('/billing/usage');
       setData(res.data);
+      
+      // If plan is upgraded and no longer expired, clear the trial_expired flag
+      if (res.data?.status === 'active' && res.data?.plan_type !== 'trial') {
+        localStorage.removeItem('trial_expired');
+      }
     } catch (err: any) {
       setError(err.response?.data?.detail || 'Failed to load billing usage.');
     } finally {
@@ -70,6 +77,20 @@ const BillingPage: React.FC = () => {
   useEffect(() => {
     fetchUsage();
   }, [fetchUsage]);
+
+  // Handle back button/navigation away from billing page while expired
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      // If user is still expired and tries to leave billing page, redirect to expired
+      if (AuthService.isTrialExpired() && data?.status === 'expired') {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [data]);
 
   const handleUpgrade = async (plan: 'advanced' | 'pro' | 'enterprise') => {
     setUpgradeLoading(plan);
@@ -137,16 +158,35 @@ const BillingPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Billing & Usage</h1>
           <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">Manage your GoAuct subscription and resource limits.</p>
         </div>
-        <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm shadow-sm ${data.status === 'active'
-          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
-          : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
-          }`}>
-          <Shield size={16} />
-          {data.plan_type.toUpperCase()} — {data.status}
+        <div className="flex items-center gap-3">
+          {data.status === 'expired' && (
+            <button
+              onClick={() => navigate('/client/expired')}
+              className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-semibold rounded-lg text-sm transition-all"
+            >
+              ← Back
+            </button>
+          )}
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm shadow-sm ${data.status === 'active'
+            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+            }`}>
+            <Shield size={16} />
+            {data.plan_type.toUpperCase()} — {data.status}
+          </div>
         </div>
       </div>
 
       {/* Alerts */}
+      {data.status === 'expired' && (
+        <div className="mb-6 flex items-start gap-4 p-5 bg-rose-50 dark:bg-rose-900/20 border-l-4 border-rose-500 rounded-lg text-rose-700 dark:text-rose-300">
+          <AlertTriangle size={24} className="flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg">Your Trial Period Has Ended</h3>
+            <p className="text-sm mt-1">Your 7-day trial period has expired. To continue using premium features, please select a plan below to upgrade your account.</p>
+          </div>
+        </div>
+      )}
       {successMessage && (
         <div className="mb-6 flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl text-green-700 dark:text-green-300">
           <CheckCircle size={20} className="flex-shrink-0" />

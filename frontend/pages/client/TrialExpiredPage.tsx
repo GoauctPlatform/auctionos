@@ -1,10 +1,24 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, AlertCircle, ChevronRight } from 'lucide-react';
 import { AuthService } from '../../services/auth.service';
 
 export const TrialExpiredPage: React.FC = () => {
     const navigate = useNavigate();
+
+    // Prevent browser back button from accessing workbench
+    useEffect(() => {
+        // Push a new history entry to prevent back navigation
+        window.history.pushState(null, '', window.location.href);
+        
+        const handlePopState = (event: PopStateEvent) => {
+            // If user tries to go back, stay on expired page
+            window.history.pushState(null, '', window.location.href);
+        };
+
+        window.addEventListener('popstate', handlePopState);
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, []);
 
     const handleUpgrade = () => {
         navigate('/client/billing');
