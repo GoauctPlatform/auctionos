@@ -8,229 +8,113 @@ export const Layout: React.FC = () => {
   const user = AuthService.getCurrentUser();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+    {
+      icon: 'campaign',
+      label: 'News & Announcements',
+      path: '/admin/broadcasts',
+    },
+    { icon: 'settings', label: 'Settings', path: '/settings' },
+  ];
+
   const handleLogout = () => {
     AuthService.logout();
     navigate('/login');
   };
 
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-
-  const navItems = [
-    { icon: 'home', label: 'Home', path: '/dashboard' },
-    {
-      icon: 'build',
-      label: 'Tools',
-      dropdown: [
-        { label: 'Auctions Dashboard', path: '/admin/auctions' },
-        { label: 'Property Manager', path: '/admin/properties' },
-        { label: 'System Broadcasts', path: '/admin/broadcasts' },
-      ],
-    },
-    {
-      icon: 'admin_panel_settings',
-      label: 'Admin & CRM',
-      dropdown: [
-        { label: 'User Management', path: '/admin/users' },
-        { label: 'Realtor Withdrawals', path: '/admin/withdrawals' },
-        { label: 'Conflict Mediation', path: '/admin/mediation' },
-      ],
-    },
-    { icon: 'settings', label: 'Settings', path: '/settings' },
-  ];
-
   return (
-    <div className="min-h-screen w-full bg-background-light dark:bg-background-dark font-display flex flex-col">
-      {/* Header Navigation */}
-      <header className="bg-white/70 dark:bg-slate-900/80 backdrop-blur-md border-b border-[#e7ecf3] dark:border-slate-700/50 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex">
-              <div className="flex-shrink-0 flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
-                <div className="size-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold">A</div>
-                <span className="text-[#0d131b] dark:text-white text-lg font-bold hidden md:block">GoAuct</span>
-              </div>
-
-              {/* Desktop Nav */}
-              <div className="hidden md:ml-8 md:flex md:space-x-4 items-center">
-                {navItems.map((item) => (
-                  <div key={item.label} className="relative group">
-                    {item.dropdown ? (
-                      <div className="inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800 cursor-pointer">
-                        <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                        <span>{item.label}</span>
-                        <span className="material-symbols-outlined text-[16px]">expand_more</span>
-                      </div>
-                    ) : (
-                      <NavLink
-                        to={item.path!}
-                        className={({ isActive }) =>
-                          `inline-flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive
-                            ? 'bg-primary/10 text-primary'
-                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800'
-                          }`
-                        }
-                      >
-                        <span className="material-symbols-outlined text-[20px]">{item.icon}</span>
-                        <span>{item.label}</span>
-                      </NavLink>
-                    )}
-
-                    {/* Dropdown Menu */}
-                    {item.dropdown && (
-                      <div className="absolute left-0 mt-0 w-56 rounded-md shadow-lg bg-white dark:bg-slate-800 ring-1 ring-black ring-opacity-5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
-                        <div className="py-1">
-                          {item.dropdown.map((dropItem) => (
-                            <NavLink
-                              key={dropItem.path}
-                              to={dropItem.path}
-                              className={({ isActive }) => 
-                                `block px-4 py-2 text-sm ${isActive 
-                                  ? 'bg-slate-100 text-primary dark:bg-slate-700 dark:text-blue-400 font-bold' 
-                                  : 'text-slate-700 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
-                                }`
-                              }
-                            >
-                              {dropItem.label}
-                            </NavLink>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-4">
-              {/* User Menu */}
-              <div className="hidden md:flex items-center gap-3">
-                <div className="flex flex-col items-end mr-2">
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                    {user?.full_name || user?.email?.split('@')[0] || 'Admin'}
-                  </span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 capitalize">{user?.role || 'Agent'}</span>
-                </div>
-                <div
-                  className="size-9 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white text-sm font-bold shadow-sm"
-                >
-                  {(user?.full_name || user?.email || 'A').charAt(0).toUpperCase()}
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="p-2 text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                  title="Sign Out"
-                >
-                  <span className="material-symbols-outlined">logout</span>
-                </button>
-              </div>
-
-              {/* Mobile menu button */}
-              <div className="flex item-center md:hidden">
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-slate-500 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary"
-                  onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                >
-                  <span className="sr-only">Open main menu</span>
-                  <span className="material-symbols-outlined">{mobileMenuOpen ? 'close' : 'menu'}</span>
-                </button>
-              </div>
-            </div>
+    <div className="flex h-screen bg-slate-50 dark:bg-[#0B1120] font-sans overflow-hidden">
+      {/* Workbench Sidebar */}
+      <aside className="w-16 md:w-64 shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 z-50">
+        <div className="flex flex-col">
+          <div className="h-16 flex items-center justify-center md:justify-start md:px-6 border-b border-slate-200 dark:border-slate-800 cursor-pointer" onClick={() => navigate('/dashboard')}>
+            <div className="size-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold shrink-0">A</div>
+            <span className="hidden md:block ml-3 text-slate-900 dark:text-white font-bold text-lg">GoAuct Admin</span>
           </div>
+
+          <nav className="p-3 space-y-1.5 flex-1 overflow-y-auto mt-4">
+            {navItems.map((item) => (
+              <div key={item.label}>
+                {item.dropdown ? (
+                  <>
+                    <button
+                      onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
+                      className="w-full flex items-center justify-center md:justify-between px-0 md:px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white transition-colors group relative"
+                      title={item.label}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">{item.icon}</span>
+                        <span className="hidden md:block font-semibold text-sm">{item.label}</span>
+                      </div>
+                      <span className="hidden md:block material-symbols-outlined text-[16px] opacity-50">
+                        {openDropdown === item.label ? 'expand_less' : 'expand_more'}
+                      </span>
+                    </button>
+                    {openDropdown === item.label && (
+                      <div className="hidden md:block pl-10 pr-3 py-1 space-y-1">
+                        {item.dropdown.map((dropItem) => (
+                          <NavLink
+                            key={dropItem.path}
+                            to={dropItem.path}
+                            className={({ isActive }) =>
+                              `block px-3 py-2 rounded-md text-sm font-medium ${isActive
+                                ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+                                : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800'
+                              }`
+                            }
+                          >
+                            {dropItem.label}
+                          </NavLink>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <NavLink
+                    to={item.path!}
+                    className={({ isActive }) =>
+                      `flex items-center justify-center md:justify-start gap-3 px-0 md:px-3 py-2.5 rounded-lg transition-colors group relative ${isActive
+                        ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400'
+                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+                      }`
+                    }
+                    title={item.label}
+                  >
+                    <span className={`material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform`}>{item.icon}</span>
+                    <span className="hidden md:block font-semibold text-sm">{item.label}</span>
+                  </NavLink>
+                )}
+              </div>
+            ))}
+          </nav>
         </div>
 
-        {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 dark:border-slate-700 overflow-y-auto max-h-[calc(100vh-4rem)] bg-white dark:bg-slate-900 absolute w-full z-50">
-            <div className="pt-2 pb-3 px-4 flex flex-col gap-1">
-              {navItems.map((item) => (
-                <div key={item.label}>
-                  {item.dropdown ? (
-                    <>
-                      <button
-                        onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
-                        className="w-full flex items-center justify-between gap-3 px-3 py-2.5 rounded-md text-base font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="material-symbols-outlined">{item.icon}</span>
-                          {item.label}
-                        </div>
-                        <span className="material-symbols-outlined">
-                          {openDropdown === item.label ? 'expand_less' : 'expand_more'}
-                        </span>
-                      </button>
-                      {openDropdown === item.label && (
-                        <div className="pl-10 pr-3 py-2 space-y-1">
-                          {item.dropdown.map((dropItem) => (
-                            <NavLink
-                              key={dropItem.path}
-                              to={dropItem.path}
-                              className={({ isActive }) =>
-                                `block px-3 py-2 rounded-md text-sm font-medium ${isActive
-                                  ? 'bg-primary/10 text-primary'
-                                  : 'text-slate-500 hover:text-slate-700 hover:bg-slate-50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-800'
-                                }`
-                              }
-                              onClick={() => setMobileMenuOpen(false)}
-                            >
-                              {dropItem.label}
-                            </NavLink>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <NavLink
-                      to={item.path!}
-                      className={({ isActive }) =>
-                        `flex items-center gap-3 px-3 py-2.5 rounded-md text-base font-medium transition-colors ${isActive
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-800'
-                        }`
-                      }
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <span className="material-symbols-outlined">{item.icon}</span>
-                      {item.label}
-                    </NavLink>
-                  )}
-                </div>
-              ))}
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800">
+          <div className="hidden md:flex items-center gap-3 px-3 py-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 mb-3 border border-slate-200 dark:border-slate-700">
+            <div className="size-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shrink-0">
+              {(user?.full_name || user?.email || 'A').charAt(0).toUpperCase()}
             </div>
-
-            {/* Mobile User Menu */}
-            <div className="mt-4 pt-4 pb-4 border-t border-slate-200 dark:border-slate-700">
-              <div className="flex items-center px-4">
-                <div
-                  className="size-10 rounded-full bg-cover bg-center border border-slate-200"
-                  style={{ backgroundImage: `url('${user?.avatar || '/placeholder.png'}')` }}
-                ></div>
-                <div className="ml-3">
-                  <div className="text-base font-medium text-slate-800 dark:text-white">{user?.email || 'User'}</div>
-                  <div className="text-sm font-medium text-slate-500 dark:text-slate-400 capitalize">{user?.role || 'Agent'}</div>
-                </div>
-              </div>
-              <div className="mt-3 space-y-1 px-2">
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-base font-medium text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <span className="material-symbols-outlined">logout</span>
-                  Sign Out
-                </button>
-              </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-slate-900 dark:text-white truncate">{user?.full_name || user?.email?.split('@')[0] || 'Admin'}</p>
+              <p className="text-[10px] text-slate-500 uppercase tracking-wider truncate">{user?.role || 'Administrator'}</p>
             </div>
-
           </div>
-        )}
-      </header>
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center md:justify-start gap-3 px-0 md:px-3 py-2.5 rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400 transition-colors group"
+            title="Sign Out"
+          >
+            <span className="material-symbols-outlined text-[22px] group-hover:scale-110 transition-transform">logout</span>
+            <span className="hidden md:block font-semibold text-sm">Sign Out</span>
+          </button>
+        </div>
+      </aside>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Outlet />
+      <main className="flex-1 flex flex-col h-full relative overflow-y-auto bg-slate-50/50 dark:bg-transparent">
+        <div className="flex-1 w-full p-4 md:p-8">
+          <Outlet />
+        </div>
       </main>
-
-      <Footer />
     </div>
   );
 };

@@ -26,6 +26,7 @@ api.interceptors.response.use(
       window.location.href = '/#/';
     } else if (error.response?.status === 402) {
       console.warn('Payment required or trial expired.');
+      localStorage.setItem('trial_expired', 'true');
       // Don't log them out, just alert and redirect to billing
       alert(error.response?.data?.detail || "Your plan has expired or limits reached. Please upgrade.");
       window.location.href = '/#/client/expired';

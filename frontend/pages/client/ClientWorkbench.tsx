@@ -13,6 +13,9 @@ import { useCompany } from '../../context/CompanyContext';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
 import { StatCounterWidget } from '../../components/widgets/StatCounterWidget';
 import { TickerTapeWidget } from '../../components/widgets/TickerTapeWidget';
+import { PropertyMetricsWidget } from '../../components/widgets/PropertyMetricsWidget';
+import { TopRecommendedWidget } from '../../components/widgets/TopRecommendedWidget';
+import { RehabCalcWidget } from '../../components/widgets/RehabCalcWidget';
 import { RecommendedDealsWidget } from '../../components/widgets/RecommendedDealsWidget';
 import { API_URL } from '../../services/httpClient';
 
@@ -111,7 +114,7 @@ const fallbackContacts: Record<string, any[]> = {
 
 interface Widget {
   id: string;
-  type: 'shortcuts' | 'metrics_deed' | 'metrics_foreclosure' | 'metrics_lien' | 'map' | 'recommended_deals' | 'live_auctions' | 'property_search' | 'chart' | 'dossier' | 'yield' |
+  type: 'shortcuts' | 'property_metrics' | 'map' | 'recommended_deals' | 'live_auctions' | 'property_search' | 'chart' | 'dossier' | 'yield' |
         'my_lists' | 'field_missions' | 'connect' | 'settings' | 'profile' | 'team' | 'logs' | 'billings' | 'company' | 'notifications' | 'property_details' | 'create_task' | 'support_center' |
         'node_canvas' | 'rehab_calc' | 'property_comparator' | 'contacts_search' | 'field_coordination' | 'acquisition_pipeline';
   title: string;
@@ -138,9 +141,7 @@ interface OverlayWindow {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'metrics_deed', type: 'metrics_deed', title: 'Tax Deeds Total', x: 20, y: 20, w: 260, h: 140, visible: true, zIndex: 11 },
-  { id: 'metrics_foreclosure', type: 'metrics_foreclosure', title: 'Foreclosures Total', x: 300, y: 20, w: 260, h: 140, visible: true, zIndex: 12 },
-  { id: 'metrics_lien', type: 'metrics_lien', title: 'Tax Liens Total', x: 580, y: 20, w: 260, h: 140, visible: true, zIndex: 13 },
+  { id: 'property_metrics', type: 'property_metrics', title: 'Property Metrics', x: 20, y: 20, w: 820, h: 140, visible: true, zIndex: 11 },
   { id: 'map', type: 'map', title: 'National Yield Heatmap', x: 20, y: 180, w: 820, h: 430, visible: true, zIndex: 14 },
   { id: 'recommended_deals', type: 'recommended_deals', title: 'Top Recommended Deals', x: 860, y: 20, w: 450, h: 590, visible: true, zIndex: 15 },
   { id: 'chart', type: 'chart', title: 'Monthly Auction Trends', x: 860, y: 630, w: 450, h: 390, visible: true, zIndex: 18 },
@@ -999,12 +1000,7 @@ export const ClientWorkbench: React.FC = () => {
     );
   };
 
-  // --- REHAB & ROI ESTIMATOR STATES ---
-  const [rehabPurchasePrice, setRehabPurchasePrice] = useState<number>(250000);
-  const [rehabCost, setRehabCost] = useState<number>(45000);
-  const [rehabTaxes, setRehabTaxes] = useState<number>(8000);
-  const [rehabARV, setRehabARV] = useState<number>(380000);
-  const [rehabGrossRent, setRehabGrossRent] = useState<number>(2500);
+
 
   // --- PROPERTY COMPARATOR STATES ---
   const [compareProp1, setCompareProp1] = useState<Property | null>(null);
@@ -1959,7 +1955,7 @@ export const ClientWorkbench: React.FC = () => {
 
         if (presetId === 'default') {
           // Standard analytical set: deeds, foreclosures, liens, map, recommended deals visible. All others hidden.
-          const visibleIds = ['metrics_deed', 'metrics_foreclosure', 'metrics_lien', 'map', 'recommended_deals'];
+          const visibleIds = ['property_metrics', 'map', 'recommended_deals'];
           if (visibleIds.includes(w.id)) {
             const match = DEFAULT_WIDGETS.find(d => d.id === w.id);
             if (match) coords = { ...match, visible: true, zIndex: incrementZ() };
@@ -1971,7 +1967,7 @@ export const ClientWorkbench: React.FC = () => {
             coords = { x: 20, y: 20, w: 1060, h: 560, visible: true, zIndex: incrementZ() };
           } else if (w.id === 'dossier') {
             coords = { x: 1100, y: 20, w: 380, h: 560, visible: true, zIndex: incrementZ() };
-          } else if (w.id === 'metrics_deed') {
+          } else if (w.id === 'property_metrics') {
             coords = { x: 1100, y: 600, w: 380, h: 260, visible: true, zIndex: incrementZ() };
           } else {
             coords = { ...w, visible: false };
@@ -2102,22 +2098,15 @@ export const ClientWorkbench: React.FC = () => {
           </div>
         )}
 
-        {(w.type === 'metrics_deed' || w.type === 'metrics_foreclosure' || w.type === 'metrics_lien') && (
-          <div className="h-full flex items-center justify-center">
-            <div className="text-center">
-              <div className="text-6xl font-black text-slate-900 dark:text-white mb-2">
-                {w.type === 'metrics_deed' ? marketCounts.deed.toLocaleString() :
-                 w.type === 'metrics_foreclosure' ? marketCounts.foreclosure.toLocaleString() :
-                 marketCounts.lien.toLocaleString()}
-              </div>
-              <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">{w.title.replace(/^[^\w]+/, '')}</div>
-            </div>
+        {w.type === 'property_metrics' && (
+          <div className="size-full overflow-hidden">
+            <PropertyMetricsWidget />
           </div>
         )}
 
         {w.type === 'map' && (
           <div className="h-full min-h-[400px]">
-            <InvestmentHeatmap stateStats={stateStats} />
+            <InvestmentHeatmap stats={stateStats} selectedState={selectedState || undefined} onStateClick={(s) => setSelectedState(s === selectedState ? null : s)} />
           </div>
         )}
 
@@ -2161,23 +2150,8 @@ export const ClientWorkbench: React.FC = () => {
         )}
 
         {w.type === 'recommended_deals' && (
-          <div className="space-y-3">
-            <h2 className="text-sm font-black text-slate-800 dark:text-white">Top Recommended Deals</h2>
-            {dbTopDeals.slice(0, 8).map(p => (
-              <div key={p.id} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-start gap-3">
-                <div className="size-9 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shrink-0">
-                  <TrendingUp size={14} className="text-white" />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{p.address || 'Property'}</p>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">{p.county}, {p.state}</p>
-                </div>
-                <div className="ml-auto text-right shrink-0">
-                  <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">${(p.assessed_value || 0).toLocaleString()}</p>
-                </div>
-              </div>
-            ))}
-            {dbTopDeals.length === 0 && <p className="text-xs text-slate-400 italic">Loading deals...</p>}
+          <div className="size-full overflow-hidden">
+            <TopRecommendedWidget />
           </div>
         )}
 
@@ -2512,30 +2486,8 @@ export const ClientWorkbench: React.FC = () => {
         )}
 
         {w.type === 'rehab_calc' && (
-          <div className="space-y-4">
-            <h2 className="text-sm font-black text-slate-800 dark:text-white">Rehab & ROI Calculator</h2>
-            {[
-              { label: 'Purchase Price', value: rehabPurchasePrice, set: setRehabPurchasePrice, min: 0, max: 2000000, step: 1000 },
-              { label: 'Rehab Cost', value: rehabCost, set: setRehabCost, min: 0, max: 500000, step: 500 },
-              { label: 'Annual Taxes', value: rehabTaxes, set: setRehabTaxes, min: 0, max: 50000, step: 500 },
-              { label: 'ARV (After Repair)', value: rehabARV, set: setRehabARV, min: 0, max: 3000000, step: 1000 },
-            ].map(field => (
-              <div key={field.label}>
-                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 flex justify-between">
-                  <span>{field.label}</span>
-                  <span className="text-indigo-600">${field.value.toLocaleString()}</span>
-                </label>
-                <input type="range" min={field.min} max={field.max} step={field.step} value={field.value}
-                  onChange={e => field.set(Number(e.target.value))}
-                  className="w-full mt-1 accent-indigo-500" />
-              </div>
-            ))}
-            <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Net ROI</p>
-              <p className={`text-3xl font-black ${rehabARV - rehabPurchasePrice - rehabCost - rehabTaxes > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                ${(rehabARV - rehabPurchasePrice - rehabCost - rehabTaxes).toLocaleString()}
-              </p>
-            </div>
+          <div className="size-full overflow-auto">
+            <RehabCalcWidget />
           </div>
         )}
 
@@ -2627,6 +2579,77 @@ export const ClientWorkbench: React.FC = () => {
               {Math.round(zoomScale * 100)}%
             </button>
           </div>
+          <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
+          
+          {/* Notification Bell */}
+          <div 
+              className="relative cursor-pointer flex items-center justify-center p-1.5 text-slate-400 hover:text-slate-650 dark:hover:text-slate-300 transition-colors" 
+              title="Notifications" 
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+          >
+            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            {upcomingAuctionsCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 flex size-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full size-2 bg-red-500 border-2 border-white dark:border-slate-900"></span>
+              </span>
+            )}
+
+            {/* Notifications Dropdown */}
+            {notificationsOpen && (
+                <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden cursor-default" onClick={e => e.stopPropagation()}>
+                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
+                        <span className="font-bold text-sm text-slate-800 dark:text-white">Alerts</span>
+                        {upcomingAuctionsCount > 0 && (
+                            <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-black px-2 py-0.5 rounded-full">{upcomingAuctionsCount} New</span>
+                        )}
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                        {upcomingAuctionsCount > 0 && (
+                            <div 
+                                className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3"
+                                onClick={() => { setNotificationsOpen(false); navigate('/client/lists'); }}
+                            >
+                                <div className="mt-0.5 size-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-[16px]">gavel</span>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">Upcoming Auctions Detected</p>
+                                    <p className="text-[10px] text-slate-500">You have {upcomingAuctionsCount} properties in your My List that are going to auction within the next 7 days.</p>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* System Announcements */}
+                        {announcements.map((ann) => (
+                            <div key={ann.id} className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3">
+                                <div className="mt-0.5 size-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
+                                    <span className="material-symbols-outlined text-[16px]">campaign</span>
+                                </div>
+                                <div>
+                                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">{ann.title}</p>
+                                    <p className="text-[10px] text-slate-500">{ann.message}</p>
+                                </div>
+                            </div>
+                        ))}
+
+                        {upcomingAuctionsCount === 0 && announcements.length === 0 && (
+                            <div className="p-8 text-center text-slate-400">
+                                <span className="material-symbols-outlined text-3xl mb-2 opacity-50">notifications_paused</span>
+                                <p className="text-xs">No new notifications</p>
+                            </div>
+                        )}
+                    </div>
+                    <div 
+                        className="bg-slate-50 dark:bg-slate-900/30 p-2 text-center text-[10px] font-bold text-blue-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-colors"
+                        onClick={() => { setNotificationsOpen(false); navigate('/client/lists'); }}
+                    >
+                        Manage Watchlists
+                    </div>
+                </div>
+            )}
+          </div>
+          
           <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
           <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-slate-400 dark:text-slate-550 uppercase">
             <span>Status:</span>
@@ -3339,22 +3362,15 @@ export const ClientWorkbench: React.FC = () => {
                               </div>
                             )}
 
-                            {(w.type === 'metrics_deed' || w.type === 'metrics_foreclosure' || w.type === 'metrics_lien') && (
-                              <div className="h-full flex items-center justify-center">
-                                <div className="text-center">
-                                  <div className="text-6xl font-black text-slate-900 dark:text-white mb-2">
-                                    {w.type === 'metrics_deed' ? marketCounts.deed.toLocaleString() :
-                                     w.type === 'metrics_foreclosure' ? marketCounts.foreclosure.toLocaleString() :
-                                     marketCounts.lien.toLocaleString()}
-                                  </div>
-                                  <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">{w.title.replace(/^[^\w]+/, '')}</div>
-                                </div>
+                            {w.type === 'property_metrics' && (
+                              <div className="size-full overflow-hidden">
+                                <PropertyMetricsWidget />
                               </div>
                             )}
 
                             {w.type === 'map' && (
                               <div className="h-full min-h-[400px]">
-                                <InvestmentHeatmap stateStats={stateStats} />
+                                <InvestmentHeatmap stats={stateStats} selectedState={selectedState || undefined} onStateClick={(s) => setSelectedState(s === selectedState ? null : s)} />
                               </div>
                             )}
 
@@ -3398,23 +3414,8 @@ export const ClientWorkbench: React.FC = () => {
                             )}
 
                             {w.type === 'recommended_deals' && (
-                              <div className="space-y-3">
-                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Top Recommended Deals</h2>
-                                {dbTopDeals.slice(0, 8).map(p => (
-                                  <div key={p.id} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-start gap-3">
-                                    <div className="size-9 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shrink-0">
-                                      <TrendingUp size={14} className="text-white" />
-                                    </div>
-                                    <div className="min-w-0">
-                                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{p.address || 'Property'}</p>
-                                      <p className="text-[10px] text-slate-500 dark:text-slate-400">{p.county}, {p.state}</p>
-                                    </div>
-                                    <div className="ml-auto text-right shrink-0">
-                                      <p className="text-xs font-black text-emerald-600 dark:text-emerald-400">${(p.assessed_value || 0).toLocaleString()}</p>
-                                    </div>
-                                  </div>
-                                ))}
-                                {dbTopDeals.length === 0 && <p className="text-xs text-slate-400 italic">Loading deals...</p>}
+                              <div className="size-full overflow-hidden">
+                                <TopRecommendedWidget />
                               </div>
                             )}
 
@@ -3678,30 +3679,8 @@ export const ClientWorkbench: React.FC = () => {
                             )}
 
                             {w.type === 'rehab_calc' && (
-                              <div className="space-y-4">
-                                <h2 className="text-sm font-black text-slate-800 dark:text-white">Rehab & ROI Calculator</h2>
-                                {[
-                                  { label: 'Purchase Price', value: rehabPurchasePrice, set: setRehabPurchasePrice, min: 0, max: 2000000, step: 1000 },
-                                  { label: 'Rehab Cost', value: rehabCost, set: setRehabCost, min: 0, max: 500000, step: 500 },
-                                  { label: 'Annual Taxes', value: rehabTaxes, set: setRehabTaxes, min: 0, max: 50000, step: 500 },
-                                  { label: 'ARV (After Repair)', value: rehabARV, set: setRehabARV, min: 0, max: 3000000, step: 1000 },
-                                ].map(field => (
-                                  <div key={field.label}>
-                                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 flex justify-between">
-                                      <span>{field.label}</span>
-                                      <span className="text-indigo-600">${field.value.toLocaleString()}</span>
-                                    </label>
-                                    <input type="range" min={field.min} max={field.max} step={field.step} value={field.value}
-                                      onChange={e => field.set(Number(e.target.value))}
-                                      className="w-full mt-1 accent-indigo-500" />
-                                  </div>
-                                ))}
-                                <div className="p-4 rounded-xl bg-gradient-to-br from-emerald-500/10 to-teal-500/10 border border-emerald-500/20">
-                                  <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Net ROI</p>
-                                  <p className={`text-3xl font-black ${rehabARV - rehabPurchasePrice - rehabCost - rehabTaxes > 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                                    ${(rehabARV - rehabPurchasePrice - rehabCost - rehabTaxes).toLocaleString()}
-                                  </p>
-                                </div>
+                              <div className="size-full overflow-auto">
+                                <RehabCalcWidget />
                               </div>
                             )}
 
@@ -4194,19 +4173,9 @@ export const ClientWorkbench: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Widget 2: Tax Deeds Counter */}
-                  {w.type === 'metrics_deed' && (
-                    <StatCounterWidget type="metrics_deed" count={marketCounts.deed} />
-                  )}
-
-                  {/* Widget 2: Foreclosures Counter */}
-                  {w.type === 'metrics_foreclosure' && (
-                    <StatCounterWidget type="metrics_foreclosure" count={marketCounts.foreclosure} />
-                  )}
-
-                  {/* Widget 2: Tax Liens Counter */}
-                  {w.type === 'metrics_lien' && (
-                    <StatCounterWidget type="metrics_lien" count={marketCounts.lien} />
+                  {/* Widget 2: Property Metrics */}
+                  {w.type === 'property_metrics' && (
+                    <PropertyMetricsWidget />
                   )}
 
                   {/* GIS Heatmap widget */}
@@ -4225,19 +4194,7 @@ export const ClientWorkbench: React.FC = () => {
 
                   {/* Widget 3: Top Recommended Deals & Auctions */}
                   {w.type === 'recommended_deals' && (
-                    <RecommendedDealsWidget
-                        loading={loading}
-                        dbTopDeals={dbTopDeals}
-                        deedsAuctions={deedsAuctions}
-                        foreclosureAuctions={foreclosureAuctions}
-                        liensAuctions={liensAuctions}
-                        recommendedTab={recommendedTab}
-                        setRecommendedTab={setRecommendedTab}
-                        onSelectProperty={(prop) => {
-                            setSelectedProperty(prop);
-                            focusWidget('dossier');
-                        }}
-                    />
+                    <TopRecommendedWidget />
                   )}
 
                   {/* Widget 4: Live Auctions Finder */}
@@ -5847,112 +5804,11 @@ export const ClientWorkbench: React.FC = () => {
                   )}
 
                   {/* Rehab & ROI Calculator (rehab_calc) */}
-                  {w.type === 'rehab_calc' && (() => {
-                    const totalBasis = rehabPurchasePrice + rehabCost + rehabTaxes;
-                    const profit = rehabARV - totalBasis;
-                    const roi = totalBasis > 0 ? (profit / totalBasis) * 100 : 0;
-                    const capRate = totalBasis > 0 ? ((rehabGrossRent * 12 * 0.8) / totalBasis) * 100 : 0;
-
-                    return (
-                      <div className="size-full flex flex-col justify-between">
-                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2.5 shrink-0 justify-between items-center select-none">
-                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
-                            <Activity size={11} className="text-emerald-500" /> Rehab & ROI Yield Calculator
-                          </span>
-                        </div>
-
-                        {/* Interactive Sliders & Inputs */}
-                        <div className="flex-1 overflow-y-auto pr-1 space-y-3.5 min-h-0 scrollbar-thin text-[9.5px]">
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between font-bold text-slate-700 dark:text-slate-350">
-                              <span>Acquisition Price</span>
-                              <span className="font-extrabold text-slate-900 dark:text-white">${rehabPurchasePrice.toLocaleString()}</span>
-                            </div>
-                            <input
-                              type="range"
-                              min={50000}
-                              max={1000000}
-                              step={5000}
-                              value={rehabPurchasePrice}
-                              onChange={(e) => setRehabPurchasePrice(Number(e.target.value))}
-                              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                            />
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <div className="flex justify-between font-bold text-slate-700 dark:text-slate-350">
-                              <span>Estimated Rehab Cost</span>
-                              <span className="font-extrabold text-slate-900 dark:text-white">${rehabCost.toLocaleString()}</span>
-                            </div>
-                            <input
-                              type="range"
-                              min={0}
-                              max={200000}
-                              step={2500}
-                              value={rehabCost}
-                              onChange={(e) => setRehabCost(Number(e.target.value))}
-                              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-3 gap-2">
-                            <div>
-                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Taxes / Closing</label>
-                              <input
-                                type="number"
-                                value={rehabTaxes}
-                                onChange={(e) => setRehabTaxes(Number(e.target.value))}
-                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Target Resale (ARV)</label>
-                              <input
-                                type="number"
-                                value={rehabARV}
-                                onChange={(e) => setRehabARV(Number(e.target.value))}
-                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Est. Monthly Rent</label>
-                              <input
-                                type="number"
-                                value={rehabGrossRent}
-                                onChange={(e) => setRehabGrossRent(Number(e.target.value))}
-                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Dynamic Yield Dash */}
-                          <div className="pt-3.5 border-t border-slate-200/50 dark:border-slate-800/50 space-y-2">
-                            <div className="grid grid-cols-2 gap-2 text-center">
-                              <div className="p-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-250/20 dark:border-slate-800">
-                                <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest block">Total Basis</span>
-                                <span className="text-xs font-black text-slate-900 dark:text-white">${totalBasis.toLocaleString()}</span>
-                              </div>
-                              <div className={`p-2 rounded-xl border ${profit >= 0 ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/5 border-rose-500/20 text-rose-600 dark:text-rose-400'}`}>
-                                <span className="text-[7.5px] font-black uppercase tracking-widest block opacity-70">Resale Profit</span>
-                                <span className="text-xs font-black">${profit.toLocaleString()}</span>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2 text-center">
-                              <div className="p-2.5 rounded-xl bg-blue-500/5 dark:bg-blue-955/10 border border-blue-500/20 text-blue-600 dark:text-blue-400">
-                                <span className="text-[7.5px] font-black uppercase tracking-widest block">Resale ROI %</span>
-                                <span className="text-base font-extrabold">{roi.toFixed(1)}%</span>
-                              </div>
-                              <div className="p-2.5 rounded-xl bg-amber-500/5 dark:bg-amber-955/10 border border-amber-500/20 text-amber-600 dark:text-amber-400">
-                                <span className="text-[7.5px] font-black uppercase tracking-widest block">Rental Cap Rate</span>
-                                <span className="text-base font-extrabold">{capRate.toFixed(1)}%</span>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })()}
+                  {w.type === 'rehab_calc' && (
+                    <div className="size-full overflow-auto">
+                      <RehabCalcWidget />
+                    </div>
+                  )}
 
                   {/* Property Compare Matrix (property_comparator) */}
                   {w.type === 'property_comparator' && (() => {

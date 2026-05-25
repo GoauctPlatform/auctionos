@@ -5,6 +5,7 @@ import { PropertyDetails as Property } from '../types';
 import { PropertyService } from '../services/property.service';
 import { getStreetViewUrl } from '../utils/maps';
 import api from '../services/api';
+import html2canvas from 'html2canvas';
 
 import { PropertyBasicInfo } from './property/PropertyBasicInfo';
 import { PropertyPurchaseOptions } from './property/PropertyPurchaseOptions';
@@ -95,12 +96,40 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
         }
     };
 
+    const handleExport = async () => {
+        setIsRefreshing(true);
+        try {
+            const element = document.getElementById('property-export-container');
+            if (!element) return;
+            const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            const link = document.createElement('a');
+            link.download = `property-${property.parcel_id || 'export'}.jpg`;
+            link.href = dataUrl;
+            link.click();
+        } catch (error) {
+            console.error(error);
+            alert("Export failed.");
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
     return (
         <>
             <Modal isOpen={isOpen} onClose={onClose} title={`Property Details: ${property.parcel_id || 'Unknown'}`} size="3xl">
-                
+                <div id="property-export-container" className="bg-white dark:bg-slate-900 rounded-xl">
                 {/* Active refresh controls - preserved from original */}
-                <div className="flex justify-end gap-2 mb-4">
+                <div className="flex justify-end gap-2 mb-4" data-html2canvas-ignore>
+                    <button
+                        onClick={handleExport}
+                        disabled={isRefreshing}
+                        className={`px-3 py-1.5 rounded-lg border text-sm font-medium transition-all flex items-center gap-1 bg-white hover:bg-slate-50 text-indigo-600 border-slate-200 hover:border-indigo-200 shadow-sm`}
+                        title="Export as JPEG"
+                    >
+                        <span className="material-symbols-outlined text-[16px]">share</span>
+                        Export
+                    </button>
                     <button
                         onClick={handleEnrich}
                         disabled={isRefreshing || !property.details?.zillow_url}
@@ -195,6 +224,7 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
                         />
                     </div>
 
+                </div>
                 </div>
             </Modal>
 

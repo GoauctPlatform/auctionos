@@ -15,6 +15,7 @@ export interface User {
   avatar?: string;
   name?: string;
   full_name?: string;
+  subscription_tier?: string;
 }
 
 // Auth State

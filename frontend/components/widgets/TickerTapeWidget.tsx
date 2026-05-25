@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { AuctionService } from '../../services/auction.service';
+import api from '../../services/api';
 import { AuctionEvent } from '../../types';
 import { Calendar, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -10,29 +10,25 @@ export const TickerTapeWidget: React.FC = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchAuctions = async () => {
+        const fetchTicker = async () => {
             try {
-                // Fetch auctions and filter for next 30 days
-                const res = await AuctionService.getAuctionEvents();
-                const all = res.items || [];
-                const now = new Date();
-                const thirtyDaysFromNow = new Date();
-                thirtyDaysFromNow.setDate(now.getDate() + 30);
-
-                const next30 = all.filter(a => {
-                    if (!a.auction_date) return false;
-                    const d = new Date(a.auction_date);
-                    return d >= now && d <= thirtyDaysFromNow;
-                }).sort((a, b) => new Date(a.auction_date!).getTime() - new Date(b.auction_date!).getTime());
-
-                setUpcomingAuctions(next30);
+                const res = await api.get('/api/v1/dashboard/ticker');
+                // The API returns countdown, type, address etc. Let's map it.
+                const tickerData = res.data.map((item: any) => ({
+                    id: item.id,
+                    county: item.title, // "title" in backend is address or auction_name, let's just use title
+                    state: 'FL',
+                    type: item.type,
+                    item_count: item.countdown // Using item_count field to show countdown
+                }));
+                setUpcomingAuctions(tickerData);
             } catch (err) {
-                console.error("Failed to fetch auctions for ticker tape", err);
+                console.error("Failed to fetch dashboard ticker", err);
             } finally {
                 setLoading(false);
             }
         };
-        fetchAuctions();
+        fetchTicker();
     }, []);
 
     if (loading) {
@@ -65,11 +61,10 @@ export const TickerTapeWidget: React.FC = () => {
                         onClick={() => navigate('/inventory')}
                     >
                         <span className="text-indigo-500 font-black mr-2">•</span>
-                        <span className="text-slate-300 mr-2">{new Date(auction.auction_date!).toLocaleDateString()}</span>
-                        <span className="font-bold">{auction.county} County, {auction.state}</span>
+                        <span className="font-bold">{auction.county || 'Upcoming Auction'}</span>
                         <span className="ml-2 text-slate-400">({auction.type})</span>
                         <span className="ml-2 bg-slate-800 px-1.5 py-0.5 rounded text-[10px] font-bold text-emerald-400">
-                            {auction.item_count || 0} Items
+                            {auction.item_count || 'Soon'}
                         </span>
                     </div>
                 ))}
@@ -84,11 +79,10 @@ export const TickerTapeWidget: React.FC = () => {
                         onClick={() => navigate('/inventory')}
                     >
                         <span className="text-indigo-500 font-black mr-2">•</span>
-                        <span className="text-slate-300 mr-2">{new Date(auction.auction_date!).toLocaleDateString()}</span>
-                        <span className="font-bold">{auction.county} County, {auction.state}</span>
+                        <span className="font-bold">{auction.county || 'Upcoming Auction'}</span>
                         <span className="ml-2 text-slate-400">({auction.type})</span>
                         <span className="ml-2 bg-slate-800 px-1.5 py-0.5 rounded text-[10px] font-bold text-emerald-400">
-                            {auction.item_count || 0} Items
+                            {auction.item_count || 'Soon'}
                         </span>
                     </div>
                 ))}

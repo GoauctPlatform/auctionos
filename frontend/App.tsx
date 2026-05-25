@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider } from './context/AuthContext';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { ForgotPassword } from './pages/ForgotPassword';
@@ -68,13 +68,24 @@ import AgentWithdraw from './pages/agent_due_diligence/AgentWithdraw';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: string[] }> = ({ children, allowedRoles }) => {
   const user = AuthService.getCurrentUser();
+  const location = useLocation();
+  
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-    if (allowedRoles && !allowedRoles.includes(user.role)) {
-      // Redirect each role to its own home
-      if (['client', 'manager', 'agent'].includes(user.role)) return <Navigate to="/client" replace />;
+  // Strict Trial Lockout:
+  // If the API flagged trial_expired in local storage, block access unless they are on the expired/billing page.
+  if (AuthService.isTrialExpired()) {
+    const allowedExpiredPaths = ['/client/expired', '/client/billing'];
+    if (!allowedExpiredPaths.some(p => location.pathname.includes(p))) {
+      return <Navigate to="/client/expired" replace />;
+    }
+  }
+
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    // Redirect each role to its own home
+    if (['client', 'manager', 'agent'].includes(user.role)) return <Navigate to="/client" replace />;
     if (user.role === 'realtor') return <Navigate to="/realtor" replace />;
     if (user.role === 'agent_due_diligence') return <Navigate to="/agent" replace />;
     return <Navigate to="/dashboard" replace />;

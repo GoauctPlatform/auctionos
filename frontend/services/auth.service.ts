@@ -48,9 +48,14 @@ export const AuthService = {
         return u ? JSON.parse(u) : null;
     },
 
+    isTrialExpired: () => {
+        return localStorage.getItem('trial_expired') === 'true';
+    },
+
     logout: () => {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        localStorage.removeItem('trial_expired');
         window.location.href = '/#/';
     }
 };
