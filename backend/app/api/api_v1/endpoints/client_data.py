@@ -182,18 +182,40 @@ def get_client_lists(
                 lst.name = full_name
                 db.commit()
 
-    results = []
-    for lst in lists:
-        count = db.query(client_list_property).filter(client_list_property.c.list_id == lst.id).count()
-        auction_q = text("""
-            SELECT COUNT(DISTINCT pah.property_id)
+    if not lists:
+        return []
+
+    list_ids = [lst.id for lst in lists]
+
+    property_counts = {}
+    if list_ids:
+        rows = db.execute(text("""
+            SELECT list_id, COUNT(*)
+            FROM client_list_property
+            WHERE list_id = ANY(:list_ids)
+            GROUP BY list_id
+        """), {"list_ids": list_ids}).fetchall()
+        for r in rows:
+            property_counts[r[0]] = r[1]
+            
+    upcoming_counts = {}
+    if list_ids:
+        rows = db.execute(text("""
+            SELECT clp.list_id, COUNT(DISTINCT pah.property_id)
             FROM client_list_property clp
             JOIN property_details p ON p.id = clp.property_id
             JOIN property_auction_history pah ON pah.property_id = p.property_id
             LEFT JOIN auction_events ae ON pah.auction_id = ae.id
-            WHERE clp.list_id = :list_id AND COALESCE(pah.auction_date, ae.auction_date) >= CURRENT_DATE
-        """)
-        upcoming_count = db.execute(auction_q, {"list_id": lst.id}).scalar() or 0
+            WHERE clp.list_id = ANY(:list_ids) AND COALESCE(pah.auction_date, ae.auction_date) >= CURRENT_DATE
+            GROUP BY clp.list_id
+        """), {"list_ids": list_ids}).fetchall()
+        for r in rows:
+            upcoming_counts[r[0]] = r[1]
+
+    results = []
+    for lst in lists:
+        count = property_counts.get(lst.id, 0)
+        upcoming_count = upcoming_counts.get(lst.id, 0)
         results.append({
             "id": lst.id,
             "name": lst.name,
@@ -554,19 +576,37 @@ def get_broadcasted_lists(
     # Logic: Only admins can broadcast, so we fetch lists where is_broadcasted=True
     # and they belong to an admin user (though currently any admin is fine).
     broadcasted = db.query(ClientList).filter(ClientList.is_broadcasted == True).all()
+    if not broadcasted:
+        return []
+
+    list_ids = [lst.id for lst in broadcasted]
+
+    property_counts = {}
+    rows = db.execute(text("""
+        SELECT list_id, COUNT(*)
+        FROM client_list_property
+        WHERE list_id = ANY(:list_ids)
+        GROUP BY list_id
+    """), {"list_ids": list_ids}).fetchall()
+    for r in rows:
+        property_counts[r[0]] = r[1]
+        
+    upcoming_counts = {}
+    rows = db.execute(text("""
+        SELECT clp.list_id, COUNT(DISTINCT pah.property_id)
+        FROM client_list_property clp
+        JOIN property_details p ON p.id = clp.property_id
+        JOIN property_auction_history pah ON pah.property_id = p.property_id
+        WHERE clp.list_id = ANY(:list_ids) AND pah.auction_date >= CURRENT_DATE
+        GROUP BY clp.list_id
+    """), {"list_ids": list_ids}).fetchall()
+    for r in rows:
+        upcoming_counts[r[0]] = r[1]
+
     results = []
     for lst in broadcasted:
-        count = db.query(client_list_property).filter(client_list_property.c.list_id == lst.id).count()
-        
-        # Calculate upcoming auctions flag
-        auction_q = text("""
-            SELECT COUNT(DISTINCT pah.property_id)
-            FROM client_list_property clp
-            JOIN property_details p ON p.id = clp.property_id
-            JOIN property_auction_history pah ON pah.property_id = p.property_id
-            WHERE clp.list_id = :list_id AND pah.auction_date >= CURRENT_DATE
-        """)
-        upcoming_count = db.execute(auction_q, {"list_id": lst.id}).scalar() or 0
+        count = property_counts.get(lst.id, 0)
+        upcoming_count = upcoming_counts.get(lst.id, 0)
 
         results.append({
             "id": lst.id, 

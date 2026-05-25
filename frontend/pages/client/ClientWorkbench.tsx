@@ -2596,7 +2596,7 @@ export const ClientWorkbench: React.FC = () => {
                         {upcomingAuctionsCount > 0 && (
                             <div 
                                 className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3"
-                                onClick={() => { setNotificationsOpen(false); navigate('/client/lists'); }}
+                                onClick={() => { setNotificationsOpen(false); openOverlayWindow('my_lists', 'Saved Lists & Folders'); }}
                             >
                                 <div className="mt-0.5 size-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 flex items-center justify-center shrink-0">
                                     <span className="material-symbols-outlined text-[16px]">gavel</span>
@@ -2630,7 +2630,7 @@ export const ClientWorkbench: React.FC = () => {
                     </div>
                     <div 
                         className="bg-slate-50 dark:bg-slate-900/30 p-2 text-center text-[10px] font-bold text-blue-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-colors"
-                        onClick={() => { setNotificationsOpen(false); navigate('/client/lists'); }}
+                        onClick={() => { setNotificationsOpen(false); openOverlayWindow('my_lists', 'Saved Lists & Folders'); }}
                     >
                         Manage Watchlists
                     </div>
