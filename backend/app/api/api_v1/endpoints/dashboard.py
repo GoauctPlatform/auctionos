@@ -6,8 +6,7 @@ from datetime import datetime, timedelta
 
 from app.api import deps
 from app.models.user import User
-from app.models.property import Property
-from app.models.auction import Auction
+
 
 router = APIRouter()
 

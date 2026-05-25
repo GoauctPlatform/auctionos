@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.api import deps
@@ -14,9 +14,9 @@ class AnnouncementCreate(BaseModel):
     type: str
 
 class AnnouncementUpdate(BaseModel):
-    title: str | None = None
-    message: str | None = None
-    type: str | None = None
+    title: Optional[str] = None
+    message: Optional[str] = None
+    type: Optional[str] = None
 
 class AnnouncementResponse(BaseModel):
     id: int
