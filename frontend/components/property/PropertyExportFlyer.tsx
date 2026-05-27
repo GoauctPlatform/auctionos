@@ -13,7 +13,7 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
     const svUrl = getStreetViewUrl(property, undefined, undefined, undefined, '800x450');
 
     // Financial Metrics Calculation matching system logic
-    const price = property.price || property.opening_bid || 0;
+    const price = property.amount_due || property.details?.amount_due || property.price || property.opening_bid || 0;
     const assessedVal = property.assessed_value ? Number(property.assessed_value) : 0;
     const details = property.details;
     
@@ -141,7 +141,7 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                         <div>
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-0.5">Building Area</span>
                             <span className="text-xs font-bold text-slate-200 block">
-                                {details?.building_area_sqft || details?.sqft || property.sqft ? `${(details?.building_area_sqft || details?.sqft || property.sqft).toLocaleString()} sqft` : '-'}
+                                {details?.building_area_sqft || details?.sqft || property.building_area_sqft || property.sqft ? `${(details?.building_area_sqft || details?.sqft || property.building_area_sqft || property.sqft).toLocaleString()} sqft` : '-'}
                             </span>
                         </div>
                         <div>
