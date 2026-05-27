@@ -1242,7 +1242,7 @@ const ClientLists: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-
+                    </div>
                     )}
                 </div>
 
