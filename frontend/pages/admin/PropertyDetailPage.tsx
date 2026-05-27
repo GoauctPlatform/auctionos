@@ -14,6 +14,7 @@ import { getStreetViewUrl } from '../../utils/maps';
 import { PropertyOverridePanel } from '../../components/property/PropertyOverridePanel';
 import html2canvas from 'html2canvas';
 import { QRCodeSVG } from 'qrcode.react';
+import { PropertyExportFlyer } from '../../components/property/PropertyExportFlyer';
 
 import { PropertyBasicInfo } from '../../components/property/PropertyBasicInfo';
 import { PropertyStructureCard } from '../../components/property/PropertyStructureCard';
@@ -64,6 +65,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
     const [isBpoOpen, setIsBpoOpen] = useState(false);
 
     const propertyDetailsRef = React.useRef<HTMLDivElement>(null);
+    const flyerRef = React.useRef<HTMLDivElement>(null);
     const [exporting, setExporting] = useState(false);
 
     // ── Override / Edit Mode ──────────────────────────────────────────────────
@@ -284,17 +286,17 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
     };
 
     const handleExport = async (format: 'jpeg' | 'pdf') => {
-        if (!propertyDetailsRef.current) return;
-        
         if (format === 'pdf') {
             window.print();
             return;
         }
 
+        if (!flyerRef.current) return;
+
         setExporting(true);
         try {
             await new Promise(r => setTimeout(r, 100));
-            const canvas = await html2canvas(propertyDetailsRef.current, { useCORS: true, scale: 2 });
+            const canvas = await html2canvas(flyerRef.current, { useCORS: true, scale: 2 });
             const link = document.createElement('a');
             link.download = `GoAuct-Property-${property.parcel_id || 'Export'}.jpeg`;
             link.href = canvas.toDataURL('image/jpeg', 0.9);
@@ -308,18 +310,15 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
     };
 
     return (
-        <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6 mb-20 animate-in fade-in duration-700" ref={propertyDetailsRef}>
-            {/* Print-only QR Code Header */}
-            <div className="hidden print:flex items-center justify-between mb-8 border-b pb-4">
-                <div>
-                    <h1 className="text-2xl font-black text-slate-900">GoAuct Property Intelligence</h1>
-                    <p className="text-sm text-slate-500">Generated automatically from the GoAuct Platform</p>
-                </div>
-                <div className="flex flex-col items-center">
-                    <QRCodeSVG value={`${window.location.origin}/properties/${property.parcel_id || property.id}`} size={64} />
-                    <span className="text-[10px] mt-1 text-slate-500">Scan to view online</span>
+        <>
+            {/* Hidden off-screen premium brochure container for JPEG/PDF exports */}
+            <div className="absolute left-[-9999px] top-[-9999px] print:static print:w-full print:flex print:justify-center print:bg-slate-900 print:min-h-screen print:py-8">
+                <div ref={flyerRef}>
+                    <PropertyExportFlyer property={property} />
                 </div>
             </div>
+
+            <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6 mb-20 animate-in fade-in duration-700 print:hidden" ref={propertyDetailsRef}>
             {/* Header */}
             <div className="flex items-center justify-between gap-4 mb-2">
                 <Button variant="text" startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} className="text-slate-500 hover:text-slate-700 normal-case">
@@ -616,6 +615,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 />
             )}
         </div>
+       </>
     );
 };
 

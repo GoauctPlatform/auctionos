@@ -21,6 +21,7 @@ import { PropertyExtendedTabs } from '../components/property/PropertyExtendedTab
 import { PropertyOwnerCard } from '../components/property/PropertyOwnerCard';
 import { PropertyRedemptionCard } from '../components/property/PropertyRedemptionCard';
 import { CreateTaskForm } from '../components/property/CreateTaskForm';
+import { PropertyExportFlyer } from '../components/property/PropertyExportFlyer';
 
 import { PropertyService, ClientDataService } from '../services/property.service';
 import { useCompany } from '../context/CompanyContext';
@@ -46,6 +47,7 @@ const PropertyDetails: React.FC = () => {
     const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0);
 
     const propertyDetailsRef = React.useRef<HTMLDivElement>(null);
+    const flyerRef = React.useRef<HTMLDivElement>(null);
     const [exporting, setExporting] = useState(false);
 
     // ── Override / Edit Mode ──────────────────────────────────────────────────
@@ -139,18 +141,17 @@ const PropertyDetails: React.FC = () => {
     };
 
     const handleExport = async (format: 'jpeg' | 'pdf') => {
-        if (!propertyDetailsRef.current) return;
-        
         if (format === 'pdf') {
             window.print();
             return;
         }
 
+        if (!flyerRef.current) return;
+
         setExporting(true);
         try {
-            // A brief timeout to let the UI update if needed
             await new Promise(r => setTimeout(r, 100));
-            const canvas = await html2canvas(propertyDetailsRef.current, { useCORS: true, scale: 2 });
+            const canvas = await html2canvas(flyerRef.current, { useCORS: true, scale: 2 });
             const link = document.createElement('a');
             link.download = `GoAuct-Property-${property.parcel_id || 'Export'}.jpeg`;
             link.href = canvas.toDataURL('image/jpeg', 0.9);
@@ -169,7 +170,15 @@ const PropertyDetails: React.FC = () => {
     const currentUrl = window.location.href;
 
     return (
-        <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6" ref={propertyDetailsRef}>
+        <>
+            {/* Hidden off-screen premium brochure container for JPEG/PDF exports */}
+            <div className="absolute left-[-9999px] top-[-9999px] print:static print:w-full print:flex print:justify-center print:bg-slate-900 print:min-h-screen print:py-8">
+                <div ref={flyerRef}>
+                    <PropertyExportFlyer property={property} />
+                </div>
+            </div>
+
+            <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6 print:hidden" ref={propertyDetailsRef}>
             <div className="flex items-center justify-between">
                 <button
                     onClick={() => navigate('/inventory')}
@@ -457,6 +466,7 @@ const PropertyDetails: React.FC = () => {
                 initialIndex={lightboxInitialIndex}
             />
         </div>
+       </>
     );
 };
 
