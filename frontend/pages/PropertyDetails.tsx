@@ -141,16 +141,66 @@ const PropertyDetails: React.FC = () => {
     };
 
     const handleExport = async (format: 'jpeg' | 'pdf') => {
+        if (!flyerRef.current) return;
+
         if (format === 'pdf') {
-            window.print();
+            // Create a temporary hidden iframe for printing
+            let iframe = document.getElementById('goauct-print-iframe') as HTMLIFrameElement;
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'goauct-print-iframe';
+                iframe.style.position = 'absolute';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = 'none';
+                document.body.appendChild(iframe);
+            }
+
+            const iframeDoc = iframe.contentWindow?.document;
+            if (iframeDoc) {
+                iframeDoc.open();
+                iframeDoc.write(`
+                    <html>
+                        <head>
+                            <title>GoAuct Property Report</title>
+                            ${Array.from(document.querySelectorAll('link[rel="stylesheet"], style'))
+                                .map(el => el.outerHTML)
+                                .join('\n')}
+                            <style>
+                                body {
+                                    background-color: #0f172a !important; /* bg-slate-900 equivalent */
+                                    margin: 0;
+                                    padding: 20px;
+                                    display: flex;
+                                    justify-content: center;
+                                    -webkit-print-color-adjust: exact;
+                                    print-color-adjust: exact;
+                                }
+                                #property-sales-flyer {
+                                    box-shadow: none !important;
+                                    border: none !important;
+                                }
+                            </style>
+                        </head>
+                        <body>
+                            ${flyerRef.current.innerHTML}
+                        </body>
+                    </html>
+                `);
+                iframeDoc.close();
+
+                // Wait for styles/images to load inside iframe, then print
+                setTimeout(() => {
+                    iframe.contentWindow?.focus();
+                    iframe.contentWindow?.print();
+                }, 500);
+            }
             return;
         }
 
-        if (!flyerRef.current) return;
-
         setExporting(true);
         try {
-            await new Promise(r => setTimeout(r, 100));
+            await new Promise(r => setTimeout(r, 150));
             const canvas = await html2canvas(flyerRef.current, { useCORS: true, scale: 2 });
             const link = document.createElement('a');
             link.download = `GoAuct-Property-${property.parcel_id || 'Export'}.jpeg`;
@@ -172,13 +222,13 @@ const PropertyDetails: React.FC = () => {
     return (
         <>
             {/* Hidden off-screen premium brochure container for JPEG/PDF exports */}
-            <div className="absolute left-[-9999px] top-[-9999px] print:static print:w-full print:flex print:justify-center print:bg-slate-900 print:min-h-screen print:py-8">
+            <div className="absolute top-0 left-0 opacity-0 pointer-events-none -z-50" style={{ width: '800px' }}>
                 <div ref={flyerRef}>
                     <PropertyExportFlyer property={property} />
                 </div>
             </div>
 
-            <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6 print:hidden" ref={propertyDetailsRef}>
+            <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6" ref={propertyDetailsRef}>
             <div className="flex items-center justify-between">
                 <button
                     onClick={() => navigate('/inventory')}
