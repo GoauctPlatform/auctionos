@@ -102,6 +102,24 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
             const element = document.getElementById('property-export-container');
             if (!element) return;
             const canvas = await html2canvas(element, { useCORS: true, scale: 2 });
+            
+            // Convert to Blob for Web Share API file compatibility
+            const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.9));
+            if (blob) {
+                const file = new File([blob], `GoAuct-Property-${property.parcel_id || 'Export'}.jpeg`, { type: 'image/jpeg' });
+                
+                // Try Web Share API (native share on mobile browsers)
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        files: [file],
+                        title: `GoAuct Property Report - ${property.parcel_id || 'Property'}`,
+                        text: `Check out this investment property report from GoAuct: ${property.address || property.parcel_id}`
+                    });
+                    return; // Successfully shared natively!
+                }
+            }
+
+            // Fallback: trigger standard browser download
             const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
             const link = document.createElement('a');
             link.download = `property-${property.parcel_id || 'export'}.jpg`;
