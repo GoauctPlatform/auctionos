@@ -70,7 +70,7 @@ export const PropertyPurchaseOptions: React.FC<Props> = ({
                         </span>
                     </div>
                     <div>
-                        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Taxes Due</p>
+                        <p className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-1">Opening Bid</p>
                         <p className="text-sm font-black text-rose-600 dark:text-rose-400">
                             {property.amount_due ? `$${property.amount_due.toLocaleString()}` : 'Contact Authority'}
                         </p>
