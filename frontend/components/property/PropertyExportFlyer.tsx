@@ -232,11 +232,11 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="text-right">
-                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Scan to View</span>
-                        <span className="text-[9px] font-black text-indigo-400 block leading-tight">Interactive Details</span>
+                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Scan to Visit</span>
+                        <span className="text-[9px] font-black text-indigo-400 block leading-tight">GoAuct Platform</span>
                     </div>
                     <div className="p-1 bg-[#0b1329] rounded-lg border border-slate-800">
-                        <QRCodeSVG value={`${window.location.origin}/properties/${property.parcel_id || property.id}`} size={48} bgColor="#0b1329" fgColor="#ffffff" />
+                        <QRCodeSVG value="https://www.goauct.com" size={48} bgColor="#0b1329" fgColor="#ffffff" />
                     </div>
                 </div>
             </div>
