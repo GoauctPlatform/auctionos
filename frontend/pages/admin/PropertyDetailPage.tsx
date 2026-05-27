@@ -12,6 +12,8 @@ import { calculateDealScore, DealScoreResult } from '../../intelligence/scoringE
 import { submitScore } from '../../services/scores.service';
 import { getStreetViewUrl } from '../../utils/maps';
 import { PropertyOverridePanel } from '../../components/property/PropertyOverridePanel';
+import html2canvas from 'html2canvas';
+import { QRCodeSVG } from 'qrcode.react';
 
 import { PropertyBasicInfo } from '../../components/property/PropertyBasicInfo';
 import { PropertyStructureCard } from '../../components/property/PropertyStructureCard';
@@ -60,6 +62,9 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
     const [isMetaOpen, setIsMetaOpen] = useState(false);
     const [streetViewError, setStreetViewError] = useState(false);
     const [isBpoOpen, setIsBpoOpen] = useState(false);
+
+    const propertyDetailsRef = React.useRef<HTMLDivElement>(null);
+    const [exporting, setExporting] = useState(false);
 
     // ── Override / Edit Mode ──────────────────────────────────────────────────
     // Auto-activated via ?edit=true (set when user tries to create a duplicate property)
@@ -278,8 +283,43 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         navigate(location.pathname, { replace: true });
     };
 
+    const handleExport = async (format: 'jpeg' | 'pdf') => {
+        if (!propertyDetailsRef.current) return;
+        
+        if (format === 'pdf') {
+            window.print();
+            return;
+        }
+
+        setExporting(true);
+        try {
+            await new Promise(r => setTimeout(r, 100));
+            const canvas = await html2canvas(propertyDetailsRef.current, { useCORS: true, scale: 2 });
+            const link = document.createElement('a');
+            link.download = `GoAuct-Property-${property.parcel_id || 'Export'}.jpeg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        } catch (e) {
+            console.error('Export failed', e);
+            alert('Export failed');
+        } finally {
+            setExporting(false);
+        }
+    };
+
     return (
-        <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6 mb-20 animate-in fade-in duration-700">
+        <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6 mb-20 animate-in fade-in duration-700" ref={propertyDetailsRef}>
+            {/* Print-only QR Code Header */}
+            <div className="hidden print:flex items-center justify-between mb-8 border-b pb-4">
+                <div>
+                    <h1 className="text-2xl font-black text-slate-900">GoAuct Property Intelligence</h1>
+                    <p className="text-sm text-slate-500">Generated automatically from the GoAuct Platform</p>
+                </div>
+                <div className="flex flex-col items-center">
+                    <QRCodeSVG value={`${window.location.origin}/properties/${property.parcel_id || property.id}`} size={64} />
+                    <span className="text-[10px] mt-1 text-slate-500">Scan to view online</span>
+                </div>
+            </div>
             {/* Header */}
             <div className="flex items-center justify-between gap-4 mb-2">
                 <Button variant="text" startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} className="text-slate-500 hover:text-slate-700 normal-case">
@@ -313,6 +353,16 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         <PencilLine size={13} />
                         {isEditing ? 'Editing...' : 'Customize My View'}
                     </button>
+                    <div className="relative group">
+                        <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-slate-800 text-white hover:bg-slate-700">
+                            <span className="material-symbols-outlined text-[16px]">download</span>
+                            {exporting ? 'Exporting...' : 'Export'}
+                        </button>
+                        <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                            <button onClick={() => handleExport('jpeg')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">As JPEG</button>
+                            <button onClick={() => handleExport('pdf')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">As PDF (Print)</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
