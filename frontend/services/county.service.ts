@@ -42,7 +42,8 @@ class CountyService {
                 throw new Error('Failed to fetch counties');
             }
 
-            return await response.json();
+            const counties: string[] = await response.json();
+            return counties.map(c => c.replace(/_/g, ' ').trim());
         } catch (error) {
             console.error('Failed to fetch counties:', error);
             return [];

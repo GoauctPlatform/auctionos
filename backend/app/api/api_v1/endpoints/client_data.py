@@ -286,6 +286,8 @@ def create_custom_property(
     # Standardize/normalize state abbreviation (e.g. "Texas" -> "TX")
     if property_in.state:
         property_in.state = normalize_state(property_in.state)
+    if property_in.county:
+        property_in.county = property_in.county.replace("_", " ").strip()
 
     # Require company isolation for private properties
     if property_in.visibility == "private" and not current_user.active_company_id:

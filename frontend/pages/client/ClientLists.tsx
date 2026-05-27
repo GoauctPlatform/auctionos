@@ -206,6 +206,8 @@ const ClientLists: React.FC = () => {
     const [lists, setLists] = useState<CustomList[]>([]);
     const [selectedListId, setSelectedListId] = useState<number | null>(null);
     const [selectedListProperties, setSelectedListProperties] = useState<any[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [allListsProperties, setAllListsProperties] = useState<Record<number, any[]>>({});
 
     // Edit Folder Modal State
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -464,6 +466,20 @@ const ClientLists: React.FC = () => {
             const data = await ClientDataService.getLists(activeCompany?.id);
             setLists(data);
 
+            // Asynchronously pre-fetch properties for all lists in the background
+            (async () => {
+                const allProps: Record<number, any[]> = {};
+                for (const list of data) {
+                    try {
+                        const props = await ClientDataService.getListProperties(list.id);
+                        allProps[list.id] = props;
+                    } catch (err) {
+                        console.error(`Failed to prefetch properties for list ${list.id}:`, err);
+                    }
+                }
+                setAllListsProperties(allProps);
+            })();
+
             // Load favorites to determine priority sorting
             try {
                 const favs = await PropertyService.getFavorites(activeCompany?.id);
@@ -518,6 +534,7 @@ const ClientLists: React.FC = () => {
             setPropsLoading(true);
             const data = await ClientDataService.getListProperties(listId);
             setSelectedListProperties(data);
+            setAllListsProperties(prev => ({ ...prev, [listId]: data }));
         } catch (err) {
             console.error('Error loading properties:', err);
         } finally {
@@ -622,7 +639,7 @@ const ClientLists: React.FC = () => {
                 // Construct tags string including the new county if selected
                 let finalTags = 'STANDARD';
                 if (newCountyName) {
-                    const trimmedCounty = newCountyName.trim();
+                    const trimmedCounty = newCountyName.replace(/_/g, ' ').trim();
                     if (existingFolder && existingFolder.tags && existingFolder.tags.includes(':')) {
                         const parts = existingFolder.tags.split(':');
                         const prefix = parts[0];
@@ -789,6 +806,33 @@ const ClientLists: React.FC = () => {
         }
     };
 
+    const filteredResults = React.useMemo(() => {
+        if (!searchTerm) return [];
+        const results: Array<{
+            property: any;
+            list: CustomList;
+            county: string;
+        }> = [];
+        
+        lists.forEach(list => {
+            const props = allListsProperties[list.id] || [];
+            props.forEach(p => {
+                const addressMatch = p.address && p.address.includes(searchTerm);
+                const parcelMatch = p.parcel_id && p.parcel_id.toLowerCase().includes(searchTerm.toLowerCase());
+                
+                if (addressMatch || parcelMatch) {
+                    results.push({
+                        property: p,
+                        list: list,
+                        county: (p.county || '').trim(),
+                    });
+                }
+            });
+        });
+        
+        return results;
+    }, [searchTerm, allListsProperties, lists]);
+
     const selectedList = lists.find(l => l.id === selectedListId) || broadcastedLists.find(l => l.id === selectedListId);
 
     if (loading && !lists.length && !broadcastedLists.length) {
@@ -810,8 +854,79 @@ const ClientLists: React.FC = () => {
                     </IconButton>
                 </div>
 
+                {/* Search Bar */}
+                <div className="px-3 mb-3 w-64 shrink-0">
+                    <TextField
+                        size="small"
+                        placeholder="Search properties (addr/parcel)..."
+                        variant="outlined"
+                        fullWidth
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        InputProps={{
+                            startAdornment: (
+                                <span className="material-symbols-outlined text-[18px] text-slate-400 mr-1.5 select-none">search</span>
+                            ),
+                            endAdornment: searchTerm && (
+                                <IconButton size="small" onClick={() => setSearchTerm('')} className="p-0.5" edge="end">
+                                    <span className="material-symbols-outlined text-[16px] text-slate-400">close</span>
+                                </IconButton>
+                            ),
+                            className: "bg-white dark:bg-slate-800 rounded-xl text-xs"
+                        }}
+                    />
+                </div>
+
                 <div className="flex-1 overflow-y-auto px-2 pb-4">
-                    <div id="tour-lists-folders" className="space-y-6">
+                    {searchTerm ? (
+                        <div className="space-y-2">
+                            <Typography variant="overline" className="text-slate-400 font-bold text-[10px] px-3">
+                                Search Results ({filteredResults.length})
+                            </Typography>
+                            {filteredResults.length > 0 ? (
+                                filteredResults.map(({ property, list, county }) => {
+                                    const isSelected = selectedListId === list.id && 
+                                        (!selectedCountyName || (selectedCountyName.toLowerCase() === county.toLowerCase()));
+                                    
+                                    return (
+                                        <div
+                                            key={property.id}
+                                            onClick={() => {
+                                                setSelectedListId(list.id);
+                                                if (list.tags && list.tags.startsWith('STANDARD')) {
+                                                    setSelectedStateName(list.name);
+                                                    setSelectedCountyName(county);
+                                                    setExpandedStates(prev => ({ ...prev, [list.name]: true }));
+                                                } else {
+                                                    setSelectedStateName(null);
+                                                    setSelectedCountyName(null);
+                                                }
+                                                // Focus the property in list view
+                                                setPreviewPropertyId(property.id);
+                                            }}
+                                            className={`flex flex-col gap-1 px-3 py-2 rounded-xl cursor-pointer transition-all border border-transparent hover:scale-[1.01]
+                                                ${isSelected 
+                                                    ? 'bg-blue-600/10 border-blue-500/20 text-blue-700 dark:text-blue-400' 
+                                                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs font-bold truncate max-w-[120px]">{property.parcel_id}</span>
+                                                <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-slate-200/60 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400">
+                                                    {list.name} {county ? `· ${county}` : ''}
+                                                </span>
+                                            </div>
+                                            <span className="text-[10px] opacity-80 truncate">{property.address}</span>
+                                        </div>
+                                    );
+                                })
+                            ) : (
+                                <div className="text-center py-8 text-slate-400 dark:text-slate-600 text-xs">
+                                    No properties found.
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div id="tour-lists-folders" className="space-y-6">
                         {/* smart lists / favorites */}
                         {lists.some(l => l.is_favorite_list) && (
                             <div>
@@ -1128,7 +1243,7 @@ const ClientLists: React.FC = () => {
                             </div>
                         </div>
 
-                    </div>
+                    )}
                 </div>
 
                 <div className="p-3 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">

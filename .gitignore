@@ -39,3 +39,8 @@ tmp/
 .gemini/
 *.db
 *.db-journal
+
+# Documentation isolation
+DOCUMENTATION/
+DOCUMENTATION_COMPLETE.md
+

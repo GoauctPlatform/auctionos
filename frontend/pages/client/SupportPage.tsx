@@ -19,15 +19,29 @@ const ClientSupportPage: React.FC = () => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('submitting');
-    // Placeholder: will POST { name, email, phone, message } to /api/v1/support/contact
-    setTimeout(() => {
+    try {
+      const res = await fetch(`${API_URL}/auth/contact-support`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          message: form.message
+        })
+      });
+      if (!res.ok) throw new Error('Failed to send message');
       setStatus('success');
       setForm({ name: '', email: '', phone: '', message: '' });
       setTimeout(() => setStatus('idle'), 4000);
-    }, 1000);
+    } catch (error) {
+      console.error(error);
+      setStatus('error');
+      setTimeout(() => setStatus('idle'), 4000);
+    }
   };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
@@ -172,6 +186,13 @@ const ClientSupportPage: React.FC = () => {
             <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg border border-green-200 dark:border-green-800 text-sm">
               <span className="material-symbols-outlined text-[18px]">check_circle</span>
               Message sent! Our team will get back to you within 1–2 business days.
+            </div>
+          )}
+
+          {status === 'error' && (
+            <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg border border-red-200 dark:border-red-800 text-sm">
+              <span className="material-symbols-outlined text-[18px]">error</span>
+              Failed to send message. Please try again.
             </div>
           )}
         </form>

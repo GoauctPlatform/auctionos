@@ -210,7 +210,7 @@ const ClientProperties: React.FC = () => {
                                 const payload = {
                                     ...createForm,
                                     state: selectedState?.state || '',
-                                    county: selectedCounty || ''
+                                    county: (selectedCounty || '').replace(/_/g, ' ').trim()
                                 };
                                 const res = await ClientDataService.createCustomProperty(payload);
                                 setCreateModalOpen(false);

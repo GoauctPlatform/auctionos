@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Header from '../components/Header';
 import { Footer } from '../components/Footer';
+import { API_URL } from '../services/httpClient';
 
 interface SupportPageProps {
     standalone?: boolean;
@@ -13,17 +14,29 @@ const SupportPage: React.FC<SupportPageProps> = ({ standalone = true }) => {
     const [message, setMessage] = useState('');
     const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setStatus('submitting');
-        setTimeout(() => {
+        try {
+            const res = await fetch(`${API_URL}/auth/contact-support`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ name, email, phone, message }),
+            });
+            if (!res.ok) throw new Error('Failed to send message');
             setStatus('success');
             setName('');
             setEmail('');
             setPhone('');
             setMessage('');
             setTimeout(() => setStatus('idle'), 4000);
-        }, 1000);
+        } catch (error) {
+            console.error(error);
+            setStatus('error');
+            setTimeout(() => setStatus('idle'), 4000);
+        }
     };
 
     const content = (
@@ -123,6 +136,13 @@ const SupportPage: React.FC<SupportPageProps> = ({ standalone = true }) => {
                         <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-xl border border-green-200 dark:border-green-800">
                             <span className="material-symbols-outlined">check_circle</span>
                             <span>Thank you! We'll be in touch within 1–2 business days.</span>
+                        </div>
+                    )}
+
+                    {status === 'error' && (
+                        <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-800">
+                            <span className="material-symbols-outlined">error</span>
+                            <span>Failed to send message. Please try again.</span>
                         </div>
                     )}
                 </form>

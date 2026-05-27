@@ -499,3 +499,37 @@ async def auth_callback(
     
     print(f">>> OAuth success: user={email} role={user.role} redirect={redirect_url[:80]}...")
     return RedirectResponse(url=redirect_url)
+
+
+# ── Public Support Contact Endpoint ──────────────────────────────────────────
+
+from typing import Optional
+
+class ContactSupportPayload(BaseModel):
+    name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    message: str
+
+@router.post("/contact-support")
+def contact_support(
+    payload: ContactSupportPayload,
+    background_tasks: BackgroundTasks,
+) -> Any:
+    """Send support contact message via email using Resend."""
+    email_body = f"""
+    <h3>New Support Request Received</h3>
+    <p><strong>Name:</strong> {payload.name}</p>
+    <p><strong>Email:</strong> {payload.email}</p>
+    <p><strong>Phone:</strong> {payload.phone or 'N/A'}</p>
+    <p><strong>Message:</strong></p>
+    <p style="white-space: pre-wrap; background-color: #f5f5f5; padding: 10px; border-radius: 5px;">{payload.message}</p>
+    """
+    background_tasks.add_task(
+        send_email,
+        subject=f"GoAuct Support Message from {payload.name}",
+        recipients=["support@goauct.com"],
+        body=email_body
+    )
+    return {"ok": True}
+
