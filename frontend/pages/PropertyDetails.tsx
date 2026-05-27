@@ -167,14 +167,16 @@ const PropertyDetails: React.FC = () => {
                                 .map(el => el.outerHTML)
                                 .join('\n')}
                             <style>
+                                * {
+                                    -webkit-print-color-adjust: exact !important;
+                                    print-color-adjust: exact !important;
+                                }
                                 body {
                                     background-color: #0f172a !important; /* bg-slate-900 equivalent */
                                     margin: 0;
                                     padding: 20px;
                                     display: flex;
                                     justify-content: center;
-                                    -webkit-print-color-adjust: exact;
-                                    print-color-adjust: exact;
                                 }
                                 #property-sales-flyer {
                                     box-shadow: none !important;

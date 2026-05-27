@@ -178,7 +178,7 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                             <div>
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Building SqFt</label>
                                 <p className="text-sm font-bold text-blue-600 dark:text-blue-400">
-                                    {property.details?.building_area_sqft || property.sqft ? `${(property.details?.building_area_sqft || property.sqft).toLocaleString()} sqft` : '-'}
+                                    {property.details?.building_area_sqft || property.details?.sqft || property.sqft ? `${(property.details?.building_area_sqft || property.details?.sqft || property.sqft).toLocaleString()} sqft` : '-'}
                                 </p>
                             </div>
                             <div>

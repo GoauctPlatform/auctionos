@@ -602,9 +602,11 @@ export const Landing: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-20">
                         <div className="flex items-center gap-3 cursor-pointer animate-in fade-in duration-500" onClick={() => navigate('/')}>
-                            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-emerald-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                                <span className="material-symbols-outlined text-white text-2xl">gavel</span>
-                            </div>
+                            <img 
+                                src="/goauct-logo.png" 
+                                alt="GoAuct Logo" 
+                                className="w-10 h-10 rounded-xl object-cover shadow-lg border border-slate-200/40 dark:border-slate-800/40"
+                            />
                             <span className="font-extrabold text-2xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300">GoAuct</span>
                         </div>
                         <div className="hidden md:flex items-center gap-8 font-semibold">
@@ -891,8 +893,12 @@ export const Landing: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-10 mb-16">
                         <div className="col-span-2">
-                            <div className="flex items-center gap-2 mb-5">
-                                <span className="material-symbols-outlined text-blue-500 text-3xl">gavel</span>
+                            <div className="flex items-center gap-2.5 mb-5">
+                                <img 
+                                    src="/goauct-logo.png" 
+                                    alt="GoAuct Logo" 
+                                    className="w-8 h-8 rounded-lg object-cover shadow-md border border-slate-700/40"
+                                />
                                 <span className="font-extrabold text-white text-2xl">GoAuct</span>
                             </div>
                             <p className="text-slate-400 font-medium max-w-sm leading-relaxed text-sm">

@@ -2505,11 +2505,12 @@ export const ClientWorkbench: React.FC = () => {
 
       {/* ─── WORKBENCH SYSTEM TOP BAR (Mission Control Header) ─── */}
       <div className="w-full h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex justify-between items-center shrink-0 z-40 select-none">
-        {/* Left Side: Brand Logo & Mission Control */}
         <div id="tour-welcome-header" className="flex items-center gap-2.5">
-          <div className="size-6 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold shadow-sm">
-            <span className="material-symbols-outlined text-[15px]">gavel</span>
-          </div>
+          <img 
+            src="/goauct-logo.png" 
+            alt="GoAuct Logo" 
+            className="w-6 h-6 rounded-md object-cover shadow-sm border border-slate-200/20 dark:border-slate-800/20 animate-in fade-in duration-500"
+          />
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5 leading-none">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-105">

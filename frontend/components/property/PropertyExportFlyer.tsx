@@ -26,16 +26,16 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
         <div 
             id="property-sales-flyer"
             className="w-[800px] bg-slate-900 text-white rounded-2xl overflow-hidden border border-slate-700 shadow-2xl flex flex-col font-sans relative"
-            style={{ contentVisibility: 'auto' }}
         >
             {/* Header / Branding */}
             <div className="flex items-center justify-between p-6 bg-slate-950/60 border-b border-slate-800/80">
                 <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-10.5h16.5M2.25 9h19.5M3 18h1.5m1.5-6h1.5m1.5 6h1.5M10.5 12h1.5m1.5 6h1.5M16.5 12h1.5m1.5 6h1.5M3 9V5.25A2.25 2.25 0 015.25 3h13.5A2.25 2.25 0 0121 5.25V9m-18 9v-6H21v6H3z" />
-                        </svg>
-                    </div>
+                    <img 
+                        src="/goauct-logo.png" 
+                        alt="GoAuct Logo" 
+                        className="w-9 h-9 rounded-lg object-cover shadow-lg border border-slate-800/80"
+                        crossOrigin="anonymous"
+                    />
                     <div>
                         <h2 className="text-lg font-black tracking-tight uppercase leading-none">
                             GoAuct <span className="text-indigo-400 font-extrabold">Intelligence</span>
@@ -128,7 +128,7 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-0.5">Structure</span>
-                            <span className="text-xs font-bold text-slate-200 block truncate">
+                            <span className="text-xs font-bold text-slate-200 block break-words">
                                 {property.property_type || details?.property_type || 'Residential'}
                             </span>
                         </div>
@@ -141,7 +141,7 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                         <div>
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-0.5">Building Area</span>
                             <span className="text-xs font-bold text-slate-200 block">
-                                {details?.building_area_sqft || property.sqft ? `${(details?.building_area_sqft || property.sqft).toLocaleString()} sqft` : '-'}
+                                {details?.building_area_sqft || details?.sqft || property.sqft ? `${(details?.building_area_sqft || details?.sqft || property.sqft).toLocaleString()} sqft` : '-'}
                             </span>
                         </div>
                         <div>
@@ -158,7 +158,7 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                         </div>
                         <div>
                             <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider block mb-0.5">Parcel ID</span>
-                            <span className="text-xs font-mono font-bold text-indigo-400 block truncate">
+                            <span className="text-xs font-mono font-bold text-indigo-400 block break-all">
                                 {property.parcel_id || '-'}
                             </span>
                         </div>
