@@ -18,8 +18,8 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
     const details = property.details;
     
     const arv = details?.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
-    const maxBid = details?.max_bid || (arv * 0.7) - price;
-    const equity = arv - price;
+    const maxBid = details?.max_bid || (arv * 0.7);
+    const equity = arv - maxBid;
     const rent = details?.rental_value || arv * 0.008;
 
     return (
@@ -210,7 +210,7 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                     <div className="bg-indigo-900/20 border border-indigo-500/30 p-3.5 rounded-xl flex items-center justify-between shadow-sm">
                         <div className="space-y-0.5">
                             <span className="text-[8px] font-black text-indigo-300 uppercase tracking-widest block">Potential Equity Spread</span>
-                            <span className="text-sm font-semibold text-slate-300">Spread value against cost</span>
+                            <span className="text-[10px] font-semibold text-slate-400">Spread over Recommended Max Bid</span>
                         </div>
                         <span className="text-lg font-black text-indigo-400">
                             {equity ? `$${Math.round(equity).toLocaleString()}` : 'N/A'}

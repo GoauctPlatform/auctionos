@@ -213,6 +213,18 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                                     {property.amount_due ? `$${property.amount_due.toLocaleString()}` : '-'}
                                 </p>
                             </div>
+                            <div>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Recommended Max Bid</label>
+                                <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                                    {(() => {
+                                        const d = property.details || (property as any);
+                                        const assessedVal = property.assessed_value || d.assessed_value ? Number(property.assessed_value || d.assessed_value) : 0;
+                                        const arv = d.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
+                                        const maxBid = d.max_bid || property.max_bid || (arv * 0.7);
+                                        return maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'N/A';
+                                    })()}
+                                </p>
+                            </div>
                         </div>
 
                         {/* Legal Description (Full Width) */}
