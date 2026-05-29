@@ -70,23 +70,27 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
         return `${year}-${month}-${day}`;
     };
 
-    // Memoize dates that contain favorite auctions
+    // Memoize dates that contain favorite auctions.
+    // The calendar endpoint aliases id as "auction_id", so we check both fields.
     const favoriteDates = React.useMemo(() => {
         const dates = new Set<string>();
         rawEvents.forEach((item: any) => {
+            const itemId = item.id ?? item.auction_id;
             const cleanDate = item.event_date ? item.event_date.split('T')[0] : '';
-            if (cleanDate && favorites.has(item.id)) {
+            if (cleanDate && favorites.has(Number(itemId))) {
                 dates.add(cleanDate);
             }
         });
         return dates;
     }, [rawEvents, favorites]);
 
-    // Memoize the heavy aggregation logic for smoother performance
+    // Memoize the heavy aggregation logic for smoother performance.
+    // The calendar endpoint aliases id as "auction_id", so we check both fields.
     const processedEvents = React.useMemo(() => {
         const groups: Record<string, { date: string, type: string, auctionCount: number, propertyCount: number, hasFavorite: boolean }> = {};
 
         rawEvents.forEach((item: any) => {
+            const itemId = item.id ?? item.auction_id;
             const taxStatus = item.tax_status || 'Other';
             const cleanDate = item.event_date ? item.event_date.split('T')[0] : '';
             if (!cleanDate) return;
@@ -97,7 +101,7 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
             }
             groups[groupKey].auctionCount += 1;
             groups[groupKey].propertyCount += (item.property_count || 0);
-            if (favorites.has(item.id)) {
+            if (favorites.has(Number(itemId))) {
                 groups[groupKey].hasFavorite = true;
             }
         });
@@ -106,6 +110,10 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
             title: `${g.type} (${g.auctionCount})`,
             start: g.date,
             allDay: true,
+            // FullCalendar's official per-event color API — overrides eventColor prop correctly.
+            backgroundColor: g.hasFavorite ? '#f59e0b' : '#3b82f6',
+            borderColor:     g.hasFavorite ? '#d97706' : '#3b82f6',
+            textColor: '#ffffff',
             extendedProps: {
                 isGrouped: true,
                 type: g.type,
@@ -172,26 +180,26 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 height="100%"
                 eventColor="#3b82f6"
                 eventDidMount={(arg) => {
-                    const hasFavorite = arg.event.extendedProps.hasFavorite;
-                    const el = arg.el;
-                    if (hasFavorite) {
-                        el.style.backgroundColor = '#f59e0b';
-                        el.style.borderColor = '#d97706';
-                        el.style.color = '#fff';
+                    // Reinforce amber color in case FullCalendar re-applies eventColor after mount
+                    if (arg.event.extendedProps.hasFavorite) {
+                        const el = arg.el as HTMLElement;
+                        el.style.setProperty('background-color', '#f59e0b', 'important');
+                        el.style.setProperty('border-color', '#d97706', 'important');
                         el.style.fontWeight = '900';
-                        el.style.boxShadow = '0 2px 6px rgba(245,158,11,0.45)';
-                        el.style.transform = 'scale(1.03)';
+                        el.style.boxShadow = '0 2px 8px rgba(245,158,11,0.5)';
                     }
                 }}
                 dayCellDidMount={(arg) => {
                     // Use UTC date string to match item.event_date (which is also UTC)
                     const cleanDate = getUTCDateString(arg.date);
                     if (favoriteDates.has(cleanDate)) {
-                        // Inline style is 100% reliable — no purge, no specificity wars
-                        arg.el.style.boxShadow = 'inset 0 0 0 2.5px #f59e0b';
-                        arg.el.style.backgroundColor = 'rgba(251, 191, 36, 0.07)';
+                        // outline renders OUTSIDE the element box and is never clipped by overflow:hidden
+                        arg.el.style.outline = '2.5px solid #f59e0b';
+                        arg.el.style.outlineOffset = '-2px';
+                        arg.el.style.backgroundColor = 'rgba(251, 191, 36, 0.08)';
                     } else {
-                        arg.el.style.boxShadow = '';
+                        arg.el.style.outline = '';
+                        arg.el.style.outlineOffset = '';
                         arg.el.style.backgroundColor = '';
                     }
                     if (arg.isPast) {

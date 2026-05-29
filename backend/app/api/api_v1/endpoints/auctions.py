@@ -73,6 +73,7 @@ def read_auctions(
     tax_statuses: Optional[List[str]] = Query(None, description="Filtro por múltiplos status de impostos/leilão"),
     sort_by_date: bool = Query(False, description="Ordernar por auction_date descendente (False) ou ascendente (True)"),
     sort_by_parcels: bool = Query(False, description="Ordenar por parcels_count descendente (mais propriedades primeiro)"),
+    ids: Optional[List[int]] = Query(None, description="Filtrar por IDs exatos (modo favoritos)"),
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=1000),
 ) -> Any:
@@ -91,7 +92,8 @@ def read_auctions(
         q=q,
         tax_statuses=tax_statuses,
         sort_by_date=sort_by_date,
-        sort_by_parcels=sort_by_parcels
+        sort_by_parcels=sort_by_parcels,
+        ids=ids,
     )
     return {"items": items, "total": total}
 

@@ -71,21 +71,28 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
         try {
             const skip = paginationModel.page * paginationModel.pageSize;
             const limit = paginationModel.pageSize;
-            const isSingleDayQuery = filters?.startDate && filters?.startDate === filters?.endDate;
-            
-            const params = { 
-                ...(filterMode === 'favorites' && !isSingleDayQuery ? {} : filters),
-                sort_by_date: true, 
-                limit: filterMode === 'favorites' ? 500 : limit, 
-                skip: filterMode === 'favorites' ? 0 : skip 
-            };
-            const { items, total } = await AuctionService.getAuctionEvents(params);
-            
+
             if (filterMode === 'favorites') {
-                const filtered = items.filter((item: any) => favorites.has(item.id));
-                setRows(filtered);
-                setRowCount(filtered.length);
+                // Pass exact IDs to the backend — 100% reliable, no pagination limit issues.
+                const favIds = Array.from(favorites);
+                if (favIds.length === 0) {
+                    setRows([]);
+                    setRowCount(0);
+                    return;
+                }
+                const { items, total } = await AuctionService.getAuctionEvents({ ids: favIds });
+                setRows(items);
+                setRowCount(total);
             } else {
+                // Normal paginated mode with whatever filters the parent passes.
+                const isSingleDayQuery = filters?.startDate && filters?.startDate === filters?.endDate;
+                const params = { 
+                    ...filters,
+                    sort_by_date: true, 
+                    limit, 
+                    skip
+                };
+                const { items, total } = await AuctionService.getAuctionEvents(params);
                 setRows(items);
                 setRowCount(total);
             }
@@ -98,7 +105,9 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
 
     useEffect(() => {
         fetchAuctions();
-    }, [filters, paginationModel, filterMode, favorites.size]);
+    // favorites needs to be in deps so switching to favorites mode with an already-loaded set triggers a fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filters, paginationModel, filterMode, favorites]);
 
     const handleEditClick = (event: AuctionEvent) => {
         setEditingEvent(event);

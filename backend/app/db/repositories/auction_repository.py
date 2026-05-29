@@ -25,9 +25,21 @@ class AuctionRepository:
         tax_status: Optional[str] = None,
         tax_statuses: Optional[List[str]] = None,
         sort_by_date: bool = True,
-        sort_by_parcels: bool = False
+        sort_by_parcels: bool = False,
+        ids: Optional[List[int]] = None,
     ) -> tuple[List[Any], int]:
         query = db.query(AuctionEvent)
+
+        # When ids list is provided, fetch exactly those records (favorites mode).
+        # Skip all other filters — we want exactly what the user saved.
+        if ids is not None:
+            query = query.filter(AuctionEvent.id.in_(ids))
+            query = query.order_by(asc(AuctionEvent.auction_date))
+            total = query.count()
+            results = query.all()
+            for auction in results:
+                auction.live_available_count = auction.available_count
+            return results, total
 
         if name:
             query = query.filter(or_(

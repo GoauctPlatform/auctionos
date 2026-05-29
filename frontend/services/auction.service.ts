@@ -22,6 +22,10 @@ export const AuctionService = {
         if (filters.tax_statuses && Array.isArray(filters.tax_statuses)) {
             filters.tax_statuses.forEach((s: string) => queryParams.append('tax_statuses', s));
         }
+        // Favorites mode: send exact IDs for a precise DB fetch (no pagination risk)
+        if (filters.ids && Array.isArray(filters.ids)) {
+            filters.ids.forEach((id: number) => queryParams.append('ids', String(id)));
+        }
 
         const response = await fetch(`${API_URL}/auctions/?${queryParams.toString()}`, {
             headers: getHeaders()
