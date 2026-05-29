@@ -53,7 +53,7 @@ export const SwipeActionItem: React.FC<SwipeActionItemProps> = ({
     }
 
     return (
-        <motion.div ref={containerRef} className="relative w-full overflow-hidden rounded-xl overflow-x-hidden group" style={{ backgroundColor }}>
+        <motion.div ref={containerRef} className="relative w-full overflow-hidden hover:overflow-visible focus-within:overflow-visible rounded-xl group" style={{ backgroundColor }}>
             {/* DELETE Icon (Right Side) */}
             {onDelete && (
                 <motion.div
@@ -83,7 +83,7 @@ export const SwipeActionItem: React.FC<SwipeActionItemProps> = ({
                 onDragEnd={handleDragEnd}
                 animate={isAnimating ? (x.get() < 0 ? { x: -1000, opacity: 0 } : { x: 1000, opacity: 0 }) : { x: 0, opacity: 1 }}
                 transition={{ type: "spring", bounce: 0, duration: 0.4 }}
-                className="w-full h-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl relative z-10 cursor-grab active:cursor-grabbing"
+                className="w-full h-full bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl relative z-10 cursor-grab active:cursor-grabbing hover:overflow-visible"
                 dragDirectionLock
             >
                 {children}

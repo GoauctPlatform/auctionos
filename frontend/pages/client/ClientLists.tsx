@@ -259,6 +259,9 @@ const ClientLists: React.FC = () => {
     const [exportSubmitting, setExportSubmitting] = useState(false);
     
     const [favoritesSet, setFavoritesSet] = useState<Set<number>>(new Set());
+    const [selectedPropIds, setSelectedPropIds] = useState<Set<number>>(new Set());
+    const [isBulkMoving, setIsBulkMoving] = useState(false);
+    const [bulkMoveTargetListId, setBulkMoveTargetListId] = useState<number | string>('');
     const currentUser = AuthService.getCurrentUser();
     const isAgent = currentUser?.role === 'agent';
     const isTrial = currentUser?.subscription_tier === 'trial';
@@ -622,6 +625,54 @@ const ClientLists: React.FC = () => {
         }
     };
 
+    const handleBulkMoveProperties = async () => {
+        if (!selectedListId || selectedPropIds.size === 0 || !bulkMoveTargetListId) return;
+        setPropsLoading(true);
+        try {
+            const targetId = Number(bulkMoveTargetListId);
+            const idsArray = Array.from(selectedPropIds);
+            await Promise.all(
+                idsArray.map(propId => 
+                    ClientDataService.movePropertyBetweenLists(selectedListId, propId, targetId)
+                )
+            );
+            setSelectedPropIds(new Set());
+            setIsBulkMoving(false);
+            setBulkMoveTargetListId('');
+            loadLists();
+            loadListProperties(selectedListId);
+            alert(`Successfully moved ${idsArray.length} properties.`);
+        } catch (err: any) {
+            console.error(err);
+            alert(err.message || "Failed to move properties in bulk.");
+        } finally {
+            setPropsLoading(false);
+        }
+    };
+
+    const handleBulkRemoveProperties = async () => {
+        if (!selectedListId || selectedPropIds.size === 0) return;
+        if (!window.confirm(`Are you sure you want to remove the ${selectedPropIds.size} selected properties from this folder?`)) return;
+        setPropsLoading(true);
+        try {
+            const idsArray = Array.from(selectedPropIds);
+            await Promise.all(
+                idsArray.map(propId => 
+                    ClientDataService.removePropertyFromList(selectedListId, propId)
+                )
+            );
+            setSelectedPropIds(new Set());
+            loadLists();
+            loadListProperties(selectedListId);
+            alert(`Successfully removed ${idsArray.length} properties.`);
+        } catch (err: any) {
+            console.error(err);
+            alert(err.message || "Failed to remove properties in bulk.");
+        } finally {
+            setPropsLoading(false);
+        }
+    };
+
     const handleCreateList = async () => {
         if (creating) return;
         setCreating(true);
@@ -833,6 +884,19 @@ const ClientLists: React.FC = () => {
         return results;
     }, [searchTerm, allListsProperties, lists]);
 
+    const displayProperties = React.useMemo(() => {
+        return [...(selectedStateName && selectedCountyName
+            ? selectedListProperties.filter(p => normalizedMatch(p.county, selectedCountyName))
+            : selectedListProperties)]
+            .sort((a, b) => {
+                const isAFav = favoritesSet.has(a.id);
+                const isBFav = favoritesSet.has(b.id);
+                if (isAFav && !isBFav) return -1;
+                if (!isAFav && isBFav) return 1;
+                return 0;
+            });
+    }, [selectedStateName, selectedCountyName, selectedListProperties, favoritesSet]);
+
     const selectedList = lists.find(l => l.id === selectedListId) || broadcastedLists.find(l => l.id === selectedListId);
 
     if (loading && !lists.length && !broadcastedLists.length) {
@@ -950,7 +1014,7 @@ const ClientLists: React.FC = () => {
                                                     ${selectedListId === list.id ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}
                                                     ${dragOverListId === list.id ? 'ring-2 ring-blue-400 ring-inset scale-[1.02]' : ''}`}
                                             >
-                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-red-500'}`}>favorite</span>
+                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-amber-500'}`}>star</span>
                                                 <span className="flex-1 text-sm font-medium truncate">{list.name}</span>
                                                 {list.has_upcoming_auction && (
                                                     <div className="flex items-center gap-0.5 bg-orange-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">
@@ -966,6 +1030,66 @@ const ClientLists: React.FC = () => {
                             </div>
                         )}
 
+                        {/* Custom Folders */}
+                        <div>
+                            <div
+                                className="flex items-center justify-between px-3 cursor-pointer group"
+                                onClick={() => setCollapsedSections(prev => ({ ...prev, custom: !prev.custom }))}
+                            >
+                                <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">Custom Folders</Typography>
+                                <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.custom ? '-rotate-90' : ''}`}>expand_more</span>
+                            </div>
+                            {!collapsedSections.custom && (
+                                <div className="mt-1 space-y-0.5">
+                                    {lists.filter(l => !l.is_favorite_list && (!l.tags || !l.tags.startsWith('STANDARD'))).sort((a, b) => a.name.localeCompare(b.name)).map(list => (
+                                        <div
+                                            key={list.id}
+                                            onClick={() => { setSelectedListId(list.id); setSelectedStateName(null); setSelectedCountyName(null); }}
+                                            onDragOver={(e) => { e.preventDefault(); setDragOverListId(list.id); }}
+                                            onDragLeave={() => setDragOverListId(null)}
+                                            onDrop={(e) => handleDrop(e, list.id)}
+                                            className={`group relative flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 
+                                                ${selectedListId === list.id ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}
+                                                ${dragOverListId === list.id ? 'ring-2 ring-blue-400 ring-inset scale-[1.02]' : ''}`}
+                                        >
+                                            <div className="relative shrink-0">
+                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-blue-500'}`}>folder</span>
+                                                {list.has_upcoming_auction && (
+                                                    <div className="absolute -top-1 -right-1 bg-orange-500 text-white rounded-full p-0.5 shadow-sm z-10 leading-none">
+                                                        <span className="material-symbols-outlined text-[10px] block">gavel</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <span className="flex-1 text-sm font-medium truncate">{list.name}</span>
+                                            {list.has_upcoming_auction && (
+                                                <span className="text-[10px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded-md font-black">
+                                                    AUCTION
+                                                </span>
+                                            )}
+                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <IconButton
+                                                    size="small"
+                                                    className="p-0.5"
+                                                    onClick={(e) => { e.stopPropagation(); handleStartRename(list); }}
+                                                >
+                                                    <Edit2Icon size={12} className={selectedListId === list.id ? 'text-white' : 'text-slate-400'} />
+                                                </IconButton>
+                                                <IconButton
+                                                    size="small"
+                                                    className="p-0.5"
+                                                    onClick={(e) => { e.stopPropagation(); handleDeleteList(list.id); }}
+                                                >
+                                                    <Trash2Icon size={12} className={selectedListId === list.id ? 'text-white' : 'text-slate-400'} />
+                                                </IconButton>
+                                            </div>
+                                            <span className={`text-xs ${selectedListId === list.id ? 'text-blue-100' : 'text-slate-400'}`}>{list.property_count}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Standard Folders */}
                         {lists.some(l => l.tags === 'STANDARD') && (
                             <div>
                                 <div
@@ -1103,62 +1227,6 @@ const ClientLists: React.FC = () => {
                             </div>
                         )}
 
-                        <div>
-                            <div
-                                className="flex items-center justify-between px-3 cursor-pointer group"
-                                onClick={() => setCollapsedSections(prev => ({ ...prev, custom: !prev.custom }))}
-                            >
-                                <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">Custom Folders</Typography>
-                                <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.custom ? '-rotate-90' : ''}`}>expand_more</span>
-                            </div>
-                            {!collapsedSections.custom && (
-                                <div className="mt-1 space-y-0.5">
-                                    {lists.filter(l => !l.is_favorite_list && (!l.tags || !l.tags.startsWith('STANDARD'))).sort((a, b) => a.name.localeCompare(b.name)).map(list => (
-                                        <div
-                                            key={list.id}
-                                            onClick={() => { setSelectedListId(list.id); setSelectedStateName(null); setSelectedCountyName(null); }}
-                                            onDragOver={(e) => { e.preventDefault(); setDragOverListId(list.id); }}
-                                            onDragLeave={() => setDragOverListId(null)}
-                                            onDrop={(e) => handleDrop(e, list.id)}
-                                            className={`group flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 
-                                                ${selectedListId === list.id ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}
-                                                ${dragOverListId === list.id ? 'ring-2 ring-blue-400 ring-inset scale-[1.02]' : ''}`}
-                                        >
-                                            <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-blue-500'}`}>folder</span>
-                                            {list.has_upcoming_auction && (
-                                                <div className="absolute -top-1 -right-1 bg-orange-500 text-white rounded-full p-0.5 shadow-sm z-10">
-                                                    <span className="material-symbols-outlined text-[12px]">gavel</span>
-                                                </div>
-                                            )}
-                                                <span className="flex-1 text-sm font-medium truncate">{list.name}</span>
-                                                    {list.has_upcoming_auction && (
-                                                        <span className="text-[10px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded-md font-black">
-                                                            AUCTION
-                                                        </span>
-                                                    )}
-                                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        <IconButton
-                                                            size="small"
-                                                            className="p-0.5"
-                                                            onClick={(e) => { e.stopPropagation(); handleStartRename(list); }}
-                                                        >
-                                                            <Edit2Icon size={12} className={selectedListId === list.id ? 'text-white' : 'text-slate-400'} />
-                                                        </IconButton>
-                                                        <IconButton
-                                                            size="small"
-                                                            className="p-0.5"
-                                                            onClick={(e) => { e.stopPropagation(); handleDeleteList(list.id); }}
-                                                        >
-                                                            <Trash2Icon size={12} className={selectedListId === list.id ? 'text-white' : 'text-slate-400'} />
-                                                        </IconButton>
-                                                    </div>
-                                                    <span className={`text-xs ${selectedListId === list.id ? 'text-blue-100' : 'text-slate-400'}`}>{list.property_count}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
                         {/* broadcasted folders */}
                         {broadcastedLists.length > 0 && (
                             <div>
@@ -1256,6 +1324,44 @@ const ClientLists: React.FC = () => {
 
             {/* Main Content Area */}
             <div id="tour-lists-grid" className="flex-1 flex flex-col bg-white dark:bg-slate-950">
+                <style>{`
+                    @media print {
+                        body * {
+                            visibility: hidden !important;
+                        }
+                        #tour-lists-grid, #tour-lists-grid * {
+                            visibility: visible !important;
+                        }
+                        #tour-lists-grid {
+                            position: absolute !important;
+                            left: 0 !important;
+                            top: 0 !important;
+                            width: 100% !important;
+                            height: auto !important;
+                            overflow: visible !important;
+                            background: white !important;
+                            color: black !important;
+                            padding: 0 !important;
+                            margin: 0 !important;
+                        }
+                        .print\\:hidden,
+                        button,
+                        .MuiButton-root,
+                        .MuiIconButton-root,
+                        #tour-lists-sidebar,
+                        .swipe-action-buttons {
+                            display: none !important;
+                        }
+                        * {
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                        }
+                        @page {
+                            size: letter;
+                            margin: 0.5in;
+                        }
+                    }
+                `}</style>
                 {viewMode === 'my_tasks' ? (
                     <InvestorTasksDashboard onBack={() => setViewMode('folders')} />
                 ) : viewMode === 'my_exports' ? (
@@ -1270,7 +1376,7 @@ const ClientLists: React.FC = () => {
                                     <IconButton 
                                         onClick={() => setSidebarOpen(!sidebarOpen)} 
                                         size="medium" 
-                                        className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 shadow-sm border border-blue-200 dark:border-blue-800 transition-all"
+                                        className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 shadow-sm border border-blue-200 dark:border-blue-800 transition-all print:hidden"
                                         title={sidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
                                     >
                                         <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 text-[22px]">{sidebarOpen ? 'left_panel_close' : 'left_panel_open'}</span>
@@ -1290,11 +1396,81 @@ const ClientLists: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
+                                {/* Portfolio Export Button (Hidden when printing) */}
+                                {(selectedListId || selectedStateName) && (
+                                    <button
+                                        onClick={() => window.print()}
+                                        className="print:hidden flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-sm transition-all"
+                                    >
+                                        <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
+                                        Export List PDF
+                                    </button>
+                                )}
                             </div>
                         </div>
 
 
                 <div className="flex-1 overflow-y-auto p-3 md:p-6">
+                    {/* Bulk Actions Panel */}
+                    {selectedPropIds.size > 0 && (
+                        <div className="mb-4 sticky top-0 z-20 bg-slate-900 text-white rounded-xl p-3 flex items-center justify-between shadow-lg border border-slate-800 animate-slideDown print:hidden">
+                            <div className="flex items-center gap-3">
+                                <input 
+                                    type="checkbox"
+                                    checked={displayProperties.length > 0 && displayProperties.every(p => selectedPropIds.has(p.id))}
+                                    ref={el => {
+                                        if (el) {
+                                            const someChecked = displayProperties.some(p => selectedPropIds.has(p.id));
+                                            const allChecked = displayProperties.every(p => selectedPropIds.has(p.id));
+                                            el.indeterminate = someChecked && !allChecked;
+                                        }
+                                    }}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setSelectedPropIds(prev => {
+                                                const next = new Set(prev);
+                                                displayProperties.forEach(p => next.add(p.id));
+                                                return next;
+                                            });
+                                        } else {
+                                            setSelectedPropIds(prev => {
+                                                const next = new Set(prev);
+                                                displayProperties.forEach(p => next.delete(p.id));
+                                                return next;
+                                            });
+                                        }
+                                    }}
+                                    className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-blue-400 cursor-pointer"
+                                />
+                                <span className="text-xs font-bold text-slate-300">
+                                    {selectedPropIds.size} Selected
+                                </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setIsBulkMoving(true)}
+                                    className="px-3 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all flex items-center gap-1.5"
+                                >
+                                    <span className="material-symbols-outlined text-[16px]">drive_file_move</span>
+                                    Move Selected
+                                </button>
+                                <button
+                                    onClick={handleBulkRemoveProperties}
+                                    className="px-3 py-1.5 text-xs font-bold bg-red-600 hover:bg-red-500 text-white rounded-lg transition-all flex items-center gap-1.5"
+                                >
+                                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                                    Remove Selected
+                                </button>
+                                <button
+                                    onClick={() => setSelectedPropIds(new Set())}
+                                    className="p-1 text-slate-400 hover:text-white rounded-lg transition-all"
+                                    title="Clear selection"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">close</span>
+                                </button>
+                            </div>
+                        </div>
+                    )}
                     {/* Upcoming Auction Alert Banner */}
                     {(selectedList?.has_upcoming_auction || selectedListProperties.some(p => p.auction_status === "started" || (p.auction_date && new Date(p.auction_date).getTime() < Date.now() + 7 * 24 * 60 * 60 * 1000))) && (
                         <div className="mb-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/50 rounded-xl p-4 flex gap-4 items-start">
@@ -1495,68 +1671,74 @@ const ClientLists: React.FC = () => {
                             <Typography className="text-slate-500 text-sm font-medium">No Properties in this folder</Typography>
                             <Typography className="text-slate-400 text-xs mt-1">Drag and drop properties here from search or other lists.</Typography>
                         </div>
-                    ) : (() => {
-                        // Filter by county if a subfolder is selected
-                        const displayProperties = [...(selectedStateName && selectedCountyName
-                            ? selectedListProperties.filter(p => normalizedMatch(p.county, selectedCountyName))
-                            : selectedListProperties)]
-                            .sort((a, b) => {
-                                const isAFav = favoritesSet.has(a.id);
-                                const isBFav = favoritesSet.has(b.id);
-                                if (isAFav && !isBFav) return -1;
-                                if (!isAFav && isBFav) return 1;
-                                return 0;
-                            });
-
-                        if (displayProperties.length === 0) {
-                            return (
-                                <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
-                                    <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">folder_open</span>
-                                    <Typography className="text-slate-500 text-sm font-medium">No properties found in this specific county.</Typography>
+                    ) : displayProperties.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
+                            <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">folder_open</span>
+                            <Typography className="text-slate-500 text-sm font-medium">No properties found in this specific county.</Typography>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {selectedList?.has_upcoming_auction && (
+                                <div className="mb-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800/30 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+                                    <div className="flex items-start gap-3">
+                                        <div className="p-2 bg-orange-100 dark:bg-orange-800/40 rounded-lg text-orange-600 dark:text-orange-400 shadow-inner">
+                                            <span className="material-symbols-outlined pt-0.5">notification_important</span>
+                                        </div>
+                                        <div>
+                                            <h5 className="font-extrabold text-orange-800 dark:text-orange-300 text-sm tracking-tight">Upcoming Auctions Detected!</h5>
+                                            <p className="text-xs text-orange-700 dark:text-orange-400 mt-0.5 font-medium">There are {selectedList.upcoming_auctions_count} properties in this folder scheduled for auction soon. Review them immediately.</p>
+                                        </div>
+                                    </div>
+                                    <Button variant="contained" color="warning" size="small" className="whitespace-nowrap shadow-none font-bold text-xs" onClick={() => { }}>
+                                        Review Agenda
+                                    </Button>
                                 </div>
-                            );
-                        }
+                            )}
+                            {displayProperties.map((prop: any) => (
+                                <SwipeActionItem 
+                                    key={prop.id} 
+                                    onDelete={() => handleRemoveProperty(prop.id)}
+                                    onMove={() => setMovingPropertyId(prop.id)}
+                                >
+                                    <div
+                                        onClick={() => setPreviewPropertyId(prop.parcel_id || prop.id)}
+                                        className={`group relative border rounded-xl p-3 sm:p-4 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-3 sm:gap-4
+                                        ${favoritesSet.has(prop.id) 
+                                            ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/50 shadow-md ring-1 ring-amber-100 dark:ring-amber-900/20' 
+                                            : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900'}`}
+                                    >
+                                        {/* Selection Checkbox */}
+                                        <div 
+                                            className="flex items-center justify-center pr-1 print:hidden"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            <input 
+                                                type="checkbox"
+                                                checked={selectedPropIds.has(prop.id)}
+                                                onChange={() => {
+                                                    setSelectedPropIds(prev => {
+                                                        const next = new Set(prev);
+                                                        if (next.has(prop.id)) {
+                                                            next.delete(prop.id);
+                                                        } else {
+                                                            next.add(prop.id);
+                                                        }
+                                                        return next;
+                                                    });
+                                                }}
+                                                className="w-4 h-4 rounded border-slate-300 dark:border-slate-700 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                            />
+                                        </div>
 
-                        return (
-                            <div className="space-y-3">
-                                {selectedList?.has_upcoming_auction && (
-                                    <div className="mb-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800/30 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-                                        <div className="flex items-start gap-3">
-                                            <div className="p-2 bg-orange-100 dark:bg-orange-800/40 rounded-lg text-orange-600 dark:text-orange-400 shadow-inner">
-                                                <span className="material-symbols-outlined pt-0.5">notification_important</span>
-                                            </div>
-                                            <div>
-                                                <h5 className="font-extrabold text-orange-800 dark:text-orange-300 text-sm tracking-tight">Upcoming Auctions Detected!</h5>
-                                                <p className="text-xs text-orange-700 dark:text-orange-400 mt-0.5 font-medium">There are {selectedList.upcoming_auctions_count} properties in this folder scheduled for auction soon. Review them immediately.</p>
+                                        <div className="relative group/thumb shrink-0 z-10 transition-all duration-300 hover:scale-[1.6] hover:z-30 hover:shadow-xl rounded-lg origin-left">
+                                            <StreetViewThumbnail 
+                                                property={prop}
+                                                size={64}
+                                            />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                                                <span className="material-symbols-outlined text-white text-sm">zoom_in</span>
                                             </div>
                                         </div>
-                                        <Button variant="contained" color="warning" size="small" className="whitespace-nowrap shadow-none font-bold text-xs" onClick={() => { }}>
-                                            Review Agenda
-                                        </Button>
-                                    </div>
-                                )}
-                                {displayProperties.map((prop: any) => (
-                                    <SwipeActionItem 
-                                        key={prop.id} 
-                                        onDelete={() => handleRemoveProperty(prop.id)}
-                                        onMove={() => setMovingPropertyId(prop.id)}
-                                    >
-                                        <div
-                                            onClick={() => setPreviewPropertyId(prop.parcel_id || prop.id)}
-                                            className={`group relative border rounded-xl p-3 sm:p-4 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-3 sm:gap-4
-                                            ${favoritesSet.has(prop.id) 
-                                                ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-800/50 shadow-md ring-1 ring-amber-100 dark:ring-amber-900/20' 
-                                                : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:shadow-md hover:border-blue-200 dark:hover:border-blue-900'}`}
-                                        >
-                                            <div className="relative group/thumb">
-                                                <StreetViewThumbnail 
-                                                    property={prop}
-                                                    size={64}
-                                                />
-                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
-                                                    <span className="material-symbols-outlined text-white text-sm">zoom_in</span>
-                                                </div>
-                                            </div>
 
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between gap-2 mb-1">
@@ -1678,7 +1860,7 @@ const ClientLists: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-col items-end gap-2">
+                                            <div className="flex flex-col items-end gap-2 print:hidden">
                                                 <div className="bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors"
                                                     onClick={(e) => { e.stopPropagation(); navigate(`/client/properties/${prop.parcel_id || prop.id}`); }}
                                                 >
@@ -1693,7 +1875,7 @@ const ClientLists: React.FC = () => {
                                             </div>
                                             {/* Task & Export action buttons */}
                                             {!isAgent && (
-                                                <div className="mt-3 flex gap-2 border-t border-slate-100 dark:border-slate-800 pt-3" onClick={e => e.stopPropagation()}>
+                                                <div className="mt-3 flex gap-2 border-t border-slate-100 dark:border-slate-800 pt-3 print:hidden" onClick={e => e.stopPropagation()}>
                                                     <button
                                                         id="tour-missions-new-visit"
                                                         onClick={() => {
@@ -1726,10 +1908,9 @@ const ClientLists: React.FC = () => {
                                             )}
                                         </div>
                                     </SwipeActionItem>
-                                ))}
-                            </div>
-                        );
-                    })()}
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
             )}
@@ -1891,6 +2072,29 @@ const ClientLists: React.FC = () => {
                 <div className="flex justify-end gap-2 mt-6">
                     <Button onClick={() => setMovingPropertyId(null)} color="inherit">Cancel</Button>
                     <Button onClick={handleMoveProperty} variant="contained" color="primary" disabled={!moveTargetListId}>Move Property</Button>
+                </div>
+            </Dialog>
+
+            {/* Bulk Move Properties Dialog */}
+            <Dialog open={isBulkMoving} onClose={() => { setIsBulkMoving(false); setBulkMoveTargetListId(''); }} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
+                <Typography variant="h6" className="font-bold mb-4 text-slate-800 dark:text-white">Move {selectedPropIds.size} Properties to Folder</Typography>
+                <Typography variant="body2" className="text-slate-500 mb-4">Select the destination folder for the selected properties.</Typography>
+                <TextField
+                    select
+                    SelectProps={{ native: true }}
+                    fullWidth
+                    size="small"
+                    value={bulkMoveTargetListId}
+                    onChange={(e) => setBulkMoveTargetListId(e.target.value)}
+                >
+                    <option value="" disabled>-- Select a Folder --</option>
+                    {lists.filter(l => l.id !== selectedListId).map(l => (
+                        <option key={l.id} value={l.id}>{l.name}</option>
+                    ))}
+                </TextField>
+                <div className="flex justify-end gap-2 mt-6">
+                    <Button onClick={() => { setIsBulkMoving(false); setBulkMoveTargetListId(''); }} color="inherit">Cancel</Button>
+                    <Button onClick={handleBulkMoveProperties} variant="contained" color="primary" disabled={!bulkMoveTargetListId}>Move Properties</Button>
                 </div>
             </Dialog>
 
