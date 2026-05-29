@@ -202,6 +202,10 @@ export const ClientWorkbench: React.FC = () => {
   });
   const [upcomingAuctionsCount, setUpcomingAuctionsCount] = useState<number>(0);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [tickerTapeVisible, setTickerTapeVisible] = useState<boolean>(() => {
+    const stored = localStorage.getItem('goauct_ticker_tape_visible');
+    return stored === null ? true : stored === 'true';
+  });
 
   useEffect(() => {
     ClientDataService.getLists().then(lists => {
@@ -826,6 +830,13 @@ export const ClientWorkbench: React.FC = () => {
   const logConsoleActivity = useCallback((msg: string) => {
     setTerminalLogs(prev => [...prev, `[activity] ${msg}`].slice(-40));
   }, []);
+
+  const toggleTickerTape = () => {
+    const next = !tickerTapeVisible;
+    setTickerTapeVisible(next);
+    localStorage.setItem('goauct_ticker_tape_visible', String(next));
+    logConsoleActivity(`${next ? 'Enabled' : 'Disabled'} Favorites Ticker Tape widget`);
+  };
 
   // Billings & Plans
   const [billingPlan, setBillingPlan] = useState<'free' | 'pro' | 'elite'>('pro');
@@ -2666,7 +2677,7 @@ export const ClientWorkbench: React.FC = () => {
       </div>
 
       {/* ─── TICKER TAPE WIDGET (Next 30 Days) ─── */}
-      <TickerTapeWidget />
+      {tickerTapeVisible && <TickerTapeWidget />}
 
       {/* ─── MAIN WORKBENCH PANEL ─── */}
       <div className="flex-1 flex w-full overflow-hidden relative">
@@ -2878,6 +2889,23 @@ export const ClientWorkbench: React.FC = () => {
                         {w.visible ? <Eye size={12} /> : <EyeOff size={12} />}
                       </button>
                     ))}
+                  </div>
+
+                  <div className="flex flex-col space-y-1.5 pt-3 border-t border-slate-200/50 dark:border-slate-800/50">
+                    <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Global Widgets</span>
+                    <button
+                      onClick={toggleTickerTape}
+                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${tickerTapeVisible
+                          ? 'bg-amber-50/50 dark:bg-amber-955/10 border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
+                          : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
+                        }`}
+                    >
+                      <div className="flex items-center gap-2 text-xs">
+                        <Calendar size={13} className="text-amber-500" />
+                        <span className="truncate max-w-[130px]">Favorites Ticker</span>
+                      </div>
+                      {tickerTapeVisible ? <Eye size={12} /> : <EyeOff size={12} />}
+                    </button>
                   </div>
 
                   <div className="pt-3 border-t border-slate-200/50 dark:border-slate-800/50">
