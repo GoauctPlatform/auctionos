@@ -11,9 +11,10 @@ import { AuctionDetailsModal } from './AuctionDetailsModal';
 interface AuctionListProps {
     filters: any;
     readOnly?: boolean;
+    hideFilterSelector?: boolean;
 }
 
-const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) => {
+const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hideFilterSelector = false }) => {
     const [rows, setRows] = useState<AuctionEvent[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -42,6 +43,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
     });
 
     const [filterMode, setFilterMode] = useState<'all' | 'favorites'>(() => {
+        if (hideFilterSelector) return 'all';
         const saved = localStorage.getItem('goauct_favorites_filter_active');
         if (saved) return saved as 'all' | 'favorites';
         return 'favorites'; // Default to favorites by default
@@ -51,6 +53,12 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
         setFilterMode(mode);
         localStorage.setItem('goauct_favorites_filter_active', mode);
     };
+
+    useEffect(() => {
+        if (hideFilterSelector) {
+            setFilterMode('all');
+        }
+    }, [hideFilterSelector]);
 
     // Synchronize favorites across component instances
     useEffect(() => {
@@ -292,7 +300,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
                 </Typography>
 
                 {/* Segmented Button Group */}
-                {!readOnly && (
+                {!hideFilterSelector && (
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
                         <button
                             onClick={() => handleSetFilterMode('all')}

@@ -239,6 +239,7 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                                 tax_status: groupedDateType.type
                             }} 
                             readOnly={true} 
+                            hideFilterSelector={true}
                         />
                     )}
                 </DialogContent>
