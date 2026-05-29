@@ -56,45 +56,57 @@
 }
 
 /* ==========================================================================
-   DARK THEME — VS Code Dark
+   DARK THEME — Solarized Dark
+   Palette: Ethan Schoonover's canonical Solarized Dark
+   https://ethanschoonover.com/solarized/
    Must live OUTSIDE @layer so it wins over the un-layered :root block
    ========================================================================== */
 
 .dark {
-  --bg-primary: #1E1E1E;
-  --bg-secondary: #252526;
-  --bg-tertiary: #2D2D30;
+  /* ── Backgrounds ────────────────────────────────────────────────────────── */
+  --bg-primary:   #002b36;  /* base03 — deepest bg */
+  --bg-secondary: #073642;  /* base02 — panels, cards */
+  --bg-tertiary:  #0d3c4a;  /* between base03/base02 — inputs, hover states */
 
-  --accent: #007ACC;
-  --accent-hover: #0098FF;
-  --accent-glow: rgba(0, 122, 204, 0.25);
-  --accent-text: #9CDCFE;
+  /* ── Accent (Solarized Blue) ─────────────────────────────────────────────── */
+  --accent:       #268bd2;
+  --accent-hover: #4fa0da;
+  --accent-glow:  rgba(38, 139, 210, 0.22);
+  --accent-text:  #88d4f0;  /* light cyan-blue, readable as inline text */
 
-  --text-primary: #D4D4D4;
-  --text-secondary: #C5C5C5;
-  --text-muted: #808080;
+  /* ── Typography ──────────────────────────────────────────────────────────── */
+  /* Contrast ratios against base03 (#002b36):
+     #eee8d5 (base2) ≈ 11:1 → WCAG AAA  ✓
+     #93a1a1 (base1) ≈  5.5:1 → WCAG AA  ✓
+     #657b83 (base0) ≈  3.5:1 → WCAG AA large text ✓ */
+  --text-primary:   #eee8d5;  /* base2 — main content, headings */
+  --text-secondary: #93a1a1;  /* base1 — labels, captions */
+  --text-muted:     #657b83;  /* base0 — hints, placeholders */
 
-  --border: #3E3E42;
-  --border-focus: #007ACC;
+  /* ── Borders ─────────────────────────────────────────────────────────────── */
+  --border:       #1a4554;  /* subtle divider between bg layers */
+  --border-focus: #268bd2;
 
-  --success: #6A9955;
-  --success-bg: rgba(106, 153, 85, 0.1);
-  --warning: #CCA700;
-  --warning-bg: rgba(204, 167, 0, 0.12);
-  --danger: #F48771;
-  --danger-bg: rgba(244, 135, 113, 0.12);
+  /* ── Semantic Colors (Solarized accent vocabulary) ────────────────────────── */
+  --success:    #859900;  /* green */
+  --success-bg: rgba(133, 153, 0, 0.10);
+  --warning:    #b58900;  /* yellow */
+  --warning-bg: rgba(181, 137, 0, 0.10);
+  --danger:     #dc322f;  /* red */
+  --danger-bg:  rgba(220, 50, 47, 0.10);
 
-  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
-  --shadow-glow: none;
+  /* ── Elevation & Glow ─────────────────────────────────────────────────────── */
+  --shadow:      0 10px 15px -3px rgba(0, 0, 0, 0.65), 0 4px 6px -4px rgba(0, 0, 0, 0.55);
+  --shadow-glow: 0 0 20px rgba(38, 139, 210, 0.28);
 
-  /* Glassmorphism VS Dark */
-  --glass-bg: rgba(37, 37, 38, 0.85);
-  --glass-border: rgba(62, 62, 66, 0.6);
-  --glass-blur: 16px;
+  /* ── Glassmorphism ───────────────────────────────────────────────────────── */
+  --glass-bg:     rgba(7, 54, 66, 0.90);           /* base02 at 90% */
+  --glass-border: rgba(42, 161, 152, 0.18);        /* cyan hint */
+  --glass-blur:   16px;
 
-  /* Neumorphism VS Dark */
-  --neu-flat: 12px 12px 24px #151515, -12px -12px 24px #282828;
-  --neu-inset: inset 6px 6px 12px #151515, inset -6px -6px 12px #282828;
+  /* ── Neumorphism ─────────────────────────────────────────────────────────── */
+  --neu-flat:  12px 12px 24px #001c24, -12px -12px 24px #0e4558;
+  --neu-inset: inset 6px 6px 12px #001c24, inset -6px -6px 12px #0e4558;
 
   color-scheme: dark;
 }
@@ -148,7 +160,7 @@
   }
 
   .dark .neu-btn {
-    box-shadow: 4px 4px 10px #111111, -4px -4px 10px #303030;
+    box-shadow: 4px 4px 10px #001c24, -4px -4px 10px #0e4558;
   }
 
   .neu-btn:hover {
@@ -157,7 +169,7 @@
   }
 
   .dark .neu-btn:hover {
-    box-shadow: 6px 6px 12px #111111, -6px -6px 12px #363636;
+    box-shadow: 6px 6px 12px #001c24, -6px -6px 12px #12506a;
   }
 
   .neu-btn:active {
@@ -166,7 +178,7 @@
   }
 
   .dark .neu-btn:active {
-    box-shadow: inset 2px 2px 5px #111111, inset -2px -2px 5px #2a2a2a;
+    box-shadow: inset 2px 2px 5px #001c24, inset -2px -2px 5px #0e4558;
   }
 
   /* Cyberpunk glows & neon highlights */
@@ -396,4 +408,246 @@
 
 .animate-marquee {
   animation: marquee-vertical 12s infinite ease-in-out;
+}
+
+/* ==========================================================================
+   SOLARIZED DARK — MUI & FullCalendar component overrides
+   These are outside @layer to guarantee specificity over MUI inline styles.
+   ========================================================================== */
+
+/* ── MUI Paper & modal backgrounds ─────────────────────────────────────── */
+.dark .MuiPaper-root {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+/* ── MUI Dialog ────────────────────────────────────────────────────────── */
+.dark .MuiDialog-paper {
+  background-color: var(--bg-secondary) !important;
+}
+
+.dark .MuiDialogTitle-root {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.dark .MuiDialogContent-root {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-secondary) !important;
+}
+
+/* ── MUI Typography ────────────────────────────────────────────────────── */
+.dark .MuiTypography-root {
+  color: var(--text-primary) !important;
+}
+
+.dark .MuiTypography-body2,
+.dark .MuiTypography-caption {
+  color: var(--text-secondary) !important;
+}
+
+/* ── MUI Buttons ───────────────────────────────────────────────────────── */
+.dark .MuiButton-contained {
+  background-color: var(--accent) !important;
+  color: #eee8d5 !important;
+}
+
+.dark .MuiButton-contained:hover {
+  background-color: var(--accent-hover) !important;
+}
+
+.dark .MuiButton-outlined {
+  border-color: var(--accent) !important;
+  color: var(--accent-text) !important;
+}
+
+.dark .MuiButton-text {
+  color: var(--accent-text) !important;
+}
+
+/* ── MUI Input & TextField ─────────────────────────────────────────────── */
+.dark .MuiOutlinedInput-root {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark .MuiOutlinedInput-notchedOutline {
+  border-color: var(--border) !important;
+}
+
+.dark .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--accent) !important;
+}
+
+.dark .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 0 2px var(--accent-glow) !important;
+}
+
+.dark .MuiInputLabel-root {
+  color: var(--text-muted) !important;
+}
+
+.dark .MuiInputLabel-root.Mui-focused {
+  color: var(--accent-text) !important;
+}
+
+.dark .MuiSelect-icon {
+  color: var(--text-muted) !important;
+}
+
+/* Input placeholder */
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 1;
+}
+
+/* ── MUI DataGrid ──────────────────────────────────────────────────────── */
+.dark .MuiDataGrid-root {
+  background-color: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border) !important;
+}
+
+.dark .MuiDataGrid-columnHeaders {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+.dark .MuiDataGrid-columnHeader {
+  color: var(--text-secondary) !important;
+}
+
+.dark .MuiDataGrid-cell {
+  color: var(--text-primary) !important;
+  border-bottom-color: var(--border) !important;
+}
+
+.dark .MuiDataGrid-row:hover {
+  background-color: rgba(38, 139, 210, 0.06) !important;
+}
+
+.dark .MuiDataGrid-row.Mui-selected {
+  background-color: rgba(38, 139, 210, 0.12) !important;
+}
+
+.dark .MuiDataGrid-footerContainer {
+  background-color: var(--bg-tertiary) !important;
+  border-top: 1px solid var(--border) !important;
+  color: var(--text-secondary) !important;
+}
+
+.dark .MuiTablePagination-root,
+.dark .MuiTablePagination-displayedRows,
+.dark .MuiTablePagination-selectLabel {
+  color: var(--text-secondary) !important;
+}
+
+.dark .MuiTablePagination-actions button {
+  color: var(--text-muted) !important;
+}
+
+.dark .MuiDataGrid-toolbarContainer {
+  background-color: var(--bg-tertiary) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+
+/* ── MUI Chip ──────────────────────────────────────────────────────────── */
+.dark .MuiChip-root {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-secondary) !important;
+  border-color: var(--border) !important;
+}
+
+/* ── MUI Tooltip ───────────────────────────────────────────────────────── */
+.dark .MuiTooltip-tooltip {
+  background-color: var(--bg-tertiary) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border) !important;
+  font-size: 0.78rem !important;
+}
+
+/* ── MUI Menu / Dropdown ───────────────────────────────────────────────── */
+.dark .MuiMenu-paper,
+.dark .MuiPopover-paper {
+  background-color: var(--bg-secondary) !important;
+  border: 1px solid var(--border) !important;
+}
+
+.dark .MuiMenuItem-root {
+  color: var(--text-primary) !important;
+}
+
+.dark .MuiMenuItem-root:hover {
+  background-color: rgba(38, 139, 210, 0.10) !important;
+}
+
+.dark .MuiMenuItem-root.Mui-selected {
+  background-color: rgba(38, 139, 210, 0.16) !important;
+}
+
+/* ── MUI Divider ───────────────────────────────────────────────────────── */
+.dark .MuiDivider-root {
+  border-color: var(--border) !important;
+}
+
+/* ── MUI Icon colors ───────────────────────────────────────────────────── */
+.dark .MuiSvgIcon-root {
+  color: var(--text-muted);
+}
+
+/* ── FullCalendar Solarized Dark ───────────────────────────────────────── */
+.dark .fc {
+  color: var(--text-primary);
+}
+
+.dark .fc-theme-standard .fc-scrollgrid,
+.dark .fc-theme-standard td,
+.dark .fc-theme-standard th {
+  border-color: var(--border) !important;
+}
+
+.dark .fc .fc-col-header-cell-cushion {
+  color: var(--text-secondary) !important;
+}
+
+.dark .fc .fc-daygrid-day-number {
+  color: var(--text-secondary) !important;
+}
+
+.dark .fc .fc-daygrid-day.fc-day-today {
+  background-color: rgba(38, 139, 210, 0.08) !important;
+}
+
+.dark .fc .fc-toolbar-title {
+  color: var(--text-primary) !important;
+}
+
+.dark .fc .fc-button {
+  background-color: var(--bg-tertiary) !important;
+  border-color: var(--border) !important;
+  color: var(--text-secondary) !important;
+}
+
+.dark .fc .fc-button:hover {
+  background-color: rgba(38, 139, 210, 0.12) !important;
+  border-color: var(--accent) !important;
+  color: var(--text-primary) !important;
+}
+
+.dark .fc .fc-button-active,
+.dark .fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: var(--accent) !important;
+  border-color: var(--accent) !important;
+  color: #eee8d5 !important;
+}
+
+/* ── Text selection highlight ──────────────────────────────────────────── */
+.dark ::selection {
+  background-color: rgba(38, 139, 210, 0.30);
+  color: #eee8d5;
 }
