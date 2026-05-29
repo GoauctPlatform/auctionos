@@ -275,7 +275,7 @@ const ClientLayout: React.FC = () => {
   const isWorkbenchWorkspace = location.pathname.startsWith('/client/workbench') || 
                                location.pathname === '/client' || 
                                location.pathname === '/client/';
-  const hideHeader = isWorkbenchWorkspace;
+  const hideHeader = true; // Globally hide the outdated classic header and footer
 
   return (
     <div className={`w-full bg-slate-50 dark:bg-slate-900 font-display flex flex-col relative ${isWorkbenchWorkspace ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>

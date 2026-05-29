@@ -151,7 +151,7 @@ export const CompanySelector: React.FC<CompanySelectorProps> = ({ compact = fals
                 </button>
 
                 {open && (
-                    <div className="absolute top-full mt-2 right-0 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-96">
+                    <div className="absolute top-full mt-2 right-0 w-72 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-xl z-[99999] overflow-hidden flex flex-col max-h-96">
                         {/* Header */}
                         <div className="px-4 py-3 bg-slate-50 dark:bg-slate-900/80 border-b border-slate-100 dark:border-slate-800">
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Active Company</p>

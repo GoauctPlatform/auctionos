@@ -2505,7 +2505,7 @@ export const ClientWorkbench: React.FC = () => {
     <div className="w-full flex-1 flex flex-col h-full min-h-0 overflow-hidden select-none bg-slate-50 dark:bg-slate-950 font-display">
 
       {/* ─── WORKBENCH SYSTEM TOP BAR (Mission Control Header) ─── */}
-      <div className="w-full h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex justify-between items-center shrink-0 z-40 select-none">
+      <div className="w-full h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex justify-between items-center shrink-0 z-[9999] select-none">
         <div id="tour-welcome-header" className="flex items-center gap-2.5">
           <img 
             src="/goauct-logo.png" 

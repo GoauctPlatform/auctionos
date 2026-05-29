@@ -59,6 +59,25 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
             .catch(err => console.error("Failed to load calendar", err));
     }, [filterKey]);
 
+    const getLocalDateString = (date: Date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    // Memoize dates that contain favorite auctions
+    const favoriteDates = React.useMemo(() => {
+        const dates = new Set<string>();
+        rawEvents.forEach((item: any) => {
+            const cleanDate = item.event_date ? item.event_date.split('T')[0] : '';
+            if (cleanDate && favorites.has(item.id)) {
+                dates.add(cleanDate);
+            }
+        });
+        return dates;
+    }, [rawEvents, favorites]);
+
     // Memoize the heavy aggregation logic for smoother performance
     const processedEvents = React.useMemo(() => {
         const groups: Record<string, { date: string, type: string, auctionCount: number, propertyCount: number, hasFavorite: boolean }> = {};
@@ -166,10 +185,17 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                     return [];
                 }}
                 dayCellClassNames={(arg) => {
-                    if (arg.isPast) {
-                        return ['bg-slate-100', 'dark:bg-slate-800', 'opacity-60', 'grayscale'];
+                    const cleanDate = getLocalDateString(arg.date);
+                    const classes = [];
+                    
+                    if (favoriteDates.has(cleanDate)) {
+                        classes.push('!border-2', '!border-amber-500/85', 'shadow-[inset_0_0_0_1.5px_#f59e0b]', 'bg-amber-50/15', 'dark:bg-amber-950/15');
                     }
-                    return [];
+                    
+                    if (arg.isPast) {
+                        classes.push('bg-slate-100', 'dark:bg-slate-800', 'opacity-60', 'grayscale');
+                    }
+                    return classes;
                 }}
             />
 
