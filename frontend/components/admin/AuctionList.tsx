@@ -27,27 +27,32 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
     const [rowCount, setRowCount] = useState<number>(0);
     const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
 
-    // Favorites & Filtering State
-    const [favorites, setFavorites] = useState<Set<number>>(new Set());
-    const [filterMode, setFilterMode] = useState<'all' | 'favorites'>('all');
-
-    // Load favorites on mount and handle initial default filter state
-    useEffect(() => {
+    // Favorites & Filtering State (initialized synchronously!)
+    const [favorites, setFavorites] = useState<Set<number>>(() => {
         const favs = localStorage.getItem('goauct_fav_auctions');
         if (favs) {
             try {
                 const parsed = JSON.parse(favs);
                 if (Array.isArray(parsed)) {
-                    setFavorites(new Set(parsed));
-                    if (parsed.length > 0) {
-                        setFilterMode('favorites');
-                    }
+                    return new Set(parsed);
                 }
-            } catch (e) {
-                console.error("Failed to parse favorites", e);
-            }
+            } catch (e) {}
         }
-    }, []);
+        return new Set();
+    });
+
+    const [filterMode, setFilterMode] = useState<'all' | 'favorites'>(() => {
+        const favs = localStorage.getItem('goauct_fav_auctions');
+        if (favs) {
+            try {
+                const parsed = JSON.parse(favs);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return 'favorites';
+                }
+            } catch (e) {}
+        }
+        return 'all';
+    });
 
     // Synchronize favorites across component instances
     useEffect(() => {
@@ -77,10 +82,12 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
         try {
             const skip = paginationModel.page * paginationModel.pageSize;
             const limit = paginationModel.pageSize;
+            const isSingleDayQuery = filters?.startDate && filters?.startDate === filters?.endDate;
+            
             const params = { 
-                ...filters, 
+                ...(filterMode === 'favorites' && !isSingleDayQuery ? {} : filters),
                 sort_by_date: true, 
-                limit: filterMode === 'favorites' ? 250 : limit, 
+                limit: filterMode === 'favorites' ? 500 : limit, 
                 skip: filterMode === 'favorites' ? 0 : skip 
             };
             const { items, total } = await AuctionService.getAuctionEvents(params);

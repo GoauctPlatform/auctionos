@@ -28,17 +28,19 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
     const [groupedDateType, setGroupedDateType] = useState<{date: string, type: string} | null>(null);
     const navigate = useNavigate();
 
-    // Favorites state and synchronization
-    const [favorites, setFavorites] = useState<Set<number>>(new Set());
-
-    useEffect(() => {
+    // Favorites state and synchronization (initialized synchronously)
+    const [favorites, setFavorites] = useState<Set<number>>(() => {
         const favs = localStorage.getItem('goauct_fav_auctions');
         if (favs) {
             try {
-                setFavorites(new Set(JSON.parse(favs)));
+                const parsed = JSON.parse(favs);
+                if (Array.isArray(parsed)) {
+                    return new Set(parsed);
+                }
             } catch (e) {}
         }
-    }, []);
+        return new Set();
+    });
 
     useEffect(() => {
         const handleSync = (e: any) => {
@@ -171,14 +173,12 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                     const hasFavorite = arg.event.extendedProps.hasFavorite;
                     if (hasFavorite) {
                         return [
+                            '!bg-amber-500', 
                             '!border-2', 
-                            '!border-amber-500', 
+                            '!border-amber-600', 
+                            '!text-white', 
                             'scale-[1.03]', 
                             'shadow-md', 
-                            '!bg-amber-50', 
-                            'dark:!bg-amber-950/40', 
-                            '!text-amber-800', 
-                            'dark:!text-amber-200', 
                             'font-black'
                         ];
                     }
