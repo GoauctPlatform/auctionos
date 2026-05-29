@@ -27,7 +27,7 @@ export const StreetViewThumbnail: React.FC<StreetViewThumbnailProps> = ({
     // Use the flexible utility: pass property object if available, else strings
     const effectiveLocation = property || address;
     const imageUrl = getStreetViewUrl(effectiveLocation, city, state, zip, `${size}x${size}`);
-    const largeImageUrl = getStreetViewUrl(effectiveLocation, city, state, zip, '320x200');
+    const largeImageUrl = getStreetViewUrl(effectiveLocation, city, state, zip, '640x400');
 
     if (!imageUrl || error) {
         return (
@@ -68,16 +68,16 @@ export const StreetViewThumbnail: React.FC<StreetViewThumbnailProps> = ({
                     className="fixed z-[99999] pointer-events-none"
                     style={{ 
                         left: mousePos.x + 20, 
-                        top: mousePos.y - 100,
+                        top: mousePos.y - 120,
                     }}
                 >
-                    <div className="bg-white dark:bg-slate-900 p-1.5 rounded-xl shadow-2xl border-2 border-blue-500 animate-in fade-in zoom-in duration-200">
+                    <div className="bg-white dark:bg-slate-900 p-2 rounded-2xl shadow-2xl border-2 border-blue-500 animate-in fade-in zoom-in duration-200">
                         <img 
                             src={largeImageUrl} 
                             alt="Property Zoom"
-                            className="rounded-lg w-80 h-50 object-cover"
+                            className="rounded-xl w-[480px] h-[300px] object-cover"
                         />
-                        <div className="absolute top-3 left-3 bg-blue-600 text-white text-[9px] font-black px-2 py-0.5 rounded shadow-lg uppercase">
+                        <div className="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded shadow-lg uppercase tracking-wider">
                             Street View Preview
                         </div>
                     </div>

@@ -968,7 +968,7 @@ const ClientLists: React.FC = () => {
                                                 // Focus the property in list view
                                                 setPreviewPropertyId(property.id);
                                             }}
-                                            className={`flex flex-col gap-1 px-3 py-2 rounded-xl cursor-pointer transition-all border border-transparent hover:scale-[1.01]
+                                            className={`flex flex-col gap-1 px-3 py-2 rounded-xl cursor-pointer transition-all border border-transparent hover:scale-[1.01] group/searchcard
                                                 ${isSelected 
                                                     ? 'bg-blue-600/10 border-blue-500/20 text-blue-700 dark:text-blue-400' 
                                                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
@@ -979,7 +979,34 @@ const ClientLists: React.FC = () => {
                                                     {list.name} {county ? `· ${county}` : ''}
                                                 </span>
                                             </div>
-                                            <span className="text-[10px] opacity-80 truncate">{property.address}</span>
+                                            <div className="flex items-center justify-between gap-1 mt-0.5">
+                                                <span className="text-[10px] opacity-80 truncate flex-1">{property.address}</span>
+                                                <IconButton
+                                                    size="small"
+                                                    className="p-0.5 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover/searchcard:opacity-100"
+                                                    onClick={async (e) => {
+                                                        e.stopPropagation();
+                                                        if (window.confirm(`Are you sure you want to remove property ${property.parcel_id} from folder "${list.name}"?`)) {
+                                                            try {
+                                                                await ClientDataService.removePropertyFromList(list.id, property.id);
+                                                                loadLists();
+                                                                if (selectedListId === list.id) {
+                                                                    if (selectedStateName) {
+                                                                        loadStateProperties(selectedStateName);
+                                                                    } else {
+                                                                        loadListProperties(list.id);
+                                                                    }
+                                                                }
+                                                                alert('✅ Property removed successfully.');
+                                                            } catch (err: any) {
+                                                                alert(err.message || 'Failed to remove property');
+                                                            }
+                                                        }
+                                                    }}
+                                                >
+                                                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                </IconButton>
+                                            </div>
                                         </div>
                                     );
                                 })
@@ -1343,6 +1370,11 @@ const ClientLists: React.FC = () => {
                             color: black !important;
                             padding: 0 !important;
                             margin: 0 !important;
+                        }
+                        #tour-lists-grid div {
+                            overflow: visible !important;
+                            height: auto !important;
+                            max-height: none !important;
                         }
                         .print\\:hidden,
                         button,
@@ -1730,7 +1762,7 @@ const ClientLists: React.FC = () => {
                                             />
                                         </div>
 
-                                        <div className="relative group/thumb shrink-0 z-10 transition-all duration-300 hover:scale-[1.6] hover:z-30 hover:shadow-xl rounded-lg origin-left">
+                                        <div className="relative group/thumb shrink-0 z-10 transition-all duration-300 hover:scale-[1.08] hover:z-30 rounded-lg">
                                             <StreetViewThumbnail 
                                                 property={prop}
                                                 size={64}
