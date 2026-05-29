@@ -41,7 +41,16 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
         return new Set();
     });
 
-    const [filterMode, setFilterMode] = useState<'all' | 'favorites'>('all');
+    const [filterMode, setFilterMode] = useState<'all' | 'favorites'>(() => {
+        const saved = localStorage.getItem('goauct_favorites_filter_active');
+        if (saved) return saved as 'all' | 'favorites';
+        return 'favorites'; // Default to favorites by default
+    });
+
+    const handleSetFilterMode = (mode: 'all' | 'favorites') => {
+        setFilterMode(mode);
+        localStorage.setItem('goauct_favorites_filter_active', mode);
+    };
 
     // Synchronize favorites across component instances
     useEffect(() => {
@@ -283,28 +292,30 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
                 </Typography>
 
                 {/* Segmented Button Group */}
-                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
-                    <button
-                        onClick={() => setFilterMode('all')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                            filterMode === 'all'
-                                ? 'bg-white dark:bg-slate-700 text-indigo-650 dark:text-white shadow-xs border border-slate-200/50 dark:border-slate-600/50'
-                                : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
-                        }`}
-                    >
-                        All Auctions
-                    </button>
-                    <button
-                        onClick={() => setFilterMode('favorites')}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
-                            filterMode === 'favorites'
-                                ? 'bg-white dark:bg-slate-700 text-amber-500 dark:text-amber-400 shadow-xs border border-slate-200/50 dark:border-slate-600/50'
-                                : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
-                        }`}
-                    >
-                        ★ Favorites Only
-                    </button>
-                </div>
+                {!readOnly && (
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
+                        <button
+                            onClick={() => handleSetFilterMode('all')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                                filterMode === 'all'
+                                    ? 'bg-white dark:bg-slate-700 text-indigo-650 dark:text-white shadow-xs border border-slate-200/50 dark:border-slate-600/50'
+                                    : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
+                            }`}
+                        >
+                            All Auctions
+                        </button>
+                        <button
+                            onClick={() => handleSetFilterMode('favorites')}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                                filterMode === 'favorites'
+                                    ? 'bg-white dark:bg-slate-700 text-amber-500 dark:text-amber-400 shadow-xs border border-slate-200/50 dark:border-slate-600/50'
+                                    : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
+                            }`}
+                        >
+                            ★ Favorites Only
+                        </button>
+                    </div>
+                )}
 
                 {!readOnly && (
                     <Button
