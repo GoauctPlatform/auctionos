@@ -8,7 +8,50 @@ interface TickerAuction {
     countdown: string;
     type: string;
     address: string;
+    state?: string;
 }
+
+const resolveStateCode = (stateRaw: string): string => {
+    if (!stateRaw) return '';
+    const trimmed = stateRaw.trim();
+    if (trimmed.length === 2) return trimmed.toUpperCase();
+    
+    const stateMap: Record<string, string> = {
+        'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+        'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+        'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
+        'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+        'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO',
+        'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
+        'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH',
+        'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+        'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
+        'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY'
+    };
+    return stateMap[trimmed.toLowerCase()] || trimmed.toUpperCase().slice(0, 2);
+};
+
+const StateSilhouetteBadge: React.FC<{ stateCode: string; size?: number }> = ({ stateCode, size = 16 }) => {
+    const cleanCode = resolveStateCode(stateCode);
+    if (!cleanCode) return null;
+    const url = `https://raw.githubusercontent.com/ahuseyn/state-icons/master/icons/${cleanCode}.svg`;
+    return (
+        <div
+            style={{ width: size, height: size }}
+            className="relative bg-[#073642] border border-[#1a4554]/60 rounded flex items-center justify-center p-0.5 shrink-0 shadow-sm mr-2"
+        >
+            <img
+                src={url}
+                alt={cleanCode}
+                className="w-full h-full object-contain opacity-75 dark:brightness-0 dark:invert"
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <span className="text-[5.5px] font-black text-white/30 tracking-tighter">{cleanCode}</span>
+            </div>
+        </div>
+    );
+};
 
 export const TickerTapeWidget: React.FC = () => {
     // 1. Initialize favorites state from localStorage synchronously
@@ -88,7 +131,8 @@ export const TickerTapeWidget: React.FC = () => {
                     title: `${item.name} (${item.county || item.state || ''})`,
                     countdown: calculateCountdown(item.auction_date),
                     type: item.tax_status || 'Auction',
-                    address: item.location || ''
+                    address: item.location || '',
+                    state: item.state || ''
                 }));
 
                 // Sort so "Today" and imminent auctions come first, followed by others, then "Ended"
@@ -144,18 +188,20 @@ export const TickerTapeWidget: React.FC = () => {
     }
 
     return (
-        <div className="relative flex overflow-x-hidden h-8 bg-[#002b36] text-white items-center border-b border-[#1a4554] group whitespace-nowrap select-none">
-            <div className="absolute left-0 z-10 px-3 h-full flex items-center bg-[#268bd2] font-black text-[9px] uppercase tracking-widest shadow-[10px_0_20px_rgba(0,43,54,0.85)] border-r border-[#1a4554]/50">
+        <div className="relative flex overflow-x-hidden h-8 bg-[#002b36] text-white items-center border-b border-[#1a4554] group whitespace-nowrap select-none w-full pl-[100px]">
+            {/* Favorites Badge */}
+            <div className="absolute left-0 z-20 px-3 h-full flex items-center bg-[#268bd2] font-black text-[9px] uppercase tracking-widest border-r border-[#1a4554]/50 shadow-[4px_0_10px_rgba(0,43,54,0.5)]">
                 <Calendar size={11} className="mr-1.5" /> Favorites
             </div>
             
-            <div className="animate-[marquee_60s_linear_infinite] group-hover:[animation-play-state:paused] flex items-center pl-[120px]">
+            <div className="flex animate-[marquee_45s_linear_infinite] group-hover:[animation-play-state:paused] shrink-0 items-center min-w-full">
                 {upcomingAuctions.map((auction, idx) => (
                     <div 
                         key={`${auction.id}-${idx}`} 
-                        className="flex items-center mx-5 text-xs font-bold cursor-pointer text-[#eee8d5] hover:text-[#268bd2] transition-colors"
+                        className="flex items-center mx-6 text-xs font-bold cursor-pointer text-[#eee8d5] hover:text-[#268bd2] transition-colors shrink-0"
                         onClick={handleTickerClick}
                     >
+                        {auction.state && <StateSilhouetteBadge stateCode={auction.state} />}
                         <span className="text-[#268bd2] font-black mr-2">•</span>
                         <span>{auction.title}</span>
                         <span className="ml-2 text-[#93a1a1] font-semibold text-[10px]">({auction.type})</span>
@@ -167,13 +213,14 @@ export const TickerTapeWidget: React.FC = () => {
             </div>
 
             {/* A second marquee div for seamless looping */}
-            <div className="animate-[marquee_60s_linear_infinite] group-hover:[animation-play-state:paused] flex items-center pr-[100vw]" aria-hidden="true">
+            <div className="flex animate-[marquee_45s_linear_infinite] group-hover:[animation-play-state:paused] shrink-0 items-center min-w-full" aria-hidden="true">
                 {upcomingAuctions.map((auction, idx) => (
                     <div 
                         key={`dup-${auction.id}-${idx}`} 
-                        className="flex items-center mx-5 text-xs font-bold cursor-pointer text-[#eee8d5] hover:text-[#268bd2] transition-colors"
+                        className="flex items-center mx-6 text-xs font-bold cursor-pointer text-[#eee8d5] hover:text-[#268bd2] transition-colors shrink-0"
                         onClick={handleTickerClick}
                     >
+                        {auction.state && <StateSilhouetteBadge stateCode={auction.state} />}
                         <span className="text-[#268bd2] font-black mr-2">•</span>
                         <span>{auction.title}</span>
                         <span className="ml-2 text-[#93a1a1] font-semibold text-[10px]">({auction.type})</span>
@@ -186,7 +233,7 @@ export const TickerTapeWidget: React.FC = () => {
 
             <style>{`
                 @keyframes marquee {
-                    0% { transform: translateX(0%); }
+                    0% { transform: translateX(0); }
                     100% { transform: translateX(-100%); }
                 }
             `}</style>
