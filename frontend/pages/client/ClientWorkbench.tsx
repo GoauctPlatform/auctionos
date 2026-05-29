@@ -911,9 +911,17 @@ export const ClientWorkbench: React.FC = () => {
       }
     };
 
+    const handleOpenOverlay = (e: Event) => {
+      const customEvent = e as CustomEvent<{ type: string; title: string; data?: any }>;
+      const { type, title, data } = customEvent.detail;
+      openOverlayWindow(type as any, title, data);
+    };
+
     window.addEventListener('open-workbench-widget', handleOpenWidget as EventListener);
+    window.addEventListener('open-workbench-overlay', handleOpenOverlay as EventListener);
     return () => {
       window.removeEventListener('open-workbench-widget', handleOpenWidget as EventListener);
+      window.removeEventListener('open-workbench-overlay', handleOpenOverlay as EventListener);
     };
   }, [widgets, highestZIndex, logConsoleActivity]);
 

@@ -21,17 +21,34 @@
     rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
   <script>
-    tailwind.config = {
+  tailwind.config = {
       darkMode: "class",
       theme: {
         extend: {
           colors: {
             primary: "#136dec",
-            "primary-dark": "#0e56b8",
+            "primary-dark": "#268bd2",          /* Solarized Blue */
             "background-light": "#f6f7f8",
-            "background-dark": "#101822",
+            "background-dark": "#002b36",        /* Solarized base03 */
             "card-light": "#ffffff",
-            "card-dark": "#1a2430",
+            "card-dark": "#073642",              /* Solarized base02 */
+            /* Solarized palette tokens (use anywhere) */
+            "sol-base03":  "#002b36",
+            "sol-base02":  "#073642",
+            "sol-base01":  "#586e75",
+            "sol-base00":  "#657b83",
+            "sol-base0":   "#839496",
+            "sol-base1":   "#93a1a1",
+            "sol-base2":   "#eee8d5",
+            "sol-base3":   "#fdf6e3",
+            "sol-yellow":  "#b58900",
+            "sol-orange":  "#cb4b16",
+            "sol-red":     "#dc322f",
+            "sol-magenta": "#d33682",
+            "sol-violet":  "#6c71c4",
+            "sol-blue":    "#268bd2",
+            "sol-cyan":    "#2aa198",
+            "sol-green":   "#859900",
           },
           fontFamily: {
             display: ["Manrope", "sans-serif"],
@@ -70,6 +87,20 @@
       background: #94a3b8;
     }
 
+    /* Solarized Dark scrollbar — applied when .dark is on <html> */
+    .dark ::-webkit-scrollbar-thumb {
+      background: #1a4554;
+      border-radius: 4px;
+    }
+
+    .dark ::-webkit-scrollbar-thumb:hover {
+      background: #268bd2;
+    }
+
+    .dark ::-webkit-scrollbar-track {
+      background: #002b36;
+    }
+
     /* Animation for toast */
     @keyframes slideUp {
       to {
@@ -89,11 +120,11 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index-P6Nzxvr9.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DgjeWWHk.css">
+  <script type="module" crossorigin src="/assets/index-V-nNbRaD.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Dd9qf0V1.css">
 </head>
 
-<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display">
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-sol-base2 font-display">
   <div id="root"></div>
 </body>
 

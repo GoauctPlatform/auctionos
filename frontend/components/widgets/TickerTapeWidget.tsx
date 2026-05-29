@@ -1,27 +1,25 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
-import { AuctionEvent } from '../../types';
-import { Calendar, ArrowRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Calendar } from 'lucide-react';
+
+interface TickerAuction {
+    id: number | string;
+    title: string;
+    countdown: string;
+    type: string;
+    address: string;
+    parcel_id?: string;
+}
 
 export const TickerTapeWidget: React.FC = () => {
-    const [upcomingAuctions, setUpcomingAuctions] = useState<AuctionEvent[]>([]);
+    const [upcomingAuctions, setUpcomingAuctions] = useState<TickerAuction[]>([]);
     const [loading, setLoading] = useState(true);
-    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchTicker = async () => {
             try {
                 const res = await api.get('/api/v1/dashboard/ticker');
-                // The API returns countdown, type, address etc. Let's map it.
-                const tickerData = res.data.map((item: any) => ({
-                    id: item.id,
-                    county: item.title, // "title" in backend is address or auction_name, let's just use title
-                    state: 'FL',
-                    type: item.type,
-                    item_count: item.countdown // Using item_count field to show countdown
-                }));
-                setUpcomingAuctions(tickerData);
+                setUpcomingAuctions(res.data || []);
             } catch (err) {
                 console.error("Failed to fetch dashboard ticker", err);
             } finally {
@@ -31,40 +29,53 @@ export const TickerTapeWidget: React.FC = () => {
         fetchTicker();
     }, []);
 
+    const handleTickerClick = (auction: TickerAuction) => {
+        if (auction.id && auction.parcel_id) {
+            window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
+                detail: {
+                    type: 'property_details',
+                    title: `🔍 Property: ${auction.parcel_id || auction.id}`,
+                    data: { propertyId: auction.id, parcelId: auction.parcel_id }
+                }
+            }));
+        }
+    };
+
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-8 bg-slate-900 text-slate-400 text-xs font-bold border-b border-slate-800">
-                Loading Upcoming Auctions...
+            <div className="flex items-center justify-center h-8 bg-[#002b36] text-[#93a1a1] text-xs font-bold border-b border-[#1a4554] select-none">
+                Loading Watchlist Auctions...
             </div>
         );
     }
 
     if (upcomingAuctions.length === 0) {
         return (
-            <div className="flex items-center justify-center h-8 bg-slate-900 text-slate-400 text-xs font-bold border-b border-slate-800">
-                No Upcoming Auctions in the Next 30 Days
+            <div className="flex items-center justify-center h-8 bg-[#002b36] text-[#93a1a1] text-[10px] font-bold border-b border-[#1a4554] select-none uppercase tracking-wider animate-in fade-in duration-500">
+                <span className="text-[#268bd2] mr-2">💡 Tip:</span>
+                Add properties to your watchlist to track upcoming auctions in this ticker!
             </div>
         );
     }
 
     return (
-        <div className="relative flex overflow-x-hidden h-8 bg-slate-900 text-white items-center border-b border-slate-800 group whitespace-nowrap">
-            <div className="absolute left-0 z-10 px-3 h-full flex items-center bg-indigo-600 font-black text-[10px] uppercase tracking-widest shadow-[10px_0_20px_rgba(15,23,42,1)]">
-                <Calendar size={12} className="mr-1.5" /> Next 30 Days
+        <div className="relative flex overflow-x-hidden h-8 bg-[#002b36] text-white items-center border-b border-[#1a4554] group whitespace-nowrap select-none">
+            <div className="absolute left-0 z-10 px-3 h-full flex items-center bg-[#268bd2] font-black text-[9px] uppercase tracking-widest shadow-[10px_0_20px_rgba(0,43,54,0.85)] border-r border-[#1a4554]/50">
+                <Calendar size={11} className="mr-1.5" /> Watchlist
             </div>
             
             <div className="animate-[marquee_60s_linear_infinite] group-hover:[animation-play-state:paused] flex items-center pl-[120px]">
                 {upcomingAuctions.map((auction, idx) => (
                     <div 
                         key={`${auction.id}-${idx}`} 
-                        className="flex items-center mx-4 text-xs font-medium cursor-pointer hover:text-indigo-400 transition-colors"
-                        onClick={() => navigate('/inventory')}
+                        className="flex items-center mx-5 text-xs font-bold cursor-pointer text-[#eee8d5] hover:text-[#268bd2] transition-colors"
+                        onClick={() => handleTickerClick(auction)}
                     >
-                        <span className="text-indigo-500 font-black mr-2">•</span>
-                        <span className="font-bold">{auction.county || 'Upcoming Auction'}</span>
-                        <span className="ml-2 text-slate-400">({auction.type})</span>
-                        <span className="ml-2 bg-slate-800 px-1.5 py-0.5 rounded text-[10px] font-bold text-emerald-400">
-                            {auction.item_count || 'Soon'}
+                        <span className="text-[#268bd2] font-black mr-2">•</span>
+                        <span>{auction.title}</span>
+                        <span className="ml-2 text-[#93a1a1] font-semibold text-[10px]">({auction.type})</span>
+                        <span className="ml-2 bg-[#073642] border border-[#1a4554] px-1.5 py-0.5 rounded text-[9.5px] font-black text-[#859900]">
+                            {auction.countdown}
                         </span>
                     </div>
                 ))}
@@ -75,14 +86,14 @@ export const TickerTapeWidget: React.FC = () => {
                 {upcomingAuctions.map((auction, idx) => (
                     <div 
                         key={`dup-${auction.id}-${idx}`} 
-                        className="flex items-center mx-4 text-xs font-medium cursor-pointer hover:text-indigo-400 transition-colors"
-                        onClick={() => navigate('/inventory')}
+                        className="flex items-center mx-5 text-xs font-bold cursor-pointer text-[#eee8d5] hover:text-[#268bd2] transition-colors"
+                        onClick={() => handleTickerClick(auction)}
                     >
-                        <span className="text-indigo-500 font-black mr-2">•</span>
-                        <span className="font-bold">{auction.county || 'Upcoming Auction'}</span>
-                        <span className="ml-2 text-slate-400">({auction.type})</span>
-                        <span className="ml-2 bg-slate-800 px-1.5 py-0.5 rounded text-[10px] font-bold text-emerald-400">
-                            {auction.item_count || 'Soon'}
+                        <span className="text-[#268bd2] font-black mr-2">•</span>
+                        <span>{auction.title}</span>
+                        <span className="ml-2 text-[#93a1a1] font-semibold text-[10px]">({auction.type})</span>
+                        <span className="ml-2 bg-[#073642] border border-[#1a4554] px-1.5 py-0.5 rounded text-[9.5px] font-black text-[#859900]">
+                            {auction.countdown}
                         </span>
                     </div>
                 ))}
