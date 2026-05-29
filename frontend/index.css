@@ -91,9 +91,9 @@
   /* base0 — hints, placeholders */
 
   /* ── Borders ─────────────────────────────────────────────────────────────── */
-  --border: #0b485e;
+  --border: #1a4554;
   /* subtle divider between bg layers */
-  --border-focus: #fafafa;
+  --border-focus: #266bd2;
 
   /* ── Semantic Colors (Solarized accent vocabulary) ────────────────────────── */
   --success: #859900;

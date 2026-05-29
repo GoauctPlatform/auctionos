@@ -116,8 +116,8 @@ const fallbackContacts: Record<string, any[]> = {
 interface Widget {
   id: string;
   type: 'shortcuts' | 'property_metrics' | 'map' | 'recommended_deals' | 'live_auctions' | 'property_search' | 'chart' | 'dossier' | 'yield' |
-        'my_lists' | 'field_missions' | 'connect' | 'settings' | 'profile' | 'team' | 'logs' | 'billings' | 'company' | 'notifications' | 'property_details' | 'create_task' | 'support_center' |
-        'node_canvas' | 'rehab_calc' | 'property_comparator' | 'contacts_search' | 'field_coordination' | 'acquisition_pipeline';
+  'my_lists' | 'field_missions' | 'connect' | 'settings' | 'profile' | 'team' | 'logs' | 'billings' | 'company' | 'notifications' | 'property_details' | 'create_task' | 'support_center' |
+  'node_canvas' | 'rehab_calc' | 'property_comparator' | 'contacts_search' | 'field_coordination' | 'acquisition_pipeline';
   title: string;
   x: number; // left offset in pixels
   y: number; // top offset in pixels
@@ -154,19 +154,19 @@ export const ClientWorkbench: React.FC = () => {
     try {
       const saved = localStorage.getItem('goauct_workbench_widgets_v40');
       if (!saved) return DEFAULT_WIDGETS;
-      
+
       const parsed = JSON.parse(saved);
       if (!Array.isArray(parsed) || parsed.length === 0) {
         return DEFAULT_WIDGETS;
       }
-      
+
       // Self-healing: if ALL saved widgets are marked invisible, fallback to default layouts
       const hasVisible = parsed.some((w: any) => w.visible);
       if (!hasVisible) {
         console.warn('ClientWorkbench: All saved widgets were invisible, falling back to default layout visibility.');
         return DEFAULT_WIDGETS;
       }
-      
+
       // Self-healing: if any DEFAULT_WIDGETS are missing from the saved ones, merge them.
       const savedMap = new Map(parsed.map((w: any) => [w.id, w]));
       const merged = DEFAULT_WIDGETS.map(def => {
@@ -186,7 +186,7 @@ export const ClientWorkbench: React.FC = () => {
         }
         return def;
       });
-      
+
       return merged;
     } catch (e) {
       console.error('Failed to parse goauct_workbench_widgets_v40 from localStorage, falling back to default:', e);
@@ -209,7 +209,7 @@ export const ClientWorkbench: React.FC = () => {
         .filter((l: any) => l.has_upcoming_auction)
         .reduce((acc: number, curr: any) => acc + (curr.upcoming_auctions_count || 0), 0);
       setUpcomingAuctionsCount(hasUpcoming);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const [selectedState, setSelectedState] = useState<string>('');
@@ -222,7 +222,7 @@ export const ClientWorkbench: React.FC = () => {
     fetch(`${API_URL}/admin/announcements/`)
       .then(r => r.ok ? r.json() : [])
       .then(data => setAnnouncements(Array.isArray(data) ? data : []))
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   useEffect(() => {
@@ -696,7 +696,7 @@ export const ClientWorkbench: React.FC = () => {
     { from: '5', to: '6' }
   ]);
   const [nodeConnectSourceId, setNodeConnectSourceId] = useState<string | null>(null);
-  
+
   // Dynamic API details states
   const [stateStats, setStateStats] = useState<StateStat[]>([]);
   const [monthlyStats, setMonthlyStats] = useState<MonthlyAuctionStat[]>([]);
@@ -873,7 +873,7 @@ export const ClientWorkbench: React.FC = () => {
     const handleOpenWidget = (e: Event) => {
       const customEvent = e as CustomEvent<{ widgetId: string }>;
       const { widgetId } = customEvent.detail;
-      
+
       let targetWidgetId = widgetId;
       // Map shortcut names to correct widget IDs
       if (widgetId === 'live_auctions') targetWidgetId = 'live_auctions';
@@ -887,30 +887,30 @@ export const ClientWorkbench: React.FC = () => {
       setWidgets(prev => {
         const found = prev.find(w => w.id === targetWidgetId);
         if (!found) return prev;
-        
+
         const nextZ = highestZIndex + 1;
         setHighestZIndex(nextZ);
-        
-        return prev.map(w => 
-          w.id === targetWidgetId 
-            ? { ...w, visible: true, zIndex: nextZ } 
+
+        return prev.map(w =>
+          w.id === targetWidgetId
+            ? { ...w, visible: true, zIndex: nextZ }
             : w
         );
       });
-      
+
       const target = widgets.find(w => w.id === targetWidgetId);
       if (target) {
         const targetX = -target.x + (window.innerWidth - target.w) / 2;
         const targetY = -target.y + (window.innerHeight - target.h) / 2;
-        
+
         setPanX(targetX);
         setPanY(targetY);
         setZoomScale(1.0);
-        
+
         logConsoleActivity(`Focused and centered on widget: "${target.title}"`);
       }
     };
-    
+
     window.addEventListener('open-workbench-widget', handleOpenWidget as EventListener);
     return () => {
       window.removeEventListener('open-workbench-widget', handleOpenWidget as EventListener);
@@ -925,7 +925,7 @@ export const ClientWorkbench: React.FC = () => {
     x: number;
     y: number;
   }
-  
+
   const [dealFlowNodes, setDealFlowNodes] = useState<NodeFlow[]>([
     { id: '1', label: 'Lead Intake', status: 'completed', x: 40, y: 150 },
     { id: '2', label: 'Underwrite', status: 'completed', x: 170, y: 80 },
@@ -980,7 +980,7 @@ export const ClientWorkbench: React.FC = () => {
     const rect = e.currentTarget.getBoundingClientRect();
     const x = Math.round(e.clientX - rect.left);
     const y = Math.round(e.clientY - rect.top);
-    
+
     const boundX = Math.max(20, Math.min(380, x));
     const boundY = Math.max(20, Math.min(380, y));
 
@@ -1042,7 +1042,7 @@ export const ClientWorkbench: React.FC = () => {
 
   // Fetch static preferences & contacts on startup
   useEffect(() => {
-    StatesService.getContacts().then(setStateList).catch(() => {});
+    StatesService.getContacts().then(setStateList).catch(() => { });
   }, []);
 
   // Fetch counties when state choice changes in widget 5
@@ -1168,8 +1168,8 @@ export const ClientWorkbench: React.FC = () => {
   // Load active user's companies & roster
   useEffect(() => {
     if (currentUser?.id) {
-      UserService.getUsers().then(setTeamMembers).catch(() => {});
-      UserService.getUserCompanies(currentUser.id).then(setUserCompanies).catch(() => {});
+      UserService.getUsers().then(setTeamMembers).catch(() => { });
+      UserService.getUserCompanies(currentUser.id).then(setUserCompanies).catch(() => { });
     }
   }, [currentUser]);
 
@@ -1252,7 +1252,7 @@ export const ClientWorkbench: React.FC = () => {
     setMonthlyLoading(true);
     getMonthlyStats(selectedState || undefined)
       .then(data => setMonthlyStats(data))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setMonthlyLoading(false));
   }, [selectedState]);
 
@@ -1340,7 +1340,7 @@ export const ClientWorkbench: React.FC = () => {
     setTestingConnection(true);
     logConsoleActivity('Running API connection health diagnostics...');
     setApiStatuses(prev => ({ ...prev, fema: 'loading', gis: 'loading', db: 'loading' }));
-    
+
     setTimeout(() => {
       setApiStatuses({
         fema: 'active',
@@ -1733,8 +1733,8 @@ export const ClientWorkbench: React.FC = () => {
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
     if (isCanvasLocked) return;
     if (
-      e.target === canvasRef.current || 
-      (e.target as HTMLElement).classList.contains('canvas-grid') || 
+      e.target === canvasRef.current ||
+      (e.target as HTMLElement).classList.contains('canvas-grid') ||
       (e.target as HTMLElement).id === 'infinite-plane'
     ) {
       e.preventDefault();
@@ -1749,8 +1749,8 @@ export const ClientWorkbench: React.FC = () => {
   const handleCanvasTouchStart = (e: React.TouchEvent) => {
     if (isCanvasLocked) return;
     if (
-      e.target === canvasRef.current || 
-      (e.target as HTMLElement).classList.contains('canvas-grid') || 
+      e.target === canvasRef.current ||
+      (e.target as HTMLElement).classList.contains('canvas-grid') ||
       (e.target as HTMLElement).id === 'infinite-plane'
     ) {
       const touch = e.touches[0];
@@ -1842,7 +1842,7 @@ export const ClientWorkbench: React.FC = () => {
         if (propSearchQuery) params.q = propSearchQuery;
         if (propStateSelect) params.state = propStateSelect;
         if (propCountySelect) params.county = propCountySelect;
-        
+
         const res = await PropertyService.getProperties(params);
         const items = (res as any).items || res;
         if (Array.isArray(items)) {
@@ -1887,7 +1887,7 @@ export const ClientWorkbench: React.FC = () => {
         return w;
       });
     });
-    
+
     if (layoutTemplate === 'ide') {
       if (!wasVisible) {
         setActiveIdeTabId(id);
@@ -2041,7 +2041,7 @@ export const ClientWorkbench: React.FC = () => {
     }
     const w = widgets.find(x => x.id === id);
     if (!w) return <p className="text-xs text-slate-400 italic p-4 bg-white dark:bg-slate-900">Widget not found</p>;
-    
+
     // Route to full page components
     if (w.id === 'live_auctions') return <div className="size-full overflow-auto bg-white dark:bg-slate-900"><ClientAuctions /></div>;
     if (w.id === 'property_search') return <div className="size-full overflow-auto bg-white dark:bg-slate-900"><ClientProperties /></div>;
@@ -2399,7 +2399,7 @@ export const ClientWorkbench: React.FC = () => {
                 ))}
               </div>
             </div>
-            
+
             <div className="flex-1 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-950/20 overflow-hidden relative min-h-[220px]">
               <svg className="absolute inset-0 pointer-events-none w-full h-full">
                 {nodeConnections.map((conn, idx) => {
@@ -2411,14 +2411,14 @@ export const ClientWorkbench: React.FC = () => {
                   const parentEl = fromEl.parentElement;
                   if (!parentEl) return null;
                   const parentRect = parentEl.getBoundingClientRect();
-                  
+
                   const startX = (fromRect.left + fromRect.width / 2) - parentRect.left;
                   const startY = (fromRect.top + fromRect.height / 2) - parentRect.top;
                   const endX = (toRect.left + toRect.width / 2) - parentRect.left;
                   const endY = (toRect.top + toRect.height / 2) - parentRect.top;
-                  
+
                   const midX = (startX + endX) / 2;
-                  
+
                   return (
                     <g key={idx}>
                       <path
@@ -2433,7 +2433,7 @@ export const ClientWorkbench: React.FC = () => {
                   );
                 })}
               </svg>
-              
+
               <div className="absolute inset-0 p-4 grid grid-cols-2 gap-3 overflow-y-auto no-scrollbar">
                 {[
                   { id: '1', name: 'Scraped Leads', status: '124 Records' },
@@ -2507,9 +2507,9 @@ export const ClientWorkbench: React.FC = () => {
       {/* ─── WORKBENCH SYSTEM TOP BAR (Mission Control Header) ─── */}
       <div className="w-full h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex justify-between items-center shrink-0 z-[9999] select-none">
         <div id="tour-welcome-header" className="flex items-center gap-2.5">
-          <img 
-            src="/goauct-logo.png" 
-            alt="GoAuct Logo" 
+          <img
+            src="/goauct-logo.png"
+            alt="GoAuct Logo"
             className="w-6 h-6 rounded-md object-cover shadow-sm border border-slate-200/20 dark:border-slate-800/20 animate-in fade-in duration-500"
           />
           <div className="flex flex-col">
@@ -2535,10 +2535,10 @@ export const ClientWorkbench: React.FC = () => {
           const activeAnnouncements = announcements.length > 0 ? announcements : DEFAULT_ANNOUNCEMENTS;
           const currentAnn = activeAnnouncements[annIndex % activeAnnouncements.length];
           const typeMap: Record<string, { bg: string; icon: string; textClass: string; color: string }> = {
-            info:    { bg: 'bg-blue-500/10 border-blue-500/25',    icon: '📢', textClass: 'text-blue-600 dark:text-blue-400', color: 'bg-blue-500' },
-            warning: { bg: 'bg-amber-500/10 border-amber-500/25',  icon: '⚠️', textClass: 'text-amber-600 dark:text-amber-400', color: 'bg-amber-500' },
+            info: { bg: 'bg-blue-500/10 border-blue-500/25', icon: '📢', textClass: 'text-blue-600 dark:text-blue-400', color: 'bg-blue-500' },
+            warning: { bg: 'bg-amber-500/10 border-amber-500/25', icon: '⚠️', textClass: 'text-amber-600 dark:text-amber-400', color: 'bg-amber-500' },
             success: { bg: 'bg-emerald-500/10 border-emerald-500/25', icon: '✅', textClass: 'text-emerald-600 dark:text-emerald-400', color: 'bg-emerald-500' },
-            update:  { bg: 'bg-purple-500/10 border-purple-500/25', icon: '✨', textClass: 'text-purple-600 dark:text-purple-400', color: 'bg-purple-500' },
+            update: { bg: 'bg-purple-500/10 border-purple-500/25', icon: '✨', textClass: 'text-purple-600 dark:text-purple-400', color: 'bg-purple-500' },
           };
           const cfg = typeMap[currentAnn?.type] || typeMap.info;
 
@@ -2559,7 +2559,7 @@ export const ClientWorkbench: React.FC = () => {
 
         {/* Right Side: Quick Action Buttons & Status Indicators */}
         <div className="flex items-center gap-4">
-          
+
           {/* Company Context Selector inside the Header */}
           <CompanySelector compact />
 
@@ -2576,12 +2576,12 @@ export const ClientWorkbench: React.FC = () => {
             </button>
           </div>
           <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
-          
+
           {/* Notification Bell */}
-          <div 
-              className="relative cursor-pointer flex items-center justify-center p-1.5 text-slate-400 hover:text-slate-650 dark:hover:text-slate-300 transition-colors" 
-              title="Notifications" 
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
+          <div
+            className="relative cursor-pointer flex items-center justify-center p-1.5 text-slate-400 hover:text-slate-650 dark:hover:text-slate-300 transition-colors"
+            title="Notifications"
+            onClick={() => setNotificationsOpen(!notificationsOpen)}
           >
             <span className="material-symbols-outlined text-[20px]">notifications</span>
             {upcomingAuctionsCount > 0 && (
@@ -2593,59 +2593,59 @@ export const ClientWorkbench: React.FC = () => {
 
             {/* Notifications Dropdown */}
             {notificationsOpen && (
-                <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden cursor-default" onClick={e => e.stopPropagation()}>
-                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
-                        <span className="font-bold text-sm text-slate-800 dark:text-white">Alerts</span>
-                        {upcomingAuctionsCount > 0 && (
-                            <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-black px-2 py-0.5 rounded-full">{upcomingAuctionsCount} New</span>
-                        )}
-                    </div>
-                    <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                        {upcomingAuctionsCount > 0 && (
-                            <div 
-                                className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3"
-                                onClick={() => { setNotificationsOpen(false); openOverlayWindow('my_lists', 'Saved Lists & Folders'); }}
-                            >
-                                <div className="mt-0.5 size-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-[16px]">gavel</span>
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">Upcoming Auctions Detected</p>
-                                    <p className="text-[10px] text-slate-500">You have {upcomingAuctionsCount} properties in your My List that are going to auction within the next 7 days.</p>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {/* System Announcements */}
-                        {announcements.map((ann) => (
-                            <div key={ann.id} className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3">
-                                <div className="mt-0.5 size-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
-                                    <span className="material-symbols-outlined text-[16px]">campaign</span>
-                                </div>
-                                <div>
-                                    <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">{ann.title}</p>
-                                    <p className="text-[10px] text-slate-500">{ann.message}</p>
-                                </div>
-                            </div>
-                        ))}
-
-                        {upcomingAuctionsCount === 0 && announcements.length === 0 && (
-                            <div className="p-8 text-center text-slate-400">
-                                <span className="material-symbols-outlined text-3xl mb-2 opacity-50">notifications_paused</span>
-                                <p className="text-xs">No new notifications</p>
-                            </div>
-                        )}
-                    </div>
-                    <div 
-                        className="bg-slate-50 dark:bg-slate-900/30 p-2 text-center text-[10px] font-bold text-blue-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-colors"
-                        onClick={() => { setNotificationsOpen(false); openOverlayWindow('my_lists', 'Saved Lists & Folders'); }}
-                    >
-                        Manage Watchlists
-                    </div>
+              <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden cursor-default" onClick={e => e.stopPropagation()}>
+                <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
+                  <span className="font-bold text-sm text-slate-800 dark:text-white">Alerts</span>
+                  {upcomingAuctionsCount > 0 && (
+                    <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-black px-2 py-0.5 rounded-full">{upcomingAuctionsCount} New</span>
+                  )}
                 </div>
+                <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                  {upcomingAuctionsCount > 0 && (
+                    <div
+                      className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3"
+                      onClick={() => { setNotificationsOpen(false); openOverlayWindow('my_lists', 'Saved Lists & Folders'); }}
+                    >
+                      <div className="mt-0.5 size-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[16px]">gavel</span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">Upcoming Auctions Detected</p>
+                        <p className="text-[10px] text-slate-500">You have {upcomingAuctionsCount} properties in your My List that are going to auction within the next 7 days.</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* System Announcements */}
+                  {announcements.map((ann) => (
+                    <div key={ann.id} className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3">
+                      <div className="mt-0.5 size-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
+                        <span className="material-symbols-outlined text-[16px]">campaign</span>
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">{ann.title}</p>
+                        <p className="text-[10px] text-slate-500">{ann.message}</p>
+                      </div>
+                    </div>
+                  ))}
+
+                  {upcomingAuctionsCount === 0 && announcements.length === 0 && (
+                    <div className="p-8 text-center text-slate-400">
+                      <span className="material-symbols-outlined text-3xl mb-2 opacity-50">notifications_paused</span>
+                      <p className="text-xs">No new notifications</p>
+                    </div>
+                  )}
+                </div>
+                <div
+                  className="bg-slate-50 dark:bg-slate-900/30 p-2 text-center text-[10px] font-bold text-blue-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-colors"
+                  onClick={() => { setNotificationsOpen(false); openOverlayWindow('my_lists', 'Saved Lists & Folders'); }}
+                >
+                  Manage Watchlists
+                </div>
+              </div>
             )}
           </div>
-          
+
           <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
           <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-slate-400 dark:text-slate-550 uppercase">
             <span>Status:</span>
@@ -2685,11 +2685,10 @@ export const ClientWorkbench: React.FC = () => {
                       setSidebarOpen(true);
                     }
                   }}
-                  className={`relative p-2.5 rounded-xl transition-all ${
-                    active
+                  className={`relative p-2.5 rounded-xl transition-all ${active
                       ? 'bg-blue-50 dark:bg-blue-955/20 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/10 shadow-sm'
                       : 'text-slate-400 dark:text-slate-650 hover:text-slate-700 dark:hover:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900/40'
-                  }`}
+                    }`}
                 >
                   {active && (
                     <div className="absolute left-0 top-1/4 bottom-1/4 w-0.75 bg-blue-500 rounded-r" />
@@ -2713,23 +2712,23 @@ export const ClientWorkbench: React.FC = () => {
               { id: 'settings', icon: Settings, label: 'Workbench Settings' }
             ].map(shortcut => {
               const Icon = shortcut.icon;
-              const isVisible = shortcut.id === 'notifications' 
-                ? activePane === 'notifications' && sidebarOpen 
+              const isVisible = shortcut.id === 'notifications'
+                ? activePane === 'notifications' && sidebarOpen
                 : shortcut.id === 'connect'
-                ? activePane === 'connect' && sidebarOpen
-                : overlayWindows.some(w => w.id === shortcut.id && !w.isMinimized);
+                  ? activePane === 'connect' && sidebarOpen
+                  : overlayWindows.some(w => w.id === shortcut.id && !w.isMinimized);
 
               return (
                 <button
                   key={shortcut.id}
                   id={
                     shortcut.id === 'settings' ? 'tour-nav-account-settings' :
-                    shortcut.id === 'field_missions' ? 'tour-nav-field-missions' :
-                    shortcut.id === 'live_auctions' ? 'tour-nav-live-auctions' :
-                    shortcut.id === 'property_search' ? 'tour-nav-property-search' :
-                    shortcut.id === 'my_lists' ? 'tour-nav-my-lists' :
-                    shortcut.id === 'billings_and_plans' ? 'tour-upgrade-button' :
-                    undefined
+                      shortcut.id === 'field_missions' ? 'tour-nav-field-missions' :
+                        shortcut.id === 'live_auctions' ? 'tour-nav-live-auctions' :
+                          shortcut.id === 'property_search' ? 'tour-nav-property-search' :
+                            shortcut.id === 'my_lists' ? 'tour-nav-my-lists' :
+                              shortcut.id === 'billings_and_plans' ? 'tour-upgrade-button' :
+                                undefined
                   }
                   title={shortcut.label}
                   onClick={() => {
@@ -2751,11 +2750,10 @@ export const ClientWorkbench: React.FC = () => {
                       openOverlayWindow(shortcut.id as any, shortcut.label);
                     }
                   }}
-                  className={`relative p-2.5 rounded-xl transition-all ${
-                    isVisible
+                  className={`relative p-2.5 rounded-xl transition-all ${isVisible
                       ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50/50 dark:bg-indigo-955/10 border border-indigo-500/10 shadow-sm'
                       : 'text-slate-400 dark:text-slate-655 hover:text-slate-700 dark:hover:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900/40'
-                  }`}
+                    }`}
                 >
                   {isVisible && shortcut.id !== 'notifications' && shortcut.id !== 'connect' && (
                     <div className="absolute right-1 bottom-1 size-1.5 rounded-full bg-emerald-500 shadow-sm border border-white dark:border-slate-950" />
@@ -2812,9 +2810,8 @@ export const ClientWorkbench: React.FC = () => {
 
         {/* ─── SIDEBAR 2: Collapsible Secondary Drawer (240px) — hidden on mobile ─── */}
         <div
-          className={`hidden md:flex bg-white/95 dark:bg-slate-900/90 border-r border-slate-200/80 dark:border-slate-800/60 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 z-35 overflow-y-auto ${
-            sidebarOpen ? 'w-60' : 'w-0 pointer-events-none border-r-0'
-          }`}
+          className={`hidden md:flex bg-white/95 dark:bg-slate-900/90 border-r border-slate-200/80 dark:border-slate-800/60 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 z-35 overflow-y-auto ${sidebarOpen ? 'w-60' : 'w-0 pointer-events-none border-r-0'
+            }`}
         >
           {sidebarOpen && (
             <div className="p-4 flex flex-col space-y-5 select-none w-60">
@@ -2834,11 +2831,10 @@ export const ClientWorkbench: React.FC = () => {
                       <button
                         key={w.id}
                         onClick={() => toggleVisibility(w.id)}
-                        className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${
-                          w.visible
+                        className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${w.visible
                             ? 'bg-blue-50/50 dark:bg-blue-950/10 border-blue-500/20 text-blue-700 dark:text-blue-400 font-bold'
                             : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-2 text-xs">
                           {w.type === 'map' && <Map size={13} />}
@@ -2926,11 +2922,10 @@ export const ClientWorkbench: React.FC = () => {
                             <button
                               key={w.id}
                               onClick={() => toggleWidgetInPreset(w.id)}
-                              className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${
-                                w.visible
+                              className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${w.visible
                                   ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold'
                                   : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
-                              }`}
+                                }`}
                             >
                               <span className="text-xs truncate">{w.title}</span>
                               {w.visible ? (
@@ -3208,13 +3203,12 @@ export const ClientWorkbench: React.FC = () => {
                     key={w.id}
                     role="tab"
                     onClick={() => setActiveIdeTabId(w.id)}
-                    className={`group flex items-center gap-1.5 px-3 h-full text-[9px] font-semibold border-r border-slate-200 dark:border-slate-800 whitespace-nowrap transition-all shrink-0 relative cursor-pointer ${
-                      isActive
+                    className={`group flex items-center gap-1.5 px-3 h-full text-[9px] font-semibold border-r border-slate-200 dark:border-slate-800 whitespace-nowrap transition-all shrink-0 relative cursor-pointer ${isActive
                         ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-b-2 border-b-indigo-500 font-bold'
                         : isSplit
-                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-b-2 border-b-emerald-500 font-bold'
-                        : 'bg-slate-50/60 dark:bg-slate-950/60 text-slate-500 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-900 hover:text-slate-700 dark:hover:text-slate-300'
-                    }`}
+                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-b-2 border-b-emerald-500 font-bold'
+                          : 'bg-slate-50/60 dark:bg-slate-950/60 text-slate-500 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-900 hover:text-slate-700 dark:hover:text-slate-300'
+                      }`}
                   >
                     <span className={isActive ? 'text-indigo-500' : isSplit ? 'text-emerald-500' : 'text-slate-400'}>
                       {tabIcons[w.id] || <Layers size={10} />}
@@ -3906,56 +3900,56 @@ export const ClientWorkbench: React.FC = () => {
 
         {/* ─── INTERACTIVE WORKSPACE CANVAS (VIEWPORT) ─── */}
         {layoutTemplate === 'canvas' && (
-        <div
-          ref={canvasRef}
-          onMouseDown={handleCanvasMouseDown}
-          onTouchStart={handleCanvasTouchStart}
-          className="flex-1 h-full overflow-hidden relative bg-slate-150 dark:bg-slate-950 cursor-grab active:cursor-grabbing border-r border-slate-200 dark:border-slate-800"
-        >
-          {/* Zoomable & Pannable sliding plane container */}
           <div
-            id="infinite-plane"
-            style={{
-              transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`,
-              transformOrigin: '0 0',
-              width: '4000px',
-              height: '4000px',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              transition: isPanningCanvas ? 'none' : 'transform 0.05s linear',
-            }}
+            ref={canvasRef}
+            onMouseDown={handleCanvasMouseDown}
+            onTouchStart={handleCanvasTouchStart}
+            className="flex-1 h-full overflow-hidden relative bg-slate-150 dark:bg-[var(--bg-primary)] cursor-grab active:cursor-grabbing border-r border-slate-200 dark:border-slate-800"
           >
-            {/* Grid dotted backdrop */}
+            {/* Zoomable & Pannable sliding plane container */}
             <div
-              className="absolute inset-0 canvas-grid pointer-events-none"
+              id="infinite-plane"
               style={{
-                backgroundImage: 'radial-gradient(var(--border) 1.5px, transparent 1.5px)',
-                backgroundSize: '24px 24px',
-                opacity: 0.16,
+                transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`,
+                transformOrigin: '0 0',
+                width: '4000px',
+                height: '4000px',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                transition: isPanningCanvas ? 'none' : 'transform 0.05s linear',
               }}
-            />
+            >
+              {/* Grid dotted backdrop */}
+              <div
+                className="absolute inset-0 canvas-grid pointer-events-none"
+                style={{
+                  backgroundImage: 'radial-gradient(var(--border) 1.5px, transparent 1.5px)',
+                  backgroundSize: '24px 24px',
+                  opacity: 0.16,
+                }}
+              />
 
-            {/* Dynamic SVG Connection Arrows Layer */}
-            <svg className="absolute inset-0 pointer-events-none w-full h-full z-0">
-              <defs>
-                <marker
-                  id="arrow-head"
-                  viewBox="0 0 10 10"
-                  refX="8"
-                  refY="5"
-                  markerWidth="5"
-                  markerHeight="5"
-                  orient="auto-start-reverse"
-                >
-                  <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366f1" />
-                </marker>
-                <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#6366f1" stopOpacity="0.85" />
-                  <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.85" />
-                </linearGradient>
-              </defs>
-              <style>{`
+              {/* Dynamic SVG Connection Arrows Layer */}
+              <svg className="absolute inset-0 pointer-events-none w-full h-full z-0">
+                <defs>
+                  <marker
+                    id="arrow-head"
+                    viewBox="0 0 10 10"
+                    refX="8"
+                    refY="5"
+                    markerWidth="5"
+                    markerHeight="5"
+                    orient="auto-start-reverse"
+                  >
+                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366f1" />
+                  </marker>
+                  <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#6366f1" stopOpacity="0.85" />
+                    <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.85" />
+                  </linearGradient>
+                </defs>
+                <style>{`
                 @keyframes edge-flow {
                   to {
                     stroke-dashoffset: -40;
@@ -3982,2139 +3976,2125 @@ export const ClientWorkbench: React.FC = () => {
                   background: #94a3b8;
                 }
               `}</style>
-              {/* Render connections */}
-              {(() => {
-                const connections: { from: string; to: string }[] = [
-                  // Set 1: Deals Suite
-                  { from: 'recommended_deals', to: 'dossier' },
-                  { from: 'dossier', to: 'rehab_calc' },
-                  // Set 2: GIS Suite
-                  { from: 'map', to: 'chart' },
-                  { from: 'chart', to: 'yield' }
-                ];
+                {/* Render connections */}
+                {(() => {
+                  const connections: { from: string; to: string }[] = [
+                    // Set 1: Deals Suite
+                    { from: 'recommended_deals', to: 'dossier' },
+                    { from: 'dossier', to: 'rehab_calc' },
+                    // Set 2: GIS Suite
+                    { from: 'map', to: 'chart' },
+                    { from: 'chart', to: 'yield' }
+                  ];
 
-                return connections.map((conn, idx) => {
-                  const w1 = widgets.find(w => w.id === conn.from);
-                  const w2 = widgets.find(w => w.id === conn.to);
+                  return connections.map((conn, idx) => {
+                    const w1 = widgets.find(w => w.id === conn.from);
+                    const w2 = widgets.find(w => w.id === conn.to);
 
-                  if (!w1 || !w2 || !w1.visible || !w2.visible) return null;
+                    if (!w1 || !w2 || !w1.visible || !w2.visible) return null;
 
-                  const x1 = w1.x + w1.w / 2;
-                  const y1 = w1.y + w1.h / 2;
-                  const x2 = w2.x + w2.w / 2;
-                  const y2 = w2.y + w2.h / 2;
+                    const x1 = w1.x + w1.w / 2;
+                    const y1 = w1.y + w1.h / 2;
+                    const x2 = w2.x + w2.w / 2;
+                    const y2 = w2.y + w2.h / 2;
 
-                  const midX = (x1 + x2) / 2;
-                  const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
+                    const midX = (x1 + x2) / 2;
+                    const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
 
-                  return (
-                    <path
-                      key={idx}
-                      d={path}
-                      stroke="url(#edge-gradient)"
-                      strokeWidth="2.5"
-                      fill="none"
-                      strokeDasharray="6 4"
-                      markerEnd="url(#arrow-head)"
-                      className="edge-animation"
-                    />
-                  );
-                });
-              })()}
-            </svg>
+                    return (
+                      <path
+                        key={idx}
+                        d={path}
+                        stroke="url(#edge-gradient)"
+                        strokeWidth="2.5"
+                        fill="none"
+                        strokeDasharray="6 4"
+                        markerEnd="url(#arrow-head)"
+                        className="edge-animation"
+                      />
+                    );
+                  });
+                })()}
+              </svg>
 
-            {/* Absolute-positioned widgets list */}
-            {widgets.filter(w => w.visible).map(w => (
-              <div
-                key={w.id}
-                id={
-                  w.id === 'map' ? 'tour-yield-heatmap' :
-                  w.id === 'recommended_deals' ? 'tour-suggested-deals' :
-                  undefined
-                }
-                onClick={() => focusWidget(w.id)}
-                style={{
-                  position: 'absolute',
-                  left: w.x,
-                  top: w.y,
-                  width: w.w,
-                  height: w.h,
-                  zIndex: w.zIndex,
-                }}
-                className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-slate-800 bg-white/75 dark:bg-slate-900/70 backdrop-blur-md group/window rounded-xl"
-              >
-                {/* Window Title Bar (Drag Handle) */}
+              {/* Absolute-positioned widgets list */}
+              {widgets.filter(w => w.visible).map(w => (
                 <div
-                  onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
-                  onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
-                  className="h-10 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 px-4 flex items-center justify-between shrink-0 cursor-move"
+                  key={w.id}
+                  id={
+                    w.id === 'map' ? 'tour-yield-heatmap' :
+                      w.id === 'recommended_deals' ? 'tour-suggested-deals' :
+                        undefined
+                  }
+                  onClick={() => focusWidget(w.id)}
+                  style={{
+                    position: 'absolute',
+                    left: w.x,
+                    top: w.y,
+                    width: w.w,
+                    height: w.h,
+                    zIndex: w.zIndex,
+                  }}
+                  className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-slate-800 bg-white/75 dark:bg-slate-900/70 backdrop-blur-md group/window rounded-xl"
                 >
-                  <div className="flex items-center gap-2 select-none">
-                    {/* Mobile touch grab handle badge */}
-                    <div
-                      onTouchStart={(e) => {
-                        e.stopPropagation();
-                        handleTouchStart(e, w.id, 'drag');
-                      }}
-                      className="flex items-center gap-1 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-400/20 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider cursor-grab select-none active:cursor-grabbing shadow-sm"
-                    >
-                      <Move size={8} className="animate-pulse" />
-                      <span>Grip</span>
+                  {/* Window Title Bar (Drag Handle) */}
+                  <div
+                    onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
+                    onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
+                    className="h-10 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 px-4 flex items-center justify-between shrink-0 cursor-move"
+                  >
+                    <div className="flex items-center gap-2 select-none">
+                      {/* Mobile touch grab handle badge */}
+                      <div
+                        onTouchStart={(e) => {
+                          e.stopPropagation();
+                          handleTouchStart(e, w.id, 'drag');
+                        }}
+                        className="flex items-center gap-1 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-400/20 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider cursor-grab select-none active:cursor-grabbing shadow-sm"
+                      >
+                        <Move size={8} className="animate-pulse" />
+                        <span>Grip</span>
+                      </div>
+
+                      {/* grabber icons */}
+                      <div className="grid grid-cols-2 gap-0.5 opacity-30">
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className="size-[2px] rounded-full bg-slate-900 dark:bg-white" />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-950 dark:text-white">
+                        {w.title}
+                      </span>
                     </div>
 
-                    {/* grabber icons */}
-                    <div className="grid grid-cols-2 gap-0.5 opacity-30">
-                      {[...Array(6)].map((_, i) => (
-                        <div key={i} className="size-[2px] rounded-full bg-slate-900 dark:bg-white" />
-                      ))}
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => toggleVisibility(w.id)}
+                        className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                        title="Minimize"
+                      >
+                        <Minimize2 size={10} />
+                      </button>
+                      <button
+                        onClick={() => toggleVisibility(w.id)}
+                        className="p-1 rounded hover:bg-red-500/10 hover:text-red-500 text-slate-400"
+                        title="Close"
+                      >
+                        <X size={10} />
+                      </button>
                     </div>
-                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-950 dark:text-white">
-                      {w.title}
-                    </span>
                   </div>
 
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => toggleVisibility(w.id)}
-                      className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
-                      title="Minimize"
-                    >
-                      <Minimize2 size={10} />
-                    </button>
-                    <button
-                      onClick={() => toggleVisibility(w.id)}
-                      className="p-1 rounded hover:bg-red-500/10 hover:text-red-500 text-slate-400"
-                      title="Close"
-                    >
-                      <X size={10} />
-                    </button>
-                  </div>
-                </div>
+                  {/* Window Inner Content Scroll Area */}
+                  <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col">
 
-                {/* Window Inner Content Scroll Area */}
-                <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col">
-
-                  {/* Widget 1: Smartphone shortcuts */}
-                  {w.type === 'shortcuts' && (
-                    <div className="size-full flex flex-col items-center justify-center">
-                      <div className="w-64 border-[6px] border-slate-800 dark:border-slate-700 bg-slate-950 dark:bg-slate-900 rounded-[36px] shadow-2xl p-4 flex flex-col space-y-4 relative select-none">
-                        {/* Notch */}
-                        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-800 dark:bg-slate-700 rounded-full flex items-center justify-center">
-                          <div className="size-1.5 rounded-full bg-slate-900" />
-                        </div>
-
-                        {/* Top signals */}
-                        <div className="flex justify-between items-center text-[7px] font-black text-slate-400 tracking-wider pt-2 select-none">
-                          <span>GoAuct OS</span>
-                          <div className="flex items-center gap-1">
-                            <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span>Active Dev</span>
+                    {/* Widget 1: Smartphone shortcuts */}
+                    {w.type === 'shortcuts' && (
+                      <div className="size-full flex flex-col items-center justify-center">
+                        <div className="w-64 border-[6px] border-slate-800 dark:border-slate-700 bg-slate-950 dark:bg-slate-900 rounded-[36px] shadow-2xl p-4 flex flex-col space-y-4 relative select-none">
+                          {/* Notch */}
+                          <div className="absolute top-2 left-1/2 -translate-x-1/2 w-20 h-4 bg-slate-800 dark:bg-slate-700 rounded-full flex items-center justify-center">
+                            <div className="size-1.5 rounded-full bg-slate-900" />
                           </div>
+
+                          {/* Top signals */}
+                          <div className="flex justify-between items-center text-[7px] font-black text-slate-400 tracking-wider pt-2 select-none">
+                            <span>GoAuct OS</span>
+                            <div className="flex items-center gap-1">
+                              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                              <span>Active Dev</span>
+                            </div>
+                          </div>
+
+                          {/* Shortcuts Grid */}
+                          <div className="grid grid-cols-3 gap-3.5 pt-2">
+                            {[
+                              { label: 'Calendar', icon: Calendar, path: '/client/auctions', color: 'from-amber-400 to-orange-500' },
+                              { label: 'Search Map', icon: Map, path: '/client/properties', color: 'from-blue-400 to-cyan-500' },
+                              { label: 'My Lists', icon: Folder, path: '/client/lists', color: 'from-purple-400 to-pink-500' },
+                              { label: 'Missions', icon: Gavel, path: '/client/tasks', color: 'from-emerald-400 to-teal-500' },
+                              { label: 'Settings', icon: Settings, path: '/client/settings', color: 'from-slate-400 to-slate-650' },
+                              { label: 'Billing', icon: Compass, path: '/client/billing', color: 'from-indigo-400 to-indigo-600' }
+                            ].map((app, idx) => {
+                              const Icon = app.icon;
+                              return (
+                                <div
+                                  key={idx}
+                                  onClick={() => {
+                                    const idMap: Record<string, string> = {
+                                      '/client/auctions': 'live_auctions',
+                                      '/client/properties': 'property_search',
+                                      '/client/lists': 'my_lists',
+                                      '/client/tasks': 'field_missions'
+                                    };
+                                    const id = idMap[app.path];
+                                    if (id) {
+                                      openOverlayWindow(id as any, app.label);
+                                    } else {
+                                      navigate(app.path);
+                                    }
+                                  }}
+                                  className="flex flex-col items-center gap-1 cursor-pointer transition-all hover:scale-105 active:scale-95 group"
+                                >
+                                  <div className={`size-11 rounded-2xl bg-gradient-to-br ${app.color} flex items-center justify-center shadow-lg group-hover:shadow-blue-500/20`}>
+                                    <Icon size={18} className="text-white" />
+                                  </div>
+                                  <span className="text-[7.5px] font-black text-slate-355 truncate w-full text-center tracking-wide uppercase select-none">{app.label}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+
+                          {/* Info details inside phone */}
+                          <div className="bg-slate-900 dark:bg-slate-800 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-2 select-none">
+                            <Award className="text-cyan-400 shrink-0" size={14} />
+                            <div className="text-[7px] leading-tight">
+                              <p className="font-extrabold text-white">SYSTEM ONLINE</p>
+                              <p className="text-slate-400 mt-0.5">Real-time stats synced</p>
+                            </div>
+                          </div>
+
+                          <div className="w-20 h-1 bg-slate-800 dark:bg-slate-700 rounded-full mx-auto mt-2" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Widget 2: Property Metrics */}
+                    {w.type === 'property_metrics' && (
+                      <PropertyMetricsWidget />
+                    )}
+
+                    {/* GIS Heatmap widget */}
+                    {w.type === 'map' && (
+                      <div className="size-full min-h-[160px] relative flex items-center justify-center bg-slate-50/20 dark:bg-slate-800/10 rounded-xl overflow-hidden">
+                        {loading ? (
+                          <RefreshCw className="animate-spin text-blue-500" size={24} />
+                        ) : (
+                          <InvestmentHeatmap
+                            stats={stateStats}
+                            selectedState={selectedState}
+                          />
+                        )}
+                      </div>
+                    )}
+
+                    {/* Widget 3: Top Recommended Deals & Auctions */}
+                    {w.type === 'recommended_deals' && (
+                      <TopRecommendedWidget />
+                    )}
+
+                    {/* Widget 4: Live Auctions Finder */}
+                    {w.type === 'live_auctions' && (
+                      <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900 rounded-lg no-scrollbar scrollbar-none">
+                        <ClientAuctions />
+                      </div>
+                    )}
+
+                    {/* Widget 5: Property Search */}
+                    {w.type === 'property_search' && (
+                      <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900/80 rounded-lg no-scrollbar scrollbar-none">
+                        <ClientProperties />
+                      </div>
+                    )}
+
+                    {/* Monthly Volume Trends line chart */}
+                    {w.type === 'chart' && (
+                      <div className="size-full min-h-[180px]">
+                        {monthlyLoading ? (
+                          <div className="size-full flex items-center justify-center">
+                            <RefreshCw className="animate-spin text-purple-500" size={20} />
+                          </div>
+                        ) : (
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={monthlyStats} margin={{ top: 5, right: 5, left: -30, bottom: 0 }}>
+                              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.12} />
+                              <XAxis
+                                dataKey="month_label"
+                                tick={{ fill: 'var(--text-muted)', fontSize: 8, fontWeight: 700 }}
+                                axisLine={{ stroke: 'var(--border)', strokeOpacity: 0.15 }}
+                                tickLine={false}
+                              />
+                              <YAxis
+                                tick={{ fill: 'var(--text-muted)', fontSize: 7 }}
+                                axisLine={false}
+                                tickLine={false}
+                                width={25}
+                                allowDecimals={false}
+                              />
+                              <RechartsTooltip
+                                content={({ active, payload, label }) => {
+                                  if (!active || !payload?.length) return null;
+                                  return (
+                                    <div className="glass-card p-2 shadow-md border border-slate-200 dark:border-slate-800 text-[9px]">
+                                      <p className="font-black text-slate-900 dark:text-white mb-1.5">{label}</p>
+                                      {payload.map((entry: any) => (
+                                        <div key={entry.name} className="flex items-center justify-between gap-3 mb-0.5">
+                                          <div className="flex items-center gap-1">
+                                            <div className="w-1.5 h-1.5 rounded-full" style={{ background: entry.color }} />
+                                            <span className="text-slate-500 dark:text-slate-400">{entry.name}</span>
+                                          </div>
+                                          <span className="font-bold text-slate-900 dark:text-white">{entry.value}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  );
+                                }}
+                              />
+                              <Line type="monotone" dataKey="deed" name="Tax Deeds" stroke={CHART_COLORS.deed} strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="lien" name="Tax Liens" stroke={CHART_COLORS.lien} strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="foreclosure" name="Foreclosures" stroke={CHART_COLORS.foreclosure} strokeWidth={2} dot={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Property Featured Dossier card */}
+                    {w.type === 'dossier' && (
+                      <div className="size-full flex flex-col justify-between">
+                        {selectedProperty ? (
+                          <div className="flex flex-col space-y-3.5 h-full justify-between">
+                            <div className="w-full h-32 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center p-3 relative overflow-hidden select-none shrink-0">
+                              <span className="material-symbols-outlined text-[36px] text-slate-350 dark:text-slate-700">home</span>
+                              <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-black/45 backdrop-blur-md px-2.5 py-1 rounded-lg flex items-center justify-between border border-white/10">
+                                <span className="text-[8px] font-black text-white uppercase tracking-wider">{selectedProperty.parcel_id || 'Parcel ID'}</span>
+                                <span className="text-[8px] font-extrabold text-emerald-400 bg-emerald-500/20 px-1 py-0.25 rounded">{selectedProperty.state || 'FL'}</span>
+                              </div>
+                            </div>
+
+                            <div className="space-y-1">
+                              <p className="text-xs font-black text-slate-950 dark:text-white leading-tight">
+                                {selectedProperty.address || 'Certified FEMA Zone'}
+                              </p>
+                              <p className="text-[9.5px] text-slate-455 font-semibold">
+                                {selectedProperty.county || 'Miami-Dade County'}, {selectedProperty.state || 'FL'}
+                              </p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 bg-slate-50/70 dark:bg-slate-800/10 p-2.5 rounded-xl border border-slate-200/55 dark:border-slate-800/50">
+                              <div>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 block">Assessed Est.</span>
+                                <span className="text-xs font-black text-slate-900 dark:text-white">
+                                  ${(selectedProperty.assessed_value ?? 240000).toLocaleString()}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 block">Opening Bid</span>
+                                <span className="text-xs font-black text-blue-500 dark:text-blue-400">
+                                  ${(selectedProperty.opening_bid ?? 12500).toLocaleString()}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-between text-[9px] bg-slate-50/30 dark:bg-slate-800/10 px-2 py-1.5 rounded-lg border border-slate-200/30 dark:border-slate-800">
+                              <span className="text-slate-550 flex items-center gap-1 font-semibold">
+                                <ShieldCheck size={12} className="text-emerald-500 animate-pulse" /> FEMA Hazard:
+                              </span>
+                              <span className="font-extrabold text-emerald-600 dark:text-emerald-400">Zone X (Low-Risk)</span>
+                            </div>
+
+                            <div className="flex flex-col gap-2 shrink-0">
+                              <button
+                                onClick={() => openOverlayWindow('property_details', `🔍 Property: ${selectedProperty.parcel_id || selectedProperty.id}`, { propertyId: selectedProperty.id, parcelId: selectedProperty.parcel_id })}
+                                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-[0.97]"
+                              >
+                                View Dossier details
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="h-full flex flex-col items-center justify-center text-slate-455 dark:text-slate-650 select-none">
+                            <Folder className="opacity-30 mb-2" size={32} />
+                            <p className="text-xs font-bold">Select property to inspect</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Circular Yield breakdown pie chart */}
+                    {w.type === 'yield' && (
+                      <div className="size-full flex flex-col justify-between">
+                        <div className="h-32 w-full flex items-center justify-center relative">
+                          {pieData.length === 0 ? (
+                            <p className="text-xs text-slate-400">No chart data available</p>
+                          ) : (
+                            <ResponsiveContainer width="100%" height="100%">
+                              <PieChart>
+                                <Pie
+                                  data={pieData}
+                                  cx="50%"
+                                  cy="50%"
+                                  innerRadius={28}
+                                  outerRadius={44}
+                                  paddingAngle={4}
+                                  dataKey="value"
+                                >
+                                  {pieData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                  ))}
+                                </Pie>
+                              </PieChart>
+                            </ResponsiveContainer>
+                          )}
+                          {pieData.length > 0 && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                              <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">Total</span>
+                              <span className="text-xs font-black text-slate-900 dark:text-white leading-tight">
+                                {totals.total.toLocaleString()}
+                              </span>
+                            </div>
+                          )}
                         </div>
 
-                        {/* Shortcuts Grid */}
-                        <div className="grid grid-cols-3 gap-3.5 pt-2">
+                        <div className="flex flex-col space-y-1.5 pt-1.5 border-t border-slate-200/25 dark:border-slate-800/40 shrink-0">
+                          {pieData.map((item, idx) => (
+                            <div key={idx} className="flex items-center justify-between text-[8px] font-black uppercase tracking-wider">
+                              <div className="flex items-center gap-1.5">
+                                <div className="w-1.5 h-1.5 rounded-full" style={{ background: item.color }} />
+                                <span className="text-slate-455">{item.name}</span>
+                              </div>
+                              <span className="text-slate-900 dark:text-white">
+                                {item.value.toLocaleString()} ({totals.total > 0 ? Math.round((item.value / totals.total) * 100) : 0}%)
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* My Lists (Saved Lists & Folders) */}
+                    {w.type === 'my_lists' && (
+                      <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900 rounded-lg no-scrollbar scrollbar-none">
+                        <ClientLists />
+                      </div>
+                    )}
+
+                    {/* Field Missions (Investor Tasks) */}
+                    {w.type === 'field_missions' && (
+                      <div className="size-full flex flex-col justify-between">
+                        {/* Available vs Claimed switch tabs */}
+                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 gap-1.5 select-none">
+                          <span className="text-[10px] font-black text-slate-800 dark:text-white mr-auto flex items-center gap-1">
+                            <Compass size={11} className="text-indigo-500" /> Active Operations
+                          </span>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
+                          {tasksLoading ? (
+                            <div className="flex justify-center py-10"><RefreshCw className="animate-spin text-indigo-500" size={18} /></div>
+                          ) : (
+                            <>
+                              {/* My Requested Inspections Section */}
+                              <div>
+                                <h4 className="text-[8px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                  <CheckSquare size={10} /> My Requested Inspections ({myRequestedTasks.length})
+                                </h4>
+                                {myRequestedTasks.length === 0 ? (
+                                  <p className="text-[9px] text-slate-400 p-3 rounded-lg bg-slate-50/50 dark:bg-slate-900/30 border border-dashed border-slate-200 dark:border-slate-800 text-center">No requested inspection missions.</p>
+                                ) : (
+                                  <div className="space-y-3 mb-4">
+                                    {myRequestedTasks.map(t => {
+                                      const isSubmitted = t.status === 'submitted';
+                                      return (
+                                        <div key={t.id} className="p-3 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
+                                          <div className="flex items-start justify-between min-w-0">
+                                            <div className="min-w-0 flex-1">
+                                              <div className="flex items-center gap-1.5 flex-wrap">
+                                                <span className={`text-[7px] font-black px-1.5 py-0.25 rounded uppercase ${t.status === 'submitted' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
+                                                    t.status === 'approved' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                                      t.status === 'claimed' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
+                                                        'bg-slate-500/10 text-slate-500'
+                                                  }`}>
+                                                  {t.status}
+                                                </span>
+                                                <span className="text-[7.5px] font-bold text-slate-400">+{t.reward_points} pts</span>
+                                                {t.realtor_name && (
+                                                  <span className="text-[7.5px] text-slate-500">Assigned: {t.realtor_name}</span>
+                                                )}
+                                              </div>
+                                              <p className="text-[10px] font-bold text-slate-900 dark:text-white mt-1">{t.title}</p>
+                                              {t.address && <p className="text-[8px] text-slate-500 mt-0.5">{t.address}</p>}
+                                            </div>
+                                          </div>
+
+                                          {isSubmitted && (
+                                            <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2 text-[9px]">
+                                              {/* GPS Validation Telemetry */}
+                                              <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-between font-mono text-[8px] text-slate-600 dark:text-slate-400">
+                                                <span className="flex items-center gap-1">
+                                                  <Compass size={10} className="text-amber-500 animate-spin" /> GPS Match Verified
+                                                </span>
+                                                <span>Lat: {t.latitude || 25.7617}, Lng: {t.longitude || -80.1918}</span>
+                                              </div>
+
+                                              {/* 3-Photo Grid of Evidence */}
+                                              <div>
+                                                <p className="text-[8px] font-bold uppercase text-slate-400 mb-1">Telemetry Evidence Attachments (3)</p>
+                                                <div className="grid grid-cols-3 gap-1">
+                                                  <div className="relative group/img rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-square bg-slate-100">
+                                                    <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=150&q=80" alt="Front Elevation" className="size-full object-cover group-hover/img:scale-105 transition-transform" />
+                                                    <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[6px] text-white py-0.5 text-center font-bold truncate">Front</span>
+                                                  </div>
+                                                  <div className="relative group/img rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-square bg-slate-100">
+                                                    <img src="https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=150&q=80" alt="Boundary/Fence" className="size-full object-cover group-hover/img:scale-105 transition-transform" />
+                                                    <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[6px] text-white py-0.5 text-center font-bold truncate">Boundary</span>
+                                                  </div>
+                                                  <div className="relative group/img rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-square bg-slate-100">
+                                                    <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=150&q=80" alt="Roof/Leak Check" className="size-full object-cover group-hover/img:scale-105 transition-transform" />
+                                                    <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[6px] text-white py-0.5 text-center font-bold truncate">Structure</span>
+                                                  </div>
+                                                </div>
+                                              </div>
+
+                                              {/* Inline Review Feedback Textarea */}
+                                              <div className="space-y-1">
+                                                <label className="text-[8px] font-bold uppercase text-slate-400">Reviewer Notes / Feedback</label>
+                                                <textarea
+                                                  value={reviewNotes}
+                                                  onChange={(e) => setReviewNotes(e.target.value)}
+                                                  placeholder="Enter approval details or specify required revision fixes..."
+                                                  className="w-full p-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[9px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none h-12 resize-none"
+                                                />
+                                              </div>
+
+                                              {/* Approve/Reject Controls */}
+                                              <div className="flex gap-1.5 pt-1">
+                                                <button
+                                                  type="button"
+                                                  disabled={reviewSubmitting}
+                                                  onClick={() => handleReviewSubmission(t.id, true)}
+                                                  className="flex-1 py-1 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[8.5px] uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-1 shadow-sm disabled:opacity-50"
+                                                >
+                                                  Approve Task
+                                                </button>
+                                                <button
+                                                  type="button"
+                                                  disabled={reviewSubmitting}
+                                                  onClick={() => handleReviewSubmission(t.id, false)}
+                                                  className="flex-1 py-1 px-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[8.5px] uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-1 shadow-sm disabled:opacity-50"
+                                                >
+                                                  Request Revision
+                                                </button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Claimed Tasks Section */}
+                              <div>
+                                <h4 className="text-[8px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                  <CheckSquare size={10} /> My Active Missions ({myClaimedTasks.length})
+                                </h4>
+                                {myClaimedTasks.length === 0 ? (
+                                  <p className="text-[9px] text-slate-400 p-3 rounded-lg bg-slate-50/50 dark:bg-slate-900/30 border border-dashed border-slate-200 dark:border-slate-800 text-center">No active field inspections. Claim below.</p>
+                                ) : (
+                                  <div className="space-y-2">
+                                    {myClaimedTasks.map(t => (
+                                      <div key={t.id} className="p-3 bg-indigo-50/30 dark:bg-indigo-955/10 border border-indigo-500/25 dark:border-indigo-400/20 rounded-xl flex items-center justify-between">
+                                        <div className="min-w-0 flex-1">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-[7.5px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.25 rounded uppercase">CLAIMED</span>
+                                            <span className="text-[7.5px] font-bold text-slate-400">+{t.reward_points} pts</span>
+                                          </div>
+                                          <p className="text-[10px] font-bold text-slate-900 dark:text-white mt-1 truncate">{t.title}</p>
+                                          <p className="text-[8px] text-slate-500 truncate">{t.address || 'Inspect & photo boundaries'}</p>
+                                        </div>
+                                        <span className="size-2 rounded-full bg-indigo-500 shrink-0 ml-3 animate-pulse" />
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Available Tasks Section */}
+                              <div>
+                                <h4 className="text-[8px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                                  <Compass size={10} /> Available Tasks ({availableTasks.length})
+                                </h4>
+                                {availableTasks.length === 0 ? (
+                                  <p className="text-[9px] text-slate-400 py-6 text-center">All field inspection tasks are claimed.</p>
+                                ) : (
+                                  <div className="space-y-2">
+                                    {availableTasks.map(t => (
+                                      <div key={t.id} className="p-3 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between hover:border-slate-350 dark:hover:border-slate-700 transition-all group">
+                                        <div className="min-w-0 flex-1">
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-[7.5px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.25 rounded uppercase">OPEN</span>
+                                            <span className="text-[7.5px] font-bold text-slate-455">+{t.reward_points} pts</span>
+                                          </div>
+                                          <p className="text-[10px] font-bold text-slate-900 dark:text-white mt-1 truncate">{t.title}</p>
+                                          <p className="text-[8px] text-slate-500 truncate">{t.address || 'Boundaries inspector'}</p>
+                                        </div>
+                                        <button
+                                          id={`claim-task-${t.id}`}
+                                          onClick={() => handleClaimTask(t.id)}
+                                          className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[8.5px] uppercase tracking-wider rounded-lg shrink-0 ml-3 transition-colors shadow-sm active:scale-95"
+                                        >
+                                          Claim
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Connect (Platform Sync & API Diagnostic) */}
+                    {w.type === 'connect' && (
+                      <div className="size-full flex flex-col justify-between space-y-4">
+                        {/* Diagnostic Summary */}
+                        <div className="p-3.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl select-none">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Platform Sync Status</span>
+                            <span className="flex h-1.5 w-1.5 relative">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                              <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                            </span>
+                          </div>
+                          <p className="text-[11px] font-bold text-slate-900 dark:text-white">API Sync fully operational</p>
+                          <p className="text-[8.5px] text-slate-455 mt-0.5 leading-normal">GoAuct Core registers update every 180 seconds continuously.</p>
+                        </div>
+
+                        {/* Diagnostic APIs grid */}
+                        <div className="grid grid-cols-2 gap-2.5 flex-1 min-h-0 overflow-y-auto pr-1">
                           {[
-                            { label: 'Calendar', icon: Calendar, path: '/client/auctions', color: 'from-amber-400 to-orange-500' },
-                            { label: 'Search Map', icon: Map, path: '/client/properties', color: 'from-blue-400 to-cyan-500' },
-                            { label: 'My Lists', icon: Folder, path: '/client/lists', color: 'from-purple-400 to-pink-500' },
-                            { label: 'Missions', icon: Gavel, path: '/client/tasks', color: 'from-emerald-400 to-teal-500' },
-                            { label: 'Settings', icon: Settings, path: '/client/settings', color: 'from-slate-400 to-slate-650' },
-                            { label: 'Billing', icon: Compass, path: '/client/billing', color: 'from-indigo-400 to-indigo-600' }
-                          ].map((app, idx) => {
-                            const Icon = app.icon;
+                            { key: 'fema', label: 'FEMA GIS Engine', desc: 'Flood maps & hazards' },
+                            { key: 'gis', label: 'County GIS Overlay', desc: 'County boundary vector geometry' },
+                            { key: 'recharts', label: 'Recharts Core', desc: 'Analytical chart generators' },
+                            { key: 'db', label: 'GoAuct DB Syncer', desc: 'Active properties cache' }
+                          ].map(api => {
+                            const status = apiStatuses[api.key];
                             return (
-                              <div
-                                key={idx}
-                                onClick={() => {
-                                  const idMap: Record<string, string> = {
-                                    '/client/auctions': 'live_auctions',
-                                    '/client/properties': 'property_search',
-                                    '/client/lists': 'my_lists',
-                                    '/client/tasks': 'field_missions'
-                                  };
-                                  const id = idMap[app.path];
-                                  if (id) {
-                                    openOverlayWindow(id as any, app.label);
-                                  } else {
-                                    navigate(app.path);
-                                  }
-                                }}
-                                className="flex flex-col items-center gap-1 cursor-pointer transition-all hover:scale-105 active:scale-95 group"
-                              >
-                                <div className={`size-11 rounded-2xl bg-gradient-to-br ${app.color} flex items-center justify-center shadow-lg group-hover:shadow-blue-500/20`}>
-                                  <Icon size={18} className="text-white" />
+                              <div key={api.key} className="p-3 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/80 rounded-xl flex flex-col justify-between">
+                                <div>
+                                  <span className="text-[9px] font-black text-slate-900 dark:text-white block">{api.label}</span>
+                                  <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">{api.desc}</span>
                                 </div>
-                                <span className="text-[7.5px] font-black text-slate-355 truncate w-full text-center tracking-wide uppercase select-none">{app.label}</span>
+                                <div className="flex items-center gap-1.5 mt-2 shrink-0">
+                                  {status === 'loading' ? (
+                                    <>
+                                      <RefreshCw className="animate-spin text-amber-500" size={10} />
+                                      <span className="text-[7.5px] font-black text-amber-500 uppercase tracking-wider">Syncing</span>
+                                    </>
+                                  ) : status === 'active' ? (
+                                    <>
+                                      <CheckCircle className="text-emerald-500" size={10} />
+                                      <span className="text-[7.5px] font-black text-emerald-500 uppercase tracking-wider">Active</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <X className="text-red-500" size={10} />
+                                      <span className="text-[7.5px] font-black text-red-500 uppercase tracking-wider">Offline</span>
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}
                         </div>
 
-                        {/* Info details inside phone */}
-                        <div className="bg-slate-900 dark:bg-slate-800 p-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-2 select-none">
-                          <Award className="text-cyan-400 shrink-0" size={14} />
-                          <div className="text-[7px] leading-tight">
-                            <p className="font-extrabold text-white">SYSTEM ONLINE</p>
-                            <p className="text-slate-400 mt-0.5">Real-time stats synced</p>
-                          </div>
-                        </div>
-
-                        <div className="w-20 h-1 bg-slate-800 dark:bg-slate-700 rounded-full mx-auto mt-2" />
+                        {/* Action trigger button */}
+                        <button
+                          id="run-diagnostics-btn"
+                          onClick={handleRunDiagnostics}
+                          disabled={testingConnection}
+                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50 shrink-0"
+                        >
+                          {testingConnection ? (
+                            <>
+                              <RefreshCw className="animate-spin" size={12} /> Running Diagnostics...
+                            </>
+                          ) : (
+                            <>
+                              <Play size={12} /> Run Health Diagnostics
+                            </>
+                          )}
+                        </button>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Widget 2: Property Metrics */}
-                  {w.type === 'property_metrics' && (
-                    <PropertyMetricsWidget />
-                  )}
-
-                  {/* GIS Heatmap widget */}
-                  {w.type === 'map' && (
-                    <div className="size-full min-h-[160px] relative flex items-center justify-center bg-slate-50/20 dark:bg-slate-800/10 rounded-xl overflow-hidden">
-                      {loading ? (
-                        <RefreshCw className="animate-spin text-blue-500" size={24} />
-                      ) : (
-                        <InvestmentHeatmap
-                          stats={stateStats}
-                          selectedState={selectedState}
-                        />
-                      )}
-                    </div>
-                  )}
-
-                  {/* Widget 3: Top Recommended Deals & Auctions */}
-                  {w.type === 'recommended_deals' && (
-                    <TopRecommendedWidget />
-                  )}
-
-                  {/* Widget 4: Live Auctions Finder */}
-                  {w.type === 'live_auctions' && (
-                    <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900 rounded-lg no-scrollbar scrollbar-none">
-                      <ClientAuctions />
-                    </div>
-                  )}
-
-                  {/* Widget 5: Property Search */}
-                  {w.type === 'property_search' && (
-                    <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900/80 rounded-lg no-scrollbar scrollbar-none">
-                      <ClientProperties />
-                    </div>
-                  )}
-
-                  {/* Monthly Volume Trends line chart */}
-                  {w.type === 'chart' && (
-                    <div className="size-full min-h-[180px]">
-                      {monthlyLoading ? (
-                        <div className="size-full flex items-center justify-center">
-                          <RefreshCw className="animate-spin text-purple-500" size={20} />
-                        </div>
-                      ) : (
-                        <ResponsiveContainer width="100%" height="100%">
-                          <LineChart data={monthlyStats} margin={{ top: 5, right: 5, left: -30, bottom: 0 }}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" strokeOpacity={0.12} />
-                            <XAxis
-                              dataKey="month_label"
-                              tick={{ fill: 'var(--text-muted)', fontSize: 8, fontWeight: 700 }}
-                              axisLine={{ stroke: 'var(--border)', strokeOpacity: 0.15 }}
-                              tickLine={false}
-                            />
-                            <YAxis
-                              tick={{ fill: 'var(--text-muted)', fontSize: 7 }}
-                              axisLine={false}
-                              tickLine={false}
-                              width={25}
-                              allowDecimals={false}
-                            />
-                            <RechartsTooltip
-                              content={({ active, payload, label }) => {
-                                if (!active || !payload?.length) return null;
-                                return (
-                                  <div className="glass-card p-2 shadow-md border border-slate-200 dark:border-slate-800 text-[9px]">
-                                    <p className="font-black text-slate-900 dark:text-white mb-1.5">{label}</p>
-                                    {payload.map((entry: any) => (
-                                      <div key={entry.name} className="flex items-center justify-between gap-3 mb-0.5">
-                                        <div className="flex items-center gap-1">
-                                          <div className="w-1.5 h-1.5 rounded-full" style={{ background: entry.color }} />
-                                          <span className="text-slate-500 dark:text-slate-400">{entry.name}</span>
-                                        </div>
-                                        <span className="font-bold text-slate-900 dark:text-white">{entry.value}</span>
-                                      </div>
-                                    ))}
-                                  </div>
-                                );
-                              }}
-                            />
-                            <Line type="monotone" dataKey="deed" name="Tax Deeds" stroke={CHART_COLORS.deed} strokeWidth={2} dot={false} />
-                            <Line type="monotone" dataKey="lien" name="Tax Liens" stroke={CHART_COLORS.lien} strokeWidth={2} dot={false} />
-                            <Line type="monotone" dataKey="foreclosure" name="Foreclosures" stroke={CHART_COLORS.foreclosure} strokeWidth={2} dot={false} />
-                          </LineChart>
-                        </ResponsiveContainer>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Property Featured Dossier card */}
-                  {w.type === 'dossier' && (
-                    <div className="size-full flex flex-col justify-between">
-                      {selectedProperty ? (
-                        <div className="flex flex-col space-y-3.5 h-full justify-between">
-                          <div className="w-full h-32 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center p-3 relative overflow-hidden select-none shrink-0">
-                            <span className="material-symbols-outlined text-[36px] text-slate-350 dark:text-slate-700">home</span>
-                            <div className="absolute bottom-2.5 left-2.5 right-2.5 bg-black/45 backdrop-blur-md px-2.5 py-1 rounded-lg flex items-center justify-between border border-white/10">
-                              <span className="text-[8px] font-black text-white uppercase tracking-wider">{selectedProperty.parcel_id || 'Parcel ID'}</span>
-                              <span className="text-[8px] font-extrabold text-emerald-400 bg-emerald-500/20 px-1 py-0.25 rounded">{selectedProperty.state || 'FL'}</span>
-                            </div>
-                          </div>
-
-                          <div className="space-y-1">
-                            <p className="text-xs font-black text-slate-950 dark:text-white leading-tight">
-                              {selectedProperty.address || 'Certified FEMA Zone'}
-                            </p>
-                            <p className="text-[9.5px] text-slate-455 font-semibold">
-                              {selectedProperty.county || 'Miami-Dade County'}, {selectedProperty.state || 'FL'}
-                            </p>
-                          </div>
-
-                          <div className="grid grid-cols-2 gap-2 bg-slate-50/70 dark:bg-slate-800/10 p-2.5 rounded-xl border border-slate-200/55 dark:border-slate-800/50">
+                    {/* Settings (Visual Workbench Preferences) */}
+                    {w.type === 'settings' && (
+                      <div className="size-full flex flex-col justify-between space-y-4">
+                        <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin select-none">
+                          {/* HUD Switcher */}
+                          <div className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl">
                             <div>
-                              <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 block">Assessed Est.</span>
-                              <span className="text-xs font-black text-slate-900 dark:text-white">
-                                ${(selectedProperty.assessed_value ?? 240000).toLocaleString()}
-                              </span>
+                              <span className="text-[9.5px] font-black text-slate-900 dark:text-white block">Grid HUD Coordinate Display</span>
+                              <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">Display scale & pan factor floaters</span>
                             </div>
-                            <div>
-                              <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 block">Opening Bid</span>
-                              <span className="text-xs font-black text-blue-500 dark:text-blue-400">
-                                ${(selectedProperty.opening_bid ?? 12500).toLocaleString()}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center justify-between text-[9px] bg-slate-50/30 dark:bg-slate-800/10 px-2 py-1.5 rounded-lg border border-slate-200/30 dark:border-slate-800">
-                            <span className="text-slate-550 flex items-center gap-1 font-semibold">
-                              <ShieldCheck size={12} className="text-emerald-500 animate-pulse" /> FEMA Hazard:
-                            </span>
-                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400">Zone X (Low-Risk)</span>
-                          </div>
-
-                          <div className="flex flex-col gap-2 shrink-0">
                             <button
-                              onClick={() => openOverlayWindow('property_details', `🔍 Property: ${selectedProperty.parcel_id || selectedProperty.id}`, { propertyId: selectedProperty.id, parcelId: selectedProperty.parcel_id })}
-                              className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-sm active:scale-[0.97]"
+                              id="toggle-hud-btn"
+                              onClick={() => setShowCoordinatesHud(!showCoordinatesHud)}
+                              className={`w-10 h-5 rounded-full p-0.5 transition-colors ${showCoordinatesHud ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'}`}
                             >
-                              View Dossier details
+                              <div className={`w-4 h-4 rounded-full bg-white transition-transform ${showCoordinatesHud ? 'translate-x-5' : 'translate-x-0'}`} />
                             </button>
                           </div>
-                        </div>
-                      ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-455 dark:text-slate-650 select-none">
-                          <Folder className="opacity-30 mb-2" size={32} />
-                          <p className="text-xs font-bold">Select property to inspect</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
 
-                  {/* Circular Yield breakdown pie chart */}
-                  {w.type === 'yield' && (
-                    <div className="size-full flex flex-col justify-between">
-                      <div className="h-32 w-full flex items-center justify-center relative">
-                        {pieData.length === 0 ? (
-                          <p className="text-xs text-slate-400">No chart data available</p>
-                        ) : (
-                          <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                              <Pie
-                                data={pieData}
-                                cx="50%"
-                                cy="50%"
-                                innerRadius={28}
-                                outerRadius={44}
-                                paddingAngle={4}
-                                dataKey="value"
-                              >
-                                {pieData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.color} />
-                                ))}
-                              </Pie>
-                            </PieChart>
-                          </ResponsiveContainer>
-                        )}
-                        {pieData.length > 0 && (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                            <span className="text-[7.5px] font-black text-slate-400 uppercase tracking-widest">Total</span>
-                            <span className="text-xs font-black text-slate-900 dark:text-white leading-tight">
-                              {totals.total.toLocaleString()}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex flex-col space-y-1.5 pt-1.5 border-t border-slate-200/25 dark:border-slate-800/40 shrink-0">
-                        {pieData.map((item, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-[8px] font-black uppercase tracking-wider">
-                            <div className="flex items-center gap-1.5">
-                              <div className="w-1.5 h-1.5 rounded-full" style={{ background: item.color }} />
-                              <span className="text-slate-455">{item.name}</span>
-                            </div>
-                            <span className="text-slate-900 dark:text-white">
-                              {item.value.toLocaleString()} ({totals.total > 0 ? Math.round((item.value / totals.total) * 100) : 0}%)
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* My Lists (Saved Lists & Folders) */}
-                  {w.type === 'my_lists' && (
-                    <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900 rounded-lg no-scrollbar scrollbar-none">
-                      <ClientLists />
-                    </div>
-                  )}
-
-                  {/* Field Missions (Investor Tasks) */}
-                  {w.type === 'field_missions' && (
-                    <div className="size-full flex flex-col justify-between">
-                      {/* Available vs Claimed switch tabs */}
-                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 gap-1.5 select-none">
-                        <span className="text-[10px] font-black text-slate-800 dark:text-white mr-auto flex items-center gap-1">
-                          <Compass size={11} className="text-indigo-500" /> Active Operations
-                        </span>
-                      </div>
-
-                      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin">
-                        {tasksLoading ? (
-                          <div className="flex justify-center py-10"><RefreshCw className="animate-spin text-indigo-500" size={18} /></div>
-                        ) : (
-                          <>
-                            {/* My Requested Inspections Section */}
-                            <div>
-                              <h4 className="text-[8px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
-                                <CheckSquare size={10} /> My Requested Inspections ({myRequestedTasks.length})
-                              </h4>
-                              {myRequestedTasks.length === 0 ? (
-                                <p className="text-[9px] text-slate-400 p-3 rounded-lg bg-slate-50/50 dark:bg-slate-900/30 border border-dashed border-slate-200 dark:border-slate-800 text-center">No requested inspection missions.</p>
-                              ) : (
-                                <div className="space-y-3 mb-4">
-                                  {myRequestedTasks.map(t => {
-                                    const isSubmitted = t.status === 'submitted';
-                                    return (
-                                      <div key={t.id} className="p-3 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
-                                        <div className="flex items-start justify-between min-w-0">
-                                          <div className="min-w-0 flex-1">
-                                            <div className="flex items-center gap-1.5 flex-wrap">
-                                              <span className={`text-[7px] font-black px-1.5 py-0.25 rounded uppercase ${
-                                                t.status === 'submitted' ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400' :
-                                                t.status === 'approved' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
-                                                t.status === 'claimed' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
-                                                'bg-slate-500/10 text-slate-500'
-                                              }`}>
-                                                {t.status}
-                                              </span>
-                                              <span className="text-[7.5px] font-bold text-slate-400">+{t.reward_points} pts</span>
-                                              {t.realtor_name && (
-                                                <span className="text-[7.5px] text-slate-500">Assigned: {t.realtor_name}</span>
-                                              )}
-                                            </div>
-                                            <p className="text-[10px] font-bold text-slate-900 dark:text-white mt-1">{t.title}</p>
-                                            {t.address && <p className="text-[8px] text-slate-500 mt-0.5">{t.address}</p>}
-                                          </div>
-                                        </div>
-
-                                        {isSubmitted && (
-                                          <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 space-y-2 text-[9px]">
-                                            {/* GPS Validation Telemetry */}
-                                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-between font-mono text-[8px] text-slate-600 dark:text-slate-400">
-                                              <span className="flex items-center gap-1">
-                                                <Compass size={10} className="text-amber-500 animate-spin" /> GPS Match Verified
-                                              </span>
-                                              <span>Lat: {t.latitude || 25.7617}, Lng: {t.longitude || -80.1918}</span>
-                                            </div>
-
-                                            {/* 3-Photo Grid of Evidence */}
-                                            <div>
-                                              <p className="text-[8px] font-bold uppercase text-slate-400 mb-1">Telemetry Evidence Attachments (3)</p>
-                                              <div className="grid grid-cols-3 gap-1">
-                                                <div className="relative group/img rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-square bg-slate-100">
-                                                  <img src="https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=150&q=80" alt="Front Elevation" className="size-full object-cover group-hover/img:scale-105 transition-transform" />
-                                                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[6px] text-white py-0.5 text-center font-bold truncate">Front</span>
-                                                </div>
-                                                <div className="relative group/img rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-square bg-slate-100">
-                                                  <img src="https://images.unsplash.com/photo-1507089947368-19c1da9775ae?auto=format&fit=crop&w=150&q=80" alt="Boundary/Fence" className="size-full object-cover group-hover/img:scale-105 transition-transform" />
-                                                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[6px] text-white py-0.5 text-center font-bold truncate">Boundary</span>
-                                                </div>
-                                                <div className="relative group/img rounded-lg overflow-hidden border border-slate-200 dark:border-slate-800 aspect-square bg-slate-100">
-                                                  <img src="https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=150&q=80" alt="Roof/Leak Check" className="size-full object-cover group-hover/img:scale-105 transition-transform" />
-                                                  <span className="absolute bottom-0 inset-x-0 bg-black/60 text-[6px] text-white py-0.5 text-center font-bold truncate">Structure</span>
-                                                </div>
-                                              </div>
-                                            </div>
-
-                                            {/* Inline Review Feedback Textarea */}
-                                            <div className="space-y-1">
-                                              <label className="text-[8px] font-bold uppercase text-slate-400">Reviewer Notes / Feedback</label>
-                                              <textarea
-                                                value={reviewNotes}
-                                                onChange={(e) => setReviewNotes(e.target.value)}
-                                                placeholder="Enter approval details or specify required revision fixes..."
-                                                className="w-full p-2 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[9px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none h-12 resize-none"
-                                              />
-                                            </div>
-
-                                            {/* Approve/Reject Controls */}
-                                            <div className="flex gap-1.5 pt-1">
-                                              <button
-                                                type="button"
-                                                disabled={reviewSubmitting}
-                                                onClick={() => handleReviewSubmission(t.id, true)}
-                                                className="flex-1 py-1 px-2 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[8.5px] uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-1 shadow-sm disabled:opacity-50"
-                                              >
-                                                Approve Task
-                                              </button>
-                                              <button
-                                                type="button"
-                                                disabled={reviewSubmitting}
-                                                onClick={() => handleReviewSubmission(t.id, false)}
-                                                className="flex-1 py-1 px-2 bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-[8.5px] uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-1 shadow-sm disabled:opacity-50"
-                                              >
-                                                Request Revision
-                                              </button>
-                                            </div>
-                                          </div>
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Claimed Tasks Section */}
-                            <div>
-                              <h4 className="text-[8px] font-black text-indigo-500 dark:text-indigo-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
-                                <CheckSquare size={10} /> My Active Missions ({myClaimedTasks.length})
-                              </h4>
-                              {myClaimedTasks.length === 0 ? (
-                                <p className="text-[9px] text-slate-400 p-3 rounded-lg bg-slate-50/50 dark:bg-slate-900/30 border border-dashed border-slate-200 dark:border-slate-800 text-center">No active field inspections. Claim below.</p>
-                              ) : (
-                                <div className="space-y-2">
-                                  {myClaimedTasks.map(t => (
-                                    <div key={t.id} className="p-3 bg-indigo-50/30 dark:bg-indigo-955/10 border border-indigo-500/25 dark:border-indigo-400/20 rounded-xl flex items-center justify-between">
-                                      <div className="min-w-0 flex-1">
-                                        <div className="flex items-center gap-1.5">
-                                          <span className="text-[7.5px] font-black bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.25 rounded uppercase">CLAIMED</span>
-                                          <span className="text-[7.5px] font-bold text-slate-400">+{t.reward_points} pts</span>
-                                        </div>
-                                        <p className="text-[10px] font-bold text-slate-900 dark:text-white mt-1 truncate">{t.title}</p>
-                                        <p className="text-[8px] text-slate-500 truncate">{t.address || 'Inspect & photo boundaries'}</p>
-                                      </div>
-                                      <span className="size-2 rounded-full bg-indigo-500 shrink-0 ml-3 animate-pulse" />
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-
-                            {/* Available Tasks Section */}
-                            <div>
-                              <h4 className="text-[8px] font-black text-emerald-500 dark:text-emerald-400 uppercase tracking-widest mb-1.5 flex items-center gap-1">
-                                <Compass size={10} /> Available Tasks ({availableTasks.length})
-                              </h4>
-                              {availableTasks.length === 0 ? (
-                                <p className="text-[9px] text-slate-400 py-6 text-center">All field inspection tasks are claimed.</p>
-                              ) : (
-                                <div className="space-y-2">
-                                  {availableTasks.map(t => (
-                                    <div key={t.id} className="p-3 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between hover:border-slate-350 dark:hover:border-slate-700 transition-all group">
-                                      <div className="min-w-0 flex-1">
-                                        <div className="flex items-center gap-1.5">
-                                          <span className="text-[7.5px] font-black bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.25 rounded uppercase">OPEN</span>
-                                          <span className="text-[7.5px] font-bold text-slate-455">+{t.reward_points} pts</span>
-                                        </div>
-                                        <p className="text-[10px] font-bold text-slate-900 dark:text-white mt-1 truncate">{t.title}</p>
-                                        <p className="text-[8px] text-slate-500 truncate">{t.address || 'Boundaries inspector'}</p>
-                                      </div>
-                                      <button
-                                        id={`claim-task-${t.id}`}
-                                        onClick={() => handleClaimTask(t.id)}
-                                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[8.5px] uppercase tracking-wider rounded-lg shrink-0 ml-3 transition-colors shadow-sm active:scale-95"
-                                      >
-                                        Claim
-                                      </button>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Connect (Platform Sync & API Diagnostic) */}
-                  {w.type === 'connect' && (
-                    <div className="size-full flex flex-col justify-between space-y-4">
-                      {/* Diagnostic Summary */}
-                      <div className="p-3.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl select-none">
-                        <div className="flex justify-between items-center mb-2">
-                          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Platform Sync Status</span>
-                          <span className="flex h-1.5 w-1.5 relative">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
-                          </span>
-                        </div>
-                        <p className="text-[11px] font-bold text-slate-900 dark:text-white">API Sync fully operational</p>
-                        <p className="text-[8.5px] text-slate-455 mt-0.5 leading-normal">GoAuct Core registers update every 180 seconds continuously.</p>
-                      </div>
-
-                      {/* Diagnostic APIs grid */}
-                      <div className="grid grid-cols-2 gap-2.5 flex-1 min-h-0 overflow-y-auto pr-1">
-                        {[
-                          { key: 'fema', label: 'FEMA GIS Engine', desc: 'Flood maps & hazards' },
-                          { key: 'gis', label: 'County GIS Overlay', desc: 'County boundary vector geometry' },
-                          { key: 'recharts', label: 'Recharts Core', desc: 'Analytical chart generators' },
-                          { key: 'db', label: 'GoAuct DB Syncer', desc: 'Active properties cache' }
-                        ].map(api => {
-                          const status = apiStatuses[api.key];
-                          return (
-                            <div key={api.key} className="p-3 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800/80 rounded-xl flex flex-col justify-between">
+                          {/* Dot Spacing Slider */}
+                          <div className="p-3.5 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
+                            <div className="flex justify-between items-center">
                               <div>
-                                <span className="text-[9px] font-black text-slate-900 dark:text-white block">{api.label}</span>
-                                <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">{api.desc}</span>
+                                <span className="text-[9.5px] font-black text-slate-900 dark:text-white block">Backdrop Dot Spacing</span>
+                                <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">Control canvas pixel separation grid</span>
                               </div>
-                              <div className="flex items-center gap-1.5 mt-2 shrink-0">
-                                {status === 'loading' ? (
-                                  <>
-                                    <RefreshCw className="animate-spin text-amber-500" size={10} />
-                                    <span className="text-[7.5px] font-black text-amber-500 uppercase tracking-wider">Syncing</span>
-                                  </>
-                                ) : status === 'active' ? (
-                                  <>
-                                    <CheckCircle className="text-emerald-500" size={10} />
-                                    <span className="text-[7.5px] font-black text-emerald-500 uppercase tracking-wider">Active</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <X className="text-red-500" size={10} />
-                                    <span className="text-[7.5px] font-black text-red-500 uppercase tracking-wider">Offline</span>
-                                  </>
-                                )}
-                              </div>
+                              <span className="text-[9px] font-extrabold text-indigo-500">{gridSpacing}px</span>
                             </div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Action trigger button */}
-                      <button
-                        id="run-diagnostics-btn"
-                        onClick={handleRunDiagnostics}
-                        disabled={testingConnection}
-                        className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95 disabled:opacity-50 shrink-0"
-                      >
-                        {testingConnection ? (
-                          <>
-                            <RefreshCw className="animate-spin" size={12} /> Running Diagnostics...
-                          </>
-                        ) : (
-                          <>
-                            <Play size={12} /> Run Health Diagnostics
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Settings (Visual Workbench Preferences) */}
-                  {w.type === 'settings' && (
-                    <div className="size-full flex flex-col justify-between space-y-4">
-                      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin select-none">
-                        {/* HUD Switcher */}
-                        <div className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl">
-                          <div>
-                            <span className="text-[9.5px] font-black text-slate-900 dark:text-white block">Grid HUD Coordinate Display</span>
-                            <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">Display scale & pan factor floaters</span>
-                          </div>
-                          <button
-                            id="toggle-hud-btn"
-                            onClick={() => setShowCoordinatesHud(!showCoordinatesHud)}
-                            className={`w-10 h-5 rounded-full p-0.5 transition-colors ${showCoordinatesHud ? 'bg-indigo-600' : 'bg-slate-200 dark:bg-slate-800'}`}
-                          >
-                            <div className={`w-4 h-4 rounded-full bg-white transition-transform ${showCoordinatesHud ? 'translate-x-5' : 'translate-x-0'}`} />
-                          </button>
-                        </div>
-
-                        {/* Dot Spacing Slider */}
-                        <div className="p-3.5 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2">
-                          <div className="flex justify-between items-center">
-                            <div>
-                              <span className="text-[9.5px] font-black text-slate-900 dark:text-white block">Backdrop Dot Spacing</span>
-                              <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">Control canvas pixel separation grid</span>
-                            </div>
-                            <span className="text-[9px] font-extrabold text-indigo-500">{gridSpacing}px</span>
-                          </div>
-                          <input
-                            id="grid-spacing-slider"
-                            type="range"
-                            min="16"
-                            max="64"
-                            step="4"
-                            value={gridSpacing}
-                            onChange={(e) => setGridSpacing(parseInt(e.target.value))}
-                            className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
-                          />
-                        </div>
-
-                        {/* Rendering Speed/Quality select tab */}
-                        <div className="p-3.5 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2.5">
-                          <div>
-                            <span className="text-[9.5px] font-black text-slate-900 dark:text-white block">Canvas Performance Quality</span>
-                            <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">Adjust blur and transitions filters</span>
-                          </div>
-                          <div className="grid grid-cols-3 gap-1.5">
-                            {[
-                              { id: 'fast', label: '🚀 FAST' },
-                              { id: 'balanced', label: 'BALANCED' },
-                              { id: 'hq', label: '💎 HI-FI' }
-                            ].map(filter => (
-                              <button
-                                key={filter.id}
-                                id={`perf-${filter.id}`}
-                                onClick={() => setRenderingFilter(filter.id as any)}
-                                className={`py-1 rounded text-[8px] font-black uppercase transition-all ${
-                                  renderingFilter === filter.id
-                                    ? 'bg-indigo-500 text-white shadow-sm'
-                                    : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-indigo-400'
-                                }`}
-                              >
-                                {filter.label}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Layout Cache reset button */}
-                      <button
-                        id="reset-layout-cache-btn"
-                        onClick={handleResetLayoutCache}
-                        className="w-full py-2 bg-red-500/10 hover:bg-red-500 text-red-500 font-bold text-[9px] uppercase tracking-widest border border-red-500/20 rounded-xl transition-all shadow-sm active:scale-95 shrink-0"
-                      >
-                        Reset Layout Settings
-                      </button>
-                    </div>
-                  )}
-
-                  {/* User Profile Card */}
-                  {w.type === 'profile' && (
-                    <div className="size-full flex flex-col justify-between space-y-4">
-                      {/* Profile Card Header */}
-                      <div className="flex items-center gap-3.5 p-3.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl select-none">
-                        <div className="size-11 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center font-black text-white text-base shadow-sm shrink-0">
-                          {currentUser?.email?.slice(0, 2).toUpperCase() || 'US'}
-                        </div>
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-black text-slate-900 dark:text-white leading-none truncate">{currentUser?.nickname || 'Account Officer'}</span>
-                            <span className="text-[6.5px] font-black uppercase bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1 py-0.25 rounded">PRO</span>
-                          </div>
-                          <span className="text-[8px] font-bold text-slate-455 block mt-1 leading-none truncate">{currentUser?.email}</span>
-                          <span className="text-[8px] font-semibold text-slate-400 block mt-0.5 leading-none">ID: {currentUser?.id || '24'}</span>
-                        </div>
-                      </div>
-
-                      {/* Nickname form fields */}
-                      <form onSubmit={handleSaveProfileNickname} className="flex-1 flex flex-col justify-between">
-                        <div className="space-y-3.5">
-                          <div>
-                            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Interactive User Nickname</label>
                             <input
-                              id="profile-nickname-input"
-                              type="text"
-                              value={userNickname}
-                              onChange={(e) => setUserNickname(e.target.value)}
-                              placeholder="Type user alias..."
-                              className="w-full px-3 py-2 text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              id="grid-spacing-slider"
+                              type="range"
+                              min="16"
+                              max="64"
+                              step="4"
+                              value={gridSpacing}
+                              onChange={(e) => setGridSpacing(parseInt(e.target.value))}
+                              className="w-full h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-indigo-500"
                             />
                           </div>
 
-                          <div className="p-3 bg-slate-50/50 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 rounded-xl">
-                            <span className="text-[8px] font-black text-slate-455 uppercase block tracking-wider">Enterprise Permissions</span>
-                            <div className="flex flex-wrap gap-1 mt-1.5">
-                              {['live_bids', 'export_gis', 'fema_audit', 'claim_missions'].map((p, idx) => (
-                                <span key={idx} className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 rounded">
-                                  {p}
-                                </span>
+                          {/* Rendering Speed/Quality select tab */}
+                          <div className="p-3.5 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-2.5">
+                            <div>
+                              <span className="text-[9.5px] font-black text-slate-900 dark:text-white block">Canvas Performance Quality</span>
+                              <span className="text-[8px] text-slate-455 mt-0.5 block leading-tight">Adjust blur and transitions filters</span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {[
+                                { id: 'fast', label: '🚀 FAST' },
+                                { id: 'balanced', label: 'BALANCED' },
+                                { id: 'hq', label: '💎 HI-FI' }
+                              ].map(filter => (
+                                <button
+                                  key={filter.id}
+                                  id={`perf-${filter.id}`}
+                                  onClick={() => setRenderingFilter(filter.id as any)}
+                                  className={`py-1 rounded text-[8px] font-black uppercase transition-all ${renderingFilter === filter.id
+                                      ? 'bg-indigo-500 text-white shadow-sm'
+                                      : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 hover:border-indigo-400'
+                                    }`}
+                                >
+                                  {filter.label}
+                                </button>
                               ))}
                             </div>
                           </div>
                         </div>
 
+                        {/* Layout Cache reset button */}
                         <button
-                          id="save-profile-btn"
-                          type="submit"
-                          disabled={profileSaving}
-                          className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center justify-center gap-1 active:scale-95 shrink-0"
+                          id="reset-layout-cache-btn"
+                          onClick={handleResetLayoutCache}
+                          className="w-full py-2 bg-red-500/10 hover:bg-red-500 text-red-500 font-bold text-[9px] uppercase tracking-widest border border-red-500/20 rounded-xl transition-all shadow-sm active:scale-95 shrink-0"
                         >
-                          {profileSaving ? (
-                            <>
-                              <RefreshCw className="animate-spin" size={12} /> Saving...
-                            </>
-                          ) : (
-                            <>
-                              <Check size={12} /> Save Nickname Alias
-                            </>
-                          )}
+                          Reset Layout Settings
                         </button>
-                      </form>
-                    </div>
-                  )}
+                      </div>
+                    )}
 
-                  {/* Corporate Team Roster */}
-                  {w.type === 'team' && (
-                    <div className="size-full flex flex-col justify-between space-y-3">
-                      {/* Invite coworker form */}
-                      <form onSubmit={handleInviteMember} className="space-y-2 shrink-0">
-                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">Register New Corporate Member</span>
-                        <div className="flex gap-1.5">
-                          <input
-                            id="invite-email-input"
-                            type="email"
-                            value={inviteEmail}
-                            onChange={(e) => setInviteEmail(e.target.value)}
-                            placeholder="colleague@domain.com"
-                            className="flex-1 px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                            required
-                          />
-                          <select
-                            id="invite-role-select"
-                            value={inviteRole}
-                            onChange={(e: any) => setInviteRole(e.target.value)}
-                            className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-355 text-[10px] focus:outline-none shrink-0"
-                          >
-                            <option value="investor">Investor</option>
-                            <option value="agent">Agent</option>
-                          </select>
-                          <button
-                            id="invite-submit-btn"
-                            type="submit"
-                            disabled={inviteSubmitting}
-                            className="px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-lg shrink-0 flex items-center justify-center transition-colors disabled:opacity-50"
-                          >
-                            Add
-                          </button>
-                        </div>
-                      </form>
-
-                      {/* Roster of members */}
-                      <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Corporate Directory ({teamMembers.length})</span>
-                        {teamMembers.length === 0 ? (
-                          <p className="text-[9px] text-slate-400 py-6 text-center">Loading team directory...</p>
-                        ) : (
-                          teamMembers.map((member: any) => (
-                            <div key={member.id} className="p-2.5 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between">
-                              <div className="flex items-center gap-2.5 min-w-0">
-                                <div className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 border border-slate-200 dark:border-slate-700">
-                                  {member.email?.slice(0, 2).toUpperCase() || 'TM'}
-                                </div>
-                                <div className="min-w-0">
-                                  <span className="text-[10px] font-bold text-slate-900 dark:text-white block leading-none truncate">{member.nickname || (member.email ? member.email.split('@')[0] : '') || 'Team Member'}</span>
-                                  <span className="text-[8px] text-slate-455 block mt-0.5 leading-none truncate">{member.email}</span>
-                                </div>
-                              </div>
-                              <span className={`text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded border whitespace-nowrap ml-2 shrink-0 ${
-                                member.role === 'admin'
-                                  ? 'bg-red-50 dark:bg-red-955/20 border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-400'
-                                  : member.role === 'investor'
-                                    ? 'bg-purple-50 dark:bg-purple-955/20 border-purple-200 dark:border-purple-800/40 text-purple-600 dark:text-purple-400'
-                                    : 'bg-slate-50 dark:bg-slate-805 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
-                              }`}>
-                                {member.role || 'agent'}
-                              </span>
+                    {/* User Profile Card */}
+                    {w.type === 'profile' && (
+                      <div className="size-full flex flex-col justify-between space-y-4">
+                        {/* Profile Card Header */}
+                        <div className="flex items-center gap-3.5 p-3.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl select-none">
+                          <div className="size-11 rounded-full bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center font-black text-white text-base shadow-sm shrink-0">
+                            {currentUser?.email?.slice(0, 2).toUpperCase() || 'US'}
+                          </div>
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[11px] font-black text-slate-900 dark:text-white leading-none truncate">{currentUser?.nickname || 'Account Officer'}</span>
+                              <span className="text-[6.5px] font-black uppercase bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1 py-0.25 rounded">PRO</span>
                             </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Activity Console Logs CLI */}
-                  {w.type === 'logs' && (
-                    <div className="size-full flex flex-col justify-between bg-slate-950 rounded-xl p-3.5 border border-slate-800 font-mono text-[9px] text-emerald-400">
-                      {/* Scrolling shell content */}
-                      <div className="flex-1 overflow-y-auto space-y-1.5 mb-2.5 pr-1 scrollbar-thin select-text">
-                        {terminalLogs.map((log, idx) => {
-                          const isCommand = log.startsWith('>');
-                          const isErr = log.includes('Unknown') || log.includes('failed');
-                          return (
-                            <p
-                              key={idx}
-                              className={`leading-relaxed whitespace-pre-wrap ${
-                                isCommand
-                                  ? 'text-white font-extrabold'
-                                  : isErr
-                                    ? 'text-red-400'
-                                    : 'text-emerald-400/90'
-                              }`}
-                            >
-                              {log}
-                            </p>
-                          );
-                        })}
-                        <div className="flex items-center gap-1">
-                          <span>$</span>
-                          <div className="w-1.5 h-3 bg-emerald-400 animate-pulse" />
-                        </div>
-                      </div>
-
-                      {/* Command input form */}
-                      <form onSubmit={handleTerminalSubmit} className="flex border-t border-slate-800 pt-2 shrink-0">
-                        <span className="text-slate-500 font-black shrink-0 mr-1.5 pt-0.5">$</span>
-                        <input
-                          id="terminal-cli-input"
-                          type="text"
-                          value={terminalInput}
-                          onChange={(e) => setTerminalInput(e.target.value)}
-                          placeholder="Type 'help' for suggestions..."
-                          className="flex-1 bg-transparent border-none text-[9px] text-white focus:outline-none focus:ring-0 placeholder:text-slate-600 leading-normal"
-                          autoComplete="off"
-                        />
-                      </form>
-                    </div>
-                  )}
-
-                  {/* Billings & Subscriptions */}
-                  {w.type === 'billings' && (
-                    <div className="size-full flex flex-col justify-between space-y-3.5">
-                      <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin select-none">
-                        {/* Sub plans row */}
-                        <div>
-                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2">Available Subscription Tiers</span>
-                          <div className="grid grid-cols-3 gap-2">
-                            {[
-                              { id: 'free', label: 'Starter', price: '$0', desc: 'Read basic details' },
-                              { id: 'pro', label: 'Advanced', price: '$149', desc: 'Full custom sandboxing' },
-                              { id: 'elite', label: 'Elite', price: '$499', desc: 'Unlimited AI task inspections' }
-                            ].map(tier => (
-                              <button
-                                key={tier.id}
-                                id={`billing-tier-${tier.id}`}
-                                onClick={() => {
-                                  setBillingPlan(tier.id as any);
-                                  logConsoleActivity(`Mock upgraded to corporate ${tier.label} sub-plan.`);
-                                }}
-                                className={`p-2 rounded-xl text-left border transition-all flex flex-col justify-between ${
-                                  billingPlan === tier.id
-                                    ? 'bg-indigo-50/50 dark:bg-indigo-955/20 border-indigo-500 text-indigo-900 dark:text-indigo-300 font-bold shadow-sm'
-                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-indigo-400'
-                                }`}
-                              >
-                                <div>
-                                  <span className="text-[9px] font-black uppercase tracking-wider block">{tier.label}</span>
-                                  <span className="text-[8px] opacity-75 mt-0.5 block leading-tight font-semibold">{tier.desc}</span>
-                                </div>
-                                <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 mt-2 block">{tier.price}<span className="text-[8px] font-normal font-sans opacity-70">/mo</span></span>
-                              </button>
-                            ))}
+                            <span className="text-[8px] font-bold text-slate-455 block mt-1 leading-none truncate">{currentUser?.email}</span>
+                            <span className="text-[8px] font-semibold text-slate-400 block mt-0.5 leading-none">ID: {currentUser?.id || '24'}</span>
                           </div>
                         </div>
 
-                        {/* Itemized paid invoices ledger */}
-                        <div>
-                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2">Paid Invoices Ledger</span>
-                          <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900/40">
-                            <table className="w-full text-left text-[9px] border-collapse">
-                              <thead>
-                                <tr className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-black tracking-wider">
-                                  <th className="p-2">Invoice</th>
-                                  <th className="p-2">Date</th>
-                                  <th className="p-2 text-right">Amount</th>
-                                  <th className="p-2 text-center">Status</th>
-                                </tr>
-                              </thead>
-                              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {billingInvoices.map((inv, idx) => (
-                                  <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 font-semibold text-slate-600 dark:text-slate-355">
-                                    <td className="p-2 font-bold text-slate-900 dark:text-white">{inv.id}</td>
-                                    <td className="p-2">{inv.date}</td>
-                                    <td className="p-2 text-right font-extrabold text-slate-800 dark:text-slate-100">${inv.amount.toFixed(2)}</td>
-                                    <td className="p-2 text-center">
-                                      <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-400 text-[8px] font-black">PAID</span>
-                                    </td>
-                                  </tr>
+                        {/* Nickname form fields */}
+                        <form onSubmit={handleSaveProfileNickname} className="flex-1 flex flex-col justify-between">
+                          <div className="space-y-3.5">
+                            <div>
+                              <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Interactive User Nickname</label>
+                              <input
+                                id="profile-nickname-input"
+                                type="text"
+                                value={userNickname}
+                                onChange={(e) => setUserNickname(e.target.value)}
+                                placeholder="Type user alias..."
+                                className="w-full px-3 py-2 text-[10px] bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                              />
+                            </div>
+
+                            <div className="p-3 bg-slate-50/50 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 rounded-xl">
+                              <span className="text-[8px] font-black text-slate-455 uppercase block tracking-wider">Enterprise Permissions</span>
+                              <div className="flex flex-wrap gap-1 mt-1.5">
+                                {['live_bids', 'export_gis', 'fema_audit', 'claim_missions'].map((p, idx) => (
+                                  <span key={idx} className="text-[7.5px] font-extrabold uppercase px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 rounded">
+                                    {p}
+                                  </span>
                                 ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Active Company Context Hub */}
-                  {w.type === 'company' && (
-                    <div className="size-full flex flex-col justify-between space-y-3">
-                      {/* Summary indicator */}
-                      <div className="p-3 bg-indigo-50/40 dark:bg-indigo-955/10 border border-indigo-500/20 dark:border-indigo-400/10 rounded-xl select-none">
-                        <span className="text-[7.5px] font-black text-indigo-505 uppercase tracking-widest block">Active Corporate context</span>
-                        <div className="flex items-center gap-2 mt-1 min-w-0">
-                          <Briefcase className="text-indigo-500 shrink-0" size={14} />
-                          <span className="text-[11px] font-black text-slate-900 dark:text-white truncate">{activeCompany?.name || 'Personal Account'}</span>
-                        </div>
-                      </div>
-
-                      {/* Selector choices lists */}
-                      <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 scrollbar-thin">
-                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Switch Account Context</span>
-                        {companies.map((co: any) => {
-                          const active = co.id === activeCompany?.id;
-                          return (
-                            <button
-                              key={co.id}
-                              id={`switch-company-${co.id}`}
-                              onClick={() => {
-                                selectCompany(co.id);
-                                logConsoleActivity(`Switched active context to corporate: "${co.name}"`);
-                              }}
-                              className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all group ${
-                                active
-                                  ? 'bg-blue-50/50 dark:bg-blue-955/10 border-blue-500 text-blue-900 dark:text-blue-300 font-bold shadow-sm'
-                                  : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400'
-                              }`}
-                            >
-                              <div className="min-w-0 flex-1 flex items-center gap-2">
-                                <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-blue-500 shrink-0">business</span>
-                                <span className="text-[10px] truncate">{co.name}</span>
-                              </div>
-                              {active && <span className="size-2 rounded-full bg-blue-500 ml-2 shrink-0 animate-pulse" />}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* System Notifications & Alert Banners Feed */}
-                  {w.type === 'notifications' && (
-                    <div className="size-full flex flex-col justify-between space-y-3 select-none">
-                      {/* Header with dismiss buttons */}
-                      <div className="flex justify-between items-center shrink-0">
-                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Recent System Alerts</span>
-                        <button
-                          id="mark-all-read-btn"
-                          onClick={handleMarkAllAsRead}
-                          className="text-[8.5px] font-extrabold uppercase text-indigo-500 hover:text-indigo-600 transition-colors"
-                        >
-                          Mark all read
-                        </button>
-                      </div>
-
-                      {/* Banners feed */}
-                      <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
-                        {notifications.length === 0 ? (
-                          <div className="text-center text-[10px] text-slate-400 py-6">All notification alerts cleared!</div>
-                        ) : (
-                          notifications.map(n => (
-                            <div
-                              key={n.id}
-                              className={`p-2.5 rounded-xl border flex items-start gap-2.5 transition-all relative ${
-                                n.read
-                                  ? 'bg-slate-50/30 dark:bg-slate-900/10 border-slate-200 dark:border-slate-800 opacity-60'
-                                  : n.type === 'warning'
-                                    ? 'bg-amber-50/30 dark:bg-amber-955/5 border-amber-500/20 text-slate-800 dark:text-slate-300'
-                                    : n.type === 'success'
-                                      ? 'bg-emerald-50/30 dark:bg-emerald-955/5 border-emerald-500/20 text-slate-800 dark:text-slate-300'
-                                      : 'bg-blue-50/30 dark:bg-blue-955/5 border-blue-500/20 text-slate-800 dark:text-slate-300'
-                              }`}
-                            >
-                              {/* Status dot indicator */}
-                              {!n.read && <span className="size-1.5 rounded-full bg-indigo-500 absolute top-2 right-2 animate-pulse" />}
-                              
-                              <div className="min-w-0 flex-1">
-                                <p className={`text-[9.5px] leading-tight ${n.read ? 'font-semibold' : 'font-extrabold'}`}>{n.message}</p>
-                                <span className="text-[7px] text-slate-400 uppercase font-bold mt-1.5 block leading-none">{n.time}</span>
-                              </div>
-
-                              <div className="flex items-center gap-0.5 shrink-0 ml-1.5">
-                                {!n.read && (
-                                  <button
-                                    id={`mark-read-${n.id}`}
-                                    onClick={() => handleMarkAsRead(n.id)}
-                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-indigo-500"
-                                    title="Mark Read"
-                                  >
-                                    <Check size={10} />
-                                  </button>
-                                )}
-                                <button
-                                  id={`dismiss-${n.id}`}
-                                  onClick={() => handleDismissNotification(n.id)}
-                                  className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-slate-400"
-                                  title="Dismiss Alert"
-                                >
-                                  <X size={10} />
-                                </button>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Deep Property Detail Inspector & Hazards Report */}
-                  {w.type === 'property_details' && (
-                    <div className="size-full flex flex-col justify-between">
-                      {selectedProperty ? (
-                        <div className="flex flex-col space-y-3 h-full justify-between overflow-y-auto pr-1 scrollbar-thin">
-                          {/* Rich secondary inspect features */}
-                          <div className="space-y-3 select-none">
-                            {/* FEMA flood hazards report */}
-                            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-center">
-                              <div>
-                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">FEMA flood hazard zones</span>
-                                <span className="text-[10.5px] font-black text-slate-900 dark:text-white mt-1.5 block leading-none">
-                                  {selectedProperty.deal_score && selectedProperty.deal_score > 80 ? 'Zone X (Low-Risk Area)' : 'Zone AE (High flood risk)'}
-                                </span>
-                              </div>
-                              <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${
-                                selectedProperty.deal_score && selectedProperty.deal_score > 80
-                                  ? 'bg-emerald-100 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-400'
-                                  : 'bg-amber-100 dark:bg-amber-955/20 text-amber-600 dark:text-amber-400'
-                              }`}>
-                                {selectedProperty.deal_score && selectedProperty.deal_score > 80 ? 'Safe' : 'Alert'}
-                              </span>
-                            </div>
-
-                            {/* Zoning classification */}
-                            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl">
-                              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">Zoning Classification code</span>
-                              <span className="text-[10px] font-extrabold text-slate-805 dark:text-slate-200 mt-1.5 block leading-none">
-                                {selectedProperty.deal_score && selectedProperty.deal_score > 84 ? 'Single-Family Residential (R-1A)' : 'Multi-Family Dwelling (R-3)'}
-                              </span>
-                            </div>
-
-                            {/* Nearby school rating */}
-                            <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-center">
-                              <div>
-                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">Nearby Rated Public Schools</span>
-                                <span className="text-[10px] font-extrabold text-slate-900 dark:text-slate-200 mt-1.5 block leading-none">K-12 Educational Index Rating</span>
-                              </div>
-                              <span className="text-[11px] font-black text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded">
-                                {selectedProperty.deal_score && selectedProperty.deal_score > 82 ? 'Rated A+' : 'Rated B'}
-                              </span>
-                            </div>
-
-                            {/* Building specs grid */}
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="p-2.5 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl">
-                                <span className="text-[7.5px] font-bold text-slate-400 block uppercase leading-none">Structure Size</span>
-                                <span className="text-[10px] font-black text-slate-900 dark:text-white mt-1.5 block leading-none">
-                                  {selectedProperty.sqft ? selectedProperty.sqft.toLocaleString() : '1,950'} SqFt
-                                </span>
-                              </div>
-                              <div className="p-2.5 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl">
-                                <span className="text-[7.5px] font-bold text-slate-400 block uppercase leading-none">Year Constructed</span>
-                                <span className="text-[10px] font-black text-slate-900 dark:text-white mt-1.5 block leading-none">
-                                  {selectedProperty.year_built || '1995'} (Modern build)
-                                </span>
                               </div>
                             </div>
                           </div>
 
-                          {/* Trigger request inspection button */}
                           <button
-                            id="request-inspection-btn"
-                            onClick={handleRequestFieldInspection}
-                            className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1 active:scale-[0.97] shrink-0 mt-3"
+                            id="save-profile-btn"
+                            type="submit"
+                            disabled={profileSaving}
+                            className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center justify-center gap-1 active:scale-95 shrink-0"
                           >
-                            <Gavel size={11} /> Request Field Inspection task
+                            {profileSaving ? (
+                              <>
+                                <RefreshCw className="animate-spin" size={12} /> Saving...
+                              </>
+                            ) : (
+                              <>
+                                <Check size={12} /> Save Nickname Alias
+                              </>
+                            )}
+                          </button>
+                        </form>
+                      </div>
+                    )}
+
+                    {/* Corporate Team Roster */}
+                    {w.type === 'team' && (
+                      <div className="size-full flex flex-col justify-between space-y-3">
+                        {/* Invite coworker form */}
+                        <form onSubmit={handleInviteMember} className="space-y-2 shrink-0">
+                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">Register New Corporate Member</span>
+                          <div className="flex gap-1.5">
+                            <input
+                              id="invite-email-input"
+                              type="email"
+                              value={inviteEmail}
+                              onChange={(e) => setInviteEmail(e.target.value)}
+                              placeholder="colleague@domain.com"
+                              className="flex-1 px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              required
+                            />
+                            <select
+                              id="invite-role-select"
+                              value={inviteRole}
+                              onChange={(e: any) => setInviteRole(e.target.value)}
+                              className="px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-355 text-[10px] focus:outline-none shrink-0"
+                            >
+                              <option value="investor">Investor</option>
+                              <option value="agent">Agent</option>
+                            </select>
+                            <button
+                              id="invite-submit-btn"
+                              type="submit"
+                              disabled={inviteSubmitting}
+                              className="px-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-wider rounded-lg shrink-0 flex items-center justify-center transition-colors disabled:opacity-50"
+                            >
+                              Add
+                            </button>
+                          </div>
+                        </form>
+
+                        {/* Roster of members */}
+                        <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Corporate Directory ({teamMembers.length})</span>
+                          {teamMembers.length === 0 ? (
+                            <p className="text-[9px] text-slate-400 py-6 text-center">Loading team directory...</p>
+                          ) : (
+                            teamMembers.map((member: any) => (
+                              <div key={member.id} className="p-2.5 bg-slate-50/50 dark:bg-slate-800/20 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between">
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="size-7 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-[10px] text-slate-600 dark:text-slate-400 shrink-0 border border-slate-200 dark:border-slate-700">
+                                    {member.email?.slice(0, 2).toUpperCase() || 'TM'}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <span className="text-[10px] font-bold text-slate-900 dark:text-white block leading-none truncate">{member.nickname || (member.email ? member.email.split('@')[0] : '') || 'Team Member'}</span>
+                                    <span className="text-[8px] text-slate-455 block mt-0.5 leading-none truncate">{member.email}</span>
+                                  </div>
+                                </div>
+                                <span className={`text-[7.5px] font-black uppercase px-1.5 py-0.5 rounded border whitespace-nowrap ml-2 shrink-0 ${member.role === 'admin'
+                                    ? 'bg-red-50 dark:bg-red-955/20 border-red-200 dark:border-red-800/40 text-red-600 dark:text-red-400'
+                                    : member.role === 'investor'
+                                      ? 'bg-purple-50 dark:bg-purple-955/20 border-purple-200 dark:border-purple-800/40 text-purple-600 dark:text-purple-400'
+                                      : 'bg-slate-50 dark:bg-slate-805 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400'
+                                  }`}>
+                                  {member.role || 'agent'}
+                                </span>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Activity Console Logs CLI */}
+                    {w.type === 'logs' && (
+                      <div className="size-full flex flex-col justify-between bg-slate-950 rounded-xl p-3.5 border border-slate-800 font-mono text-[9px] text-emerald-400">
+                        {/* Scrolling shell content */}
+                        <div className="flex-1 overflow-y-auto space-y-1.5 mb-2.5 pr-1 scrollbar-thin select-text">
+                          {terminalLogs.map((log, idx) => {
+                            const isCommand = log.startsWith('>');
+                            const isErr = log.includes('Unknown') || log.includes('failed');
+                            return (
+                              <p
+                                key={idx}
+                                className={`leading-relaxed whitespace-pre-wrap ${isCommand
+                                    ? 'text-white font-extrabold'
+                                    : isErr
+                                      ? 'text-red-400'
+                                      : 'text-emerald-400/90'
+                                  }`}
+                              >
+                                {log}
+                              </p>
+                            );
+                          })}
+                          <div className="flex items-center gap-1">
+                            <span>$</span>
+                            <div className="w-1.5 h-3 bg-emerald-400 animate-pulse" />
+                          </div>
+                        </div>
+
+                        {/* Command input form */}
+                        <form onSubmit={handleTerminalSubmit} className="flex border-t border-slate-800 pt-2 shrink-0">
+                          <span className="text-slate-500 font-black shrink-0 mr-1.5 pt-0.5">$</span>
+                          <input
+                            id="terminal-cli-input"
+                            type="text"
+                            value={terminalInput}
+                            onChange={(e) => setTerminalInput(e.target.value)}
+                            placeholder="Type 'help' for suggestions..."
+                            className="flex-1 bg-transparent border-none text-[9px] text-white focus:outline-none focus:ring-0 placeholder:text-slate-600 leading-normal"
+                            autoComplete="off"
+                          />
+                        </form>
+                      </div>
+                    )}
+
+                    {/* Billings & Subscriptions */}
+                    {w.type === 'billings' && (
+                      <div className="size-full flex flex-col justify-between space-y-3.5">
+                        <div className="flex-1 overflow-y-auto space-y-4 pr-1 scrollbar-thin select-none">
+                          {/* Sub plans row */}
+                          <div>
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2">Available Subscription Tiers</span>
+                            <div className="grid grid-cols-3 gap-2">
+                              {[
+                                { id: 'free', label: 'Starter', price: '$0', desc: 'Read basic details' },
+                                { id: 'pro', label: 'Advanced', price: '$149', desc: 'Full custom sandboxing' },
+                                { id: 'elite', label: 'Elite', price: '$499', desc: 'Unlimited AI task inspections' }
+                              ].map(tier => (
+                                <button
+                                  key={tier.id}
+                                  id={`billing-tier-${tier.id}`}
+                                  onClick={() => {
+                                    setBillingPlan(tier.id as any);
+                                    logConsoleActivity(`Mock upgraded to corporate ${tier.label} sub-plan.`);
+                                  }}
+                                  className={`p-2 rounded-xl text-left border transition-all flex flex-col justify-between ${billingPlan === tier.id
+                                      ? 'bg-indigo-50/50 dark:bg-indigo-955/20 border-indigo-500 text-indigo-900 dark:text-indigo-300 font-bold shadow-sm'
+                                      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-indigo-400'
+                                    }`}
+                                >
+                                  <div>
+                                    <span className="text-[9px] font-black uppercase tracking-wider block">{tier.label}</span>
+                                    <span className="text-[8px] opacity-75 mt-0.5 block leading-tight font-semibold">{tier.desc}</span>
+                                  </div>
+                                  <span className="text-xs font-black text-indigo-600 dark:text-indigo-400 mt-2 block">{tier.price}<span className="text-[8px] font-normal font-sans opacity-70">/mo</span></span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Itemized paid invoices ledger */}
+                          <div>
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-2">Paid Invoices Ledger</span>
+                            <div className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden bg-white dark:bg-slate-900/40">
+                              <table className="w-full text-left text-[9px] border-collapse">
+                                <thead>
+                                  <tr className="bg-slate-50/70 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800 text-slate-400 uppercase font-black tracking-wider">
+                                    <th className="p-2">Invoice</th>
+                                    <th className="p-2">Date</th>
+                                    <th className="p-2 text-right">Amount</th>
+                                    <th className="p-2 text-center">Status</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                                  {billingInvoices.map((inv, idx) => (
+                                    <tr key={idx} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 font-semibold text-slate-600 dark:text-slate-355">
+                                      <td className="p-2 font-bold text-slate-900 dark:text-white">{inv.id}</td>
+                                      <td className="p-2">{inv.date}</td>
+                                      <td className="p-2 text-right font-extrabold text-slate-800 dark:text-slate-100">${inv.amount.toFixed(2)}</td>
+                                      <td className="p-2 text-center">
+                                        <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-400 text-[8px] font-black">PAID</span>
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Active Company Context Hub */}
+                    {w.type === 'company' && (
+                      <div className="size-full flex flex-col justify-between space-y-3">
+                        {/* Summary indicator */}
+                        <div className="p-3 bg-indigo-50/40 dark:bg-indigo-955/10 border border-indigo-500/20 dark:border-indigo-400/10 rounded-xl select-none">
+                          <span className="text-[7.5px] font-black text-indigo-505 uppercase tracking-widest block">Active Corporate context</span>
+                          <div className="flex items-center gap-2 mt-1 min-w-0">
+                            <Briefcase className="text-indigo-500 shrink-0" size={14} />
+                            <span className="text-[11px] font-black text-slate-900 dark:text-white truncate">{activeCompany?.name || 'Personal Account'}</span>
+                          </div>
+                        </div>
+
+                        {/* Selector choices lists */}
+                        <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 scrollbar-thin">
+                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Switch Account Context</span>
+                          {companies.map((co: any) => {
+                            const active = co.id === activeCompany?.id;
+                            return (
+                              <button
+                                key={co.id}
+                                id={`switch-company-${co.id}`}
+                                onClick={() => {
+                                  selectCompany(co.id);
+                                  logConsoleActivity(`Switched active context to corporate: "${co.name}"`);
+                                }}
+                                className={`w-full p-2.5 rounded-xl border text-left flex items-center justify-between transition-all group ${active
+                                    ? 'bg-blue-50/50 dark:bg-blue-955/10 border-blue-500 text-blue-900 dark:text-blue-300 font-bold shadow-sm'
+                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-blue-400'
+                                  }`}
+                              >
+                                <div className="min-w-0 flex-1 flex items-center gap-2">
+                                  <span className="material-symbols-outlined text-[15px] text-slate-400 group-hover:text-blue-500 shrink-0">business</span>
+                                  <span className="text-[10px] truncate">{co.name}</span>
+                                </div>
+                                {active && <span className="size-2 rounded-full bg-blue-500 ml-2 shrink-0 animate-pulse" />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* System Notifications & Alert Banners Feed */}
+                    {w.type === 'notifications' && (
+                      <div className="size-full flex flex-col justify-between space-y-3 select-none">
+                        {/* Header with dismiss buttons */}
+                        <div className="flex justify-between items-center shrink-0">
+                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Recent System Alerts</span>
+                          <button
+                            id="mark-all-read-btn"
+                            onClick={handleMarkAllAsRead}
+                            className="text-[8.5px] font-extrabold uppercase text-indigo-500 hover:text-indigo-600 transition-colors"
+                          >
+                            Mark all read
                           </button>
                         </div>
-                      ) : (
-                        <div className="h-full flex flex-col items-center justify-center text-slate-455 dark:text-slate-650 select-none">
-                          <Folder className="opacity-30 mb-2" size={32} />
-                          <p className="text-xs font-bold">Select property to inspect details</p>
+
+                        {/* Banners feed */}
+                        <div className="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
+                          {notifications.length === 0 ? (
+                            <div className="text-center text-[10px] text-slate-400 py-6">All notification alerts cleared!</div>
+                          ) : (
+                            notifications.map(n => (
+                              <div
+                                key={n.id}
+                                className={`p-2.5 rounded-xl border flex items-start gap-2.5 transition-all relative ${n.read
+                                    ? 'bg-slate-50/30 dark:bg-slate-900/10 border-slate-200 dark:border-slate-800 opacity-60'
+                                    : n.type === 'warning'
+                                      ? 'bg-amber-50/30 dark:bg-amber-955/5 border-amber-500/20 text-slate-800 dark:text-slate-300'
+                                      : n.type === 'success'
+                                        ? 'bg-emerald-50/30 dark:bg-emerald-955/5 border-emerald-500/20 text-slate-800 dark:text-slate-300'
+                                        : 'bg-blue-50/30 dark:bg-blue-955/5 border-blue-500/20 text-slate-800 dark:text-slate-300'
+                                  }`}
+                              >
+                                {/* Status dot indicator */}
+                                {!n.read && <span className="size-1.5 rounded-full bg-indigo-500 absolute top-2 right-2 animate-pulse" />}
+
+                                <div className="min-w-0 flex-1">
+                                  <p className={`text-[9.5px] leading-tight ${n.read ? 'font-semibold' : 'font-extrabold'}`}>{n.message}</p>
+                                  <span className="text-[7px] text-slate-400 uppercase font-bold mt-1.5 block leading-none">{n.time}</span>
+                                </div>
+
+                                <div className="flex items-center gap-0.5 shrink-0 ml-1.5">
+                                  {!n.read && (
+                                    <button
+                                      id={`mark-read-${n.id}`}
+                                      onClick={() => handleMarkAsRead(n.id)}
+                                      className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded text-slate-400 hover:text-indigo-500"
+                                      title="Mark Read"
+                                    >
+                                      <Check size={10} />
+                                    </button>
+                                  )}
+                                  <button
+                                    id={`dismiss-${n.id}`}
+                                    onClick={() => handleDismissNotification(n.id)}
+                                    className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded text-slate-400"
+                                    title="Dismiss Alert"
+                                  >
+                                    <X size={10} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))
+                          )}
                         </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Create Inspection Mission (create_task) */}
-                  {w.type === 'create_task' && (
-                    <form onSubmit={handleCreateTaskFromWidget} className="size-full flex flex-col justify-between">
-                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 gap-1.5 select-none">
-                        <span className="text-[10px] font-black text-slate-800 dark:text-white mr-auto flex items-center gap-1">
-                          <Plus size={11} className="text-indigo-500 animate-pulse" /> Create Inspection Mission
-                        </span>
                       </div>
+                    )}
 
-                      <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
-                        <div>
-                          <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Target Property</label>
-                          {propertyResults.length === 0 ? (
-                            <div className="space-y-1.5">
+                    {/* Deep Property Detail Inspector & Hazards Report */}
+                    {w.type === 'property_details' && (
+                      <div className="size-full flex flex-col justify-between">
+                        {selectedProperty ? (
+                          <div className="flex flex-col space-y-3 h-full justify-between overflow-y-auto pr-1 scrollbar-thin">
+                            {/* Rich secondary inspect features */}
+                            <div className="space-y-3 select-none">
+                              {/* FEMA flood hazards report */}
+                              <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-center">
+                                <div>
+                                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">FEMA flood hazard zones</span>
+                                  <span className="text-[10.5px] font-black text-slate-900 dark:text-white mt-1.5 block leading-none">
+                                    {selectedProperty.deal_score && selectedProperty.deal_score > 80 ? 'Zone X (Low-Risk Area)' : 'Zone AE (High flood risk)'}
+                                  </span>
+                                </div>
+                                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase ${selectedProperty.deal_score && selectedProperty.deal_score > 80
+                                    ? 'bg-emerald-100 dark:bg-emerald-955/20 text-emerald-600 dark:text-emerald-400'
+                                    : 'bg-amber-100 dark:bg-amber-955/20 text-amber-600 dark:text-amber-400'
+                                  }`}>
+                                  {selectedProperty.deal_score && selectedProperty.deal_score > 80 ? 'Safe' : 'Alert'}
+                                </span>
+                              </div>
+
+                              {/* Zoning classification */}
+                              <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl">
+                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">Zoning Classification code</span>
+                                <span className="text-[10px] font-extrabold text-slate-805 dark:text-slate-200 mt-1.5 block leading-none">
+                                  {selectedProperty.deal_score && selectedProperty.deal_score > 84 ? 'Single-Family Residential (R-1A)' : 'Multi-Family Dwelling (R-3)'}
+                                </span>
+                              </div>
+
+                              {/* Nearby school rating */}
+                              <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-xl flex justify-between items-center">
+                                <div>
+                                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest block leading-none">Nearby Rated Public Schools</span>
+                                  <span className="text-[10px] font-extrabold text-slate-900 dark:text-slate-200 mt-1.5 block leading-none">K-12 Educational Index Rating</span>
+                                </div>
+                                <span className="text-[11px] font-black text-indigo-500 bg-indigo-500/10 px-2 py-0.5 rounded">
+                                  {selectedProperty.deal_score && selectedProperty.deal_score > 82 ? 'Rated A+' : 'Rated B'}
+                                </span>
+                              </div>
+
+                              {/* Building specs grid */}
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="p-2.5 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl">
+                                  <span className="text-[7.5px] font-bold text-slate-400 block uppercase leading-none">Structure Size</span>
+                                  <span className="text-[10px] font-black text-slate-900 dark:text-white mt-1.5 block leading-none">
+                                    {selectedProperty.sqft ? selectedProperty.sqft.toLocaleString() : '1,950'} SqFt
+                                  </span>
+                                </div>
+                                <div className="p-2.5 bg-white dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl">
+                                  <span className="text-[7.5px] font-bold text-slate-400 block uppercase leading-none">Year Constructed</span>
+                                  <span className="text-[10px] font-black text-slate-900 dark:text-white mt-1.5 block leading-none">
+                                    {selectedProperty.year_built || '1995'} (Modern build)
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Trigger request inspection button */}
+                            <button
+                              id="request-inspection-btn"
+                              onClick={handleRequestFieldInspection}
+                              className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1 active:scale-[0.97] shrink-0 mt-3"
+                            >
+                              <Gavel size={11} /> Request Field Inspection task
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="h-full flex flex-col items-center justify-center text-slate-455 dark:text-slate-650 select-none">
+                            <Folder className="opacity-30 mb-2" size={32} />
+                            <p className="text-xs font-bold">Select property to inspect details</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Create Inspection Mission (create_task) */}
+                    {w.type === 'create_task' && (
+                      <form onSubmit={handleCreateTaskFromWidget} className="size-full flex flex-col justify-between">
+                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 gap-1.5 select-none">
+                          <span className="text-[10px] font-black text-slate-800 dark:text-white mr-auto flex items-center gap-1">
+                            <Plus size={11} className="text-indigo-500 animate-pulse" /> Create Inspection Mission
+                          </span>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
+                          <div>
+                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Target Property</label>
+                            {propertyResults.length === 0 ? (
+                              <div className="space-y-1.5">
+                                <select
+                                  value={newTaskPropId}
+                                  onChange={(e) => setNewTaskPropId(e.target.value ? Number(e.target.value) : '')}
+                                  className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                                  required
+                                >
+                                  <option value="">No properties searched yet...</option>
+                                  <option value="1">Fallback Mock Property (124 Brickell Ave, Miami FL)</option>
+                                </select>
+                                <p className="text-[7.5px] text-amber-500 font-semibold">⚠️ Tip: Search properties in the "Property Search" widget to select them here!</p>
+                              </div>
+                            ) : (
                               <select
                                 value={newTaskPropId}
                                 onChange={(e) => setNewTaskPropId(e.target.value ? Number(e.target.value) : '')}
                                 className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
                                 required
                               >
-                                <option value="">No properties searched yet...</option>
-                                <option value="1">Fallback Mock Property (124 Brickell Ave, Miami FL)</option>
+                                <option value="">Select a property from search...</option>
+                                {propertyResults.map(p => (
+                                  <option key={p.id} value={p.id}>
+                                    {p.address} ({p.county || 'FL'})
+                                  </option>
+                                ))}
                               </select>
-                              <p className="text-[7.5px] text-amber-500 font-semibold">⚠️ Tip: Search properties in the "Property Search" widget to select them here!</p>
-                            </div>
-                          ) : (
-                            <select
-                              value={newTaskPropId}
-                              onChange={(e) => setNewTaskPropId(e.target.value ? Number(e.target.value) : '')}
-                              className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                              required
-                            >
-                              <option value="">Select a property from search...</option>
-                              {propertyResults.map(p => (
-                                <option key={p.id} value={p.id}>
-                                  {p.address} ({p.county || 'FL'})
-                                </option>
-                              ))}
-                            </select>
-                          )}
-                        </div>
-
-                        <div>
-                          <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Mission Title</label>
-                          <input
-                            type="text"
-                            value={newTaskTitle}
-                            onChange={(e) => setNewTaskTitle(e.target.value)}
-                            placeholder="e.g. Inspect Roof Leak & Fence Integrity"
-                            className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                            required
-                          />
-                        </div>
-
-                        <div>
-                          <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Detailed Instructions</label>
-                          <textarea
-                            value={newTaskDesc}
-                            onChange={(e) => setNewTaskDesc(e.target.value)}
-                            placeholder="Provide details on what the field realtor/agent needs to inspect. Specify evidence requirements..."
-                            className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none h-16 resize-none"
-                            required
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Mission Type</label>
-                            <select
-                              value={newTaskType}
-                              onChange={(e) => setNewTaskType(e.target.value)}
-                              className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                            >
-                              <option value="field_inspection">Field Inspection</option>
-                              <option value="boundary_survey">Boundary Survey</option>
-                              <option value="foreclosure_notice">Foreclosure Check</option>
-                              <option value="occupancy_verify">Occupancy Verification</option>
-                            </select>
-                          </div>
-
-                          <div>
-                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Reward Points</label>
-                            <select
-                              value={newTaskPoints}
-                              onChange={(e) => setNewTaskPoints(Number(e.target.value))}
-                              className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                            >
-                              <option value={100}>100 Points</option>
-                              <option value={250}>250 Points</option>
-                              <option value={500}>500 Points</option>
-                              <option value={1000}>1,000 Points</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Min Photos</label>
-                            <input
-                              type="number"
-                              min={1}
-                              max={newTaskMaxPhotos}
-                              value={newTaskMinPhotos}
-                              onChange={(e) => setNewTaskMinPhotos(Number(e.target.value))}
-                              className="w-full px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                              required
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Max Photos</label>
-                            <input
-                              type="number"
-                              min={newTaskMinPhotos}
-                              max={20}
-                              value={newTaskMaxPhotos}
-                              onChange={(e) => setNewTaskMaxPhotos(Number(e.target.value))}
-                              className="w-full px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        type="submit"
-                        disabled={taskCreating}
-                        className="w-full py-2 mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1 active:scale-[0.97] shrink-0 disabled:opacity-50"
-                      >
-                        {taskCreating ? (
-                          <>
-                            <RefreshCw className="animate-spin text-white" size={11} /> Launching Mission...
-                          </>
-                        ) : (
-                          <>
-                            <Plus size={11} /> Dispatch Mission Task
-                          </>
-                        )}
-                      </button>
-                    </form>
-                  )}
-
-                  {/* Support Hub (support_center) */}
-                  {w.type === 'support_center' && (
-                    <div className="size-full flex flex-col justify-between">
-                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 justify-between items-center select-none">
-                        <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
-                          <HelpCircle size={11} className="text-indigo-500" /> Support Hub
-                        </span>
-                        <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-[8px] font-bold">
-                          <button
-                            type="button"
-                            onClick={() => setSupportWidgetTab('new')}
-                            className={`px-2 py-0.5 rounded-md transition-all ${
-                              supportWidgetTab === 'new'
-                                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
-                            }`}
-                          >
-                            New Request
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setSupportWidgetTab('history')}
-                            className={`px-2 py-0.5 rounded-md transition-all ${
-                              supportWidgetTab === 'history'
-                                ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
-                            }`}
-                          >
-                            My Tickets ({supportTickets.length})
-                          </button>
-                        </div>
-                      </div>
-
-                      {supportWidgetTab === 'new' ? (
-                        <form onSubmit={handleCreateTicketFromWidget} className="flex-1 flex flex-col justify-between min-h-0">
-                          <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
-                            <div>
-                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Subject</label>
-                              <input
-                                type="text"
-                                value={ticketSubject}
-                                onChange={(e) => setTicketSubject(e.target.value)}
-                                placeholder="Briefly describe your support issue..."
-                                className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                                required
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Inquiry Type</label>
-                              <select
-                                value={ticketType}
-                                onChange={(e) => setTicketType(e.target.value)}
-                                className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
-                              >
-                                <option value="general">General Support</option>
-                                <option value="billing">Billing & Subscription</option>
-                                <option value="technical">Technical Glitch / Bug</option>
-                                <option value="api_keys">API Sync Integration</option>
-                              </select>
-                            </div>
-
-                            <div>
-                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Message Details</label>
-                              <textarea
-                                value={ticketMessage}
-                                onChange={(e) => setTicketMessage(e.target.value)}
-                                placeholder="Explain your situation in depth. Include transaction IDs, property details, or errors..."
-                                className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none h-20 resize-none"
-                                required
-                              />
-                            </div>
-                          </div>
-
-                          <button
-                            type="submit"
-                            disabled={ticketSubmitting}
-                            className="w-full py-2 mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1 active:scale-[0.97] shrink-0 disabled:opacity-50"
-                          >
-                            {ticketSubmitting ? (
-                              <>
-                                <RefreshCw className="animate-spin text-white" size={11} /> Sending Ticket...
-                              </>
-                            ) : (
-                              <>
-                                <ArrowRight size={11} /> Send Ticket Request
-                              </>
                             )}
-                          </button>
-                        </form>
-                      ) : (
-                        <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin space-y-2">
-                          {ticketsLoading ? (
-                            <div className="flex justify-center py-10"><RefreshCw className="animate-spin text-indigo-500" size={18} /></div>
-                          ) : supportTickets.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center py-12 text-slate-400 select-none">
-                              <HelpCircle className="opacity-30 mb-2" size={24} />
-                              <p className="text-[10px] font-bold">No active support history</p>
-                              <p className="text-[8px] text-slate-500 mt-1">Submit a new request to get started.</p>
-                            </div>
-                          ) : (
-                            <div className="space-y-2">
-                              {supportTickets.map((t: any) => (
-                                <div key={t.id} className="p-3 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
-                                  <div className="flex items-center justify-between">
-                                    <span className={`text-[7px] font-black px-1.5 py-0.25 rounded uppercase ${
-                                      t.status === 'open' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
-                                      t.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
-                                      'bg-slate-500/10 text-slate-500'
-                                    }`}>
-                                      {t.status || 'open'}
-                                    </span>
-                                    <span className="text-[7px] text-slate-400">{t.created_at ? new Date(t.created_at).toLocaleDateString() : 'Today'}</span>
-                                  </div>
-                                  <p className="text-[10px] font-extrabold text-slate-900 dark:text-white leading-tight">{t.subject}</p>
-                                  <p className="text-[8.5px] text-slate-500 leading-normal">{t.message}</p>
-                                  {t.resolution_notes && (
-                                    <div className="mt-2 p-1.5 bg-emerald-50/30 dark:bg-emerald-955/10 border border-emerald-500/20 rounded-lg">
-                                      <p className="text-[7.5px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Resolution Notes:</p>
-                                      <p className="text-[8px] text-slate-650 dark:text-slate-300 mt-0.5">{t.resolution_notes}</p>
-                                    </div>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Field Operation Coordination Widget (field_coordination) */}
-                  {w.type === 'field_coordination' && (
-                    <div className="size-full flex flex-col justify-between">
-                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 justify-between items-center select-none">
-                        <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
-                          <Users size={11} className="text-cyan-500" /> On-site Agents Telemetry
-                        </span>
-                        <span className="text-[8px] font-mono bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
-                          Live Active
-                        </span>
-                      </div>
-
-                      <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin space-y-4">
-                        {/* Agent Grid Tracker */}
-                        <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
-                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-slate-900 dark:text-slate-200">Agent Alpha</span>
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
-                            </div>
-                            <div>
-                              <p className="text-slate-500 text-[8px]">LOC: Orlando, FL</p>
-                              <p className="text-[#13B8B5] text-[8px] font-bold mt-0.5">GEO-LOCK: SUCCESS</p>
-                            </div>
                           </div>
 
-                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-slate-900 dark:text-slate-200">Agent Beta</span>
-                              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
-                            </div>
-                            <div>
-                              <p className="text-slate-500 text-[8px]">LOC: Houston, TX</p>
-                              <p className="text-[#13B8B5] text-[8px] font-bold mt-0.5">GEO-LOCK: SUCCESS</p>
-                            </div>
-                          </div>
-
-                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-slate-900 dark:text-slate-200">Agent Gamma</span>
-                              <span className="h-1.5 w-1.5 rounded-full bg-[#0D8BFF] animate-pulse" />
-                            </div>
-                            <div>
-                              <p className="text-slate-500 text-[8px]">LOC: Los Angeles, CA</p>
-                              <p className="text-[#0D8BFF] text-[8px] font-bold mt-0.5">IN TRANSIT</p>
-                            </div>
-                          </div>
-
-                          <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-slate-400">Agent Delta</span>
-                              <span className="h-1.5 w-1.5 rounded-full bg-slate-550" />
-                            </div>
-                            <div>
-                              <p className="text-slate-500 text-[8px]">LOC: Philadelphia, PA</p>
-                              <p className="text-slate-500 text-[8px] font-bold mt-0.5">STANDBY</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Pending Inspections queue */}
-                        <div className="pt-3 border-t border-slate-200/50 dark:border-slate-800/80">
-                          <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 font-mono flex items-center justify-between">
-                            <span>Pending Field Inspections</span>
-                            <span className="text-[#13B8B5]">3 Queue</span>
-                          </span>
-
-                          <div className="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-thin">
-                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
-                              <div>
-                                <p className="font-bold text-slate-900 dark:text-slate-200">#FL-440263-AP</p>
-                                <p className="text-slate-500 text-[7px] mt-0.5">Orange County, FL // Drive-by SOP</p>
-                              </div>
-                              <span className="text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Pending</span>
-                            </div>
-
-                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
-                              <div>
-                                <p className="font-bold text-slate-900 dark:text-slate-200">#TX-118490-DE</p>
-                                <p className="text-slate-500 text-[7px] mt-0.5">Harris County, TX // Photos required</p>
-                              </div>
-                              <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Scheduled</span>
-                            </div>
-
-                            <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
-                              <div>
-                                <p className="font-bold text-slate-900 dark:text-slate-200">#CA-889312-LA</p>
-                                <p className="text-slate-500 text-[7px] mt-0.5">Los Angeles, CA // Occupancy check</p>
-                              </div>
-                              <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Scheduled</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Real Estate Acquisition Pipelines (acquisition_pipeline) */}
-                  {w.type === 'acquisition_pipeline' && (
-                    <div className="size-full flex flex-col justify-between">
-                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 justify-between items-center select-none">
-                        <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
-                          <Layers size={11} className="text-indigo-500" /> Operational Workflow Pipeline
-                        </span>
-                        <span className="text-[8px] font-mono bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
-                          Active Map
-                        </span>
-                      </div>
-
-                      <div className="flex-1 flex flex-col justify-center">
-                        {/* Pipeline flowchart */}
-                        <div className="flex items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200/40 dark:border-slate-800 relative overflow-hidden">
-                          
-                          {/* Connecting pipeline line */}
-                          <div className="absolute top-1/2 left-8 right-8 h-[1.5px] bg-gradient-to-r from-[#0D8BFF]/40 via-[#13B8B5]/40 to-emerald-500/40 -translate-y-1/2 hidden sm:block" />
-
-                          {/* Node 1 */}
-                          <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
-                            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-md group hover:border-[#0D8BFF]/50 transition-colors">
-                              <Database className="text-slate-400 group-hover:text-[#0D8BFF] transition-colors" size={14} />
-                            </div>
-                            <div className="text-center font-mono">
-                              <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Data Intake</p>
-                              <span className="text-[6px] text-slate-400 uppercase font-bold">100% Sync</span>
-                            </div>
-                          </div>
-
-                          <ArrowRight className="text-slate-400 shrink-0 hidden sm:block" size={10} />
-
-                          {/* Node 2 */}
-                          <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
-                            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-md group hover:border-[#13B8B5]/50 transition-colors">
-                              <Search className="text-slate-400 group-hover:text-[#13B8B5] transition-colors" size={14} />
-                            </div>
-                            <div className="text-center font-mono">
-                              <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Due Diligence</p>
-                              <span className="text-[6px] text-[#13B8B5] uppercase font-bold animate-pulse">Running</span>
-                            </div>
-                          </div>
-
-                          <ArrowRight className="text-slate-400 shrink-0 hidden sm:block" size={10} />
-
-                          {/* Node 3 */}
-                          <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
-                            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-md group hover:border-[#0D8BFF]/50 transition-colors">
-                              <Activity className="text-slate-400 group-hover:text-[#0D8BFF] transition-colors" size={14} />
-                            </div>
-                            <div className="text-center font-mono">
-                              <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Bid Strategy</p>
-                              <span className="text-[6px] text-slate-450 uppercase font-bold">Ready</span>
-                            </div>
-                          </div>
-
-                          <ArrowRight className="text-slate-400 shrink-0 hidden sm:block" size={10} />
-
-                          {/* Node 4 */}
-                          <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
-                            <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-[#10B981]/50 flex items-center justify-center shadow-md relative group">
-                              <div className="absolute inset-0 bg-[#10B981]/10 blur-xs rounded-xl" />
-                              <Award className="text-[#10B981] relative z-10" size={14} />
-                            </div>
-                            <div className="text-center font-mono">
-                              <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Acquisition</p>
-                              <span className="text-[6px] text-[#10B981] uppercase font-bold">Target Locked</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-
-                  {/* Deal Flow Node Engine (node_canvas) */}
-                  {w.type === 'node_canvas' && (
-                    <div className="size-full flex flex-col justify-between">
-                      <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2 shrink-0 justify-between items-center select-none">
-                        <div className="flex flex-col gap-0.5">
-                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
-                            <Layers size={11} className="text-violet-500" /> Node-based Canvas with Auto Layout and Edge Connections
-                          </span>
-                          <span className="text-[8px] text-slate-500 dark:text-slate-400 font-medium pl-4">
-                            Organize your dashboards with connectable widgets and smart Auto Layout.
-                          </span>
-                        </div>
-                        <button
-                          onClick={handleAutoLayoutDealFlow}
-                          className="px-2 py-1 bg-violet-600/10 hover:bg-violet-600/20 text-violet-600 dark:text-violet-400 border border-violet-500/20 text-[8px] font-black uppercase tracking-wider rounded-lg transition-all active:scale-95"
-                          title="Snap nodes back to perfect alignment"
-                        >
-                          Auto Layout
-                        </button>
-                      </div>
-
-                      {/* SVG Mini Workspace */}
-                      <div className="flex-1 min-h-0 relative bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 rounded-xl overflow-hidden select-none">
-                        <svg
-                          className="absolute inset-0 size-full"
-                          onMouseMove={handleSvgMouseMove}
-                          onMouseUp={() => setDraggingNodeId(null)}
-                          onMouseLeave={() => setDraggingNodeId(null)}
-                        >
-                          <defs>
-                            <linearGradient id="activeGlowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.8" />
-                              <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
-                            </linearGradient>
-                            <linearGradient id="completedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                              <stop offset="0%" stopColor="#10B981" stopOpacity="0.8" />
-                              <stop offset="100%" stopColor="#059669" stopOpacity="0.8" />
-                            </linearGradient>
-                          </defs>
-
-                          {/* Connections */}
-                          {nodeConnections.map((conn, idx) => {
-                            const fromNode = dealFlowNodes.find(n => n.id === conn.from);
-                            const toNode = dealFlowNodes.find(n => n.id === conn.to);
-                            if (!fromNode || !toNode) return null;
-                            
-                            const isActive = toNode.status !== 'pending' && fromNode.status !== 'pending';
-                            const isCompleted = toNode.status === 'completed' && fromNode.status === 'completed';
-                            
-                            return (
-                              <g key={`path-${conn.from}-${conn.to}-${idx}`}>
-                                <path
-                                  d={drawBezier(fromNode, toNode)}
-                                  stroke={isCompleted ? 'url(#completedGrad)' : isActive ? 'url(#activeGlowGrad)' : '#94A3B8'}
-                                  strokeWidth={isActive ? 2.5 : 1.5}
-                                  fill="none"
-                                  strokeDasharray={isActive && !isCompleted ? '5,5' : 'none'}
-                                  className={isActive && !isCompleted ? 'animate-pulse' : ''}
-                                  opacity={toNode.status === 'pending' ? 0.4 : 1}
-                                />
-                              </g>
-                            );
-                          })}
-
-                          {/* Nodes rendered as SVG foreignObjects for rich HTML rendering */}
-                          {dealFlowNodes.map(n => {
-                            const isDragging = draggingNodeId === n.id;
-                            const isSelectedSource = nodeConnectSourceId === n.id;
-                            
-                            const borderClass =
-                              isSelectedSource ? 'border-indigo-650 ring-4 ring-indigo-500/40 bg-indigo-50/60 dark:bg-indigo-955/20 text-indigo-700 dark:text-indigo-400 font-extrabold animate-pulse' :
-                              n.status === 'completed' ? 'border-emerald-500/80 bg-emerald-50/50 dark:bg-emerald-955/20 text-emerald-700 dark:text-emerald-450' :
-                              n.status === 'active' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-955/20 text-blue-700 dark:text-blue-400 ring-2 ring-blue-500/20' :
-                              'border-slate-350 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400';
-
-                            return (
-                              <foreignObject
-                                key={n.id}
-                                x={n.x - 60}
-                                y={n.y - 22}
-                                width={120}
-                                height={44}
-                                className="overflow-visible"
-                              >
-                                <div
-                                  onMouseDown={(e) => {
-                                    if (nodeCanvasTool === 'select') {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                      setDraggingNodeId(n.id);
-                                    }
-                                  }}
-                                  onClick={() => {
-                                    if (nodeCanvasTool === 'connect') {
-                                      if (!nodeConnectSourceId) {
-                                        setNodeConnectSourceId(n.id);
-                                        logConsoleActivity(`Connection source set: "${n.label}". Click another node to connect.`);
-                                      } else {
-                                        if (nodeConnectSourceId !== n.id) {
-                                          const exists = nodeConnections.some(c => c.from === nodeConnectSourceId && c.to === n.id);
-                                          if (!exists) {
-                                            setNodeConnections(prev => [...prev, { from: nodeConnectSourceId!, to: n.id }]);
-                                            logConsoleActivity(`Connected node "${dealFlowNodes.find(x => x.id === nodeConnectSourceId)?.label}" to "${n.label}".`);
-                                          }
-                                          setNodeConnectSourceId(null);
-                                          setNodeCanvasTool('select');
-                                        }
-                                      }
-                                    } else {
-                                      handleNodeClick(n.id);
-                                    }
-                                  }}
-                                  className={`px-2 py-1 border rounded-xl flex flex-col items-center justify-center cursor-grab active:cursor-grabbing text-center shadow-md select-none transition-all duration-75 hover:scale-102 ${borderClass} ${isDragging ? 'shadow-lg scale-105 opacity-90 ring-4 ring-indigo-500/20' : ''}`}
-                                  style={{ height: '40px' }}
-                                >
-                                  <span className="text-[9px] font-black tracking-tight leading-tight truncate w-full">{n.label}</span>
-                                  <span className="text-[6.5px] font-black uppercase tracking-widest leading-none mt-0.5 opacity-80">
-                                    {n.status}
-                                  </span>
-                                </div>
-                              </foreignObject>
-                            );
-                          })}
-                        </svg>
-
-                        {/* Floating Tool Palette */}
-                        <div className="absolute top-2 left-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-1.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 shadow-lg flex items-center gap-1.5 z-10 select-none">
-                          <button
-                            onClick={() => {
-                              setNodeCanvasTool('select');
-                              setNodeConnectSourceId(null);
-                            }}
-                            className={`p-1 rounded transition-all flex items-center gap-1 ${
-                              nodeCanvasTool === 'select'
-                                ? 'bg-indigo-600 text-white font-bold shadow-sm'
-                                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                            title="Select / Move Node"
-                          >
-                            <MousePointer size={11} />
-                            <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Select</span>
-                          </button>
-                          
-                          <button
-                            onClick={() => {
-                              setNodeCanvasTool('connect');
-                              setNodeConnectSourceId(null);
-                            }}
-                            className={`p-1 rounded transition-all flex items-center gap-1 ${
-                              nodeCanvasTool === 'connect'
-                                ? 'bg-indigo-600 text-white font-bold shadow-sm animate-pulse'
-                                : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                            }`}
-                            title="Connect Nodes (Draw Arrow)"
-                          >
-                            <TrendingUp size={11} />
-                            <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Connect</span>
-                          </button>
-
-                          <div className="w-[1px] h-3.5 bg-slate-200 dark:bg-slate-800" />
-
-                          <button
-                            onClick={() => {
-                              const pool = ['GIS Audit', 'Escrow Close', 'Tax Record', 'Title Search', 'Deed Audit', 'Final Review', 'Legal Int.', 'Bid Strategy'];
-                              const randomLabel = pool[Math.floor(Math.random() * pool.length)];
-                              const nextId = String(dealFlowNodes.length + 1);
-                              const randomX = Math.round(50 + Math.random() * 250);
-                              const randomY = Math.round(50 + Math.random() * 250);
-                              
-                              setDealFlowNodes(prev => [
-                                ...prev,
-                                { id: nextId, label: `${randomLabel} (${nextId})`, status: 'pending', x: randomX, y: randomY }
-                              ]);
-                              logConsoleActivity(`Spawned custom pipeline node: "${randomLabel} (${nextId})"`);
-                            }}
-                            className="p-1 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-855 transition-all flex items-center gap-1"
-                            title="Add Custom Node"
-                          >
-                            <Plus size={11} />
-                            <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Add Node</span>
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              setNodeConnections([]);
-                              logConsoleActivity('Cleared all pipeline node connections.');
-                            }}
-                            className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 transition-all flex items-center gap-1"
-                            title="Clear Connections"
-                          >
-                            <Trash2 size={11} />
-                            <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Clear</span>
-                          </button>
-                        </div>
-
-                        {/* Interactive Drag & Change Instruction Overlay */}
-                        <div className="absolute bottom-2 left-2 right-2 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md p-1.5 rounded-lg border border-slate-200 dark:border-slate-800/85 text-[7px] font-black text-slate-500 text-center pointer-events-none uppercase tracking-widest leading-none">
-                          {nodeCanvasTool === 'connect'
-                            ? '↗️ Click source node, then click target node to connect'
-                            : '🖱️ Drag nodes to rearrange · Click nodes to cycle status · Switch to Connect tool to draw lines'}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Rehab & ROI Calculator (rehab_calc) */}
-                  {w.type === 'rehab_calc' && (
-                    <div className="size-full overflow-auto">
-                      <RehabCalcWidget />
-                    </div>
-                  )}
-
-                  {/* Property Compare Matrix (property_comparator) */}
-                  {w.type === 'property_comparator' && (() => {
-                    const props = [compareProp1, compareProp2, compareProp3].filter(Boolean) as any[];
-                    
-                    // Determine Top Pick based on yield_score or max capitalization
-                    let topPickId = '';
-                    if (props.length > 0) {
-                      let maxScore = -1;
-                      props.forEach(p => {
-                        const score = p.yield_score || 0;
-                        if (score > maxScore) {
-                          maxScore = score;
-                          topPickId = p.id as any;
-                        }
-                      });
-                    }
-
-                    return (
-                      <div className="size-full flex flex-col justify-between">
-                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2 shrink-0 justify-between items-center select-none">
-                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
-                            <LayoutGrid size={11} className="text-indigo-500" /> Real Estate Compare Matrix
-                          </span>
-                        </div>
-
-                        {/* Comparative Matrix Table */}
-                        <div className="flex-1 overflow-x-auto overflow-y-auto pr-1 space-y-3 min-h-0 scrollbar-thin text-[9.5px]">
-                          {props.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-400 select-none py-10">
-                              <LayoutGrid size={24} className="opacity-30 mb-2" />
-                              <p className="text-[10px] font-bold">No active properties compared</p>
-                              <p className="text-[8px] text-slate-500 mt-0.5 text-center">Add properties to watchlists or search to load details.</p>
-                            </div>
-                          ) : (
-                            <table className="w-full text-left border-collapse select-text">
-                              <thead>
-                                <tr className="border-b border-slate-200 dark:border-slate-800 text-[8px] uppercase tracking-wider text-slate-400">
-                                  <th className="py-2 pr-2 font-bold w-1/4">Metric</th>
-                                  {props.map((p, idx) => (
-                                    <th key={p.id || idx} className="py-2 px-2 font-bold text-center w-1/4 truncate max-w-[80px]">
-                                      {p.address ? p.address.split(',')[0] : `Prop ${idx+1}`}
-                                    </th>
-                                  ))}
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
-                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Top Pick</td>
-                                  {props.map((p, idx) => (
-                                    <td key={p.id || idx} className="py-2 px-2 text-center">
-                                      {(p.id as any) === topPickId ? (
-                                        <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
-                                          🏆 Top Pick
-                                        </span>
-                                      ) : (
-                                        <span className="text-slate-400 dark:text-slate-600">—</span>
-                                      )}
-                                    </td>
-                                  ))}
-                                </tr>
-                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
-                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">County</td>
-                                  {props.map((p, idx) => (
-                                    <td key={p.id || idx} className="py-2 px-2 text-center text-slate-600 dark:text-slate-400 font-bold truncate max-w-[80px]">
-                                      {p.county || 'N/A'}
-                                    </td>
-                                  ))}
-                                </tr>
-                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
-                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Yield Score</td>
-                                  {props.map((p, idx) => (
-                                    <td key={p.id || idx} className="py-2 px-2 text-center font-extrabold text-indigo-500">
-                                      {p.yield_score ? `${p.yield_score.toFixed(1)}/100` : 'N/A'}
-                                    </td>
-                                  ))}
-                                </tr>
-                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
-                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Opening Bid</td>
-                                  {props.map((p, idx) => (
-                                    <td key={p.id || idx} className="py-2 px-2 text-center text-slate-900 dark:text-white font-extrabold">
-                                      {p.opening_bid ? `$${p.opening_bid.toLocaleString()}` : 'N/A'}
-                                    </td>
-                                  ))}
-                                </tr>
-                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
-                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Assessed Value</td>
-                                  {props.map((p, idx) => (
-                                    <td key={p.id || idx} className="py-2 px-2 text-center text-slate-600 dark:text-slate-400 font-bold">
-                                      {p.assessed_value ? `$${p.assessed_value.toLocaleString()}` : 'N/A'}
-                                    </td>
-                                  ))}
-                                </tr>
-                                <tr className="border-b border-slate-100 dark:border-slate-800/50">
-                                  <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Property Type</td>
-                                  {props.map((p, idx) => (
-                                    <td key={p.id || idx} className="py-2 px-2 text-center text-slate-500 capitalize">
-                                      {p.use_code || 'Residential'}
-                                    </td>
-                                  ))}
-                                </tr>
-                              </tbody>
-                            </table>
-                          )}
-
-                          {/* Quick selectors dropdown if multiple dbTopDeals are loaded */}
-                          {dbTopDeals.length > 0 && (
-                            <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/50 space-y-1.5">
-                              <span className="text-[7.5px] font-black uppercase text-slate-400 tracking-wider">Compare Quick Selectors</span>
-                              <div className="grid grid-cols-3 gap-1">
-                                <select
-                                  value={compareProp1?.id || ''}
-                                  onChange={(e) => setCompareProp1(dbTopDeals.find(p => p.id === e.target.value) || null)}
-                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
-                                >
-                                  <option value="">Slot 1...</option>
-                                  {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
-                                </select>
-                                <select
-                                  value={compareProp2?.id || ''}
-                                  onChange={(e) => setCompareProp2(dbTopDeals.find(p => p.id === e.target.value) || null)}
-                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
-                                >
-                                  <option value="">Slot 2...</option>
-                                  {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
-                                </select>
-                                <select
-                                  value={compareProp3?.id || ''}
-                                  onChange={(e) => setCompareProp3(dbTopDeals.find(p => p.id === e.target.value) || null)}
-                                  className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
-                                >
-                                  <option value="">Slot 3...</option>
-                                  {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
-                                </select>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-
-                  {/* State & County Contacts Search (contacts_search) */}
-                  {w.type === 'contacts_search' && (() => {
-                    const filteredList = contactsSearchList.filter(item => {
-                      if (!contactsQuery) return true;
-                      const q = contactsQuery.toLowerCase();
-                      return (
-                        (item.name && item.name.toLowerCase().includes(q)) ||
-                        (item.category && item.category.toLowerCase().includes(q)) ||
-                        (item.phone && item.phone.toLowerCase().includes(q))
-                      );
-                    });
-
-                    return (
-                      <div className="size-full flex flex-col justify-between">
-                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2 shrink-0 justify-between items-center select-none">
-                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
-                            <Smartphone size={11} className="text-amber-500" /> County Registrar Directory
-                          </span>
-                        </div>
-
-                        {/* Search & State Filter Input */}
-                        <div className="flex flex-col gap-2 mb-2.5 shrink-0 select-none">
-                          <div className="grid grid-cols-2 gap-1.5">
-                            <div>
-                              <label className="block text-[7.5px] font-black uppercase text-slate-400 mb-0.5">Select State</label>
-                              <select
-                                value={contactsSearchState}
-                                onChange={(e) => setContactsSearchState(e.target.value)}
-                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[9px] focus:outline-none"
-                              >
-                                <option value="FL">Florida</option>
-                                <option value="AL">Alabama</option>
-                                <option value="GA">Georgia</option>
-                                <option value="TX">Texas</option>
-                              </select>
-                            </div>
-                            <div>
-                              <label className="block text-[7.5px] font-black uppercase text-slate-400 mb-0.5">Select County</label>
-                              <select
-                                value={contactsSearchCounty}
-                                onChange={(e) => setContactsSearchCounty(e.target.value)}
-                                className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[9px] focus:outline-none"
-                              >
-                                {contactsCountyList.map(c => <option key={c} value={c}>{c}</option>)}
-                              </select>
-                            </div>
-                          </div>
-
-                          <div className="relative">
+                          <div>
+                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Mission Title</label>
                             <input
                               type="text"
-                              value={contactsQuery}
-                              onChange={(e) => setContactsQuery(e.target.value)}
-                              placeholder="Search appraiser, GIS, collectors..."
-                              className="w-full pl-7 pr-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[9.5px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none"
+                              value={newTaskTitle}
+                              onChange={(e) => setNewTaskTitle(e.target.value)}
+                              placeholder="e.g. Inspect Roof Leak & Fence Integrity"
+                              className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              required
                             />
-                            <Search className="absolute left-2.5 top-2.5 text-slate-400" size={10} />
+                          </div>
+
+                          <div>
+                            <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Detailed Instructions</label>
+                            <textarea
+                              value={newTaskDesc}
+                              onChange={(e) => setNewTaskDesc(e.target.value)}
+                              placeholder="Provide details on what the field realtor/agent needs to inspect. Specify evidence requirements..."
+                              className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none h-16 resize-none"
+                              required
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Mission Type</label>
+                              <select
+                                value={newTaskType}
+                                onChange={(e) => setNewTaskType(e.target.value)}
+                                className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              >
+                                <option value="field_inspection">Field Inspection</option>
+                                <option value="boundary_survey">Boundary Survey</option>
+                                <option value="foreclosure_notice">Foreclosure Check</option>
+                                <option value="occupancy_verify">Occupancy Verification</option>
+                              </select>
+                            </div>
+
+                            <div>
+                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Reward Points</label>
+                              <select
+                                value={newTaskPoints}
+                                onChange={(e) => setNewTaskPoints(Number(e.target.value))}
+                                className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                              >
+                                <option value={100}>100 Points</option>
+                                <option value={250}>250 Points</option>
+                                <option value={500}>500 Points</option>
+                                <option value={1000}>1,000 Points</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Min Photos</label>
+                              <input
+                                type="number"
+                                min={1}
+                                max={newTaskMaxPhotos}
+                                value={newTaskMinPhotos}
+                                onChange={(e) => setNewTaskMinPhotos(Number(e.target.value))}
+                                className="w-full px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                                required
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Max Photos</label>
+                              <input
+                                type="number"
+                                min={newTaskMinPhotos}
+                                max={20}
+                                value={newTaskMaxPhotos}
+                                onChange={(e) => setNewTaskMaxPhotos(Number(e.target.value))}
+                                className="w-full px-2.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                                required
+                              />
+                            </div>
                           </div>
                         </div>
 
-                        {/* Contacts Results Scroll Feed */}
-                        <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0 scrollbar-thin text-[9.5px]">
-                          {filteredList.length === 0 ? (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-400 select-none py-10">
-                              <Smartphone className="opacity-30 mb-1.5" size={20} />
-                              <p className="text-[10px] font-bold">No contacts found</p>
-                              <p className="text-[8px] text-slate-500">Refine query filters or change selection.</p>
-                            </div>
+                        <button
+                          type="submit"
+                          disabled={taskCreating}
+                          className="w-full py-2 mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1 active:scale-[0.97] shrink-0 disabled:opacity-50"
+                        >
+                          {taskCreating ? (
+                            <>
+                              <RefreshCw className="animate-spin text-white" size={11} /> Launching Mission...
+                            </>
                           ) : (
-                            <div className="space-y-1.5">
-                              {filteredList.map((contact, idx) => (
-                                <div key={idx} className="p-2.5 bg-slate-50/50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between gap-3">
-                                  <div className="min-w-0">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-[9px] font-extrabold text-slate-900 dark:text-white truncate max-w-[130px]">{contact.name || 'Official Agency'}</span>
-                                      {contact.category && (
-                                        <span className="bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-[6px] font-black px-1 py-0.25 rounded uppercase leading-none">{contact.category}</span>
-                                      )}
-                                    </div>
-                                    <p className="text-[7.5px] text-slate-455 font-bold mt-0.5">{contact.phone || 'No Phone Directory'}</p>
-                                  </div>
-                                  <div className="flex gap-1 shrink-0">
-                                    {contact.phone && (
-                                      <a
-                                        href={`tel:${contact.phone}`}
-                                        className="size-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg flex items-center justify-center border border-slate-200/50 dark:border-slate-700/50 transition-all"
-                                        title={`Call ${contact.name}`}
-                                      >
-                                        📞
-                                      </a>
-                                    )}
-                                    {contact.url && (
-                                      <a
-                                        href={contact.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[8px] font-extrabold uppercase tracking-wider rounded-lg transition-all flex items-center justify-center shadow-sm"
-                                        title="Open official County portal"
-                                      >
-                                        Visit
-                                      </a>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
+                            <>
+                              <Plus size={11} /> Dispatch Mission Task
+                            </>
                           )}
+                        </button>
+                      </form>
+                    )}
+
+                    {/* Support Hub (support_center) */}
+                    {w.type === 'support_center' && (
+                      <div className="size-full flex flex-col justify-between">
+                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 justify-between items-center select-none">
+                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                            <HelpCircle size={11} className="text-indigo-500" /> Support Hub
+                          </span>
+                          <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-[8px] font-bold">
+                            <button
+                              type="button"
+                              onClick={() => setSupportWidgetTab('new')}
+                              className={`px-2 py-0.5 rounded-md transition-all ${supportWidgetTab === 'new'
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                                }`}
+                            >
+                              New Request
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSupportWidgetTab('history')}
+                              className={`px-2 py-0.5 rounded-md transition-all ${supportWidgetTab === 'history'
+                                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-800'
+                                }`}
+                            >
+                              My Tickets ({supportTickets.length})
+                            </button>
+                          </div>
+                        </div>
+
+                        {supportWidgetTab === 'new' ? (
+                          <form onSubmit={handleCreateTicketFromWidget} className="flex-1 flex flex-col justify-between min-h-0">
+                            <div className="flex-1 overflow-y-auto space-y-3 pr-1 scrollbar-thin">
+                              <div>
+                                <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Subject</label>
+                                <input
+                                  type="text"
+                                  value={ticketSubject}
+                                  onChange={(e) => setTicketSubject(e.target.value)}
+                                  placeholder="Briefly describe your support issue..."
+                                  className="w-full px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                                  required
+                                />
+                              </div>
+
+                              <div>
+                                <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Inquiry Type</label>
+                                <select
+                                  value={ticketType}
+                                  onChange={(e) => setTicketType(e.target.value)}
+                                  className="w-full px-2 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[10px] focus:outline-none"
+                                >
+                                  <option value="general">General Support</option>
+                                  <option value="billing">Billing & Subscription</option>
+                                  <option value="technical">Technical Glitch / Bug</option>
+                                  <option value="api_keys">API Sync Integration</option>
+                                </select>
+                              </div>
+
+                              <div>
+                                <label className="block text-[8px] font-black uppercase text-slate-400 mb-1">Message Details</label>
+                                <textarea
+                                  value={ticketMessage}
+                                  onChange={(e) => setTicketMessage(e.target.value)}
+                                  placeholder="Explain your situation in depth. Include transaction IDs, property details, or errors..."
+                                  className="w-full p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[10px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none h-20 resize-none"
+                                  required
+                                />
+                              </div>
+                            </div>
+
+                            <button
+                              type="submit"
+                              disabled={ticketSubmitting}
+                              className="w-full py-2 mt-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[9px] uppercase tracking-widest rounded-xl transition-all shadow-md flex items-center justify-center gap-1 active:scale-[0.97] shrink-0 disabled:opacity-50"
+                            >
+                              {ticketSubmitting ? (
+                                <>
+                                  <RefreshCw className="animate-spin text-white" size={11} /> Sending Ticket...
+                                </>
+                              ) : (
+                                <>
+                                  <ArrowRight size={11} /> Send Ticket Request
+                                </>
+                              )}
+                            </button>
+                          </form>
+                        ) : (
+                          <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin space-y-2">
+                            {ticketsLoading ? (
+                              <div className="flex justify-center py-10"><RefreshCw className="animate-spin text-indigo-500" size={18} /></div>
+                            ) : supportTickets.length === 0 ? (
+                              <div className="h-full flex flex-col items-center justify-center py-12 text-slate-400 select-none">
+                                <HelpCircle className="opacity-30 mb-2" size={24} />
+                                <p className="text-[10px] font-bold">No active support history</p>
+                                <p className="text-[8px] text-slate-500 mt-1">Submit a new request to get started.</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-2">
+                                {supportTickets.map((t: any) => (
+                                  <div key={t.id} className="p-3 bg-slate-50/50 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-800 rounded-xl space-y-1">
+                                    <div className="flex items-center justify-between">
+                                      <span className={`text-[7px] font-black px-1.5 py-0.25 rounded uppercase ${t.status === 'open' ? 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400' :
+                                          t.status === 'resolved' ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' :
+                                            'bg-slate-500/10 text-slate-500'
+                                        }`}>
+                                        {t.status || 'open'}
+                                      </span>
+                                      <span className="text-[7px] text-slate-400">{t.created_at ? new Date(t.created_at).toLocaleDateString() : 'Today'}</span>
+                                    </div>
+                                    <p className="text-[10px] font-extrabold text-slate-900 dark:text-white leading-tight">{t.subject}</p>
+                                    <p className="text-[8.5px] text-slate-500 leading-normal">{t.message}</p>
+                                    {t.resolution_notes && (
+                                      <div className="mt-2 p-1.5 bg-emerald-50/30 dark:bg-emerald-955/10 border border-emerald-500/20 rounded-lg">
+                                        <p className="text-[7.5px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">Resolution Notes:</p>
+                                        <p className="text-[8px] text-slate-650 dark:text-slate-300 mt-0.5">{t.resolution_notes}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Field Operation Coordination Widget (field_coordination) */}
+                    {w.type === 'field_coordination' && (
+                      <div className="size-full flex flex-col justify-between">
+                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 justify-between items-center select-none">
+                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                            <Users size={11} className="text-cyan-500" /> On-site Agents Telemetry
+                          </span>
+                          <span className="text-[8px] font-mono bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                            Live Active
+                          </span>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin space-y-4">
+                          {/* Agent Grid Tracker */}
+                          <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
+                            <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-900 dark:text-slate-200">Agent Alpha</span>
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                              </div>
+                              <div>
+                                <p className="text-slate-500 text-[8px]">LOC: Orlando, FL</p>
+                                <p className="text-[#13B8B5] text-[8px] font-bold mt-0.5">GEO-LOCK: SUCCESS</p>
+                              </div>
+                            </div>
+
+                            <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-900 dark:text-slate-200">Agent Beta</span>
+                                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                              </div>
+                              <div>
+                                <p className="text-slate-500 text-[8px]">LOC: Houston, TX</p>
+                                <p className="text-[#13B8B5] text-[8px] font-bold mt-0.5">GEO-LOCK: SUCCESS</p>
+                              </div>
+                            </div>
+
+                            <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-900 dark:text-slate-200">Agent Gamma</span>
+                                <span className="h-1.5 w-1.5 rounded-full bg-[#0D8BFF] animate-pulse" />
+                              </div>
+                              <div>
+                                <p className="text-slate-500 text-[8px]">LOC: Los Angeles, CA</p>
+                                <p className="text-[#0D8BFF] text-[8px] font-bold mt-0.5">IN TRANSIT</p>
+                              </div>
+                            </div>
+
+                            <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-slate-400">Agent Delta</span>
+                                <span className="h-1.5 w-1.5 rounded-full bg-slate-550" />
+                              </div>
+                              <div>
+                                <p className="text-slate-500 text-[8px]">LOC: Philadelphia, PA</p>
+                                <p className="text-slate-500 text-[8px] font-bold mt-0.5">STANDBY</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Pending Inspections queue */}
+                          <div className="pt-3 border-t border-slate-200/50 dark:border-slate-800/80">
+                            <span className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-2 font-mono flex items-center justify-between">
+                              <span>Pending Field Inspections</span>
+                              <span className="text-[#13B8B5]">3 Queue</span>
+                            </span>
+
+                            <div className="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-thin">
+                              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
+                                <div>
+                                  <p className="font-bold text-slate-900 dark:text-slate-200">#FL-440263-AP</p>
+                                  <p className="text-slate-500 text-[7px] mt-0.5">Orange County, FL // Drive-by SOP</p>
+                                </div>
+                                <span className="text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Pending</span>
+                              </div>
+
+                              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
+                                <div>
+                                  <p className="font-bold text-slate-900 dark:text-slate-200">#TX-118490-DE</p>
+                                  <p className="text-slate-500 text-[7px] mt-0.5">Harris County, TX // Photos required</p>
+                                </div>
+                                <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Scheduled</span>
+                              </div>
+
+                              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
+                                <div>
+                                  <p className="font-bold text-slate-900 dark:text-slate-200">#CA-889312-LA</p>
+                                  <p className="text-slate-500 text-[7px] mt-0.5">Los Angeles, CA // Occupancy check</p>
+                                </div>
+                                <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Scheduled</span>
+                              </div>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    );
-                  })()}
+                    )}
 
+                    {/* Real Estate Acquisition Pipelines (acquisition_pipeline) */}
+                    {w.type === 'acquisition_pipeline' && (
+                      <div className="size-full flex flex-col justify-between">
+                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-3 shrink-0 justify-between items-center select-none">
+                          <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                            <Layers size={11} className="text-indigo-500" /> Operational Workflow Pipeline
+                          </span>
+                          <span className="text-[8px] font-mono bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wider">
+                            Active Map
+                          </span>
+                        </div>
+
+                        <div className="flex-1 flex flex-col justify-center">
+                          {/* Pipeline flowchart */}
+                          <div className="flex items-center justify-between gap-2 p-3 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-slate-200/40 dark:border-slate-800 relative overflow-hidden">
+
+                            {/* Connecting pipeline line */}
+                            <div className="absolute top-1/2 left-8 right-8 h-[1.5px] bg-gradient-to-r from-[#0D8BFF]/40 via-[#13B8B5]/40 to-emerald-500/40 -translate-y-1/2 hidden sm:block" />
+
+                            {/* Node 1 */}
+                            <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
+                              <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-md group hover:border-[#0D8BFF]/50 transition-colors">
+                                <Database className="text-slate-400 group-hover:text-[#0D8BFF] transition-colors" size={14} />
+                              </div>
+                              <div className="text-center font-mono">
+                                <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Data Intake</p>
+                                <span className="text-[6px] text-slate-400 uppercase font-bold">100% Sync</span>
+                              </div>
+                            </div>
+
+                            <ArrowRight className="text-slate-400 shrink-0 hidden sm:block" size={10} />
+
+                            {/* Node 2 */}
+                            <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
+                              <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-md group hover:border-[#13B8B5]/50 transition-colors">
+                                <Search className="text-slate-400 group-hover:text-[#13B8B5] transition-colors" size={14} />
+                              </div>
+                              <div className="text-center font-mono">
+                                <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Due Diligence</p>
+                                <span className="text-[6px] text-[#13B8B5] uppercase font-bold animate-pulse">Running</span>
+                              </div>
+                            </div>
+
+                            <ArrowRight className="text-slate-400 shrink-0 hidden sm:block" size={10} />
+
+                            {/* Node 3 */}
+                            <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
+                              <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-md group hover:border-[#0D8BFF]/50 transition-colors">
+                                <Activity className="text-slate-400 group-hover:text-[#0D8BFF] transition-colors" size={14} />
+                              </div>
+                              <div className="text-center font-mono">
+                                <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Bid Strategy</p>
+                                <span className="text-[6px] text-slate-450 uppercase font-bold">Ready</span>
+                              </div>
+                            </div>
+
+                            <ArrowRight className="text-slate-400 shrink-0 hidden sm:block" size={10} />
+
+                            {/* Node 4 */}
+                            <div className="flex flex-col items-center gap-1 relative z-10 w-full sm:w-auto">
+                              <div className="w-9 h-9 rounded-xl bg-white dark:bg-slate-900 border border-[#10B981]/50 flex items-center justify-center shadow-md relative group">
+                                <div className="absolute inset-0 bg-[#10B981]/10 blur-xs rounded-xl" />
+                                <Award className="text-[#10B981] relative z-10" size={14} />
+                              </div>
+                              <div className="text-center font-mono">
+                                <p className="text-[7.5px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-wider">Acquisition</p>
+                                <span className="text-[6px] text-[#10B981] uppercase font-bold">Target Locked</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+
+                    {/* Deal Flow Node Engine (node_canvas) */}
+                    {w.type === 'node_canvas' && (
+                      <div className="size-full flex flex-col justify-between">
+                        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2 shrink-0 justify-between items-center select-none">
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                              <Layers size={11} className="text-violet-500" /> Node-based Canvas with Auto Layout and Edge Connections
+                            </span>
+                            <span className="text-[8px] text-slate-500 dark:text-slate-400 font-medium pl-4">
+                              Organize your dashboards with connectable widgets and smart Auto Layout.
+                            </span>
+                          </div>
+                          <button
+                            onClick={handleAutoLayoutDealFlow}
+                            className="px-2 py-1 bg-violet-600/10 hover:bg-violet-600/20 text-violet-600 dark:text-violet-400 border border-violet-500/20 text-[8px] font-black uppercase tracking-wider rounded-lg transition-all active:scale-95"
+                            title="Snap nodes back to perfect alignment"
+                          >
+                            Auto Layout
+                          </button>
+                        </div>
+
+                        {/* SVG Mini Workspace */}
+                        <div className="flex-1 min-h-0 relative bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 rounded-xl overflow-hidden select-none">
+                          <svg
+                            className="absolute inset-0 size-full"
+                            onMouseMove={handleSvgMouseMove}
+                            onMouseUp={() => setDraggingNodeId(null)}
+                            onMouseLeave={() => setDraggingNodeId(null)}
+                          >
+                            <defs>
+                              <linearGradient id="activeGlowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.8" />
+                                <stop offset="100%" stopColor="#8B5CF6" stopOpacity="0.8" />
+                              </linearGradient>
+                              <linearGradient id="completedGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#10B981" stopOpacity="0.8" />
+                                <stop offset="100%" stopColor="#059669" stopOpacity="0.8" />
+                              </linearGradient>
+                            </defs>
+
+                            {/* Connections */}
+                            {nodeConnections.map((conn, idx) => {
+                              const fromNode = dealFlowNodes.find(n => n.id === conn.from);
+                              const toNode = dealFlowNodes.find(n => n.id === conn.to);
+                              if (!fromNode || !toNode) return null;
+
+                              const isActive = toNode.status !== 'pending' && fromNode.status !== 'pending';
+                              const isCompleted = toNode.status === 'completed' && fromNode.status === 'completed';
+
+                              return (
+                                <g key={`path-${conn.from}-${conn.to}-${idx}`}>
+                                  <path
+                                    d={drawBezier(fromNode, toNode)}
+                                    stroke={isCompleted ? 'url(#completedGrad)' : isActive ? 'url(#activeGlowGrad)' : '#94A3B8'}
+                                    strokeWidth={isActive ? 2.5 : 1.5}
+                                    fill="none"
+                                    strokeDasharray={isActive && !isCompleted ? '5,5' : 'none'}
+                                    className={isActive && !isCompleted ? 'animate-pulse' : ''}
+                                    opacity={toNode.status === 'pending' ? 0.4 : 1}
+                                  />
+                                </g>
+                              );
+                            })}
+
+                            {/* Nodes rendered as SVG foreignObjects for rich HTML rendering */}
+                            {dealFlowNodes.map(n => {
+                              const isDragging = draggingNodeId === n.id;
+                              const isSelectedSource = nodeConnectSourceId === n.id;
+
+                              const borderClass =
+                                isSelectedSource ? 'border-indigo-650 ring-4 ring-indigo-500/40 bg-indigo-50/60 dark:bg-indigo-955/20 text-indigo-700 dark:text-indigo-400 font-extrabold animate-pulse' :
+                                  n.status === 'completed' ? 'border-emerald-500/80 bg-emerald-50/50 dark:bg-emerald-955/20 text-emerald-700 dark:text-emerald-450' :
+                                    n.status === 'active' ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-955/20 text-blue-700 dark:text-blue-400 ring-2 ring-blue-500/20' :
+                                      'border-slate-350 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400';
+
+                              return (
+                                <foreignObject
+                                  key={n.id}
+                                  x={n.x - 60}
+                                  y={n.y - 22}
+                                  width={120}
+                                  height={44}
+                                  className="overflow-visible"
+                                >
+                                  <div
+                                    onMouseDown={(e) => {
+                                      if (nodeCanvasTool === 'select') {
+                                        e.stopPropagation();
+                                        e.preventDefault();
+                                        setDraggingNodeId(n.id);
+                                      }
+                                    }}
+                                    onClick={() => {
+                                      if (nodeCanvasTool === 'connect') {
+                                        if (!nodeConnectSourceId) {
+                                          setNodeConnectSourceId(n.id);
+                                          logConsoleActivity(`Connection source set: "${n.label}". Click another node to connect.`);
+                                        } else {
+                                          if (nodeConnectSourceId !== n.id) {
+                                            const exists = nodeConnections.some(c => c.from === nodeConnectSourceId && c.to === n.id);
+                                            if (!exists) {
+                                              setNodeConnections(prev => [...prev, { from: nodeConnectSourceId!, to: n.id }]);
+                                              logConsoleActivity(`Connected node "${dealFlowNodes.find(x => x.id === nodeConnectSourceId)?.label}" to "${n.label}".`);
+                                            }
+                                            setNodeConnectSourceId(null);
+                                            setNodeCanvasTool('select');
+                                          }
+                                        }
+                                      } else {
+                                        handleNodeClick(n.id);
+                                      }
+                                    }}
+                                    className={`px-2 py-1 border rounded-xl flex flex-col items-center justify-center cursor-grab active:cursor-grabbing text-center shadow-md select-none transition-all duration-75 hover:scale-102 ${borderClass} ${isDragging ? 'shadow-lg scale-105 opacity-90 ring-4 ring-indigo-500/20' : ''}`}
+                                    style={{ height: '40px' }}
+                                  >
+                                    <span className="text-[9px] font-black tracking-tight leading-tight truncate w-full">{n.label}</span>
+                                    <span className="text-[6.5px] font-black uppercase tracking-widest leading-none mt-0.5 opacity-80">
+                                      {n.status}
+                                    </span>
+                                  </div>
+                                </foreignObject>
+                              );
+                            })}
+                          </svg>
+
+                          {/* Floating Tool Palette */}
+                          <div className="absolute top-2 left-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-1.5 py-1 rounded-lg border border-slate-200 dark:border-slate-800 shadow-lg flex items-center gap-1.5 z-10 select-none">
+                            <button
+                              onClick={() => {
+                                setNodeCanvasTool('select');
+                                setNodeConnectSourceId(null);
+                              }}
+                              className={`p-1 rounded transition-all flex items-center gap-1 ${nodeCanvasTool === 'select'
+                                  ? 'bg-indigo-600 text-white font-bold shadow-sm'
+                                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                }`}
+                              title="Select / Move Node"
+                            >
+                              <MousePointer size={11} />
+                              <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Select</span>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setNodeCanvasTool('connect');
+                                setNodeConnectSourceId(null);
+                              }}
+                              className={`p-1 rounded transition-all flex items-center gap-1 ${nodeCanvasTool === 'connect'
+                                  ? 'bg-indigo-600 text-white font-bold shadow-sm animate-pulse'
+                                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                                }`}
+                              title="Connect Nodes (Draw Arrow)"
+                            >
+                              <TrendingUp size={11} />
+                              <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Connect</span>
+                            </button>
+
+                            <div className="w-[1px] h-3.5 bg-slate-200 dark:bg-slate-800" />
+
+                            <button
+                              onClick={() => {
+                                const pool = ['GIS Audit', 'Escrow Close', 'Tax Record', 'Title Search', 'Deed Audit', 'Final Review', 'Legal Int.', 'Bid Strategy'];
+                                const randomLabel = pool[Math.floor(Math.random() * pool.length)];
+                                const nextId = String(dealFlowNodes.length + 1);
+                                const randomX = Math.round(50 + Math.random() * 250);
+                                const randomY = Math.round(50 + Math.random() * 250);
+
+                                setDealFlowNodes(prev => [
+                                  ...prev,
+                                  { id: nextId, label: `${randomLabel} (${nextId})`, status: 'pending', x: randomX, y: randomY }
+                                ]);
+                                logConsoleActivity(`Spawned custom pipeline node: "${randomLabel} (${nextId})"`);
+                              }}
+                              className="p-1 rounded text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-855 transition-all flex items-center gap-1"
+                              title="Add Custom Node"
+                            >
+                              <Plus size={11} />
+                              <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Add Node</span>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                setNodeConnections([]);
+                                logConsoleActivity('Cleared all pipeline node connections.');
+                              }}
+                              className="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-955/20 transition-all flex items-center gap-1"
+                              title="Clear Connections"
+                            >
+                              <Trash2 size={11} />
+                              <span className="text-[7.5px] uppercase tracking-wider font-extrabold px-0.5">Clear</span>
+                            </button>
+                          </div>
+
+                          {/* Interactive Drag & Change Instruction Overlay */}
+                          <div className="absolute bottom-2 left-2 right-2 bg-white/85 dark:bg-slate-900/85 backdrop-blur-md p-1.5 rounded-lg border border-slate-200 dark:border-slate-800/85 text-[7px] font-black text-slate-500 text-center pointer-events-none uppercase tracking-widest leading-none">
+                            {nodeCanvasTool === 'connect'
+                              ? '↗️ Click source node, then click target node to connect'
+                              : '🖱️ Drag nodes to rearrange · Click nodes to cycle status · Switch to Connect tool to draw lines'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Rehab & ROI Calculator (rehab_calc) */}
+                    {w.type === 'rehab_calc' && (
+                      <div className="size-full overflow-auto">
+                        <RehabCalcWidget />
+                      </div>
+                    )}
+
+                    {/* Property Compare Matrix (property_comparator) */}
+                    {w.type === 'property_comparator' && (() => {
+                      const props = [compareProp1, compareProp2, compareProp3].filter(Boolean) as any[];
+
+                      // Determine Top Pick based on yield_score or max capitalization
+                      let topPickId = '';
+                      if (props.length > 0) {
+                        let maxScore = -1;
+                        props.forEach(p => {
+                          const score = p.yield_score || 0;
+                          if (score > maxScore) {
+                            maxScore = score;
+                            topPickId = p.id as any;
+                          }
+                        });
+                      }
+
+                      return (
+                        <div className="size-full flex flex-col justify-between">
+                          <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2 shrink-0 justify-between items-center select-none">
+                            <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                              <LayoutGrid size={11} className="text-indigo-500" /> Real Estate Compare Matrix
+                            </span>
+                          </div>
+
+                          {/* Comparative Matrix Table */}
+                          <div className="flex-1 overflow-x-auto overflow-y-auto pr-1 space-y-3 min-h-0 scrollbar-thin text-[9.5px]">
+                            {props.length === 0 ? (
+                              <div className="h-full flex flex-col items-center justify-center text-slate-400 select-none py-10">
+                                <LayoutGrid size={24} className="opacity-30 mb-2" />
+                                <p className="text-[10px] font-bold">No active properties compared</p>
+                                <p className="text-[8px] text-slate-500 mt-0.5 text-center">Add properties to watchlists or search to load details.</p>
+                              </div>
+                            ) : (
+                              <table className="w-full text-left border-collapse select-text">
+                                <thead>
+                                  <tr className="border-b border-slate-200 dark:border-slate-800 text-[8px] uppercase tracking-wider text-slate-400">
+                                    <th className="py-2 pr-2 font-bold w-1/4">Metric</th>
+                                    {props.map((p, idx) => (
+                                      <th key={p.id || idx} className="py-2 px-2 font-bold text-center w-1/4 truncate max-w-[80px]">
+                                        {p.address ? p.address.split(',')[0] : `Prop ${idx + 1}`}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr className="border-b border-slate-100 dark:border-slate-800/50">
+                                    <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Top Pick</td>
+                                    {props.map((p, idx) => (
+                                      <td key={p.id || idx} className="py-2 px-2 text-center">
+                                        {(p.id as any) === topPickId ? (
+                                          <span className="bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-wider">
+                                            🏆 Top Pick
+                                          </span>
+                                        ) : (
+                                          <span className="text-slate-400 dark:text-slate-600">—</span>
+                                        )}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                  <tr className="border-b border-slate-100 dark:border-slate-800/50">
+                                    <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">County</td>
+                                    {props.map((p, idx) => (
+                                      <td key={p.id || idx} className="py-2 px-2 text-center text-slate-600 dark:text-slate-400 font-bold truncate max-w-[80px]">
+                                        {p.county || 'N/A'}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                  <tr className="border-b border-slate-100 dark:border-slate-800/50">
+                                    <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Yield Score</td>
+                                    {props.map((p, idx) => (
+                                      <td key={p.id || idx} className="py-2 px-2 text-center font-extrabold text-indigo-500">
+                                        {p.yield_score ? `${p.yield_score.toFixed(1)}/100` : 'N/A'}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                  <tr className="border-b border-slate-100 dark:border-slate-800/50">
+                                    <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Opening Bid</td>
+                                    {props.map((p, idx) => (
+                                      <td key={p.id || idx} className="py-2 px-2 text-center text-slate-900 dark:text-white font-extrabold">
+                                        {p.opening_bid ? `$${p.opening_bid.toLocaleString()}` : 'N/A'}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                  <tr className="border-b border-slate-100 dark:border-slate-800/50">
+                                    <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Assessed Value</td>
+                                    {props.map((p, idx) => (
+                                      <td key={p.id || idx} className="py-2 px-2 text-center text-slate-600 dark:text-slate-400 font-bold">
+                                        {p.assessed_value ? `$${p.assessed_value.toLocaleString()}` : 'N/A'}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                  <tr className="border-b border-slate-100 dark:border-slate-800/50">
+                                    <td className="py-2 pr-2 font-extrabold text-slate-800 dark:text-slate-300">Property Type</td>
+                                    {props.map((p, idx) => (
+                                      <td key={p.id || idx} className="py-2 px-2 text-center text-slate-500 capitalize">
+                                        {p.use_code || 'Residential'}
+                                      </td>
+                                    ))}
+                                  </tr>
+                                </tbody>
+                              </table>
+                            )}
+
+                            {/* Quick selectors dropdown if multiple dbTopDeals are loaded */}
+                            {dbTopDeals.length > 0 && (
+                              <div className="pt-2 border-t border-slate-200/50 dark:border-slate-800/50 space-y-1.5">
+                                <span className="text-[7.5px] font-black uppercase text-slate-400 tracking-wider">Compare Quick Selectors</span>
+                                <div className="grid grid-cols-3 gap-1">
+                                  <select
+                                    value={compareProp1?.id || ''}
+                                    onChange={(e) => setCompareProp1(dbTopDeals.find(p => p.id === e.target.value) || null)}
+                                    className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
+                                  >
+                                    <option value="">Slot 1...</option>
+                                    {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
+                                  </select>
+                                  <select
+                                    value={compareProp2?.id || ''}
+                                    onChange={(e) => setCompareProp2(dbTopDeals.find(p => p.id === e.target.value) || null)}
+                                    className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
+                                  >
+                                    <option value="">Slot 2...</option>
+                                    {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
+                                  </select>
+                                  <select
+                                    value={compareProp3?.id || ''}
+                                    onChange={(e) => setCompareProp3(dbTopDeals.find(p => p.id === e.target.value) || null)}
+                                    className="px-1.5 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-lg text-slate-800 dark:text-white text-[8px] focus:outline-none truncate"
+                                  >
+                                    <option value="">Slot 3...</option>
+                                    {dbTopDeals.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
+                                  </select>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* State & County Contacts Search (contacts_search) */}
+                    {w.type === 'contacts_search' && (() => {
+                      const filteredList = contactsSearchList.filter(item => {
+                        if (!contactsQuery) return true;
+                        const q = contactsQuery.toLowerCase();
+                        return (
+                          (item.name && item.name.toLowerCase().includes(q)) ||
+                          (item.category && item.category.toLowerCase().includes(q)) ||
+                          (item.phone && item.phone.toLowerCase().includes(q))
+                        );
+                      });
+
+                      return (
+                        <div className="size-full flex flex-col justify-between">
+                          <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 mb-2 shrink-0 justify-between items-center select-none">
+                            <span className="text-[10px] font-black text-slate-800 dark:text-white flex items-center gap-1">
+                              <Smartphone size={11} className="text-amber-500" /> County Registrar Directory
+                            </span>
+                          </div>
+
+                          {/* Search & State Filter Input */}
+                          <div className="flex flex-col gap-2 mb-2.5 shrink-0 select-none">
+                            <div className="grid grid-cols-2 gap-1.5">
+                              <div>
+                                <label className="block text-[7.5px] font-black uppercase text-slate-400 mb-0.5">Select State</label>
+                                <select
+                                  value={contactsSearchState}
+                                  onChange={(e) => setContactsSearchState(e.target.value)}
+                                  className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[9px] focus:outline-none"
+                                >
+                                  <option value="FL">Florida</option>
+                                  <option value="AL">Alabama</option>
+                                  <option value="GA">Georgia</option>
+                                  <option value="TX">Texas</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-[7.5px] font-black uppercase text-slate-400 mb-0.5">Select County</label>
+                                <select
+                                  value={contactsSearchCounty}
+                                  onChange={(e) => setContactsSearchCounty(e.target.value)}
+                                  className="w-full px-2 py-1 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-white text-[9px] focus:outline-none"
+                                >
+                                  {contactsCountyList.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                              </div>
+                            </div>
+
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={contactsQuery}
+                                onChange={(e) => setContactsQuery(e.target.value)}
+                                placeholder="Search appraiser, GIS, collectors..."
+                                className="w-full pl-7 pr-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[9.5px] text-slate-800 dark:text-white placeholder-slate-400 focus:outline-none"
+                              />
+                              <Search className="absolute left-2.5 top-2.5 text-slate-400" size={10} />
+                            </div>
+                          </div>
+
+                          {/* Contacts Results Scroll Feed */}
+                          <div className="flex-1 overflow-y-auto pr-1 space-y-2 min-h-0 scrollbar-thin text-[9.5px]">
+                            {filteredList.length === 0 ? (
+                              <div className="h-full flex flex-col items-center justify-center text-slate-400 select-none py-10">
+                                <Smartphone className="opacity-30 mb-1.5" size={20} />
+                                <p className="text-[10px] font-bold">No contacts found</p>
+                                <p className="text-[8px] text-slate-500">Refine query filters or change selection.</p>
+                              </div>
+                            ) : (
+                              <div className="space-y-1.5">
+                                {filteredList.map((contact, idx) => (
+                                  <div key={idx} className="p-2.5 bg-slate-50/50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800 rounded-xl flex items-center justify-between gap-3">
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="text-[9px] font-extrabold text-slate-900 dark:text-white truncate max-w-[130px]">{contact.name || 'Official Agency'}</span>
+                                        {contact.category && (
+                                          <span className="bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 text-[6px] font-black px-1 py-0.25 rounded uppercase leading-none">{contact.category}</span>
+                                        )}
+                                      </div>
+                                      <p className="text-[7.5px] text-slate-455 font-bold mt-0.5">{contact.phone || 'No Phone Directory'}</p>
+                                    </div>
+                                    <div className="flex gap-1 shrink-0">
+                                      {contact.phone && (
+                                        <a
+                                          href={`tel:${contact.phone}`}
+                                          className="size-6 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg flex items-center justify-center border border-slate-200/50 dark:border-slate-700/50 transition-all"
+                                          title={`Call ${contact.name}`}
+                                        >
+                                          📞
+                                        </a>
+                                      )}
+                                      {contact.url && (
+                                        <a
+                                          href={contact.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="px-2 py-1 bg-amber-500 hover:bg-amber-600 text-white text-[8px] font-extrabold uppercase tracking-wider rounded-lg transition-all flex items-center justify-center shadow-sm"
+                                          title="Open official County portal"
+                                        >
+                                          Visit
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                  </div>
+
+                  {/* Window Bottom-Right Resize Handle */}
+                  <div
+                    onMouseDown={(e) => handleMouseDown(e, w.id, 'resize')}
+                    onTouchStart={(e) => handleTouchStart(e, w.id, 'resize')}
+                    className="absolute bottom-0 right-0 size-4 cursor-se-resize flex items-end justify-end p-0.5 z-[100]"
+                  >
+                    <div className="size-2 border-r-2 border-b-2 border-slate-350 dark:border-slate-650 opacity-40 group-hover/window:opacity-100 transition-opacity" />
+                  </div>
                 </div>
+              ))}
+            </div>
 
-                {/* Window Bottom-Right Resize Handle */}
-                <div
-                  onMouseDown={(e) => handleMouseDown(e, w.id, 'resize')}
-                  onTouchStart={(e) => handleTouchStart(e, w.id, 'resize')}
-                  className="absolute bottom-0 right-0 size-4 cursor-se-resize flex items-end justify-end p-0.5 z-[100]"
-                >
-                  <div className="size-2 border-r-2 border-b-2 border-slate-350 dark:border-slate-650 opacity-40 group-hover/window:opacity-100 transition-opacity" />
-                </div>
-              </div>
-            ))}
+            {/* Infinite Canvas Floating Zoom & Lock Panel (Bottom-Left) */}
+            <div className="absolute bottom-4 left-4 z-[100] flex flex-col items-center gap-2 p-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xl select-none">
+              {/* Lock Button */}
+              <button
+                onClick={() => setIsCanvasLocked(prev => !prev)}
+                className={`size-8 rounded-xl flex items-center justify-center transition-all ${isCanvasLocked
+                    ? 'bg-red-500/10 text-red-500 border border-red-500/25 hover:bg-red-500/20 shadow-sm'
+                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-650'
+                  }`}
+                title={isCanvasLocked ? "Canvas is Locked (Click to Unlock)" : "Canvas is Unlocked (Click to Lock)"}
+              >
+                {isCanvasLocked ? <Lock size={14} /> : <Unlock size={14} />}
+              </button>
+
+              <div className="w-6 h-[1px] bg-slate-200 dark:bg-slate-800" />
+
+              {/* Zoom In (+) */}
+              <button
+                onClick={() => setZoomScale(prev => Math.min(2.0, parseFloat((prev + 0.1).toFixed(2))))}
+                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
+                title="Zoom In"
+              >
+                +
+              </button>
+
+              {/* Reset Zoom Indicator */}
+              <button
+                onClick={() => { setZoomScale(1.0); setPanX(0); setPanY(0); }}
+                className="text-[9px] font-black text-slate-450 hover:text-indigo-500 dark:hover:text-indigo-400 py-1 transition-colors select-none tracking-tight text-center"
+                title="Reset Zoom to 100%"
+              >
+                {Math.round(zoomScale * 100)}%
+              </button>
+
+              {/* Zoom Out (-) */}
+              <button
+                onClick={() => setZoomScale(prev => Math.max(0.3, parseFloat((prev - 0.1).toFixed(2))))}
+                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
+                title="Zoom Out"
+              >
+                -
+              </button>
+            </div>
+
           </div>
-
-          {/* Infinite Canvas Floating Zoom & Lock Panel (Bottom-Left) */}
-          <div className="absolute bottom-4 left-4 z-[100] flex flex-col items-center gap-2 p-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xl select-none">
-            {/* Lock Button */}
-            <button
-              onClick={() => setIsCanvasLocked(prev => !prev)}
-              className={`size-8 rounded-xl flex items-center justify-center transition-all ${
-                isCanvasLocked 
-                  ? 'bg-red-500/10 text-red-500 border border-red-500/25 hover:bg-red-500/20 shadow-sm' 
-                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-650'
-              }`}
-              title={isCanvasLocked ? "Canvas is Locked (Click to Unlock)" : "Canvas is Unlocked (Click to Lock)"}
-            >
-              {isCanvasLocked ? <Lock size={14} /> : <Unlock size={14} />}
-            </button>
-
-            <div className="w-6 h-[1px] bg-slate-200 dark:bg-slate-800" />
-
-            {/* Zoom In (+) */}
-            <button
-              onClick={() => setZoomScale(prev => Math.min(2.0, parseFloat((prev + 0.1).toFixed(2))))}
-              className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
-              title="Zoom In"
-            >
-              +
-            </button>
-
-            {/* Reset Zoom Indicator */}
-            <button
-              onClick={() => { setZoomScale(1.0); setPanX(0); setPanY(0); }}
-              className="text-[9px] font-black text-slate-450 hover:text-indigo-500 dark:hover:text-indigo-400 py-1 transition-colors select-none tracking-tight text-center"
-              title="Reset Zoom to 100%"
-            >
-              {Math.round(zoomScale * 100)}%
-            </button>
-
-            {/* Zoom Out (-) */}
-            <button
-              onClick={() => setZoomScale(prev => Math.max(0.3, parseFloat((prev - 0.1).toFixed(2))))}
-              className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
-              title="Zoom Out"
-            >
-              -
-            </button>
-          </div>
-
-        </div>
         )}
 
         {/* ─── HYBRID VIRTUAL DESKTOP WINDOW OVERLAYS ─── */}
@@ -6132,21 +6112,19 @@ export const ClientWorkbench: React.FC = () => {
                 height: w.isMaximized ? '100%' : w.h,
                 zIndex: w.zIndex + 100, // Float over background canvas
               }}
-              className={`glass-card shadow-2xl border flex flex-col overflow-hidden rounded-2xl transition-shadow backdrop-blur-xl ${
-                isActive 
-                  ? 'border-indigo-500/80 dark:border-indigo-500/80 shadow-indigo-500/10 bg-white/95 dark:bg-slate-900/95' 
+              className={`glass-card shadow-2xl border flex flex-col overflow-hidden rounded-2xl transition-shadow backdrop-blur-xl ${isActive
+                  ? 'border-indigo-500/80 dark:border-indigo-500/80 shadow-indigo-500/10 bg-white/95 dark:bg-slate-900/95'
                   : 'border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/85'
-              }`}
+                }`}
             >
               {/* Window Title Bar */}
               <div
                 onMouseDown={(e) => handleOverlayMouseDown(e, w.id, 'drag')}
                 onTouchStart={(e) => handleOverlayTouchStart(e, w.id, 'drag')}
-                className={`h-11 border-b px-4 flex items-center justify-between shrink-0 select-none cursor-grab active:cursor-grabbing ${
-                  isActive 
-                    ? 'bg-slate-100/90 dark:bg-slate-900/95 border-indigo-500/20' 
+                className={`h-11 border-b px-4 flex items-center justify-between shrink-0 select-none cursor-grab active:cursor-grabbing ${isActive
+                    ? 'bg-slate-100/90 dark:bg-slate-900/95 border-indigo-500/20'
                     : 'bg-slate-50/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <div className={`size-2 rounded-full ${isActive ? 'bg-indigo-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-700'}`} />
