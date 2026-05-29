@@ -2400,7 +2400,7 @@ export const ClientWorkbench: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex-1 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-950/20 overflow-hidden relative min-h-[220px]">
+            <div className="flex-1 border border-slate-200 dark:border-sol-base01/30 rounded-xl bg-slate-50/50 dark:bg-sol-base03/20 overflow-hidden relative min-h-[220px]">
               <svg className="absolute inset-0 pointer-events-none w-full h-full">
                 {nodeConnections.map((conn, idx) => {
                   const fromEl = document.getElementById(`node-${conn.from}`);
@@ -2502,7 +2502,7 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   return (
-    <div className="w-full flex-1 flex flex-col h-full min-h-0 overflow-hidden select-none bg-slate-50 dark:bg-slate-950 font-display">
+    <div className="w-full flex-1 flex flex-col h-full min-h-0 overflow-hidden select-none bg-slate-50 dark:bg-sol-base03 font-display">
 
       {/* ─── WORKBENCH SYSTEM TOP BAR (Mission Control Header) ─── */}
       <div className="w-full h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex justify-between items-center shrink-0 z-[9999] select-none">
@@ -2664,7 +2664,7 @@ export const ClientWorkbench: React.FC = () => {
       <div className="flex-1 flex w-full overflow-hidden relative">
 
         {/* ─── SIDEBAR 1: Primary VS Code Ribbon (64px desktop, 40px mobile) ─── */}
-        <div className="w-10 md:w-16 bg-white dark:bg-slate-950 border-r border-slate-200/80 dark:border-slate-800/60 flex flex-col justify-between py-4 items-center shrink-0 z-40 overflow-y-auto no-scrollbar scrollbar-none">
+        <div className="w-10 md:w-16 bg-white dark:bg-sol-base02 border-r border-slate-200/80 dark:border-sol-base01/20 flex flex-col justify-between py-4 items-center shrink-0 z-40 overflow-y-auto no-scrollbar scrollbar-none">
           <div className="flex flex-col gap-3 w-full items-center">
             {[
               { id: 'explorer', icon: Layers, label: 'Workspace Explorer' },
@@ -2810,7 +2810,7 @@ export const ClientWorkbench: React.FC = () => {
 
         {/* ─── SIDEBAR 2: Collapsible Secondary Drawer (240px) — hidden on mobile ─── */}
         <div
-          className={`hidden md:flex bg-white/95 dark:bg-slate-900/90 border-r border-slate-200/80 dark:border-slate-800/60 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 z-35 overflow-y-auto ${sidebarOpen ? 'w-60' : 'w-0 pointer-events-none border-r-0'
+          className={`hidden md:flex bg-white/95 dark:bg-sol-base02/90 border-r border-slate-200/80 dark:border-sol-base01/20 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 z-35 overflow-y-auto ${sidebarOpen ? 'w-60' : 'w-0 pointer-events-none border-r-0'
             }`}
         >
           {sidebarOpen && (
@@ -3172,7 +3172,7 @@ export const ClientWorkbench: React.FC = () => {
             </div>
 
             {/* IDE Tab Bar */}
-            <div className="h-9 bg-white dark:bg-slate-950 border-b border-slate-200 dark:border-slate-800 flex items-end gap-0 overflow-x-auto no-scrollbar shrink-0">
+            <div className="h-9 bg-white dark:bg-sol-base03 border-b border-slate-200 dark:border-[var(--border)] flex items-end gap-0 overflow-x-auto no-scrollbar shrink-0">
               {widgets.filter(w => w.visible).map(w => {
                 const isActive = activeIdeTabId === w.id;
                 const isSplit = splitIdeTabId === w.id;
@@ -3203,11 +3203,11 @@ export const ClientWorkbench: React.FC = () => {
                     key={w.id}
                     role="tab"
                     onClick={() => setActiveIdeTabId(w.id)}
-                    className={`group flex items-center gap-1.5 px-3 h-full text-[9px] font-semibold border-r border-slate-200 dark:border-slate-800 whitespace-nowrap transition-all shrink-0 relative cursor-pointer ${isActive
-                        ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-b-2 border-b-indigo-500 font-bold'
+                    className={`group flex items-center gap-1.5 px-3 h-full text-[9px] font-semibold border-r border-slate-200 dark:border-[var(--border)] whitespace-nowrap transition-all shrink-0 relative cursor-pointer ${isActive
+                        ? 'bg-white dark:bg-sol-base02 text-slate-900 dark:text-white border-b-2 border-b-indigo-500 font-bold'
                         : isSplit
-                          ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white border-b-2 border-b-emerald-500 font-bold'
-                          : 'bg-slate-50/60 dark:bg-slate-950/60 text-slate-500 dark:text-slate-500 hover:bg-white dark:hover:bg-slate-900 hover:text-slate-700 dark:hover:text-slate-300'
+                          ? 'bg-white dark:bg-sol-base02 text-slate-900 dark:text-white border-b-2 border-b-emerald-500 font-bold'
+                          : 'bg-slate-50/60 dark:bg-sol-base03/60 text-slate-500 dark:text-slate-550 hover:bg-white dark:hover:bg-sol-base02 hover:text-slate-700 dark:hover:text-slate-300'
                       }`}
                   >
                     <span className={isActive ? 'text-indigo-500' : isSplit ? 'text-emerald-500' : 'text-slate-400'}>
@@ -3290,7 +3290,7 @@ export const ClientWorkbench: React.FC = () => {
                   >
                     {/* Left panel tab title bar */}
                     {ideSplitMode && (
-                      <div className="h-7 bg-slate-100/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800 px-3 flex items-center gap-2 shrink-0">
+                      <div className="h-7 bg-slate-100/80 dark:bg-sol-base03/80 border-b border-slate-200 dark:border-[var(--border)] px-3 flex items-center gap-2 shrink-0">
                         <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate">
                           {activeIdeTabId ? widgets.find(x => x.id === activeIdeTabId)?.title.replace(/^[^\w]+/, '') || activeIdeTabId : 'No Tab'}
                         </span>
@@ -3625,7 +3625,7 @@ export const ClientWorkbench: React.FC = () => {
                             {w.type === 'node_canvas' && (
                               <div className="h-full min-h-[400px] flex flex-col gap-3">
                                 <h2 className="text-sm font-black text-slate-800 dark:text-white">Deal Flow Node Canvas</h2>
-                                <div className="flex-1 min-h-[320px] relative bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-700 rounded-xl overflow-hidden">
+                                <div className="flex-1 min-h-[320px] relative bg-slate-50/50 dark:bg-sol-base03/40 border border-slate-200/60 dark:border-sol-base01/30 rounded-xl overflow-hidden">
                                   <svg className="absolute inset-0 size-full" onMouseMove={handleSvgMouseMove} onMouseUp={() => setDraggingNodeId(null)} onMouseLeave={() => setDraggingNodeId(null)}>
                                     <defs>
                                       <linearGradient id="ideActiveGrad" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -3720,7 +3720,7 @@ export const ClientWorkbench: React.FC = () => {
                       style={{ width: `${100 - splitLeftWidthPct}%` }}
                     >
                       {/* Right panel tab title bar */}
-                      <div className="h-7 bg-slate-100/80 dark:bg-slate-950/80 border-b border-emerald-500/30 px-3 flex items-center gap-2 shrink-0">
+                      <div className="h-7 bg-slate-100/80 dark:bg-sol-base03/80 border-b border-emerald-500/30 px-3 flex items-center gap-2 shrink-0">
                         <LayoutGrid size={9} className="text-emerald-500 shrink-0" />
                         <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate">
                           {widgets.find(x => x.id === splitIdeTabId)?.title.replace(/^[^\w]+/, '') || splitIdeTabId}
@@ -5416,7 +5416,7 @@ export const ClientWorkbench: React.FC = () => {
                         <div className="flex-1 overflow-y-auto pr-1 scrollbar-thin space-y-4">
                           {/* Agent Grid Tracker */}
                           <div className="grid grid-cols-2 gap-2 text-[9px] font-mono">
-                            <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
+                            <div className="p-2.5 bg-slate-50/50 dark:bg-sol-base03/40 border border-slate-200/40 dark:border-sol-base01/30 rounded-xl flex flex-col justify-between h-20">
                               <div className="flex items-center justify-between">
                                 <span className="font-bold text-slate-900 dark:text-slate-200">Agent Alpha</span>
                                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
@@ -5427,7 +5427,7 @@ export const ClientWorkbench: React.FC = () => {
                               </div>
                             </div>
 
-                            <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
+                            <div className="p-2.5 bg-slate-50/50 dark:bg-sol-base03/40 border border-slate-200/40 dark:border-sol-base01/30 rounded-xl flex flex-col justify-between h-20">
                               <div className="flex items-center justify-between">
                                 <span className="font-bold text-slate-900 dark:text-slate-200">Agent Beta</span>
                                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
@@ -5438,7 +5438,7 @@ export const ClientWorkbench: React.FC = () => {
                               </div>
                             </div>
 
-                            <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
+                            <div className="p-2.5 bg-slate-50/50 dark:bg-sol-base03/40 border border-slate-200/40 dark:border-sol-base01/30 rounded-xl flex flex-col justify-between h-20">
                               <div className="flex items-center justify-between">
                                 <span className="font-bold text-slate-900 dark:text-slate-200">Agent Gamma</span>
                                 <span className="h-1.5 w-1.5 rounded-full bg-[#0D8BFF] animate-pulse" />
@@ -5449,7 +5449,7 @@ export const ClientWorkbench: React.FC = () => {
                               </div>
                             </div>
 
-                            <div className="p-2.5 bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 rounded-xl flex flex-col justify-between h-20">
+                            <div className="p-2.5 bg-slate-50/50 dark:bg-sol-base03/40 border border-slate-200/40 dark:border-sol-base01/30 rounded-xl flex flex-col justify-between h-20">
                               <div className="flex items-center justify-between">
                                 <span className="font-bold text-slate-400">Agent Delta</span>
                                 <span className="h-1.5 w-1.5 rounded-full bg-slate-550" />
@@ -5469,7 +5469,7 @@ export const ClientWorkbench: React.FC = () => {
                             </span>
 
                             <div className="space-y-1.5 max-h-[140px] overflow-y-auto scrollbar-thin">
-                              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
+                              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-sol-base03/40 border border-slate-200/40 dark:border-sol-base01/30 font-mono text-[8px]">
                                 <div>
                                   <p className="font-bold text-slate-900 dark:text-slate-200">#FL-440263-AP</p>
                                   <p className="text-slate-500 text-[7px] mt-0.5">Orange County, FL // Drive-by SOP</p>
@@ -5477,7 +5477,7 @@ export const ClientWorkbench: React.FC = () => {
                                 <span className="text-amber-500 font-bold bg-amber-500/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Pending</span>
                               </div>
 
-                              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
+                              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-sol-base03/40 border border-slate-200/40 dark:border-sol-base01/30 font-mono text-[8px]">
                                 <div>
                                   <p className="font-bold text-slate-900 dark:text-slate-200">#TX-118490-DE</p>
                                   <p className="text-slate-500 text-[7px] mt-0.5">Harris County, TX // Photos required</p>
@@ -5485,7 +5485,7 @@ export const ClientWorkbench: React.FC = () => {
                                 <span className="text-[#0D8BFF] font-bold bg-[#0D8BFF]/10 px-1.5 py-0.5 rounded uppercase tracking-wider text-[7px]">Scheduled</span>
                               </div>
 
-                              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-950/40 border border-slate-200/40 dark:border-slate-800 font-mono text-[8px]">
+                              <div className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-sol-base03/40 border border-slate-200/40 dark:border-sol-base01/30 font-mono text-[8px]">
                                 <div>
                                   <p className="font-bold text-slate-900 dark:text-slate-200">#CA-889312-LA</p>
                                   <p className="text-slate-500 text-[7px] mt-0.5">Los Angeles, CA // Occupancy check</p>
@@ -5595,7 +5595,7 @@ export const ClientWorkbench: React.FC = () => {
                         </div>
 
                         {/* SVG Mini Workspace */}
-                        <div className="flex-1 min-h-0 relative bg-slate-50/50 dark:bg-slate-950/40 border border-slate-200/60 dark:border-slate-800 rounded-xl overflow-hidden select-none">
+                        <div className="flex-1 min-h-0 relative bg-slate-50/50 dark:bg-sol-base03/40 border border-slate-200/60 dark:border-sol-base01/30 rounded-xl overflow-hidden select-none">
                           <svg
                             className="absolute inset-0 size-full"
                             onMouseMove={handleSvgMouseMove}
@@ -6051,25 +6051,25 @@ export const ClientWorkbench: React.FC = () => {
             </div>
 
             {/* Infinite Canvas Floating Zoom & Lock Panel (Bottom-Left) */}
-            <div className="absolute bottom-4 left-4 z-[100] flex flex-col items-center gap-2 p-1.5 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-2xl select-none">
+            <div className="absolute bottom-4 left-4 z-[100] flex flex-col items-center gap-2 p-1.5 bg-white/90 dark:bg-sol-base02/90 backdrop-blur-md border border-slate-200/80 dark:border-sol-base01/30 rounded-2xl shadow-2xl select-none">
               {/* Lock Button */}
               <button
                 onClick={() => setIsCanvasLocked(prev => !prev)}
                 className={`size-8 rounded-xl flex items-center justify-center transition-all ${isCanvasLocked
                     ? 'bg-red-500/10 text-red-500 border border-red-500/25 hover:bg-red-500/20 shadow-sm'
-                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-650'
+                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 text-slate-400 hover:text-slate-650'
                   }`}
                 title={isCanvasLocked ? "Canvas is Locked (Click to Unlock)" : "Canvas is Unlocked (Click to Lock)"}
               >
                 {isCanvasLocked ? <Lock size={14} /> : <Unlock size={14} />}
               </button>
 
-              <div className="w-6 h-[1px] bg-slate-200 dark:bg-slate-800" />
+              <div className="w-6 h-[1px] bg-slate-200 dark:bg-sol-base01/30" />
 
               {/* Zoom In (+) */}
               <button
                 onClick={() => setZoomScale(prev => Math.min(2.0, parseFloat((prev + 0.1).toFixed(2))))}
-                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
+                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
                 title="Zoom In"
               >
                 +
@@ -6078,7 +6078,7 @@ export const ClientWorkbench: React.FC = () => {
               {/* Reset Zoom Indicator */}
               <button
                 onClick={() => { setZoomScale(1.0); setPanX(0); setPanY(0); }}
-                className="text-[9px] font-black text-slate-450 hover:text-indigo-500 dark:hover:text-indigo-400 py-1 transition-colors select-none tracking-tight text-center"
+                className="text-[9px] font-black text-slate-455 hover:text-indigo-500 dark:hover:text-indigo-400 py-1 transition-colors select-none tracking-tight text-center"
                 title="Reset Zoom to 100%"
               >
                 {Math.round(zoomScale * 100)}%
@@ -6087,7 +6087,7 @@ export const ClientWorkbench: React.FC = () => {
               {/* Zoom Out (-) */}
               <button
                 onClick={() => setZoomScale(prev => Math.max(0.3, parseFloat((prev - 0.1).toFixed(2))))}
-                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
+                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
                 title="Zoom Out"
               >
                 -
@@ -6160,58 +6160,58 @@ export const ClientWorkbench: React.FC = () => {
               </div>
 
               {/* Window Content Container */}
-              <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-slate-950 relative custom-scrollbar">
+              <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-sol-base03 relative custom-scrollbar">
                 {w.type === 'my_lists' && <ClientLists />}
                 {w.type === 'live_auctions' && <ClientAuctions />}
                 {w.type === 'property_search' && <ClientProperties />}
                 {w.type === 'field_missions' && <InvestorTasksDashboard />}
                 {w.type === 'settings' && (
-                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                  <div className="p-6 dark:bg-sol-base03 min-h-full">
                     <OriginalSettings />
                   </div>
                 )}
                 {w.type === 'team_and_logs' && (
-                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                  <div className="p-6 dark:bg-sol-base03 min-h-full">
                     <ActivityLogsPage />
                   </div>
                 )}
                 {w.type === 'billings_and_plans' && (
-                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                  <div className="p-6 dark:bg-sol-base03 min-h-full">
                     <BillingPage />
                   </div>
                 )}
                 {w.type === 'about' && (
-                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                  <div className="p-6 dark:bg-sol-base03 min-h-full">
                     <AboutPage standalone={false} />
                   </div>
                 )}
                 {w.type === 'disclaimer' && (
-                  <div className="p-6 dark:bg-slate-950 min-h-full overflow-y-auto custom-scrollbar">
+                  <div className="p-6 dark:bg-sol-base03 min-h-full overflow-y-auto custom-scrollbar">
                     <DisclaimerPage standalone={false} />
                   </div>
                 )}
                 {w.type === 'terms' && (
-                  <div className="p-6 dark:bg-slate-950 min-h-full overflow-y-auto custom-scrollbar">
+                  <div className="p-6 dark:bg-sol-base03 min-h-full overflow-y-auto custom-scrollbar">
                     <TermsOfServicePage standalone={false} />
                   </div>
                 )}
                 {w.type === 'privacy' && (
-                  <div className="p-6 dark:bg-slate-950 min-h-full overflow-y-auto custom-scrollbar">
+                  <div className="p-6 dark:bg-sol-base03 min-h-full overflow-y-auto custom-scrollbar">
                     <PrivacyPolicyPage standalone={false} />
                   </div>
                 )}
                 {w.type === 'training' && (
-                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                  <div className="p-6 dark:bg-sol-base03 min-h-full">
                     <TrainingPage />
                   </div>
                 )}
                 {w.type === 'community' && (
-                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                  <div className="p-6 dark:bg-sol-base03 min-h-full">
                     <CommunityPage />
                   </div>
                 )}
                 {w.type === 'groups' && (
-                  <div className="p-6 dark:bg-slate-950 min-h-full">
+                  <div className="p-6 dark:bg-sol-base03 min-h-full">
                     <GroupsPage />
                   </div>
                 )}
@@ -6240,7 +6240,7 @@ export const ClientWorkbench: React.FC = () => {
         })}
 
         {/* ─── DOCK / BARRA DE TAREFAS HÍBRIDA (Estilo macOS) ─── */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-slate-950/85 backdrop-blur-md rounded-2xl border border-slate-700/50 flex items-center gap-3 z-[99999] shadow-2xl transition-all select-none">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-sol-base02/85 backdrop-blur-md rounded-2xl border border-slate-700/50 dark:border-sol-base01/30 flex items-center gap-3 z-[99999] shadow-2xl transition-all select-none">
           {/* Core Shortcuts to open windows */}
           {[
             { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },

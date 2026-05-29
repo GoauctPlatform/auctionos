@@ -901,16 +901,16 @@ const ClientLists: React.FC = () => {
 
     if (loading && !lists.length && !broadcastedLists.length) {
         return (
-            <div className="h-full flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+            <div className="h-full flex items-center justify-center bg-slate-50 dark:bg-sol-base03">
                 <CircularProgress size={24} />
             </div>
         );
     }
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-slate-50 dark:bg-slate-950 border-x border-slate-200 dark:border-slate-800">
+        <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden bg-slate-50 dark:bg-sol-base03 border-x border-slate-200 dark:border-sol-base01/20">
             {/* Left Sidebar */}
-            <div id="tour-lists-sidebar" className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-xl overflow-hidden shrink-0`}>
+            <div id="tour-lists-sidebar" className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 border-r border-slate-200 dark:border-sol-base01/20 flex flex-col bg-slate-100/50 dark:bg-sol-base02/50 backdrop-blur-xl overflow-hidden shrink-0`}>
                 <div className="p-4 flex justify-between items-center w-64">
                     <Typography variant="h6" className="font-bold text-slate-800 dark:text-white tracking-tight">Folders</Typography>
                     <IconButton size="small" onClick={() => setOpenModal(true)} className="hover:bg-slate-200 dark:hover:bg-slate-800">
@@ -1350,7 +1350,7 @@ const ClientLists: React.FC = () => {
             </div>
 
             {/* Main Content Area */}
-            <div id="tour-lists-grid" className="flex-1 flex flex-col bg-white dark:bg-slate-950">
+            <div id="tour-lists-grid" className="flex-1 flex flex-col bg-white dark:bg-sol-base03">
                 <style>{`
                     @media print {
                         html, body, #root, #root > div, .flex-row, .flex-col, [class*="layout"], [class*="overflow"], [class*="size-full"] {

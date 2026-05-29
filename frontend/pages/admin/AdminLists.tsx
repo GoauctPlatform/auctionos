@@ -339,16 +339,16 @@ const AdminLists: React.FC = () => {
 
     if (loading && !lists.length && !broadcastedLists.length) {
         return (
-            <div className="h-full flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+            <div className="h-full flex items-center justify-center bg-slate-50 dark:bg-sol-base03">
                 <CircularProgress size={24} />
             </div>
         );
     }
 
     return (
-        <div className="flex h-[calc(100vh-4rem)] max-w-7xl mx-auto overflow-hidden bg-slate-50 dark:bg-slate-950 border-x border-slate-200 dark:border-slate-800">
+        <div className="flex h-[calc(100vh-4rem)] max-w-7xl mx-auto overflow-hidden bg-slate-50 dark:bg-sol-base03 border-x border-slate-200 dark:border-sol-base01/20">
             {/* Left Sidebar */}
-            <div className="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-xl">
+            <div className="w-64 border-r border-slate-200 dark:border-sol-base01/20 flex flex-col bg-slate-100/50 dark:bg-sol-base02/50 backdrop-blur-xl">
                 <div className="p-4 flex justify-between items-center">
                     <Typography variant="h6" className="font-bold text-slate-800 dark:text-white tracking-tight">Folders</Typography>
                     <IconButton size="small" onClick={() => setOpenModal(true)} className="hover:bg-slate-200 dark:hover:bg-slate-800">
@@ -619,7 +619,7 @@ const AdminLists: React.FC = () => {
             </div>
 
             {/* Main Content Area */}
-            <div className="flex-1 flex flex-col bg-white dark:bg-slate-950">
+            <div className="flex-1 flex flex-col bg-white dark:bg-sol-base03">
                 <div className="p-6 border-b border-slate-100 dark:border-slate-900 flex flex-col gap-4">
                     <div className="flex justify-between items-center">
                         <div>
