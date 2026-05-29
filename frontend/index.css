@@ -64,48 +64,61 @@
 
 .dark {
   /* ── Backgrounds ────────────────────────────────────────────────────────── */
-  --bg-primary:   #002b36;  /* base03 — deepest bg */
-  --bg-secondary: #073642;  /* base02 — panels, cards */
-  --bg-tertiary:  #0d3c4a;  /* between base03/base02 — inputs, hover states */
+  --bg-primary: #002b36;
+  /* base03 — deepest bg */
+  --bg-secondary: #073642;
+  /* base02 — panels, cards */
+  --bg-tertiary: #0d3c4a;
+  /* between base03/base02 — inputs, hover states */
 
   /* ── Accent (Solarized Blue) ─────────────────────────────────────────────── */
-  --accent:       #268bd2;
+  --accent: #268bd2;
   --accent-hover: #4fa0da;
-  --accent-glow:  rgba(38, 139, 210, 0.22);
-  --accent-text:  #88d4f0;  /* light cyan-blue, readable as inline text */
+  --accent-glow: rgba(38, 139, 210, 0.22);
+  --accent-text: #88d4f0;
+  /* light cyan-blue, readable as inline text */
 
   /* ── Typography ──────────────────────────────────────────────────────────── */
   /* Contrast ratios against base03 (#002b36):
      #eee8d5 (base2) ≈ 11:1 → WCAG AAA  ✓
      #93a1a1 (base1) ≈  5.5:1 → WCAG AA  ✓
      #657b83 (base0) ≈  3.5:1 → WCAG AA large text ✓ */
-  --text-primary:   #eee8d5;  /* base2 — main content, headings */
-  --text-secondary: #93a1a1;  /* base1 — labels, captions */
-  --text-muted:     #657b83;  /* base0 — hints, placeholders */
+  --text-primary: #fffcf34e;
+  /* base2 — main content, headings */
+  --text-secondary: #93a1a1;
+  /* base1 — labels, captions */
+  --text-muted: #657b83;
+  /* base0 — hints, placeholders */
 
   /* ── Borders ─────────────────────────────────────────────────────────────── */
-  --border:       #1a4554;  /* subtle divider between bg layers */
-  --border-focus: #268bd2;
+  --border: #0b485e;
+  /* subtle divider between bg layers */
+  --border-focus: #fafafa;
 
   /* ── Semantic Colors (Solarized accent vocabulary) ────────────────────────── */
-  --success:    #859900;  /* green */
+  --success: #859900;
+  /* green */
   --success-bg: rgba(133, 153, 0, 0.10);
-  --warning:    #b58900;  /* yellow */
+  --warning: #b58900;
+  /* yellow */
   --warning-bg: rgba(181, 137, 0, 0.10);
-  --danger:     #dc322f;  /* red */
-  --danger-bg:  rgba(220, 50, 47, 0.10);
+  --danger: #dc322f;
+  /* red */
+  --danger-bg: rgba(220, 50, 47, 0.10);
 
   /* ── Elevation & Glow ─────────────────────────────────────────────────────── */
-  --shadow:      0 10px 15px -3px rgba(0, 0, 0, 0.65), 0 4px 6px -4px rgba(0, 0, 0, 0.55);
+  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.65), 0 4px 6px -4px rgba(0, 0, 0, 0.55);
   --shadow-glow: 0 0 20px rgba(38, 139, 210, 0.28);
 
   /* ── Glassmorphism ───────────────────────────────────────────────────────── */
-  --glass-bg:     rgba(7, 54, 66, 0.90);           /* base02 at 90% */
-  --glass-border: rgba(42, 161, 152, 0.18);        /* cyan hint */
-  --glass-blur:   16px;
+  --glass-bg: rgba(7, 54, 66, 0.90);
+  /* base02 at 90% */
+  --glass-border: rgba(42, 161, 152, 0.18);
+  /* cyan hint */
+  --glass-blur: 16px;
 
   /* ── Neumorphism ─────────────────────────────────────────────────────────── */
-  --neu-flat:  12px 12px 24px #001c24, -12px -12px 24px #0e4558;
+  --neu-flat: 12px 12px 24px #001c24, -12px -12px 24px #0e4558;
   --neu-inset: inset 6px 6px 12px #001c24, inset -6px -6px 12px #0e4558;
 
   color-scheme: dark;
@@ -389,21 +402,37 @@
   }
 
   /* Dividers */
-  .dark .divide-slate-700 > * + * {
+  .dark .divide-slate-700>*+* {
     border-color: var(--border) !important;
   }
 
-  .dark .divide-slate-800 > * + * {
+  .dark .divide-slate-800>*+* {
     border-color: var(--border) !important;
   }
 }
 
 /* ─── CUSTOM COMPLIANCE TICKER MARQUEE ─── */
 @keyframes marquee-vertical {
-  0%, 25% { transform: translateY(0); }
-  30%, 55% { transform: translateY(-18px); }
-  60%, 85% { transform: translateY(-36px); }
-  90%, 100% { transform: translateY(0); }
+
+  0%,
+  25% {
+    transform: translateY(0);
+  }
+
+  30%,
+  55% {
+    transform: translateY(-18px);
+  }
+
+  60%,
+  85% {
+    transform: translateY(-36px);
+  }
+
+  90%,
+  100% {
+    transform: translateY(0);
+  }
 }
 
 .animate-marquee {
