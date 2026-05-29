@@ -75,7 +75,7 @@ export const StreetViewThumbnail: React.FC<StreetViewThumbnailProps> = ({
                         <img 
                             src={largeImageUrl} 
                             alt="Property Zoom"
-                            className="rounded-xl w-[480px] h-[300px] object-cover"
+                            className="rounded-xl w-[560px] h-[360px] object-cover"
                         />
                         <div className="absolute top-4 left-4 bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded shadow-lg uppercase tracking-wider">
                             Street View Preview

@@ -241,7 +241,6 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         try {
             setActionLoading(true);
             await ClientDataService.addPropertyToStandardList(property.id, activeCompany?.id);
-            alert(`Property added to Standard List successfully!`);
             loadLists(); // Refresh counts
             handleCloseListMenu();
         } catch (err: any) {
@@ -576,12 +575,6 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 {/* Sidebar Column (Right) */}
                 <div className="space-y-8 mt-0">
                     <PropertyOwnerCard property={property} />
-                    <div id="tour-property-research-links">
-                        <PropertyResearchLinks property={property} />
-                    </div>
-                    
-                    <PropertyNextSteps property={property} />
-
                     <div id="tour-property-actions">
                         <PropertyUserActions 
                             property={property} 
@@ -601,6 +594,11 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                             }}
                         />
                     </div>
+                    <div id="tour-property-research-links">
+                        <PropertyResearchLinks property={property} />
+                    </div>
+                    
+                    <PropertyNextSteps property={property} />
 
                     {/* BPO Due Diligence Marketplace */}
                     <div className="glass-card rounded-xl p-6">

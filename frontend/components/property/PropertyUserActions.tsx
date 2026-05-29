@@ -25,6 +25,7 @@ export const PropertyUserActions: React.FC<Props> = ({
     const [isSaving, setIsSaving] = useState(false);
     const [isAddingToList, setIsAddingToList] = useState(false);
     const [isBuyingPhotos, setIsBuyingPhotos] = useState(false);
+    const [isAdded, setIsAdded] = useState(false);
 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full">
@@ -42,12 +43,15 @@ export const PropertyUserActions: React.FC<Props> = ({
             <div className="grid grid-cols-2 gap-3 px-6 mb-6">
                 <button 
                     onClick={onToggleFavorite}
-                    className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 group hover:shadow-md active:scale-95 ${isFavorite ? 'border-rose-200 bg-rose-50 dark:bg-rose-900/20 dark:border-rose-800 shadow-sm' : 'border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
+                    className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 transition-all duration-300 group hover:shadow-md active:scale-95 ${isFavorite ? 'border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 shadow-sm' : 'border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}
                 >
-                    <span className={`material-symbols-outlined text-[24px] ${isFavorite ? 'text-rose-500 fill-current animate-in zoom-in' : 'text-slate-400 group-hover:text-rose-500 transition-colors'}`}>
-                        {isFavorite ? 'favorite' : 'favorite_border'}
+                    <span 
+                        className={`material-symbols-outlined text-[24px] ${isFavorite ? 'text-amber-500 animate-in zoom-in' : 'text-slate-400 group-hover:text-amber-500 transition-colors'}`}
+                        style={{ fontVariationSettings: isFavorite ? "'FILL' 1, 'wght' 700" : "'FILL' 0, 'wght' 400" }}
+                    >
+                        star
                     </span>
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${isFavorite ? 'text-rose-700 dark:text-rose-400' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-700'}`}>
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${isFavorite ? 'text-amber-700 dark:text-amber-400' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-700'}`}>
                         {isFavorite ? 'Saved' : 'Save'}
                     </span>
                 </button>
@@ -57,20 +61,26 @@ export const PropertyUserActions: React.FC<Props> = ({
                         setIsAddingToList(true);
                         try {
                             await onAddToList(e);
+                            setIsAdded(true);
+                            setTimeout(() => setIsAdded(false), 3000);
+                        } catch (err) {
+                            console.error(err);
                         } finally {
                             setIsAddingToList(false);
                         }
                     }}
                     disabled={isAddingToList}
-                    className="p-4 border border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl transition-all duration-300 group flex flex-col items-center justify-center gap-2 hover:shadow-md active:scale-95 disabled:opacity-50"
+                    className={`p-4 border rounded-xl transition-all duration-300 group flex flex-col items-center justify-center gap-2 hover:shadow-md active:scale-95 disabled:opacity-50 ${isAdded ? 'border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-800 shadow-sm' : 'border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/30 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}
                 >
                     {isAddingToList ? (
                         <CircularProgress size={24} className="text-blue-500" />
+                    ) : isAdded ? (
+                        <span className="material-symbols-outlined text-[24px] text-green-500 animate-in zoom-in">verified</span>
                     ) : (
                         <span className="material-symbols-outlined text-[24px] text-slate-400 group-hover:text-blue-500 transition-colors">folder_zip</span>
                     )}
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-700">
-                        {isAddingToList ? 'Adding...' : 'Add to List'}
+                    <span className={`text-[10px] font-black uppercase tracking-widest ${isAdded ? 'text-green-700 dark:text-green-400' : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-700'}`}>
+                        {isAddingToList ? 'Adding...' : isAdded ? 'Added' : 'Add to List'}
                     </span>
                 </button>
             </div>

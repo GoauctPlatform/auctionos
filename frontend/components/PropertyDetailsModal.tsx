@@ -57,7 +57,6 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
         if (!property?.id) return;
         try {
             await PropertyService.addPropertyToStandardList(property.id, activeCompany?.id);
-            alert(`Property added to Standard List successfully!`);
         } catch (err: any) {
             alert(`Error: ${err.message}`);
         }

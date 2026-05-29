@@ -89,7 +89,6 @@ const PropertyDetails: React.FC = () => {
         if (!property?.id) return;
         try {
             await ClientDataService.addPropertyToStandardList(property.id, activeCompany?.id);
-            alert('Property added to Standard List successfully!');
         } catch (err: any) {
             alert(`Error: ${err.message}`);
         }
@@ -435,10 +434,6 @@ const PropertyDetails: React.FC = () => {
                 {/* Sidebar Column (Right) */}
                 <div className="space-y-6">
                     <PropertyOwnerCard property={property} />
-                    <PropertyRedemptionCard stateCode={property.state} auctionType={property.property_category || property.details?.property_category} />
-                    <div id="tour-property-research-links">
-                        <PropertyResearchLinks property={property} />
-                    </div>
                     <div id="tour-property-actions">
                         <PropertyUserActions 
                             property={property} 
@@ -464,6 +459,10 @@ const PropertyDetails: React.FC = () => {
                                 }
                             }}
                         />
+                    </div>
+                    <PropertyRedemptionCard stateCode={property.state} auctionType={property.property_category || property.details?.property_category} />
+                    <div id="tour-property-research-links">
+                        <PropertyResearchLinks property={property} />
                     </div>
 
                     {/* BPO Due Diligence Marketplace */}

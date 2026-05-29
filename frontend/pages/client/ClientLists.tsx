@@ -1353,6 +1353,12 @@ const ClientLists: React.FC = () => {
             <div id="tour-lists-grid" className="flex-1 flex flex-col bg-white dark:bg-slate-950">
                 <style>{`
                     @media print {
+                        html, body, #root, #root > div, .flex-row, .flex-col, [class*="layout"], [class*="overflow"], [class*="size-full"] {
+                            height: auto !important;
+                            min-height: 0 !important;
+                            overflow: visible !important;
+                            position: relative !important;
+                        }
                         body * {
                             visibility: hidden !important;
                         }
@@ -1762,7 +1768,7 @@ const ClientLists: React.FC = () => {
                                             />
                                         </div>
 
-                                        <div className="relative group/thumb shrink-0 z-10 transition-all duration-300 hover:scale-[1.08] hover:z-30 rounded-lg">
+                                        <div className="relative group/thumb shrink-0 z-10 transition-all duration-300 hover:scale-[1.45] hover:z-30 hover:shadow-2xl rounded-lg">
                                             <StreetViewThumbnail 
                                                 property={prop}
                                                 size={64}

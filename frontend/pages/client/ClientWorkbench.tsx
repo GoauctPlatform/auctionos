@@ -2558,6 +2558,45 @@ export const ClientWorkbench: React.FC = () => {
 
         {/* Right Side: Quick Action Buttons & Status Indicators */}
         <div className="flex items-center gap-4">
+          
+          {/* Company Context Selector inside the Header */}
+          {companies.length > 0 && activeCompany && (
+              <div className="relative group/comp shrink-0">
+                  <button
+                      className="flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-black uppercase tracking-wider text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg transition-all shadow-xs active:scale-95"
+                  >
+                      <span className="material-symbols-outlined text-[15px] text-indigo-500">domain</span>
+                      <span className="truncate max-w-[120px]">{activeCompany.name}</span>
+                      <span className="material-symbols-outlined text-[12px] opacity-60">expand_more</span>
+                  </button>
+                  {/* Dropdown Menu on hover/click */}
+                  <div className="absolute right-0 top-full mt-1.5 w-52 bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden hidden group-hover/comp:block cursor-default animate-in fade-in duration-200">
+                      <div className="p-3 bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-700">
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest font-display">Select Corporate Entity</p>
+                      </div>
+                      <div className="p-1.5 space-y-0.5 max-h-48 overflow-y-auto custom-scrollbar">
+                          {companies.map(co => (
+                              <button
+                                  key={co.id}
+                                  onClick={() => {
+                                      selectCompany(co.id);
+                                      if (typeof logConsoleActivity === 'function') {
+                                          logConsoleActivity(`Entity switched to: "${co.name}"`);
+                                      }
+                                  }}
+                                  className={`w-full flex items-center justify-between p-2 rounded-lg text-left transition-colors text-[11px] font-bold ${activeCompany.id === co.id ? 'bg-indigo-500 text-white shadow-sm' : 'hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-750 dark:text-slate-350'}`}
+                              >
+                                  <span className="truncate flex-1">{co.name}</span>
+                                  {activeCompany.id === co.id && <span className="material-symbols-outlined text-[14px]">check</span>}
+                              </button>
+                          ))}
+                      </div>
+                  </div>
+              </div>
+          )}
+
+          <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
+
           <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-slate-400 dark:text-slate-550 uppercase">
             <span>Grid Zoom:</span>
             <button
