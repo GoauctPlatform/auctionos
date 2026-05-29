@@ -188,24 +188,24 @@ export const TickerTapeWidget: React.FC = () => {
     }
 
     return (
-        <div className="relative flex overflow-x-hidden h-8 bg-[#002b36] text-white items-center border-b border-[#1a4554] group whitespace-nowrap select-none w-full pl-[100px]">
+        <div className="relative flex overflow-x-hidden h-8 bg-[#002b36] text-white items-center border-b border-[#1a4554] group whitespace-nowrap select-none w-full pl-[82px] md:pl-[100px]">
             {/* Favorites Badge */}
-            <div className="absolute left-0 z-20 px-3 h-full flex items-center bg-[#268bd2] font-black text-[9px] uppercase tracking-widest border-r border-[#1a4554]/50 shadow-[4px_0_10px_rgba(0,43,54,0.5)]">
-                <Calendar size={11} className="mr-1.5" /> Favorites
+            <div className="absolute left-0 z-20 px-2 md:px-3 h-full flex items-center bg-[#268bd2] font-black text-[8px] md:text-[9px] uppercase tracking-widest border-r border-[#1a4554]/50 shadow-[4px_0_10px_rgba(0,43,54,0.5)]">
+                <Calendar size={10} className="mr-1 md:mr-1.5 shrink-0" /> Favorites
             </div>
             
             <div className="flex animate-[marquee_45s_linear_infinite] group-hover:[animation-play-state:paused] shrink-0 items-center min-w-full">
                 {upcomingAuctions.map((auction, idx) => (
                     <div 
                         key={`${auction.id}-${idx}`} 
-                        className="flex items-center mx-6 text-xs font-bold cursor-pointer text-[#eee8d5] hover:text-[#268bd2] transition-colors shrink-0"
+                        className="flex items-center mx-4 md:mx-6 text-[10px] md:text-xs font-bold cursor-pointer text-[#eee8d5] hover:text-[#268bd2] transition-colors shrink-0"
                         onClick={handleTickerClick}
                     >
-                        {auction.state && <StateSilhouetteBadge stateCode={auction.state} />}
-                        <span className="text-[#268bd2] font-black mr-2">•</span>
+                        {auction.state && <StateSilhouetteBadge stateCode={auction.state} size={14} />}
+                        <span className="text-[#268bd2] font-black mr-1.5 md:mr-2">•</span>
                         <span>{auction.title}</span>
-                        <span className="ml-2 text-[#93a1a1] font-semibold text-[10px]">({auction.type})</span>
-                        <span className="ml-2 bg-[#073642] border border-[#1a4554] px-1.5 py-0.5 rounded text-[9.5px] font-black text-[#859900]">
+                        <span className="ml-1.5 md:ml-2 text-[#93a1a1] font-semibold text-[9px] md:text-[10px]">({auction.type})</span>
+                        <span className="ml-1.5 md:ml-2 bg-[#073642] border border-[#1a4554] px-1.5 py-0.5 rounded text-[8.5px] md:text-[9.5px] font-black text-[#859900]">
                             {auction.countdown}
                         </span>
                     </div>
@@ -217,14 +217,14 @@ export const TickerTapeWidget: React.FC = () => {
                 {upcomingAuctions.map((auction, idx) => (
                     <div 
                         key={`dup-${auction.id}-${idx}`} 
-                        className="flex items-center mx-6 text-xs font-bold cursor-pointer text-[#eee8d5] hover:text-[#268bd2] transition-colors shrink-0"
+                        className="flex items-center mx-4 md:mx-6 text-[10px] md:text-xs font-bold cursor-pointer text-[#eee8d5] hover:text-[#268bd2] transition-colors shrink-0"
                         onClick={handleTickerClick}
                     >
-                        {auction.state && <StateSilhouetteBadge stateCode={auction.state} />}
-                        <span className="text-[#268bd2] font-black mr-2">•</span>
+                        {auction.state && <StateSilhouetteBadge stateCode={auction.state} size={14} />}
+                        <span className="text-[#268bd2] font-black mr-1.5 md:mr-2">•</span>
                         <span>{auction.title}</span>
-                        <span className="ml-2 text-[#93a1a1] font-semibold text-[10px]">({auction.type})</span>
-                        <span className="ml-2 bg-[#073642] border border-[#1a4554] px-1.5 py-0.5 rounded text-[9.5px] font-black text-[#859900]">
+                        <span className="ml-1.5 md:ml-2 text-[#93a1a1] font-semibold text-[9px] md:text-[10px]">({auction.type})</span>
+                        <span className="ml-1.5 md:ml-2 bg-[#073642] border border-[#1a4554] px-1.5 py-0.5 rounded text-[8.5px] md:text-[9.5px] font-black text-[#859900]">
                             {auction.countdown}
                         </span>
                     </div>

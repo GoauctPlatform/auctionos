@@ -2829,8 +2829,11 @@ export const ClientWorkbench: React.FC = () => {
 
         {/* ─── SIDEBAR 2: Collapsible Secondary Drawer (240px) — hidden on mobile ─── */}
         <div
-          className={`hidden md:flex bg-white/95 dark:bg-sol-base02/90 border-r border-slate-200/80 dark:border-sol-base01/20 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 z-35 overflow-y-auto ${sidebarOpen ? 'w-60' : 'w-0 pointer-events-none border-r-0'
-            }`}
+          className={`flex absolute left-10 md:static z-50 h-[calc(100vh-120px)] md:h-auto bg-white/95 dark:bg-sol-base02/95 border-r border-slate-200/80 dark:border-sol-base01/20 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 overflow-y-auto ${
+            sidebarOpen 
+              ? 'w-60 opacity-100 shadow-2xl md:shadow-none' 
+              : 'w-0 opacity-0 pointer-events-none border-r-0'
+          }`}
         >
           {sidebarOpen && (
             <div className="p-4 flex flex-col space-y-5 select-none w-60">
@@ -2914,7 +2917,7 @@ export const ClientWorkbench: React.FC = () => {
                       <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/60">
                         <span className="text-slate-400 block text-[8px] uppercase">Active</span>
                         <span className="text-slate-900 dark:text-white text-xs font-black">
-                          {widgets.filter(w => w.visible).length} / {widgets.length}
+                          {widgets.filter(w => w.visible).length + (tickerTapeVisible ? 1 : 0)} / {widgets.length + 1}
                         </span>
                       </div>
                       <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/60">
@@ -3848,7 +3851,7 @@ export const ClientWorkbench: React.FC = () => {
                     <div className="space-y-1">
                       <div className="flex justify-between text-[8px]">
                         <span className="text-slate-500 font-semibold">Open Tabs</span>
-                        <span className="font-black text-slate-900 dark:text-white">{widgets.filter(w => w.visible).length}</span>
+                        <span className="font-black text-slate-900 dark:text-white">{widgets.filter(w => w.visible).length + (tickerTapeVisible ? 1 : 0)}</span>
                       </div>
                       <div className="flex justify-between text-[8px]">
                         <span className="text-slate-500 font-semibold">Active</span>
@@ -6406,7 +6409,7 @@ export const ClientWorkbench: React.FC = () => {
           </div>
           <div className="flex items-center gap-1 text-[8.5px] font-semibold text-slate-455 dark:text-slate-500">
             <Layers size={10} />
-            <span>Active Windows: {widgets.filter(w => w.visible).length}</span>
+            <span>Active Windows: {widgets.filter(w => w.visible).length + (tickerTapeVisible ? 1 : 0)}</span>
           </div>
           <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20">
             Canvas Mode
