@@ -4035,13 +4035,13 @@ export const ClientWorkbench: React.FC = () => {
                     height: w.h,
                     zIndex: w.zIndex,
                   }}
-                  className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-slate-800 bg-white/75 dark:bg-slate-900/70 backdrop-blur-md group/window rounded-xl"
+                  className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-sol-base01/30 bg-white/75 dark:bg-sol-base02/80 backdrop-blur-md group/window rounded-xl"
                 >
                   {/* Window Title Bar (Drag Handle) */}
                   <div
                     onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
                     onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
-                    className="h-10 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/80 px-4 flex items-center justify-between shrink-0 cursor-move"
+                    className="h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 cursor-move"
                   >
                     <div className="flex items-center gap-2 select-none">
                       {/* Mobile touch grab handle badge */}
@@ -6113,8 +6113,8 @@ export const ClientWorkbench: React.FC = () => {
                 zIndex: w.zIndex + 100, // Float over background canvas
               }}
               className={`glass-card shadow-2xl border flex flex-col overflow-hidden rounded-2xl transition-shadow backdrop-blur-xl ${isActive
-                  ? 'border-indigo-500/80 dark:border-indigo-500/80 shadow-indigo-500/10 bg-white/95 dark:bg-slate-900/95'
-                  : 'border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/85'
+                  ? 'border-indigo-500/80 dark:border-sol-blue/80 shadow-indigo-500/10 bg-white/95 dark:bg-sol-base02/95'
+                  : 'border-slate-200/80 dark:border-sol-base01/30 bg-white/80 dark:bg-sol-base02/85'
                 }`}
             >
               {/* Window Title Bar */}
@@ -6122,8 +6122,8 @@ export const ClientWorkbench: React.FC = () => {
                 onMouseDown={(e) => handleOverlayMouseDown(e, w.id, 'drag')}
                 onTouchStart={(e) => handleOverlayTouchStart(e, w.id, 'drag')}
                 className={`h-11 border-b px-4 flex items-center justify-between shrink-0 select-none cursor-grab active:cursor-grabbing ${isActive
-                    ? 'bg-slate-100/90 dark:bg-slate-900/95 border-indigo-500/20'
-                    : 'bg-slate-50/70 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800'
+                    ? 'bg-slate-100/90 dark:bg-sol-base03/95 border-indigo-500/20 dark:border-sol-blue/20'
+                    : 'bg-slate-50/70 dark:bg-sol-base03/60 border-slate-200 dark:border-[var(--border)]'
                   }`}
               >
                 <div className="flex items-center gap-2">
