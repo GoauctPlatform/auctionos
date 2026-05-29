@@ -28,6 +28,28 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
     const [groupedDateType, setGroupedDateType] = useState<{date: string, type: string} | null>(null);
     const navigate = useNavigate();
 
+    // Favorites state and synchronization
+    const [favorites, setFavorites] = useState<Set<number>>(new Set());
+
+    useEffect(() => {
+        const favs = localStorage.getItem('goauct_fav_auctions');
+        if (favs) {
+            try {
+                setFavorites(new Set(JSON.parse(favs)));
+            } catch (e) {}
+        }
+    }, []);
+
+    useEffect(() => {
+        const handleSync = (e: any) => {
+            if (e.detail) {
+                setFavorites(new Set(e.detail));
+            }
+        };
+        window.addEventListener('auction-favorites-updated', handleSync);
+        return () => window.removeEventListener('auction-favorites-updated', handleSync);
+    }, []);
+
     // Use a stable string for effect dependency to prevent redundant fetches
     const filterKey = JSON.stringify(filters);
 
@@ -39,7 +61,7 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
 
     // Memoize the heavy aggregation logic for smoother performance
     const processedEvents = React.useMemo(() => {
-        const groups: Record<string, { date: string, type: string, auctionCount: number, propertyCount: number }> = {};
+        const groups: Record<string, { date: string, type: string, auctionCount: number, propertyCount: number, hasFavorite: boolean }> = {};
 
         rawEvents.forEach((item: any) => {
             const taxStatus = item.tax_status || 'Other';
@@ -48,10 +70,13 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
 
             const groupKey = `${cleanDate}-${taxStatus}`;
             if (!groups[groupKey]) {
-                groups[groupKey] = { date: cleanDate, type: taxStatus, auctionCount: 0, propertyCount: 0 };
+                groups[groupKey] = { date: cleanDate, type: taxStatus, auctionCount: 0, propertyCount: 0, hasFavorite: false };
             }
             groups[groupKey].auctionCount += 1;
             groups[groupKey].propertyCount += (item.property_count || 0);
+            if (favorites.has(item.id)) {
+                groups[groupKey].hasFavorite = true;
+            }
         });
 
         return Object.values(groups).map(g => ({
@@ -63,10 +88,11 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 type: g.type,
                 date: g.date,
                 auctionCount: g.auctionCount,
-                propertyCount: g.propertyCount
+                propertyCount: g.propertyCount,
+                hasFavorite: g.hasFavorite
             }
         }));
-    }, [rawEvents]);
+    }, [rawEvents, favorites]);
 
     const handleEventClick = (info: any) => {
         const props = info.event.extendedProps;
@@ -122,6 +148,23 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 dateClick={handleDateClick}
                 height="100%"
                 eventColor="#3b82f6"
+                eventClassNames={(arg) => {
+                    const hasFavorite = arg.event.extendedProps.hasFavorite;
+                    if (hasFavorite) {
+                        return [
+                            '!border-2', 
+                            '!border-amber-500', 
+                            'scale-[1.03]', 
+                            'shadow-md', 
+                            '!bg-amber-50', 
+                            'dark:!bg-amber-950/40', 
+                            '!text-amber-800', 
+                            'dark:!text-amber-200', 
+                            'font-black'
+                        ];
+                    }
+                    return [];
+                }}
                 dayCellClassNames={(arg) => {
                     if (arg.isPast) {
                         return ['bg-slate-100', 'dark:bg-slate-800', 'opacity-60', 'grayscale'];

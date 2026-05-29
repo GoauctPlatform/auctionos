@@ -27,15 +27,72 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
     const [rowCount, setRowCount] = useState<number>(0);
     const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
 
+    // Favorites & Filtering State
+    const [favorites, setFavorites] = useState<Set<number>>(new Set());
+    const [filterMode, setFilterMode] = useState<'all' | 'favorites'>('all');
+
+    // Load favorites on mount and handle initial default filter state
+    useEffect(() => {
+        const favs = localStorage.getItem('goauct_fav_auctions');
+        if (favs) {
+            try {
+                const parsed = JSON.parse(favs);
+                if (Array.isArray(parsed)) {
+                    setFavorites(new Set(parsed));
+                    if (parsed.length > 0) {
+                        setFilterMode('favorites');
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to parse favorites", e);
+            }
+        }
+    }, []);
+
+    // Synchronize favorites across component instances
+    useEffect(() => {
+        const handleSync = (e: any) => {
+            if (e.detail) {
+                setFavorites(new Set(e.detail));
+            }
+        };
+        window.addEventListener('auction-favorites-updated', handleSync);
+        return () => window.removeEventListener('auction-favorites-updated', handleSync);
+    }, []);
+
+    const toggleFavorite = (id: number) => {
+        const next = new Set(favorites);
+        if (next.has(id)) {
+            next.delete(id);
+        } else {
+            next.add(id);
+        }
+        setFavorites(next);
+        localStorage.setItem('goauct_fav_auctions', JSON.stringify(Array.from(next)));
+        window.dispatchEvent(new CustomEvent('auction-favorites-updated', { detail: Array.from(next) }));
+    };
+
     const fetchAuctions = async () => {
         setLoading(true);
         try {
             const skip = paginationModel.page * paginationModel.pageSize;
             const limit = paginationModel.pageSize;
-            const params = { ...filters, sort_by_date: true, limit, skip };
+            const params = { 
+                ...filters, 
+                sort_by_date: true, 
+                limit: filterMode === 'favorites' ? 250 : limit, 
+                skip: filterMode === 'favorites' ? 0 : skip 
+            };
             const { items, total } = await AuctionService.getAuctionEvents(params);
-            setRows(items);
-            setRowCount(total);
+            
+            if (filterMode === 'favorites') {
+                const filtered = items.filter((item: any) => favorites.has(item.id));
+                setRows(filtered);
+                setRowCount(filtered.length);
+            } else {
+                setRows(items);
+                setRowCount(total);
+            }
         } catch (error) {
             console.error('Failed to fetch auctions for list', error);
         } finally {
@@ -45,7 +102,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
 
     useEffect(() => {
         fetchAuctions();
-    }, [filters, paginationModel]);
+    }, [filters, paginationModel, filterMode, favorites.size]);
 
     const handleEditClick = (event: AuctionEvent) => {
         setEditingEvent(event);
@@ -181,14 +238,69 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
         },
     ];
 
-    const displayColumns = readOnly ? [...baseColumns, ...clientActionColumn] : [...baseColumns, ...actionColumn];
+    const favoriteColumn: GridColDef = {
+        field: 'favorite',
+        headerName: '',
+        width: 50,
+        sortable: false,
+        renderCell: (params: any) => {
+            const id = params.row.id;
+            const isFav = favorites.has(id);
+            return (
+                <button
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite(id);
+                    }}
+                    className={`p-1 flex items-center justify-center transition-colors ${
+                        isFav ? 'text-amber-500 hover:text-amber-600' : 'text-slate-350 hover:text-slate-400 dark:text-slate-655 dark:hover:text-slate-500'
+                    }`}
+                    title={isFav ? "Remove from Favorites" : "Mark as Favorite"}
+                >
+                    <span className="material-symbols-outlined text-[20px]">
+                        {isFav ? 'star' : 'star_border'}
+                    </span>
+                </button>
+            );
+        }
+    };
+
+    const displayColumns = [
+        favoriteColumn,
+        ...(readOnly ? [...baseColumns, ...clientActionColumn] : [...baseColumns, ...actionColumn])
+    ];
 
     return (
         <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 2, overflow: 'hidden' }}>
-            <Box p={2} display="flex" justifyContent="space-between" alignItems="center" borderBottom="1px solid #e2e8f0">
-                <Typography variant="h6" className="text-slate-800 dark:text-white font-semibold flex-1">
+            <Box p={2} display="flex" justifyContent="space-between" alignItems="center" borderBottom="1px solid #e2e8f0" gap={2} flexWrap="wrap">
+                <Typography variant="h6" className="text-slate-800 dark:text-white font-semibold whitespace-nowrap">
                     Auction Events
                 </Typography>
+
+                {/* Segmented Button Group */}
+                <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
+                    <button
+                        onClick={() => setFilterMode('all')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                            filterMode === 'all'
+                                ? 'bg-white dark:bg-slate-700 text-indigo-650 dark:text-white shadow-xs border border-slate-200/50 dark:border-slate-600/50'
+                                : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
+                        }`}
+                    >
+                        All Auctions
+                    </button>
+                    <button
+                        onClick={() => setFilterMode('favorites')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                            filterMode === 'favorites'
+                                ? 'bg-white dark:bg-slate-700 text-amber-500 dark:text-amber-400 shadow-xs border border-slate-200/50 dark:border-slate-600/50'
+                                : 'text-slate-500 hover:text-slate-750 dark:text-slate-400 dark:hover:text-slate-200'
+                        }`}
+                    >
+                        ★ Favorites Only
+                    </button>
+                </div>
+
                 {!readOnly && (
                     <Button
                         variant="contained"
@@ -223,6 +335,10 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
                         disableRowSelectionOnClick
                         onRowClick={(params) => handleViewClick(params.row as AuctionEvent)}
                         density="compact"
+                        getRowClassName={(params) => {
+                            const isFav = favorites.has(params.row.id);
+                            return isFav ? '!bg-amber-50/40 dark:!bg-amber-950/20 border-l-4 border-l-amber-500' : '';
+                        }}
                         sx={{
                             '& .MuiDataGrid-row': { cursor: 'pointer' },
                             '& .MuiDataGrid-row:hover': { backgroundColor: 'rgba(59, 130, 246, 0.04)' }

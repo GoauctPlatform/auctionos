@@ -1768,10 +1768,11 @@ const ClientLists: React.FC = () => {
                                             />
                                         </div>
 
-                                        <div className="relative group/thumb shrink-0 z-10 transition-all duration-300 hover:scale-[1.45] hover:z-30 hover:shadow-2xl rounded-lg">
+                                        <div className="relative group/thumb shrink-0 z-10 transition-all duration-300 hover:scale-[1.45] hover:z-50 hover:shadow-2xl rounded-lg">
                                             <StreetViewThumbnail 
                                                 property={prop}
-                                                size={64}
+                                                width={112}
+                                                height={72}
                                             />
                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
                                                 <span className="material-symbols-outlined text-white text-sm">zoom_in</span>

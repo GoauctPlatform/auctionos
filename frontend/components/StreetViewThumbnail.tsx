@@ -8,6 +8,8 @@ interface StreetViewThumbnailProps {
     state?: string;
     zip?: string;
     size?: number;
+    width?: number;
+    height?: number;
     className?: string;
 }
 
@@ -18,24 +20,29 @@ export const StreetViewThumbnail: React.FC<StreetViewThumbnailProps> = ({
     state, 
     zip, 
     size = 64,
+    width,
+    height,
     className = ""
 }) => {
     const [error, setError] = React.useState(false);
     const [hover, setHover] = React.useState(false);
     const [mousePos, setMousePos] = React.useState({ x: 0, y: 0 });
 
+    const finalWidth = width || size;
+    const finalHeight = height || size;
+
     // Use the flexible utility: pass property object if available, else strings
     const effectiveLocation = property || address;
-    const imageUrl = getStreetViewUrl(effectiveLocation, city, state, zip, `${size}x${size}`);
+    const imageUrl = getStreetViewUrl(effectiveLocation, city, state, zip, `${finalWidth}x${finalHeight}`);
     const largeImageUrl = getStreetViewUrl(effectiveLocation, city, state, zip, '640x400');
 
     if (!imageUrl || error) {
         return (
             <div 
                 className={`flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-lg text-slate-400 ${className}`}
-                style={{ width: size, height: size }}
+                style={{ width: finalWidth, height: finalHeight }}
             >
-                <span className="material-symbols-outlined" style={{ fontSize: size * 0.4 }}>image_not_supported</span>
+                <span className="material-symbols-outlined" style={{ fontSize: Math.min(finalWidth, finalHeight) * 0.4 }}>image_not_supported</span>
             </div>
         );
     }
@@ -55,7 +62,7 @@ export const StreetViewThumbnail: React.FC<StreetViewThumbnailProps> = ({
                 src={imageUrl} 
                 alt="Property"
                 className="rounded-lg object-cover shadow-sm border border-slate-200 dark:border-slate-700 hover:border-blue-400 transition-colors cursor-zoom-in"
-                style={{ width: size, height: size }}
+                style={{ width: finalWidth, height: finalHeight }}
                 onError={() => {
                     console.warn('Thumbnail load failed for:', effectiveLocation);
                     setError(true);
