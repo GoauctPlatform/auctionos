@@ -41,18 +41,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false }) 
         return new Set();
     });
 
-    const [filterMode, setFilterMode] = useState<'all' | 'favorites'>(() => {
-        const favs = localStorage.getItem('goauct_fav_auctions');
-        if (favs) {
-            try {
-                const parsed = JSON.parse(favs);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    return 'favorites';
-                }
-            } catch (e) {}
-        }
-        return 'all';
-    });
+    const [filterMode, setFilterMode] = useState<'all' | 'favorites'>('all');
 
     // Synchronize favorites across component instances
     useEffect(() => {

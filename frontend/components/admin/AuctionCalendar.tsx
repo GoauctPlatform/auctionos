@@ -61,10 +61,12 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
             .catch(err => console.error("Failed to load calendar", err));
     }, [filterKey]);
 
-    const getLocalDateString = (date: Date) => {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
+    // FullCalendar with timeZone="UTC" passes midnight-UTC dates.
+    // We MUST use UTC methods here or we get an off-by-one day in non-UTC timezones.
+    const getUTCDateString = (date: Date) => {
+        const year = date.getUTCFullYear();
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+        const day = String(date.getUTCDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     };
 
@@ -169,33 +171,33 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 dateClick={handleDateClick}
                 height="100%"
                 eventColor="#3b82f6"
-                eventClassNames={(arg) => {
+                eventDidMount={(arg) => {
                     const hasFavorite = arg.event.extendedProps.hasFavorite;
+                    const el = arg.el;
                     if (hasFavorite) {
-                        return [
-                            '!bg-amber-500', 
-                            '!border-2', 
-                            '!border-amber-600', 
-                            '!text-white', 
-                            'scale-[1.03]', 
-                            'shadow-md', 
-                            'font-black'
-                        ];
+                        el.style.backgroundColor = '#f59e0b';
+                        el.style.borderColor = '#d97706';
+                        el.style.color = '#fff';
+                        el.style.fontWeight = '900';
+                        el.style.boxShadow = '0 2px 6px rgba(245,158,11,0.45)';
+                        el.style.transform = 'scale(1.03)';
                     }
-                    return [];
                 }}
-                dayCellClassNames={(arg) => {
-                    const cleanDate = getLocalDateString(arg.date);
-                    const classes = [];
-                    
+                dayCellDidMount={(arg) => {
+                    // Use UTC date string to match item.event_date (which is also UTC)
+                    const cleanDate = getUTCDateString(arg.date);
                     if (favoriteDates.has(cleanDate)) {
-                        classes.push('!border-2', '!border-amber-500/85', 'shadow-[inset_0_0_0_1.5px_#f59e0b]', 'bg-amber-50/15', 'dark:bg-amber-950/15');
+                        // Inline style is 100% reliable — no purge, no specificity wars
+                        arg.el.style.boxShadow = 'inset 0 0 0 2.5px #f59e0b';
+                        arg.el.style.backgroundColor = 'rgba(251, 191, 36, 0.07)';
+                    } else {
+                        arg.el.style.boxShadow = '';
+                        arg.el.style.backgroundColor = '';
                     }
-                    
                     if (arg.isPast) {
-                        classes.push('bg-slate-100', 'dark:bg-slate-800', 'opacity-60', 'grayscale');
+                        arg.el.style.opacity = '0.6';
+                        arg.el.style.filter = 'grayscale(1)';
                     }
-                    return classes;
                 }}
             />
 
