@@ -87,6 +87,7 @@ def run_safe_migrations():
         ("users", "permissions", "TEXT", "TEXT"),
         ("users", "terms_accepted", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0"),
         ("users", "newsletter_opt_in", "BOOLEAN DEFAULT FALSE", "BOOLEAN DEFAULT 0"),
+        ("users", "active_session_id", "VARCHAR(255)", "VARCHAR(255)"),
         ("activity_logs", "entity_type", "VARCHAR(100)", "VARCHAR(100)"),
         ("activity_logs", "entity_id", "VARCHAR(100)", "VARCHAR(100)"),
         ("activity_logs", "metadata_json", "TEXT", "TEXT"),
@@ -142,6 +143,32 @@ def run_safe_migrations():
             print("✅ Migration: Ensure community_updates table exists")
     except Exception as e:
         print(f"⚠️  Migration warning for community_updates: {e}")
+
+    # Ensure user_favorite_auctions table exists
+    try:
+        with engine.connect() as conn:
+            if is_postgres:
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS user_favorite_auctions (
+                        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+                        auction_id INTEGER REFERENCES auction_events(id) ON DELETE CASCADE,
+                        PRIMARY KEY (user_id, auction_id)
+                    )
+                """))
+            else:
+                conn.execute(text("""
+                    CREATE TABLE IF NOT EXISTS user_favorite_auctions (
+                        user_id INTEGER,
+                        auction_id INTEGER,
+                        PRIMARY KEY (user_id, auction_id),
+                        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                        FOREIGN KEY (auction_id) REFERENCES auction_events(id) ON DELETE CASCADE
+                    )
+                """))
+            conn.commit()
+            print("✅ Migration: Ensure user_favorite_auctions table exists")
+    except Exception as e:
+        print(f"⚠️  Migration warning for user_favorite_auctions: {e}")
 
 
 @asynccontextmanager
