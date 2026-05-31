@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Component, ErrorInfo, ReactNode } from 'react';
 import USMap from '../USMap';
 import { InvestmentHeatmap } from '../property/InvestmentHeatmap';
 import { StateStat as StateStatData } from '../../services/scores.service';
@@ -12,6 +12,27 @@ interface MapDashboardProps {
     favoriteStates: Set<string>;
 }
 
+class DashboardErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean, error: any}> {
+    public state = { hasError: false, error: null };
+
+    static getDerivedStateFromError(error: any) {
+        return { hasError: true, error };
+    }
+    componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+        console.error("MapDashboard Error:", error, errorInfo);
+    }
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="w-full h-full min-h-[300px] flex items-center justify-center bg-[#070d1a] border border-red-500/30 rounded-3xl p-4 text-center">
+                    <p className="text-red-400 font-mono text-sm">Dashboard Error: {String(this.state.error)}</p>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
 export const MapDashboard: React.FC<MapDashboardProps> = ({
     stats,
     selectedState,
@@ -22,6 +43,7 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
     const [viewMode, setViewMode] = useState<'map' | 'stats'>('map');
 
     return (
+        <DashboardErrorBoundary>
         <div className="w-full h-full flex flex-col gap-4 bg-[#070d1a] text-white p-4 md:p-6 rounded-3xl border border-[#1a4554]/20 shadow-2xl select-none relative overflow-hidden">
             {/* Background Radial Glow */}
             <div className="absolute inset-0 z-0 pointer-events-none opacity-25">
@@ -115,5 +137,6 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
                 </div>
             </div>
         </div>
+        </DashboardErrorBoundary>
     );
 };

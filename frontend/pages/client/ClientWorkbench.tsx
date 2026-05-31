@@ -229,6 +229,7 @@ export const ClientWorkbench: React.FC = () => {
   }, []);
 
   const [favoriteStates, setFavoriteStates] = useState<Set<string>>(new Set());
+  const [selectedState, setSelectedState] = useState<string>('');
 
   useEffect(() => {
     const loadFavoriteStates = async () => {
@@ -284,8 +285,6 @@ export const ClientWorkbench: React.FC = () => {
       setUpcomingAuctionsCount(hasUpcoming);
     }).catch(() => { });
   }, []);
-
-  const [selectedState, setSelectedState] = useState<string>('');
 
   // Dynamic admin announcements state
   const [announcements, setAnnouncements] = useState<{ id: number; title: string; message: string; type: string }[]>([]);
