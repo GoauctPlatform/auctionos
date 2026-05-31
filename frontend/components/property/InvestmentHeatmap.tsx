@@ -10,6 +10,7 @@ interface InvestmentHeatmapProps {
     stats: StateStatData[];
     selectedState?: string;
     onStateClick?: (stateCode: string) => void;
+    embedded?: boolean;
 }
 
 const GET_COLOR = (score: number) => {
@@ -19,7 +20,7 @@ const GET_COLOR = (score: number) => {
     return 'bg-amber-400';
 };
 
-export const InvestmentHeatmap: React.FC<InvestmentHeatmapProps> = ({ stats: rawStats, selectedState, onStateClick }) => {
+export const InvestmentHeatmap: React.FC<InvestmentHeatmapProps> = ({ stats: rawStats, selectedState, onStateClick, embedded = false }) => {
     
     // All available states for the dropdown
     const availableStates = useMemo(() => {
@@ -40,7 +41,10 @@ export const InvestmentHeatmap: React.FC<InvestmentHeatmapProps> = ({ stats: raw
     }, [rawStats, selectedState]);
 
     return (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm h-full flex flex-col overflow-hidden transition-all duration-300">
+        <div className={embedded 
+            ? "p-0 h-full flex flex-col overflow-hidden transition-all duration-300 bg-transparent border-0 shadow-none" 
+            : "bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm h-full flex flex-col overflow-hidden transition-all duration-300"
+        }>
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -84,7 +88,11 @@ export const InvestmentHeatmap: React.FC<InvestmentHeatmapProps> = ({ stats: raw
                 ) : (
                     <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
                         {/* State Header Card */}
-                        <div className="flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-700/50 mb-6 group hover:shadow-lg transition-all duration-500">
+                        <div className={`flex items-center justify-between p-5 rounded-2xl border mb-6 group hover:shadow-lg transition-all duration-500 ${
+                            embedded 
+                                ? 'bg-[#002b36]/30 dark:bg-[#073642]/30 border-[#1a4554]/40 hover:bg-[#002b36]/50 dark:hover:bg-[#073642]/50' 
+                                : 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-700/50'
+                        }`}>
                             <div className="flex items-center gap-5">
                                 <div className={`size-16 rounded-2xl ${focusedState.color} flex flex-col items-center justify-center text-white shadow-xl shadow-emerald-500/10 group-hover:scale-105 transition-transform duration-500`}>
                                     <span className="text-2xl font-black">{focusedState.state_code.toUpperCase()}</span>
@@ -132,7 +140,9 @@ export const InvestmentHeatmap: React.FC<InvestmentHeatmapProps> = ({ stats: raw
                                     
                                     return (
                                         <div key={item.grade} className="flex flex-col items-center">
-                                            <div className="relative w-full h-32 bg-slate-100 dark:bg-slate-700/50 rounded-xl overflow-hidden mb-2">
+                                             <div className={`relative w-full h-32 rounded-xl overflow-hidden mb-2 ${
+                                                 embedded ? 'bg-[#002b36]/40 dark:bg-[#073642]/40' : 'bg-slate-100 dark:bg-slate-700/50'
+                                             }`}>
                                                 <div 
                                                     className={`absolute bottom-0 left-0 right-0 ${item.color} ${item.shadow} shadow-lg transition-all duration-1000 ease-out flex items-center justify-center`}
                                                     style={{ height: `${Math.max(percentage, 5)}%` }}
@@ -153,13 +163,15 @@ export const InvestmentHeatmap: React.FC<InvestmentHeatmapProps> = ({ stats: raw
                 )}
             </div>
 
-            <button
-                onClick={() => onStateClick?.('')}
-                className="w-full mt-6 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-2 group"
-            >
-                <span className="material-symbols-outlined text-[16px] group-hover:rotate-180 transition-transform duration-500">sync</span>
-                Reset All Filters
-            </button>
+            {!embedded && (
+                <button
+                    onClick={() => onStateClick?.('')}
+                    className="w-full mt-6 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-bold text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all uppercase tracking-[0.2em] flex items-center justify-center gap-2 group"
+                >
+                    <span className="material-symbols-outlined text-[16px] group-hover:rotate-180 transition-transform duration-500">sync</span>
+                    Reset All Filters
+                </button>
+            )}
         </div>
     );
 };

@@ -11,6 +11,7 @@ import { AuthService } from '../../services/auth.service';
 import { AuctionEvent, Property } from '../../types';
 import { useCompany } from '../../context/CompanyContext';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
+import { MapDashboard } from '../../components/widgets/MapDashboard';
 import { StatCounterWidget } from '../../components/widgets/StatCounterWidget';
 import { TickerTapeWidget } from '../../components/widgets/TickerTapeWidget';
 import { PropertyMetricsWidget } from '../../components/widgets/PropertyMetricsWidget';
@@ -226,6 +227,54 @@ export const ClientWorkbench: React.FC = () => {
     };
     syncLocalFavorites();
   }, []);
+
+  const [favoriteStates, setFavoriteStates] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    const loadFavoriteStates = async () => {
+      try {
+        const favIds = await AuctionService.getFavorites();
+        if (favIds.length === 0) {
+          setFavoriteStates(new Set());
+          return;
+        }
+        
+        // Fetch the active auctions to get their states
+        const { items } = await AuctionService.getAuctionEvents({ ids: favIds });
+        const states = new Set(items.map(item => item.state).filter(Boolean) as string[]);
+        setFavoriteStates(states);
+      } catch (err) {
+        console.error('Failed to load favorite states for map widget:', err);
+      }
+    };
+
+    loadFavoriteStates();
+
+    const handleSync = () => {
+      loadFavoriteStates();
+    };
+    window.addEventListener('auction-favorites-updated', handleSync);
+    return () => window.removeEventListener('auction-favorites-updated', handleSync);
+  }, []);
+
+  const mapCustomization = useMemo(() => {
+    const config: Record<string, any> = {};
+    
+    favoriteStates.forEach(stateCode => {
+      const cleanCode = stateCode.trim().toUpperCase();
+      config[cleanCode] = {
+        fill: '#00e5ff', // Vibrant Cyan/Teal neon fill
+      };
+    });
+
+    if (selectedState) {
+      config[selectedState.toUpperCase()] = {
+        fill: '#00ffcc', // Mint highlight
+      };
+    }
+
+    return config;
+  }, [favoriteStates, selectedState]);
 
   useEffect(() => {
     ClientDataService.getLists().then(lists => {
@@ -2134,7 +2183,13 @@ export const ClientWorkbench: React.FC = () => {
 
         {w.type === 'map' && (
           <div className="h-full min-h-[400px]">
-            <InvestmentHeatmap stats={stateStats} selectedState={selectedState || undefined} onStateClick={(s) => setSelectedState(s === selectedState ? null : s)} />
+            <MapDashboard 
+              stats={stateStats} 
+              selectedState={selectedState || undefined} 
+              onStateClick={(s) => setSelectedState(s === selectedState ? '' : s)} 
+              mapCustomization={mapCustomization} 
+              favoriteStates={favoriteStates} 
+            />
           </div>
         )}
 
@@ -3415,7 +3470,13 @@ export const ClientWorkbench: React.FC = () => {
 
                             {w.type === 'map' && (
                               <div className="h-full min-h-[400px]">
-                                <InvestmentHeatmap stats={stateStats} selectedState={selectedState || undefined} onStateClick={(s) => setSelectedState(s === selectedState ? null : s)} />
+                                <MapDashboard 
+                                  stats={stateStats} 
+                                  selectedState={selectedState || undefined} 
+                                  onStateClick={(s) => setSelectedState(s === selectedState ? '' : s)} 
+                                  mapCustomization={mapCustomization} 
+                                  favoriteStates={favoriteStates} 
+                                />
                               </div>
                             )}
 
@@ -4225,13 +4286,16 @@ export const ClientWorkbench: React.FC = () => {
 
                     {/* GIS Heatmap widget */}
                     {w.type === 'map' && (
-                      <div className="size-full min-h-[160px] relative flex items-center justify-center bg-slate-50/20 dark:bg-slate-800/10 rounded-xl overflow-hidden">
+                      <div className="size-full min-h-[400px] relative flex items-center justify-center bg-slate-50/20 dark:bg-slate-800/10 rounded-xl overflow-hidden">
                         {loading ? (
                           <RefreshCw className="animate-spin text-blue-500" size={24} />
                         ) : (
-                          <InvestmentHeatmap
+                          <MapDashboard
                             stats={stateStats}
-                            selectedState={selectedState}
+                            selectedState={selectedState || undefined}
+                            onStateClick={(s) => setSelectedState(s === selectedState ? '' : s)}
+                            mapCustomization={mapCustomization}
+                            favoriteStates={favoriteStates}
                           />
                         )}
                       </div>

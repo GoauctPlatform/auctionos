@@ -680,3 +680,47 @@
   background-color: rgba(38, 139, 210, 0.30);
   color: #eee8d5;
 }
+
+/* ==========================================================================
+   INTERACTIVE USA MAP STYLING (Solarized Dark Theme Alignment)
+   ========================================================================== */
+.us-map-container svg {
+    width: 100% !important;
+    height: auto !important;
+    max-height: 380px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.us-map-container path {
+    fill: #0c1624 !important; /* Premium Graphite slate base */
+    stroke: #1a4554 !important; /* Solarized dark border outlines */
+    stroke-width: 1.5px !important;
+    transition: fill 0.3s ease, stroke 0.3s ease, filter 0.3s ease;
+    cursor: pointer;
+}
+
+.us-map-container path:hover {
+    fill: #073642 !important; /* Slightly lighter graphite accent */
+    stroke: #00ffcc !important; /* Neon Mint highlight outline */
+    filter: drop-shadow(0 0 6px rgba(0, 255, 204, 0.6));
+}
+
+/* Active states with favorites (Cyan glow) */
+.us-map-container path[fill="#00e5ff"] {
+    fill: rgba(0, 229, 255, 0.20) !important;
+    stroke: #00e5ff !important;
+    filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.5));
+}
+
+.us-map-container path[fill="#00e5ff"]:hover {
+    fill: rgba(0, 229, 255, 0.38) !important;
+    stroke: #00ffcc !important; /* Neon mint on hover */
+    filter: drop-shadow(0 0 12px rgba(0, 255, 204, 0.8));
+}
+
+/* Currently selected state (Mint glow) */
+.us-map-container path[fill="#00ffcc"] {
+    fill: rgba(0, 255, 204, 0.40) !important;
+    stroke: #00ffcc !important;
+    filter: drop-shadow(0 0 10px rgba(0, 255, 204, 0.7));
+}
