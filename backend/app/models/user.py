@@ -19,6 +19,7 @@ class User(Base):
     verification_token = Column(String(255), nullable=True)
     terms_accepted = Column(Boolean(), default=False)
     newsletter_opt_in = Column(Boolean(), default=False)
+    active_session_id = Column(String(255), nullable=True)
 
     # ── Billing & Usage ──────────────────────────────────────────────────────
     subscription_tier = Column(String(50), default="trial")  # 'trial', 'pro', 'enterprise'

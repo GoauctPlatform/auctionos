@@ -169,3 +169,101 @@ def delete_auction(
     auction = auction_repo.remove(db=db, id=id)
     return auction
 
+
+from app.models.client_data import UserFavoriteAuction
+
+@router.get("/favorites", response_model=List[int])
+def read_favorites(
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get user's favorited auction IDs.
+    """
+    favorites = db.query(UserFavoriteAuction.auction_id).filter(
+        UserFavoriteAuction.user_id == current_user.id
+    ).all()
+    return [fav.auction_id for fav in favorites]
+
+
+@router.post("/favorites/{id}", response_model=bool)
+def add_favorite(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Add an auction to user's favorites.
+    """
+    auction = db.query(AuctionEvent).filter(AuctionEvent.id == id).first()
+    if not auction:
+        raise HTTPException(status_code=404, detail="Auction not found")
+
+    existing = db.query(UserFavoriteAuction).filter(
+        UserFavoriteAuction.user_id == current_user.id,
+        UserFavoriteAuction.auction_id == id
+    ).first()
+    if not existing:
+        favorite = UserFavoriteAuction(user_id=current_user.id, auction_id=id)
+        db.add(favorite)
+        db.commit()
+    return True
+
+
+@router.delete("/favorites/{id}", response_model=bool)
+def remove_favorite(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Remove an auction from user's favorites.
+    """
+    favorite = db.query(UserFavoriteAuction).filter(
+        UserFavoriteAuction.user_id == current_user.id,
+        UserFavoriteAuction.auction_id == id
+    ).first()
+    if favorite:
+        db.delete(favorite)
+        db.commit()
+    return True
+
+
+@router.post("/favorites/sync", response_model=bool)
+def sync_favorites(
+    *,
+    db: Session = Depends(deps.get_db),
+    ids: List[int],
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Sync bulk list of favorited auction IDs from localStorage migration.
+    """
+    if not ids:
+        return True
+
+    # Validate that these auctions actually exist to avoid orphaned records
+    valid_auctions = db.query(AuctionEvent.id).filter(AuctionEvent.id.in_(ids)).all()
+    valid_ids = {a.id for a in valid_auctions}
+
+    # Fetch existing favorites for this user
+    existing_favorites = db.query(UserFavoriteAuction.auction_id).filter(
+        UserFavoriteAuction.user_id == current_user.id
+    ).all()
+    existing_ids = {f.auction_id for f in existing_favorites}
+
+    new_favorites = []
+    for aid in ids:
+        if aid in valid_ids and aid not in existing_ids:
+            new_favorites.append(UserFavoriteAuction(user_id=current_user.id, auction_id=aid))
+            # avoid adding duplicates within the payload
+            existing_ids.add(aid)
+
+    if new_favorites:
+        db.bulk_save_objects(new_favorites)
+        db.commit()
+
+    return True
+

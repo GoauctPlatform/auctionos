@@ -43,10 +43,26 @@ window.fetch = async (...args) => {
             const isPublicPage = publicPages.some(page => window.location.pathname.includes(page) || window.location.hash.includes(page));
             
             if (!isPublicPage) {
+                let isSessionConflict = false;
+                try {
+                    const clone = response.clone();
+                    const body = await clone.json();
+                    if (body && body.detail === "session active in another device") {
+                        isSessionConflict = true;
+                    }
+                } catch (e) {
+                    // Ignore JSON parsing errors
+                }
+
                 console.warn('Authentication token expired or invalid. Redirecting to login.');
                 localStorage.removeItem('token');
                 localStorage.removeItem('user');
-                window.location.href = '/#/';
+                
+                if (isSessionConflict) {
+                    window.location.href = '/#/login?session_expired=true';
+                } else {
+                    window.location.href = '/#/';
+                }
             }
         }
     } catch (e) {

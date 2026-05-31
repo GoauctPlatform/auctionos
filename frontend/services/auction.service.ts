@@ -98,5 +98,41 @@ export const AuctionService = {
         });
         if (!response.ok) throw new Error('Failed to fetch calendar');
         return response.json();
+    },
+
+    getFavorites: async (): Promise<number[]> => {
+        const response = await fetch(`${API_URL}/auctions/favorites`, {
+            headers: getHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to fetch favorites');
+        return response.json();
+    },
+
+    addFavorite: async (id: number): Promise<boolean> => {
+        const response = await fetch(`${API_URL}/auctions/favorites/${id}`, {
+            method: 'POST',
+            headers: getHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to add favorite');
+        return response.json();
+    },
+
+    removeFavorite: async (id: number): Promise<boolean> => {
+        const response = await fetch(`${API_URL}/auctions/favorites/${id}`, {
+            method: 'DELETE',
+            headers: getHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to remove favorite');
+        return response.json();
+    },
+
+    syncFavorites: async (ids: number[]): Promise<boolean> => {
+        const response = await fetch(`${API_URL}/auctions/favorites/sync`, {
+            method: 'POST',
+            headers: getHeaders(),
+            body: JSON.stringify(ids)
+        });
+        if (!response.ok) throw new Error('Failed to sync favorites');
+        return response.json();
     }
 };

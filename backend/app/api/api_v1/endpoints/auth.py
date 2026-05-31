@@ -40,10 +40,16 @@ def login_access_token(
     elif not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     
+    import uuid
+    session_id = str(uuid.uuid4())
+    user.active_session_id = session_id
+    db.add(user)
+    db.commit()
+    
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": security.create_access_token(
-            user.id, expires_delta=access_token_expires
+            user.id, expires_delta=access_token_expires, session_id=session_id
         ),
         "token_type": "bearer",
     }
@@ -486,9 +492,15 @@ async def auth_callback(
             body=email_body
         )
         
+    import uuid
+    session_id = str(uuid.uuid4())
+    user.active_session_id = session_id
+    db.add(user)
+    db.commit()
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
-        user.id, expires_delta=access_token_expires
+        user.id, expires_delta=access_token_expires, session_id=session_id
     )
 
     frontend_url = get_frontend_url(request)

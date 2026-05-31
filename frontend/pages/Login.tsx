@@ -11,7 +11,8 @@ export const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(
-    searchParams.get('error') ? decodeURIComponent(searchParams.get('error')!.replace(/\+/g, ' ')) : ''
+    searchParams.get('error') ? decodeURIComponent(searchParams.get('error')!.replace(/\+/g, ' ')) : 
+    searchParams.get('session_expired') === 'true' ? 'Your account was accessed from another device. Previous session terminated.' : ''
   );
   const [isLoading, setIsLoading] = useState(false);
 

@@ -60,3 +60,9 @@ class ClientAttachment(Base):
     user = relationship("User", backref="client_attachments_rel")
     company = relationship("Company", back_populates="attachments")
     property = relationship("PropertyDetails", backref="client_attachments_rel")
+
+class UserFavoriteAuction(Base):
+    __tablename__ = "user_favorite_auctions"
+
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    auction_id = Column(Integer, ForeignKey("auction_events.id", ondelete="CASCADE"), primary_key=True)

@@ -28,19 +28,8 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
     const [rowCount, setRowCount] = useState<number>(0);
     const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 });
 
-    // Favorites & Filtering State (initialized synchronously!)
-    const [favorites, setFavorites] = useState<Set<number>>(() => {
-        const favs = localStorage.getItem('goauct_fav_auctions');
-        if (favs) {
-            try {
-                const parsed = JSON.parse(favs);
-                if (Array.isArray(parsed)) {
-                    return new Set(parsed);
-                }
-            } catch (e) {}
-        }
-        return new Set();
-    });
+    // Favorites & Filtering State
+    const [favorites, setFavorites] = useState<Set<number>>(new Set());
 
     const [filterMode, setFilterMode] = useState<'all' | 'favorites'>(() => {
         if (hideFilterSelector) return 'all';
@@ -60,27 +49,60 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
         }
     }, [hideFilterSelector]);
 
+    // Initial favorites load
+    useEffect(() => {
+        const loadFavorites = async () => {
+            try {
+                const favIds = await AuctionService.getFavorites();
+                setFavorites(new Set(favIds));
+            } catch (err) {
+                console.error('Failed to load favorites:', err);
+            }
+        };
+        loadFavorites();
+    }, []);
+
     // Synchronize favorites across component instances
     useEffect(() => {
         const handleSync = (e: any) => {
             if (e.detail) {
                 setFavorites(new Set(e.detail));
+            } else {
+                AuctionService.getFavorites().then(favIds => {
+                    setFavorites(new Set(favIds));
+                }).catch(() => {});
             }
         };
         window.addEventListener('auction-favorites-updated', handleSync);
         return () => window.removeEventListener('auction-favorites-updated', handleSync);
     }, []);
 
-    const toggleFavorite = (id: number) => {
+    const toggleFavorite = async (id: number) => {
         const next = new Set(favorites);
-        if (next.has(id)) {
+        const isRemoving = next.has(id);
+        if (isRemoving) {
             next.delete(id);
         } else {
             next.add(id);
         }
+        
+        // Optimistic UI update
         setFavorites(next);
-        localStorage.setItem('goauct_fav_auctions', JSON.stringify(Array.from(next)));
         window.dispatchEvent(new CustomEvent('auction-favorites-updated', { detail: Array.from(next) }));
+
+        try {
+            if (isRemoving) {
+                await AuctionService.removeFavorite(id);
+            } else {
+                await AuctionService.addFavorite(id);
+            }
+        } catch (err) {
+            console.error('Failed to update favorite on server:', err);
+            // Rollback on failure
+            const rollback = new Set(favorites);
+            setFavorites(rollback);
+            window.dispatchEvent(new CustomEvent('auction-favorites-updated', { detail: Array.from(rollback) }));
+        }
     };
 
     const fetchAuctions = async () => {

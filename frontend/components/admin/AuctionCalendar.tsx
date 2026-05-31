@@ -28,24 +28,30 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
     const [groupedDateType, setGroupedDateType] = useState<{date: string, type: string} | null>(null);
     const navigate = useNavigate();
 
-    // Favorites state and synchronization (initialized synchronously)
-    const [favorites, setFavorites] = useState<Set<number>>(() => {
-        const favs = localStorage.getItem('goauct_fav_auctions');
-        if (favs) {
+    // Favorites state and synchronization
+    const [favorites, setFavorites] = useState<Set<number>>(new Set());
+
+    // Load initial favorites from server
+    useEffect(() => {
+        const loadFavorites = async () => {
             try {
-                const parsed = JSON.parse(favs);
-                if (Array.isArray(parsed)) {
-                    return new Set(parsed);
-                }
-            } catch (e) {}
-        }
-        return new Set();
-    });
+                const favIds = await AuctionService.getFavorites();
+                setFavorites(new Set(favIds));
+            } catch (err) {
+                console.error("Failed to load favorites for calendar", err);
+            }
+        };
+        loadFavorites();
+    }, []);
 
     useEffect(() => {
         const handleSync = (e: any) => {
             if (e.detail) {
                 setFavorites(new Set(e.detail));
+            } else {
+                AuctionService.getFavorites().then(favIds => {
+                    setFavorites(new Set(favIds));
+                }).catch(() => {});
             }
         };
         window.addEventListener('auction-favorites-updated', handleSync);

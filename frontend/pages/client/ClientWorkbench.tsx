@@ -208,6 +208,26 @@ export const ClientWorkbench: React.FC = () => {
   });
 
   useEffect(() => {
+    const syncLocalFavorites = async () => {
+      try {
+        const localFavsRaw = localStorage.getItem('goauct_fav_auctions');
+        if (localFavsRaw) {
+          const ids: number[] = JSON.parse(localFavsRaw);
+          if (Array.isArray(ids) && ids.length > 0) {
+            console.log('Migrating local favorites to database:', ids);
+            await AuctionService.syncFavorites(ids);
+          }
+          localStorage.removeItem('goauct_fav_auctions');
+          window.dispatchEvent(new CustomEvent('auction-favorites-updated'));
+        }
+      } catch (err) {
+        console.error('Failed to sync local favorites:', err);
+      }
+    };
+    syncLocalFavorites();
+  }, []);
+
+  useEffect(() => {
     ClientDataService.getLists().then(lists => {
       const hasUpcoming = lists
         .filter((l: any) => l.has_upcoming_auction)

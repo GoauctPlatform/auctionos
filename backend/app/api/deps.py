@@ -37,6 +37,12 @@ def get_current_user(
     user = db.query(User).filter(User.id == token_data.sub).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    if token_data.session_id and user.active_session_id and token_data.session_id != user.active_session_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="session active in another device",
+        )
     return user
 
 def get_current_active_user(

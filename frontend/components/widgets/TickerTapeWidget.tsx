@@ -54,28 +54,35 @@ const StateSilhouetteBadge: React.FC<{ stateCode: string; size?: number }> = ({ 
 };
 
 export const TickerTapeWidget: React.FC = () => {
-    // 1. Initialize favorites state from localStorage synchronously
-    const [favorites, setFavorites] = useState<Set<number>>(() => {
-        const favs = localStorage.getItem('goauct_fav_auctions');
-        if (favs) {
-            try {
-                const parsed = JSON.parse(favs);
-                if (Array.isArray(parsed)) {
-                    return new Set(parsed.map(Number));
-                }
-            } catch (e) {}
-        }
-        return new Set();
-    });
+    // 1. Initialize favorites state as a blank Set
+    const [favorites, setFavorites] = useState<Set<number>>(new Set());
 
     const [upcomingAuctions, setUpcomingAuctions] = useState<TickerAuction[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Initial load from server
+    useEffect(() => {
+        const loadFavorites = async () => {
+            try {
+                const favIds = await AuctionService.getFavorites();
+                setFavorites(new Set(favIds));
+            } catch (err) {
+                console.error("Failed to load favorites for ticker", err);
+                setLoading(false);
+            }
+        };
+        loadFavorites();
+    }, []);
 
     // 2. Synchronize favorites across component instances via custom event
     useEffect(() => {
         const handleSync = (e: any) => {
             if (e.detail) {
                 setFavorites(new Set(e.detail.map(Number)));
+            } else {
+                AuctionService.getFavorites().then(favIds => {
+                    setFavorites(new Set(favIds));
+                }).catch(() => {});
             }
         };
         window.addEventListener('auction-favorites-updated', handleSync);
