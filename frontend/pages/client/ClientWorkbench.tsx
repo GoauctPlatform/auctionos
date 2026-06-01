@@ -142,7 +142,16 @@ interface OverlayWindow {
   data?: any;
 }
 
-const DEFAULT_WIDGETS: Widget[] = [];
+const DEFAULT_WIDGETS: Widget[] = [
+  { id: 'shortcuts', type: 'shortcuts', title: 'Quick Access', x: 20, y: 20, w: 320, h: 460, visible: true, zIndex: 1 },
+  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 360, y: 20, w: 840, h: 520, visible: true, zIndex: 2 },
+  { id: 'property_metrics', type: 'property_metrics', title: 'Market Metrics', x: 1220, y: 20, w: 380, h: 520, visible: true, zIndex: 3 },
+  { id: 'recommended_deals', type: 'recommended_deals', title: 'Recommended Deals', x: 1220, y: 560, w: 380, h: 360, visible: false, zIndex: 0 },
+  { id: 'chart', type: 'chart', title: 'Performance Chart', x: 360, y: 560, w: 840, h: 360, visible: false, zIndex: 0 },
+  { id: 'dossier', type: 'dossier', title: 'Property Dossier', x: 20, y: 500, w: 320, h: 420, visible: false, zIndex: 0 },
+  { id: 'yield', type: 'yield', title: 'Yield Calculator', x: 360, y: 100, w: 400, h: 400, visible: false, zIndex: 0 },
+  { id: 'rehab_calc', type: 'rehab_calc', title: 'Rehab Calculator', x: 360, y: 200, w: 400, h: 400, visible: false, zIndex: 0 }
+];
 
 export const ClientWorkbench: React.FC = () => {
   const navigate = useNavigate();
