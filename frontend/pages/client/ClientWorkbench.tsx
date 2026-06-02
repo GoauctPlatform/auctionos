@@ -1591,22 +1591,35 @@ export const ClientWorkbench: React.FC = () => {
       .finally(() => setMonthlyLoading(false));
   }, [selectedState]);
 
+  // Keep a ref of widgets for immediate save on unmount and beforeunload
+  const widgetsRef = useRef(widgets);
+  useEffect(() => {
+    widgetsRef.current = widgets;
+  }, [widgets]);
+
   // Save widgets state to local storage when modified (debounced to prevent UI lag during drag/resize)
   useEffect(() => {
     const timer = setTimeout(() => {
       localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
     }, 500);
 
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [widgets]);
+
+  // Immediate save on unmount and beforeunload to handle page reloads, tab closure, and route changes
+  useEffect(() => {
     const handleBeforeUnload = () => {
-      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
+      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgetsRef.current));
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
-      clearTimeout(timer);
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgetsRef.current));
     };
-  }, [widgets]);
+  }, []);
 
   // Bring window to focus
   const focusWidget = useCallback((id: string) => {
@@ -1996,6 +2009,10 @@ export const ClientWorkbench: React.FC = () => {
     const handleMouseUp = () => {
       if (interaction) {
         setInteraction(null);
+        setWidgets(current => {
+          localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(current));
+          return current;
+        });
       }
     };
 
@@ -2040,6 +2057,10 @@ export const ClientWorkbench: React.FC = () => {
     const handleTouchEnd = () => {
       if (interaction) {
         setInteraction(null);
+        setWidgets(current => {
+          localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(current));
+          return current;
+        });
       }
     };
 
