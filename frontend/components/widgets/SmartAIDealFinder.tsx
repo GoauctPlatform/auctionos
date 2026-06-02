@@ -1,7 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { getTopScoredProperties, TopScoredProperty } from '../../services/scores.service';
+import { getTopScoredProperties, TopScoredProperty, submitScore } from '../../services/scores.service';
 import { StatesService, StateContact } from '../../services/states.service';
 import { countyService } from '../../services/county.service';
+import { PropertyService } from '../../services/property.service';
+import { calculateDealScore } from '../../intelligence/scoringEngine';
 import { Brain, Filter, Sparkles, MapPin, ArrowRight, Coins, RefreshCw, Eye } from 'lucide-react';
 
 interface SmartAIDealFinderProps {
@@ -66,19 +68,79 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
     const fetchFreshDeals = async (stateFilter: string) => {
         setLoading(true);
         try {
-            const fetched = await getTopScoredProperties(100, { 
+            // A. Tenta carregar do backend os scores já consolidados na tabela de scores
+            let fetched = await getTopScoredProperties(100, { 
                 state: stateFilter !== 'ALL' ? stateFilter : undefined,
                 minScore: 70 
             });
-            // Keep B and above (score >= 70, rating A+, A, B)
-            const premiumDeals = fetched.filter(p => {
+            
+            let premiumDeals = fetched.filter(p => {
                 const score = p.deal_score || 0;
                 const rating = (p.rating || '').toUpperCase();
                 return score >= 70 && ['A+', 'A', 'B'].includes(rating);
             });
+
+            // B. MECANISMO DE FALLBACK (Auto-Hidratação): Se retornar vazio, calcula os scores do zero
+            if (premiumDeals.length === 0) {
+                console.log(`SmartAIDealFinder: DB scores empty for state: ${stateFilter}. Computing scores on-the-fly from properties list...`);
+                
+                const rawFilters: any = { limit: 100 };
+                if (stateFilter !== 'ALL') {
+                    rawFilters.state = stateFilter;
+                }
+                
+                // Busca as propriedades gerais do banco de dados (que não exigem score pré-calculado no DB)
+                const rawProps = await PropertyService.getProperties(rawFilters);
+                const scoredProps: TopScoredProperty[] = [];
+                
+                for (const prop of rawProps) {
+                    if (!prop.parcel_id) continue;
+                    
+                    // Calcula o score e a nota usando o motor oficial do sistema
+                    const scoreResult = calculateDealScore(prop);
+                    const score = scoreResult.score;
+                    const rating = scoreResult.rating;
+                    
+                    // Filtra apenas opções premium (Nota B ou superior e score >= 70)
+                    if (score >= 70 && ['A+', 'A', 'B'].includes(rating)) {
+                        const topProp: TopScoredProperty = {
+                            parcel_id: prop.parcel_id,
+                            deal_score: score,
+                            rating: rating,
+                            score_factors: scoreResult.factors,
+                            model_version: 'rule-based-v1',
+                            computed_at: new Date().toISOString(),
+                            updated_at: new Date().toISOString(),
+                            address: prop.address || null,
+                            county: prop.county || null,
+                            state: prop.state || null,
+                            amount_due: prop.amount_due ?? null,
+                            assessed_value: prop.assessed_value ?? null,
+                            availability_status: prop.availability_status || null,
+                            property_type: prop.property_type || null,
+                            lot_acres: prop.lot_acres ?? null,
+                            improvement_value: prop.improvement_value ?? null,
+                            owner_address: prop.owner_address || null
+                        };
+                        scoredProps.push(topProp);
+                        
+                        // Auto-Hidratação em background: Envia silenciosamente o score calculado para o banco/Redis
+                        submitScore(prop.parcel_id, scoreResult, {
+                            status: prop.availability_status,
+                            state: prop.state,
+                            county: prop.county
+                        });
+                    }
+                }
+                
+                // Ordena por pontuação decrescente
+                scoredProps.sort((a, b) => (b.deal_score || 0) - (a.deal_score || 0));
+                premiumDeals = scoredProps;
+            }
+
             setDeals(premiumDeals);
             
-            // Only update local storage cache for the default state to avoid polluting general cached lists
+            // Grava em cache local para hidratação imediata no próximo carregamento
             if (stateFilter === 'ALL') {
                 localStorage.setItem('goauct_ai_premium_deals', JSON.stringify(premiumDeals));
             }
