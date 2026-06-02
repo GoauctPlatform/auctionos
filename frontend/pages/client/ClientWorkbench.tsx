@@ -19,6 +19,7 @@ import { TopRecommendedWidget } from '../../components/widgets/TopRecommendedWid
 import { RehabCalcWidget } from '../../components/widgets/RehabCalcWidget';
 import { RecommendedDealsWidget } from '../../components/widgets/RecommendedDealsWidget';
 import { SmartAIDealFinder } from '../../components/widgets/SmartAIDealFinder';
+import { PropertyPreviewDrawer } from '../../components/PropertyPreviewDrawer';
 import { API_URL } from '../../services/httpClient';
 
 // Original rich page modules for IDE-style floating windows
@@ -144,9 +145,9 @@ interface OverlayWindow {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 20, y: 20, w: 1200, h: 650, visible: true, zIndex: 10 },
-  { id: 'property_metrics', type: 'property_metrics', title: 'Property Metrics', x: 20, y: 690, w: 900, h: 260, visible: false, zIndex: 1 },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 20, y: 960, w: 900, h: 420, visible: false, zIndex: 1 }
+  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 20, y: 20, w: 1200, h: 520, visible: true, zIndex: 10 },
+  { id: 'property_metrics', type: 'property_metrics', title: 'Property Metrics', x: 20, y: 980, w: 900, h: 260, visible: false, zIndex: 1 },
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 20, y: 560, w: 1200, h: 400, visible: true, zIndex: 5 }
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -158,7 +159,7 @@ export const ClientWorkbench: React.FC = () => {
   // States
   const [widgets, setWidgets] = useState<Widget[]>(() => {
     try {
-      const saved = localStorage.getItem('goauct_workbench_widgets_v60');
+      const saved = localStorage.getItem('goauct_workbench_widgets_v61');
       if (!saved) return DEFAULT_WIDGETS;
 
       const parsed = JSON.parse(saved);
@@ -195,7 +196,7 @@ export const ClientWorkbench: React.FC = () => {
 
       return merged;
     } catch (e) {
-      console.error('Failed to parse goauct_workbench_widgets_v60 from localStorage, falling back to default:', e);
+      console.error('Failed to parse goauct_workbench_widgets_v61 from localStorage, falling back to default:', e);
       return DEFAULT_WIDGETS;
     }
   });
@@ -212,6 +213,8 @@ export const ClientWorkbench: React.FC = () => {
     const stored = localStorage.getItem('goauct_ticker_tape_visible');
     return stored === null ? true : stored === 'true';
   });
+
+  const [previewPropertyId, setPreviewPropertyId] = useState<string | number | null>(null);
 
   useEffect(() => {
     const syncLocalFavorites = async () => {
@@ -1597,7 +1600,7 @@ export const ClientWorkbench: React.FC = () => {
 
   // Save widgets state to local storage when modified
   useEffect(() => {
-    localStorage.setItem('goauct_workbench_widgets_v60', JSON.stringify(widgets));
+    localStorage.setItem('goauct_workbench_widgets_v61', JSON.stringify(widgets));
   }, [widgets]);
 
   // Bring window to focus
@@ -1695,7 +1698,7 @@ export const ClientWorkbench: React.FC = () => {
   // Settings helper
   const handleResetLayoutCache = () => {
     if (confirm('Wipe layout cache and reset all widgets?')) {
-      localStorage.removeItem('goauct_workbench_widgets_v60');
+      localStorage.removeItem('goauct_workbench_widgets_v61');
       setWidgets(DEFAULT_WIDGETS);
       setZoomScale(1.0);
       setPanX(0);
@@ -2434,7 +2437,7 @@ export const ClientWorkbench: React.FC = () => {
 
         {w.type === 'smart_ai_finder' && (
           <div className="size-full overflow-hidden">
-            <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} />
+            <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)} />
           </div>
         )}
 
@@ -3707,7 +3710,7 @@ export const ClientWorkbench: React.FC = () => {
 
                             {w.type === 'smart_ai_finder' && (
                               <div className="size-full overflow-hidden">
-                                <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} />
+                                <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)} />
                               </div>
                             )}
 
@@ -4534,7 +4537,7 @@ export const ClientWorkbench: React.FC = () => {
 
                     {/* Widget: Smart AI Deal Finder */}
                     {w.type === 'smart_ai_finder' && (
-                      <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} />
+                      <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)} />
                     )}
 
                     {/* GIS Heatmap widget */}
@@ -6598,7 +6601,7 @@ export const ClientWorkbench: React.FC = () => {
                 )}
                 {w.type === 'property_details' && (
                   <div className="size-full overflow-y-auto no-scrollbar scrollbar-none">
-                    <PropertyDetailPage readOnly={true} overrideId={w.data?.propertyId} />
+                    <PropertyDetailPage readOnly={true} overrideId={w.data?.propertyId} onClose={() => closeOverlayWindow(w.id)} />
                   </div>
                 )}
               </div>
@@ -6759,6 +6762,12 @@ export const ClientWorkbench: React.FC = () => {
         </div>
       </div>
 
+      <PropertyPreviewDrawer
+        open={!!previewPropertyId}
+        propertyId={previewPropertyId}
+        onClose={() => setPreviewPropertyId(null)}
+        basePath="/client"
+      />
     </div>
   );
 };

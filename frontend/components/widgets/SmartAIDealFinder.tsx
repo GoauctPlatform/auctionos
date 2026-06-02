@@ -1,19 +1,35 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { getTopScoredProperties, TopScoredProperty } from '../../services/scores.service';
-import { Brain, Filter, Sparkles, MapPin, ArrowRight, Coins, RefreshCw } from 'lucide-react';
+import { StatesService, StateContact } from '../../services/states.service';
+import { countyService } from '../../services/county.service';
+import { Brain, Filter, Sparkles, MapPin, ArrowRight, Coins, RefreshCw, Eye } from 'lucide-react';
 
 interface SmartAIDealFinderProps {
     onOpenPropertyDetails: (propertyId: string | number, parcelId: string) => void;
+    onPreviewProperty: (propertyId: string | number) => void;
 }
 
-export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ onOpenPropertyDetails }) => {
+export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ 
+    onOpenPropertyDetails,
+    onPreviewProperty
+}) => {
     const [deals, setDeals] = useState<TopScoredProperty[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
+    
+    // States and Counties complete loader
+    const [stateContacts, setStateContacts] = useState<StateContact[]>([]);
+    const [availableCounties, setAvailableCounties] = useState<string[]>([]);
+    
     const [selectedState, setSelectedState] = useState<string>('ALL');
     const [selectedCounty, setSelectedCounty] = useState<string>('ALL');
 
-    // 1. Initial hydration and fetch
+    // 1. Initial hydration and fetch available states list
     useEffect(() => {
+        // Load available states from backend database service
+        StatesService.getContacts()
+            .then(setStateContacts)
+            .catch(err => console.error('Error loading states:', err));
+
         // First try to load from LocalStorage cache
         try {
             const cached = localStorage.getItem('goauct_ai_premium_deals');
@@ -28,14 +44,32 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ onOpenProp
             console.error('Failed to load cached AI deals:', e);
         }
 
-        // Fetch fresh deals from backend
-        fetchFreshDeals();
+        // Fetch initial deals
+        fetchFreshDeals('ALL');
     }, []);
 
-    const fetchFreshDeals = async () => {
+    // 2. Load counties dynamically when state changes
+    useEffect(() => {
+        if (selectedState && selectedState !== 'ALL') {
+            countyService.getCounties(selectedState)
+                .then(setAvailableCounties)
+                .catch(() => setAvailableCounties([]));
+        } else {
+            setAvailableCounties([]);
+        }
+        setSelectedCounty('ALL');
+        
+        // Refetch whenever state changes to query backend/Redis live for that state
+        fetchFreshDeals(selectedState);
+    }, [selectedState]);
+
+    const fetchFreshDeals = async (stateFilter: string) => {
         setLoading(true);
         try {
-            const fetched = await getTopScoredProperties(100, { minScore: 70 });
+            const fetched = await getTopScoredProperties(100, { 
+                state: stateFilter !== 'ALL' ? stateFilter : undefined,
+                minScore: 70 
+            });
             // Keep B and above (score >= 70, rating A+, A, B)
             const premiumDeals = fetched.filter(p => {
                 const score = p.deal_score || 0;
@@ -43,7 +77,11 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ onOpenProp
                 return score >= 70 && ['A+', 'A', 'B'].includes(rating);
             });
             setDeals(premiumDeals);
-            localStorage.setItem('goauct_ai_premium_deals', JSON.stringify(premiumDeals));
+            
+            // Only update local storage cache for the default state to avoid polluting general cached lists
+            if (stateFilter === 'ALL') {
+                localStorage.setItem('goauct_ai_premium_deals', JSON.stringify(premiumDeals));
+            }
         } catch (err) {
             console.error('Error loading AI premium deals:', err);
         } finally {
@@ -51,38 +89,13 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ onOpenProp
         }
     };
 
-    // 2. Compute dynamic filter dropdown options based on location presence in the premium list
-    const uniqueStates = useMemo(() => {
-        const states = new Set<string>();
-        deals.forEach(d => {
-            if (d.state) states.add(d.state.trim().toUpperCase());
-        });
-        return Array.from(states).sort();
-    }, [deals]);
-
-    const uniqueCounties = useMemo(() => {
-        const counties = new Set<string>();
-        deals.forEach(d => {
-            if (d.state && d.state.trim().toUpperCase() === selectedState && d.county) {
-                counties.add(d.county.trim().toUpperCase());
-            }
-        });
-        return Array.from(counties).sort();
-    }, [deals, selectedState]);
-
-    // Reset county if state changes to a state where the selected county doesn't exist
-    useEffect(() => {
-        setSelectedCounty('ALL');
-    }, [selectedState]);
-
-    // 3. Filtered deals to display
+    // 3. Filtered deals to display locally by county (state is filtered on database level for top performance)
     const filteredDeals = useMemo(() => {
         return deals.filter(d => {
-            const matchesState = selectedState === 'ALL' || (d.state && d.state.trim().toUpperCase() === selectedState);
-            const matchesCounty = selectedCounty === 'ALL' || (d.county && d.county.trim().toUpperCase() === selectedCounty);
-            return matchesState && matchesCounty;
+            const matchesCounty = selectedCounty === 'ALL' || (d.county && d.county.trim().toUpperCase() === selectedCounty.toUpperCase());
+            return matchesCounty;
         });
-    }, [deals, selectedState, selectedCounty]);
+    }, [deals, selectedCounty]);
 
     // Helper to get Rating shield color and style
     const getRatingStyle = (rating: string) => {
@@ -146,28 +159,28 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ onOpenProp
                         <select
                             value={selectedState}
                             onChange={(e) => setSelectedState(e.target.value)}
-                            className="bg-transparent text-[10px] font-black uppercase tracking-wider text-cyan-400 focus:outline-none border-none cursor-pointer"
+                            className="bg-transparent text-[10px] font-black uppercase tracking-wider text-cyan-400 focus:outline-none border-none cursor-pointer [&>option]:bg-[#070d1a] [&>option]:text-white"
                         >
                             <option value="ALL">ALL STATES</option>
-                            {uniqueStates.map(st => (
-                                <option key={st} value={st}>{st}</option>
+                            {stateContacts.map(sc => (
+                                <option key={sc.state} value={sc.state}>{sc.state.toUpperCase()}</option>
                             ))}
                         </select>
                     </div>
 
                     {/* County Selector */}
-                    {selectedState !== 'ALL' && uniqueCounties.length > 0 && (
+                    {selectedState !== 'ALL' && availableCounties.length > 0 && (
                         <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1">
                             <Filter size={11} className="text-[#93a1a1]" />
                             <span className="text-[9px] font-black uppercase text-[#93a1a1]/60 tracking-wider mr-1">County:</span>
                             <select
                                 value={selectedCounty}
                                 onChange={(e) => setSelectedCounty(e.target.value)}
-                                className="bg-transparent text-[10px] font-black uppercase tracking-wider text-teal-400 focus:outline-none border-none cursor-pointer"
+                                className="bg-transparent text-[10px] font-black uppercase tracking-wider text-teal-400 focus:outline-none border-none cursor-pointer [&>option]:bg-[#070d1a] [&>option]:text-white"
                             >
                                 <option value="ALL">ALL COUNTIES</option>
-                                {uniqueCounties.map(co => (
-                                    <option key={co} value={co}>{co} COUNTY</option>
+                                {availableCounties.map(co => (
+                                    <option key={co} value={co}>{co.toUpperCase()} COUNTY</option>
                                 ))}
                             </select>
                         </div>
@@ -175,7 +188,7 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ onOpenProp
 
                     {/* Refresh Button */}
                     <button
-                        onClick={fetchFreshDeals}
+                        onClick={() => fetchFreshDeals(selectedState)}
                         disabled={loading}
                         className="p-2 hover:bg-[#073642]/50 border border-[#1a4554]/20 hover:border-cyan-500/35 rounded-xl transition-all text-slate-400 hover:text-white"
                         title="Refresh deals"
@@ -203,7 +216,9 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ onOpenProp
                         {filteredDeals.map((prop) => (
                             <div
                                 key={prop.parcel_id}
-                                className="w-[280px] shrink-0 h-full max-h-[290px] flex flex-col justify-between bg-[#073642]/10 hover:bg-[#073642]/20 backdrop-blur-md border border-[#1a4554]/25 hover:border-cyan-500/35 rounded-2xl p-4 transition-all duration-300 shadow-lg hover:shadow-cyan-500/5 group"
+                                onClick={() => onPreviewProperty(prop.parcel_id)}
+                                className="w-[280px] shrink-0 h-full max-h-[290px] flex flex-col justify-between bg-[#073642]/10 hover:bg-[#073642]/20 backdrop-blur-md border border-[#1a4554]/25 hover:border-cyan-500/35 rounded-2xl p-4 transition-all duration-300 shadow-lg hover:shadow-cyan-500/5 cursor-pointer group"
+                                title="Click to show Quick View"
                             >
                                 {/* Top Badge & Score Row */}
                                 <div className="flex justify-between items-start">
@@ -226,8 +241,12 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ onOpenProp
                                         <MapPin size={11} className="text-cyan-400 shrink-0 mt-0.5" />
                                         {prop.address || 'Address Restricted'}
                                     </h4>
-                                    <p className="text-[8.5px] text-[#93a1a1] uppercase font-bold tracking-wider mt-1 ml-4 truncate">
-                                        {prop.county || 'UNKNOWN'} COUNTY, {prop.state}
+                                    <p className="text-[8.5px] text-[#93a1a1] uppercase font-bold tracking-wider mt-1 ml-4 truncate flex items-center gap-1">
+                                        <span>{prop.county || 'UNKNOWN'} COUNTY, {prop.state}</span>
+                                        <span className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-cyan-400 flex items-center gap-0.5 font-black text-[7px] uppercase tracking-widest">
+                                            <Eye size={9} />
+                                            Preview
+                                        </span>
                                     </p>
                                 </div>
 
@@ -250,7 +269,10 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ onOpenProp
 
                                 {/* Quick Details Button */}
                                 <button
-                                    onClick={() => onOpenPropertyDetails(prop.parcel_id, prop.parcel_id)}
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Avoid triggering card-level preview
+                                        onOpenPropertyDetails(prop.parcel_id, prop.parcel_id);
+                                    }}
                                     className="w-full py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-indigo-500/25 active:scale-[0.98] flex items-center justify-center gap-1.5"
                                 >
                                     <span>Dossier details</span>

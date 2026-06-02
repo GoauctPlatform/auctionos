@@ -40,9 +40,10 @@ import { useTour } from '../../context/TourContext';
 interface PropertyDetailPageProps {
     readOnly?: boolean;
     overrideId?: string | number;
+    onClose?: () => void;
 }
 
-const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = false, overrideId }) => {
+const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = false, overrideId, onClose }) => {
     const { id: paramId } = useParams<{ id: string }>();
     const id = overrideId ? String(overrideId) : paramId;
     const navigate = useNavigate();
@@ -390,8 +391,19 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
             <div className="w-full px-4 sm:px-8 lg:px-12 py-6 space-y-6 mb-20 animate-in fade-in duration-700" ref={propertyDetailsRef}>
             {/* Header */}
             <div className="flex items-center justify-between gap-4 mb-2">
-                <Button variant="text" startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} className="text-slate-500 hover:text-slate-700 normal-case">
-                    Back to Inventory
+                <Button 
+                    variant="text" 
+                    startIcon={<ArrowBackIcon />} 
+                    onClick={() => {
+                        if (onClose) {
+                            onClose();
+                        } else {
+                            navigate(-1);
+                        }
+                    }} 
+                    className="text-slate-500 hover:text-slate-700 normal-case"
+                >
+                    {onClose ? 'Close Detail' : 'Back to Inventory'}
                 </Button>
 
                 {/* ── Customize My View Button (Client/Manager/Agent) ── */}
