@@ -145,7 +145,8 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                             property_type: prop.property_type || null,
                             lot_acres: prop.lot_acres ?? null,
                             improvement_value: prop.improvement_value ?? null,
-                            owner_address: prop.owner_address || null
+                            owner_address: prop.owner_address || null,
+                            purchase_option_type: prop.purchase_option_type || null
                         };
                         scoredProps.push(topProp);
                         
@@ -310,7 +311,7 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                                 {/* Top Badge & Score Row */}
                                 <div className="flex justify-between items-start">
                                     <div className="flex flex-col gap-1.5">
-                                        {renderAuctionTypeBadge(prop.property_type)}
+                                        {renderAuctionTypeBadge(prop.purchase_option_type || prop.property_type)}
                                         <span className="font-mono text-[8px] font-bold text-slate-400 tracking-wider">
                                             #{prop.parcel_id}
                                         </span>

@@ -30,6 +30,7 @@ export interface TopScoredProperty extends StoredScore {
     lot_acres: number | null;
     improvement_value: number | null;
     owner_address: string | null;
+    purchase_option_type?: string | null;
 }
 
 const SCORES_URL = `${API_URL}/scores`;

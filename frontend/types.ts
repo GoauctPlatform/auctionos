@@ -210,6 +210,7 @@ export interface PropertyDetails {
   state_inventory_entered_date?: string;
   occupancy_checked_date?: string;
   qoz_description?: string;
+  purchase_option_type?: string;
 
   // Sale History
   last_sale_date?: string;

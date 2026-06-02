@@ -145,9 +145,9 @@ interface OverlayWindow {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 20, y: 20, w: 1200, h: 520, visible: true, zIndex: 10 },
-  { id: 'property_metrics', type: 'property_metrics', title: 'Property Metrics', x: 20, y: 980, w: 900, h: 260, visible: false, zIndex: 1 },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 20, y: 560, w: 1200, h: 400, visible: true, zIndex: 5 }
+  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 20, y: 20, w: 620, h: 520, visible: true, zIndex: 10 },
+  { id: 'property_metrics', type: 'property_metrics', title: 'Property Metrics', x: 20, y: 560, w: 900, h: 260, visible: false, zIndex: 1 },
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 660, y: 20, w: 560, h: 520, visible: true, zIndex: 5 }
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -159,7 +159,7 @@ export const ClientWorkbench: React.FC = () => {
   // States
   const [widgets, setWidgets] = useState<Widget[]>(() => {
     try {
-      const saved = localStorage.getItem('goauct_workbench_widgets_v61');
+      const saved = localStorage.getItem('goauct_workbench_widgets_v62');
       if (!saved) return DEFAULT_WIDGETS;
 
       const parsed = JSON.parse(saved);
@@ -196,7 +196,7 @@ export const ClientWorkbench: React.FC = () => {
 
       return merged;
     } catch (e) {
-      console.error('Failed to parse goauct_workbench_widgets_v61 from localStorage, falling back to default:', e);
+      console.error('Failed to parse goauct_workbench_widgets_v62 from localStorage, falling back to default:', e);
       return DEFAULT_WIDGETS;
     }
   });
@@ -1600,7 +1600,7 @@ export const ClientWorkbench: React.FC = () => {
 
   // Save widgets state to local storage when modified
   useEffect(() => {
-    localStorage.setItem('goauct_workbench_widgets_v61', JSON.stringify(widgets));
+    localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
   }, [widgets]);
 
   // Bring window to focus
@@ -1698,7 +1698,7 @@ export const ClientWorkbench: React.FC = () => {
   // Settings helper
   const handleResetLayoutCache = () => {
     if (confirm('Wipe layout cache and reset all widgets?')) {
-      localStorage.removeItem('goauct_workbench_widgets_v61');
+      localStorage.removeItem('goauct_workbench_widgets_v62');
       setWidgets(DEFAULT_WIDGETS);
       setZoomScale(1.0);
       setPanX(0);
