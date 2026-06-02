@@ -144,13 +144,7 @@ interface OverlayWindow {
 
 const DEFAULT_WIDGETS: Widget[] = [
   { id: 'shortcuts', type: 'shortcuts', title: 'Quick Access', x: 20, y: 20, w: 320, h: 460, visible: true, zIndex: 1 },
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 360, y: 20, w: 840, h: 520, visible: true, zIndex: 2 },
-  { id: 'property_metrics', type: 'property_metrics', title: 'Market Metrics', x: 1220, y: 20, w: 380, h: 520, visible: true, zIndex: 3 },
-  { id: 'recommended_deals', type: 'recommended_deals', title: 'Recommended Deals', x: 1220, y: 560, w: 380, h: 360, visible: false, zIndex: 0 },
-  { id: 'chart', type: 'chart', title: 'Performance Chart', x: 360, y: 560, w: 840, h: 360, visible: false, zIndex: 0 },
-  { id: 'dossier', type: 'dossier', title: 'Property Dossier', x: 20, y: 500, w: 320, h: 420, visible: false, zIndex: 0 },
-  { id: 'yield', type: 'yield', title: 'Yield Calculator', x: 360, y: 100, w: 400, h: 400, visible: false, zIndex: 0 },
-  { id: 'rehab_calc', type: 'rehab_calc', title: 'Rehab Calculator', x: 360, y: 200, w: 400, h: 400, visible: false, zIndex: 0 }
+  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 360, y: 20, w: 840, h: 520, visible: true, zIndex: 2 }
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -241,30 +235,46 @@ export const ClientWorkbench: React.FC = () => {
   const [selectedState, setSelectedState] = useState<string>('');
 
   useEffect(() => {
-    const loadFavoriteStates = async () => {
+    const loadFavoriteStates = () => {
       try {
-        const favIds = await AuctionService.getFavorites();
-        if (favIds.length === 0) {
-          setFavoriteStates(new Set());
-          return;
+        // As requested: extracting user preference states purely from localStorage 
+        // (populated by auctions and my_list property favorites)
+        const savedStatesRaw = localStorage.getItem('goauct_map_fav_states');
+        if (savedStatesRaw) {
+          const parsed = JSON.parse(savedStatesRaw);
+          if (Array.isArray(parsed)) {
+            setFavoriteStates(new Set(parsed));
+            return;
+          }
         }
-        
-        // Fetch the active auctions to get their states
-        const { items } = await AuctionService.getAuctionEvents({ ids: favIds });
-        const states = new Set(items.map(item => item.state).filter(Boolean) as string[]);
-        setFavoriteStates(states);
+        setFavoriteStates(new Set());
       } catch (err) {
-        console.error('Failed to load favorite states for map widget:', err);
+        console.error('Failed to load favorite states from localStorage:', err);
+        setFavoriteStates(new Set());
       }
     };
 
+    // Initial load
     loadFavoriteStates();
 
-    const handleSync = () => {
-      loadFavoriteStates();
-    };
+    // Listen to local custom events for instant UI updates across components
+    const handleSync = () => loadFavoriteStates();
     window.addEventListener('auction-favorites-updated', handleSync);
-    return () => window.removeEventListener('auction-favorites-updated', handleSync);
+    window.addEventListener('map-preferences-updated', handleSync);
+    
+    // Also listen to actual localStorage changes (cross-tab synchronization)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'goauct_map_fav_states') {
+        loadFavoriteStates();
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('auction-favorites-updated', handleSync);
+      window.removeEventListener('map-preferences-updated', handleSync);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   const mapCustomization = useMemo(() => {
