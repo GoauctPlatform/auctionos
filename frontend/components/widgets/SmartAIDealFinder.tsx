@@ -11,6 +11,27 @@ interface SmartAIDealFinderProps {
     onPreviewProperty: (propertyId: string | number) => void;
 }
 
+const STATE_CODE_MAP: Record<string, string> = {
+  'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+  'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+  'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
+  'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+  'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO',
+  'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
+  'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH',
+  'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+  'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
+  'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY',
+  'district of columbia': 'DC', 'washington dc': 'DC', 'puerto rico': 'PR'
+};
+
+function resolveStateCode(stateRaw: string): string {
+  if (!stateRaw) return '';
+  const trimmed = stateRaw.trim().toLowerCase();
+  if (trimmed.length === 2) return trimmed.toUpperCase();
+  return STATE_CODE_MAP[trimmed] || trimmed.toUpperCase().slice(0, 2);
+}
+
 export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ 
     onOpenPropertyDetails,
     onPreviewProperty
@@ -68,9 +89,12 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
     const fetchFreshDeals = async (stateFilter: string) => {
         setLoading(true);
         try {
+            // Resolve to 2-letter abbreviation for accurate DB/Redis filtering matches
+            const stateCode = stateFilter !== 'ALL' ? resolveStateCode(stateFilter) : undefined;
+            
             // A. Tenta carregar do backend os scores já consolidados na tabela de scores
             let fetched = await getTopScoredProperties(100, { 
-                state: stateFilter !== 'ALL' ? stateFilter : undefined,
+                state: stateCode,
                 minScore: 70 
             });
             
@@ -82,11 +106,12 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
 
             // B. MECANISMO DE FALLBACK (Auto-Hidratação): Se retornar vazio, calcula os scores do zero
             if (premiumDeals.length === 0) {
-                console.log(`SmartAIDealFinder: DB scores empty for state: ${stateFilter}. Computing scores on-the-fly from properties list...`);
+                console.log(`SmartAIDealFinder: DB scores empty for state: ${stateFilter} (code: ${stateCode}). Computing scores on-the-fly from properties list...`);
                 
-                const rawFilters: any = { limit: 100 };
-                if (stateFilter !== 'ALL') {
-                    rawFilters.state = stateFilter;
+                // Strictly target ONLY 'available' active properties to avoid expired properties and save resources
+                const rawFilters: any = { limit: 100, availability: 'available' };
+                if (stateCode) {
+                    rawFilters.state = stateCode;
                 }
                 
                 // Busca as propriedades gerais do banco de dados (que não exigem score pré-calculado no DB)
