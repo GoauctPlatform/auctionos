@@ -16,6 +16,7 @@ interface MapDashboardProps {
     stateStats: StateStat[];
     topProperties: TopScoredProperty[];
     loadingStats?: boolean;
+    onPreviewProperty?: (parcelId: string | number) => void;
 }
 
 class DashboardErrorBoundary extends React.Component<any, any> {
@@ -44,6 +45,32 @@ class DashboardErrorBoundary extends React.Component<any, any> {
     }
 }
 
+const StateSilhouetteCard: React.FC<{ stateCode: string }> = ({ stateCode }) => {
+    const code = stateCode.trim().toUpperCase();
+    const url = `https://raw.githubusercontent.com/ahuseyn/state-icons/master/icons/${code}.svg`;
+    return (
+        <div className="relative overflow-hidden bg-[#073642]/30 border border-[#1a4554]/20 rounded-xl p-4 flex flex-col items-center justify-center min-h-[120px] group/silhouette shadow-inner shrink-0 select-none">
+            {/* Ambient Glow */}
+            <div className="absolute inset-0 z-0 pointer-events-none opacity-20 blur-xl bg-gradient-to-br from-cyan-500 to-teal-500" />
+            
+            {/* SVG Silhouette Image */}
+            <div className="relative z-10 w-20 h-20 flex items-center justify-center transition-transform duration-300 hover:scale-110">
+                <img 
+                    src={url} 
+                    alt={code} 
+                    className="w-full h-full object-contain brightness-0 invert opacity-75 drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                />
+            </div>
+            
+            {/* State Badge */}
+            <div className="relative z-10 mt-2 px-2 py-0.5 rounded-md bg-[#002b36]/60 border border-[#1a4554]/30 text-[8px] font-black tracking-widest text-cyan-400 uppercase">
+                {code} Region
+            </div>
+        </div>
+    );
+};
+
 export const MapDashboard: React.FC<MapDashboardProps> = ({
     onStateClick,
     mapCustomization,
@@ -54,7 +81,8 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
     setActiveMode,
     stateStats,
     topProperties,
-    loadingStats = false
+    loadingStats = false,
+    onPreviewProperty
 }) => {
     // Helper to find stats for active state
     const activeStateStat = selectedState ? stateStats.find(s => s.state_code === selectedState) : null;
@@ -310,6 +338,9 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
                             </button>
                         </div>
 
+                        {/* State Silhouette Visual Card */}
+                        <StateSilhouetteCard stateCode={selectedState} />
+
                         {/* Panel Body */}
                         {activeMode === 'preferences' && (
                             <div className="flex flex-col gap-4">
@@ -391,7 +422,11 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
                                     ) : (
                                         <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto no-scrollbar scrollbar-none">
                                             {localDeals.slice(0, 4).map((prop, idx) => (
-                                                <div key={prop.parcel_id} className="bg-[#073642]/30 border border-[#1a4554]/20 hover:border-purple-500/30 p-2.5 rounded-xl transition-all flex items-center justify-between gap-2">
+                                                <div 
+                                                    key={prop.parcel_id} 
+                                                    onClick={() => onPreviewProperty && onPreviewProperty(prop.parcel_id)}
+                                                    className="bg-[#073642]/30 border border-[#1a4554]/20 hover:border-purple-500/40 hover:bg-[#073642]/50 active:scale-[0.98] p-2.5 rounded-xl transition-all flex items-center justify-between gap-2 cursor-pointer"
+                                                >
                                                     <div className="min-w-0">
                                                         <p className="text-[10px] font-bold text-white truncate">{prop.address || prop.parcel_id}</p>
                                                         <p className="text-[8px] text-slate-400 uppercase tracking-widest mt-0.5">{prop.county} County</p>

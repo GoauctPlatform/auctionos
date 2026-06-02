@@ -2480,6 +2480,7 @@ export const ClientWorkbench: React.FC = () => {
               stateStats={stateStats}
               topProperties={topProperties}
               loadingStats={loadingStats}
+              onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)}
             />
           </div>
         )}
