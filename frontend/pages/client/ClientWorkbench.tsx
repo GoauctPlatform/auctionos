@@ -393,6 +393,43 @@ export const ClientWorkbench: React.FC = () => {
         }
       });
 
+      // Crucial Strategy: Deep Scan properties inside ALL folders (both Standard and Custom)
+      // to extract precise state and county density!
+      try {
+        const stateCountiesMap: Record<string, Set<string>> = {};
+        for (const list of lists) {
+          try {
+            const props = await ClientDataService.getListProperties(list.id);
+            if (Array.isArray(props)) {
+              props.forEach((prop: any) => {
+                if (prop.state) {
+                  const stateUpper = prop.state.trim().toUpperCase();
+                  if (stateUpper.length === 2) {
+                    if (!stateCountiesMap[stateUpper]) {
+                      stateCountiesMap[stateUpper] = new Set<string>();
+                    }
+                    if (prop.county) {
+                      stateCountiesMap[stateUpper].add(prop.county.trim().toLowerCase());
+                    } else {
+                      stateCountiesMap[stateUpper].add('__unknown__');
+                    }
+                  }
+                }
+              });
+            }
+          } catch (propsErr) {
+            console.error(`Failed to fetch properties for list ${list.id} during map scan:`, propsErr);
+          }
+        }
+
+        // Merge deep property county counts into stats
+        Object.entries(stateCountiesMap).forEach(([stateUpper, countiesSet]) => {
+          stats[stateUpper] = Math.max(stats[stateUpper] || 0, countiesSet.size);
+        });
+      } catch (deepErr) {
+        console.error('Failed to run deep property scan for map:', deepErr);
+      }
+
       setMyListStats(stats);
       localStorage.setItem('goauct_map_mylist_stats', JSON.stringify(stats));
     } catch (err) {
