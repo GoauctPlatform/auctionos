@@ -211,6 +211,7 @@ export interface PropertyDetails {
   occupancy_checked_date?: string;
   qoz_description?: string;
   purchase_option_type?: string;
+  property_category?: string;
 
   // Sale History
   last_sale_date?: string;

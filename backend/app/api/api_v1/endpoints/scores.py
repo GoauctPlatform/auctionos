@@ -170,7 +170,8 @@ def get_top_scores(
             p.lot_acres,
             p.improvement_value,
             p.owner_address,
-            p.purchase_option_type
+            p.purchase_option_type,
+            p.property_category
         FROM property_scores s
         JOIN property_details p ON p.parcel_id = s.parcel_id
         WHERE {where_str}
@@ -206,6 +207,7 @@ def get_top_scores(
             "improvement_value": r[14],
             "owner_address": r[15],
             "purchase_option_type": r[16],
+            "property_category": r[17],
         }
         for r in results
     ]

@@ -1598,9 +1598,12 @@ export const ClientWorkbench: React.FC = () => {
       .finally(() => setMonthlyLoading(false));
   }, [selectedState]);
 
-  // Save widgets state to local storage when modified
+  // Save widgets state to local storage when modified (debounced to prevent UI lag during drag/resize)
   useEffect(() => {
-    localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
+    const timer = setTimeout(() => {
+      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
+    }, 500);
+    return () => clearTimeout(timer);
   }, [widgets]);
 
   // Bring window to focus
@@ -2210,7 +2213,7 @@ export const ClientWorkbench: React.FC = () => {
       const targetNextVisible = !wasVisible;
 
       // Coordinated tool suites
-      const set1 = ['recommended_deals', 'dossier', 'rehab_calc'];
+      const set1 = ['smart_ai_finder', 'dossier', 'rehab_calc'];
       const set2 = ['map', 'chart', 'yield'];
 
       let idsToSync: string[] = [];
@@ -2286,7 +2289,7 @@ export const ClientWorkbench: React.FC = () => {
 
         if (presetId === 'default') {
           // Standard analytical set: deeds, foreclosures, liens, map, recommended deals visible. All others hidden.
-          const visibleIds = ['property_metrics', 'map', 'recommended_deals'];
+          const visibleIds = ['property_metrics', 'map', 'smart_ai_finder'];
           if (visibleIds.includes(w.id)) {
             const match = DEFAULT_WIDGETS.find(d => d.id === w.id);
             if (match) coords = { ...match, visible: true, zIndex: incrementZ() };
@@ -4351,7 +4354,7 @@ export const ClientWorkbench: React.FC = () => {
                 {(() => {
                   const connections: { from: string; to: string }[] = [
                     // Set 1: Deals Suite
-                    { from: 'recommended_deals', to: 'dossier' },
+                    { from: 'smart_ai_finder', to: 'dossier' },
                     { from: 'dossier', to: 'rehab_calc' },
                     // Set 2: GIS Suite
                     { from: 'map', to: 'chart' },
@@ -4394,7 +4397,7 @@ export const ClientWorkbench: React.FC = () => {
                   key={w.id}
                   id={
                     w.id === 'map' ? 'tour-yield-heatmap' :
-                      w.id === 'recommended_deals' ? 'tour-suggested-deals' :
+                      w.id === 'smart_ai_finder' ? 'tour-suggested-deals' :
                         undefined
                   }
                   onClick={() => focusWidget(w.id)}
