@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getStateStats, StateStat, getMonthlyStats, MonthlyAuctionStat, getTopScoredProperties } from '../../services/scores.service';
+import { getStateStats, StateStat, getMonthlyStats, MonthlyAuctionStat, getTopScoredProperties, TopScoredProperty } from '../../services/scores.service';
 import { ClientDataService, PropertyService } from '../../services/property.service';
 import { AuctionService } from '../../services/auction.service';
 import { StatesService, StateContact } from '../../services/states.service';
@@ -231,23 +231,72 @@ export const ClientWorkbench: React.FC = () => {
     syncLocalFavorites();
   }, []);
 
+  const [activeMode, setActiveMode] = useState<'preferences' | 'volume' | 'scoring'>(() => {
+    try {
+      const saved = localStorage.getItem('goauct_map_active_mode');
+      return (saved as any) || 'preferences';
+    } catch (e) {
+      return 'preferences';
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('goauct_map_active_mode', activeMode);
+  }, [activeMode]);
+
+  const [stateStats, setStateStats] = useState<StateStat[]>([]);
+  const [topProperties, setTopProperties] = useState<TopScoredProperty[]>([]);
+  const [loadingStats, setLoadingStats] = useState<boolean>(false);
+
   const [favoriteStates, setFavoriteStates] = useState<Set<string>>(new Set());
   const [selectedState, setSelectedState] = useState<string>('');
-  const [myListStats, setMyListStats] = useState<Record<string, number>>({});
+  const [myListStats, setMyListStats] = useState<Record<string, number>>(() => {
+    try {
+      const saved = localStorage.getItem('goauct_map_mylist_stats');
+      return saved ? JSON.parse(saved) : {};
+    } catch (e) {
+      return {};
+    }
+  });
+
+  // Load analytical top scored properties on mount
+  useEffect(() => {
+    const loadAnalytics = async () => {
+      setLoadingStats(true);
+      try {
+        const props = await getTopScoredProperties(100); // Fetch top scored properties across states
+        setTopProperties(props);
+      } catch (e) {
+        console.error('Failed to load top scored properties for map:', e);
+      }
+      setLoadingStats(false);
+    };
+    loadAnalytics();
+  }, []);
 
   const handleStateClick = (stateCode: string) => {
-    const savedStatesRaw = localStorage.getItem('goauct_map_fav_states');
-    let currentFavs: string[] = [];
-    if (savedStatesRaw) {
-      try { currentFavs = JSON.parse(savedStatesRaw); } catch(e) {}
-    }
-    if (currentFavs.includes(stateCode)) {
-      currentFavs = currentFavs.filter(s => s !== stateCode);
+    // If state code is selected, toggle it. If not, set it.
+    if (selectedState === stateCode) {
+      setSelectedState('');
     } else {
-      currentFavs.push(stateCode);
+      setSelectedState(stateCode);
     }
-    localStorage.setItem('goauct_map_fav_states', JSON.stringify(currentFavs));
-    window.dispatchEvent(new Event('map-preferences-updated'));
+    
+    // In preferences mode, we also toggle map favorites
+    if (activeMode === 'preferences') {
+      const savedStatesRaw = localStorage.getItem('goauct_map_fav_states');
+      let currentFavs: string[] = [];
+      if (savedStatesRaw) {
+        try { currentFavs = JSON.parse(savedStatesRaw); } catch(e) {}
+      }
+      if (currentFavs.includes(stateCode)) {
+        currentFavs = currentFavs.filter(s => s !== stateCode);
+      } else {
+        currentFavs.push(stateCode);
+      }
+      localStorage.setItem('goauct_map_fav_states', JSON.stringify(currentFavs));
+      window.dispatchEvent(new Event('map-preferences-updated'));
+    }
   };
 
   const loadFavoriteStates = useCallback(async () => {
@@ -317,35 +366,72 @@ export const ClientWorkbench: React.FC = () => {
   const mapCustomization = useMemo(() => {
     const config: Record<string, any> = {};
 
-    // 1. Base Intensity (Heatmap Option A) from My Lists (Counties amount)
-    Object.entries(myListStats).forEach(([stateCode, count]) => {
-      const countyCount = count as number;
-      let fillColor = '#0f766e'; // Dark Teal (1 county)
-      if (countyCount >= 5) fillColor = '#10b981'; // Neon Green (High Density)
-      else if (countyCount >= 2) fillColor = '#14b8a6'; // Medium Teal
+    if (activeMode === 'volume') {
+      // 1. Auction Volume Termograph (Amber/Orange)
+      const volumes = stateStats.map(s => s.volume || 0);
+      const maxVolume = Math.max(...volumes, 1);
 
-      config[stateCode] = { fill: fillColor };
-    });
-    
-    // 2. Favorites Overlap (Brightest Cyan)
-    favoriteStates.forEach(stateCode => {
-      const cleanCode = stateCode.trim().toUpperCase();
-      config[cleanCode] = {
-        ...config[cleanCode],
-        fill: '#00e5ff', // Vibrant Cyan neon fill for explicit favorites
-      };
-    });
+      stateStats.forEach(stat => {
+        if (stat.state_code) {
+          const code = stat.state_code.trim().toUpperCase();
+          const vol = stat.volume || 0;
+          const pct = vol / maxVolume;
+          
+          let fillColor = '#7c2d12'; // Low volume (rust orange)
+          if (vol === 0) fillColor = '#1a353d'; // Dark solarized empty state
+          else if (pct >= 0.8) fillColor = '#fbbf24'; // High volume (gold/yellow)
+          else if (pct >= 0.4) fillColor = '#d97706'; // Medium volume (amber)
 
-    // 3. Active Selection Overlay
+          config[code] = { fill: fillColor };
+        }
+      });
+    } else if (activeMode === 'scoring') {
+      // 2. Best Deals Termograph (Violet/Purple)
+      stateStats.forEach(stat => {
+        if (stat.state_code) {
+          const code = stat.state_code.trim().toUpperCase();
+          const score = stat.average_score || 0;
+
+          let fillColor = '#4c1d95'; // Low average (dark violet)
+          if (score === 0) fillColor = '#1a353d';
+          else if (score >= 80) fillColor = '#c084fc'; // High average (bright neon purple)
+          else if (score >= 50) fillColor = '#7c3aed'; // Medium average (violet)
+
+          config[code] = { fill: fillColor };
+        }
+      });
+    } else {
+      // 3. Standard Preferences (Cyan / Teal)
+      // Base Intensity from My Lists (Counties amount)
+      Object.entries(myListStats).forEach(([stateCode, count]) => {
+        const countyCount = count as number;
+        let fillColor = '#0f766e'; // Dark Teal (1 county)
+        if (countyCount >= 5) fillColor = '#10b981'; // Neon Green (High Density)
+        else if (countyCount >= 2) fillColor = '#14b8a6'; // Medium Teal
+
+        config[stateCode] = { fill: fillColor };
+      });
+      
+      // Favorites Overlap (Brightest Cyan)
+      favoriteStates.forEach(stateCode => {
+        const cleanCode = stateCode.trim().toUpperCase();
+        config[cleanCode] = {
+          ...config[cleanCode],
+          fill: '#00e5ff', // Vibrant Cyan neon fill for explicit favorites
+        };
+      });
+    }
+
+    // Active Selection Overlay (Mint highlight for active selection across all modes)
     if (selectedState) {
       config[selectedState.toUpperCase()] = {
         ...config[selectedState.toUpperCase()],
-        fill: '#00ffcc', // Mint highlight for active selection
+        fill: '#00ffcc', // Mint highlight
       };
     }
 
     return config;
-  }, [favoriteStates, selectedState, myListStats]);
+  }, [activeMode, favoriteStates, selectedState, myListStats, stateStats]);
 
   const loadListsAndPreferences = useCallback(async () => {
     try {
@@ -931,7 +1017,6 @@ export const ClientWorkbench: React.FC = () => {
   const [nodeConnectSourceId, setNodeConnectSourceId] = useState<string | null>(null);
 
   // Dynamic API details states
-  const [stateStats, setStateStats] = useState<StateStat[]>([]);
   const [monthlyStats, setMonthlyStats] = useState<MonthlyAuctionStat[]>([]);
   const [dbTopDeals, setDbTopDeals] = useState<Property[]>([]);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
@@ -2347,6 +2432,13 @@ export const ClientWorkbench: React.FC = () => {
               onStateClick={handleStateClick} 
               mapCustomization={mapCustomization} 
               favoriteStates={favoriteStates} 
+              selectedState={selectedState}
+              myListStats={myListStats}
+              activeMode={activeMode}
+              setActiveMode={setActiveMode}
+              stateStats={stateStats}
+              topProperties={topProperties}
+              loadingStats={loadingStats}
             />
           </div>
         )}
@@ -3632,6 +3724,13 @@ export const ClientWorkbench: React.FC = () => {
                                   onStateClick={handleStateClick} 
                                   mapCustomization={mapCustomization} 
                                   favoriteStates={favoriteStates} 
+                                  selectedState={selectedState}
+                                  myListStats={myListStats}
+                                  activeMode={activeMode}
+                                  setActiveMode={setActiveMode}
+                                  stateStats={stateStats}
+                                  topProperties={topProperties}
+                                  loadingStats={loadingStats}
                                 />
                               </div>
                             )}
@@ -4450,6 +4549,13 @@ export const ClientWorkbench: React.FC = () => {
                             onStateClick={handleStateClick} 
                             mapCustomization={mapCustomization} 
                             favoriteStates={favoriteStates} 
+                            selectedState={selectedState}
+                            myListStats={myListStats}
+                            activeMode={activeMode}
+                            setActiveMode={setActiveMode}
+                            stateStats={stateStats}
+                            topProperties={topProperties}
+                            loadingStats={loadingStats}
                           />
                         )}
                       </div>
