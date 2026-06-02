@@ -1,6 +1,8 @@
-import React, { Component, ErrorInfo, ReactNode } from 'react';
+import React, { Component, ErrorInfo, ReactNode, useState, useEffect } from 'react';
 import USMap from '../USMap';
-import { StateStat, TopScoredProperty } from '../../services/scores.service';
+import { StateStat, TopScoredProperty, getTopScoredProperties, submitScore } from '../../services/scores.service';
+import { PropertyService } from '../../services/property.service';
+import { calculateDealScore } from '../../intelligence/scoringEngine';
 import { Map, Star, Award, Layers, X, RefreshCw } from 'lucide-react';
 
 interface MapDashboardProps {
@@ -61,6 +63,95 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
     const activeStateProperties = selectedState 
         ? topProperties.filter(p => p.state?.trim().toUpperCase() === selectedState.trim().toUpperCase())
         : [];
+
+    const [localDeals, setLocalDeals] = useState<TopScoredProperty[]>([]);
+    const [loadingLocalDeals, setLoadingLocalDeals] = useState<boolean>(false);
+
+    // Dynamic on-demand scores calculation and loading (Auto-Hydration)
+    useEffect(() => {
+        if (!selectedState || activeMode !== 'scoring') {
+            setLocalDeals([]);
+            return;
+        }
+
+        const loadDealsForState = async () => {
+            setLoadingLocalDeals(true);
+            try {
+                // A. Query database/Redis for pre-computed scores first
+                let fetched = await getTopScoredProperties(100, { 
+                    state: selectedState,
+                    minScore: 70 
+                });
+                
+                let premiumDeals = fetched.filter(p => {
+                    const score = p.deal_score || 0;
+                    const rating = (p.rating || '').toUpperCase();
+                    return score >= 70 && ['A+', 'A', 'B'].includes(rating);
+                });
+
+                // B. FALLBACK (Auto-Hydration): Compute scores from raw properties if empty
+                if (premiumDeals.length === 0) {
+                    console.log(`MapDashboard: Scores empty for state: ${selectedState}. Computing on-the-fly from properties list...`);
+                    const rawProps = await PropertyService.getProperties({ 
+                        limit: 100, 
+                        availability: 'available',
+                        state: selectedState
+                    });
+                    
+                    const scoredProps: TopScoredProperty[] = [];
+                    for (const prop of rawProps) {
+                        if (!prop.parcel_id) continue;
+                        
+                        const scoreResult = calculateDealScore(prop);
+                        const score = scoreResult.score;
+                        const rating = scoreResult.rating;
+                        
+                        if (score >= 70 && ['A+', 'A', 'B'].includes(rating)) {
+                            const topProp: TopScoredProperty = {
+                                parcel_id: prop.parcel_id,
+                                deal_score: score,
+                                rating: rating,
+                                score_factors: scoreResult.factors,
+                                model_version: 'rule-based-v1',
+                                computed_at: new Date().toISOString(),
+                                updated_at: new Date().toISOString(),
+                                address: prop.address || null,
+                                county: prop.county || null,
+                                state: prop.state || null,
+                                amount_due: prop.amount_due ?? null,
+                                assessed_value: prop.assessed_value ?? null,
+                                availability_status: prop.availability_status || null,
+                                property_type: prop.property_type || null,
+                                lot_acres: prop.lot_acres ?? null,
+                                improvement_value: prop.improvement_value ?? null,
+                                owner_address: prop.owner_address || null,
+                                purchase_option_type: prop.purchase_option_type || null,
+                                property_category: prop.property_category || null
+                            };
+                            scoredProps.push(topProp);
+                            
+                            // Auto-Hydration background save
+                            submitScore(prop.parcel_id, scoreResult, {
+                                status: prop.availability_status,
+                                state: prop.state,
+                                county: prop.county
+                            });
+                        }
+                    }
+                    scoredProps.sort((a, b) => (b.deal_score || 0) - (a.deal_score || 0));
+                    premiumDeals = scoredProps;
+                }
+
+                setLocalDeals(premiumDeals);
+            } catch (err) {
+                console.error(`MapDashboard: Failed to load deals for state ${selectedState}`, err);
+            } finally {
+                setLoadingLocalDeals(false);
+            }
+        };
+
+        loadDealsForState();
+    }, [selectedState, activeMode]);
 
     return (
         <DashboardErrorBoundary>
@@ -182,6 +273,7 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
                             <USMap 
                                 onStateSelect={(state) => onStateClick(state)} 
                                 customize={mapCustomization} 
+                                selectedState={selectedState}
                             />
                         )}
                     </div>
@@ -289,11 +381,16 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
 
                                 <div className="flex flex-col gap-2">
                                     <h4 className="text-[10px] text-[#93a1a1] font-bold uppercase tracking-wider px-1">Top Rated Deals</h4>
-                                    {activeStateProperties.length === 0 ? (
+                                    {loadingLocalDeals ? (
+                                        <div className="flex flex-col items-center py-6 gap-2 bg-[#073642]/10 border border-[#1a4554]/10 rounded-xl">
+                                            <RefreshCw className="animate-spin text-purple-400" size={16} />
+                                            <span className="text-[8px] font-black tracking-widest text-[#586e75] uppercase">Analyzing Deals...</span>
+                                        </div>
+                                    ) : localDeals.length === 0 ? (
                                         <p className="text-[10px] text-slate-400 italic p-2 bg-[#073642]/10 border border-[#1a4554]/10 rounded-xl text-center">No properties evaluated in this state.</p>
                                     ) : (
                                         <div className="flex flex-col gap-2 max-h-[220px] overflow-y-auto no-scrollbar scrollbar-none">
-                                            {activeStateProperties.slice(0, 4).map((prop, idx) => (
+                                            {localDeals.slice(0, 4).map((prop, idx) => (
                                                 <div key={prop.parcel_id} className="bg-[#073642]/30 border border-[#1a4554]/20 hover:border-purple-500/30 p-2.5 rounded-xl transition-all flex items-center justify-between gap-2">
                                                     <div className="min-w-0">
                                                         <p className="text-[10px] font-bold text-white truncate">{prop.address || prop.parcel_id}</p>
