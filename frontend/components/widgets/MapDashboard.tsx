@@ -11,8 +11,13 @@ interface MapDashboardProps {
     favoriteStates: Set<string>;
 }
 
-class DashboardErrorBoundary extends Component<{children: ReactNode}, {hasError: boolean, error: any}> {
-    public state = { hasError: false, error: null };
+class DashboardErrorBoundary extends React.Component<any, any> {
+    state: any;
+    props: any;
+    constructor(props: any) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
 
     static getDerivedStateFromError(error: any) {
         return { hasError: true, error };

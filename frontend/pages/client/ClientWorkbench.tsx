@@ -250,26 +250,47 @@ export const ClientWorkbench: React.FC = () => {
     window.dispatchEvent(new Event('map-preferences-updated'));
   };
 
-  useEffect(() => {
-    const loadFavoriteStates = () => {
-      try {
-        // As requested: extracting user preference states purely from localStorage 
-        // (populated by auctions and my_list property favorites)
-        const savedStatesRaw = localStorage.getItem('goauct_map_fav_states');
-        if (savedStatesRaw) {
+  const loadFavoriteStates = useCallback(async () => {
+    try {
+      const states = new Set<string>();
+
+      // 1. Load manual selection from localStorage
+      const savedStatesRaw = localStorage.getItem('goauct_map_fav_states');
+      if (savedStatesRaw) {
+        try {
           const parsed = JSON.parse(savedStatesRaw);
           if (Array.isArray(parsed)) {
-            setFavoriteStates(new Set(parsed));
-            return;
+            parsed.forEach(s => states.add(s.trim().toUpperCase()));
+          }
+        } catch (e) {
+          console.error('Error parsing map favorites from localStorage', e);
+        }
+      }
+
+      // 2. Fetch favorited auctions from backend and extract their states
+      try {
+        const favIds = await AuctionService.getFavorites();
+        if (Array.isArray(favIds) && favIds.length > 0) {
+          const { items } = await AuctionService.getAuctionEvents({ ids: favIds });
+          if (Array.isArray(items)) {
+            items.forEach((auction: any) => {
+              if (auction.state) {
+                states.add(auction.state.trim().toUpperCase());
+              }
+            });
           }
         }
-        setFavoriteStates(new Set());
-      } catch (err) {
-        console.error('Failed to load favorite states from localStorage:', err);
-        setFavoriteStates(new Set());
+      } catch (apiErr) {
+        console.error('Failed to fetch favorite auctions for map:', apiErr);
       }
-    };
 
+      setFavoriteStates(states);
+    } catch (err) {
+      console.error('Failed to load favorite states:', err);
+    }
+  }, []);
+
+  useEffect(() => {
     // Initial load
     loadFavoriteStates();
 
@@ -291,7 +312,7 @@ export const ClientWorkbench: React.FC = () => {
       window.removeEventListener('map-preferences-updated', handleSync);
       window.removeEventListener('storage', handleStorageChange);
     };
-  }, []);
+  }, [loadFavoriteStates]);
 
   const mapCustomization = useMemo(() => {
     const config: Record<string, any> = {};
@@ -326,8 +347,10 @@ export const ClientWorkbench: React.FC = () => {
     return config;
   }, [favoriteStates, selectedState, myListStats]);
 
-  useEffect(() => {
-    ClientDataService.getLists().then(lists => {
+  const loadListsAndPreferences = useCallback(async () => {
+    try {
+      const lists = await ClientDataService.getLists(activeCompany?.id);
+      
       // 1. Existing Upcoming Auctions logic
       const hasUpcoming = lists
         .filter((l: any) => l.has_upcoming_auction)
@@ -335,24 +358,57 @@ export const ClientWorkbench: React.FC = () => {
       setUpcomingAuctionsCount(hasUpcoming);
 
       // 2. Map My List stats logic (Counties/Properties per State)
-      // Assuming list.name is often the State code (e.g., "FL") or has a relation
-      // We will count how many subfolders (counties) it has.
       const stats: Record<string, number> = {};
+      
+      // First, fetch preferences (tells us all states/counties actually holding saved properties)
+      try {
+        const preferences = await ClientDataService.getPreferences(activeCompany?.id);
+        if (preferences && Array.isArray(preferences.states)) {
+          preferences.states.forEach((stateCode: string) => {
+            const cleanCode = stateCode.trim().toUpperCase();
+            if (cleanCode.length === 2) {
+              stats[cleanCode] = 1; // Default base intensity of 1
+            }
+          });
+        }
+      } catch (prefErr) {
+        console.error('Failed to load list preferences for map:', prefErr);
+      }
+
+      // Next, count county subfolders inside Standard State folders (e.g. tags starting with 'STANDARD')
       lists.forEach((list: any) => {
-        const stateCode = list.name?.trim().toUpperCase();
-        if (stateCode && stateCode.length === 2) {
-          // It's likely a state folder. Count its subfolders (counties)
-          const countyCount = Array.isArray(list.subfolders) ? list.subfolders.length : 0;
-          if (countyCount > 0) {
-            stats[stateCode] = countyCount;
+        if (list.tags && list.tags.startsWith('STANDARD')) {
+          const stateCode = list.name?.trim().toUpperCase();
+          if (stateCode && stateCode.length === 2) {
+            let countyCount = 0;
+            if (list.tags.includes(':')) {
+              const countiesStr = list.tags.split(':')[1];
+              if (countiesStr) {
+                const counties = countiesStr.split(',').map((c: string) => c.trim()).filter(Boolean);
+                countyCount = counties.length;
+              }
+            }
+            stats[stateCode] = Math.max(stats[stateCode] || 0, countyCount, 1);
           }
         }
       });
+
       setMyListStats(stats);
       localStorage.setItem('goauct_map_mylist_stats', JSON.stringify(stats));
+    } catch (err) {
+      console.error('Failed to load lists and preferences:', err);
+    }
+  }, [activeCompany?.id]);
 
-    }).catch(() => { });
-  }, []);
+  useEffect(() => {
+    loadListsAndPreferences();
+
+    // Listen to custom lists update events
+    window.addEventListener('goauct-lists-updated', loadListsAndPreferences);
+    return () => {
+      window.removeEventListener('goauct-lists-updated', loadListsAndPreferences);
+    };
+  }, [loadListsAndPreferences]);
 
   // Dynamic admin announcements state
   const [announcements, setAnnouncements] = useState<{ id: number; title: string; message: string; type: string }[]>([]);

@@ -264,6 +264,12 @@ export const PropertyService = {
     }
 };
 
+const triggerListUpdate = () => {
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('goauct-lists-updated'));
+    }
+};
+
 export const ClientDataService = {
     getLists: async (companyId?: number): Promise<any[]> => {
         const qs = companyId ? `?company_id=${companyId}` : '';
@@ -295,7 +301,9 @@ export const ClientDataService = {
             body: JSON.stringify({ name, tags, company_id: companyId ?? null })
         });
         if (!response.ok) throw new Error('Failed to create list');
-        return response.json();
+        const data = await response.json();
+        triggerListUpdate();
+        return data;
     },
 
     updateList: async (id: number, data: { name?: string; tags?: string; notes?: string }): Promise<any> => {
@@ -305,7 +313,9 @@ export const ClientDataService = {
             body: JSON.stringify(data)
         });
         if (!response.ok) throw new Error('Failed to update list');
-        return response.json();
+        const result = await response.json();
+        triggerListUpdate();
+        return result;
     },
 
     deleteList: async (id: number): Promise<void> => {
@@ -314,6 +324,7 @@ export const ClientDataService = {
             headers: getHeaders()
         });
         if (!response.ok) throw new Error('Failed to delete list');
+        triggerListUpdate();
     },
 
     deleteSubfolder: async (listId: number, countyName: string): Promise<void> => {
@@ -322,6 +333,7 @@ export const ClientDataService = {
             headers: getHeaders()
         });
         if (!response.ok) throw new Error('Failed to delete county folder');
+        triggerListUpdate();
     },
 
     addPropertyToList: async (listId: number, propertyId: number): Promise<void> => {
@@ -330,6 +342,7 @@ export const ClientDataService = {
             headers: getHeaders()
         });
         if (!response.ok) throw new Error('Failed to add property to list');
+        triggerListUpdate();
     },
 
     addPropertyToStandardList: async (propertyId: number, companyId?: number): Promise<any> => {
@@ -339,7 +352,9 @@ export const ClientDataService = {
             headers: getHeaders()
         });
         if (!response.ok) throw new Error('Failed to add property to standard list');
-        return response.json();
+        const data = await response.json();
+        triggerListUpdate();
+        return data;
     },
 
     removePropertyFromList: async (listId: number, propertyId: number): Promise<void> => {
@@ -348,6 +363,7 @@ export const ClientDataService = {
             headers: getHeaders()
         });
         if (!response.ok) throw new Error('Failed to remove property from list');
+        triggerListUpdate();
     },
 
     movePropertyBetweenLists: async (listId: number, propertyId: number, targetListId: number): Promise<void> => {
@@ -356,6 +372,7 @@ export const ClientDataService = {
             headers: getHeaders()
         });
         if (!response.ok) throw new Error('Failed to move property');
+        triggerListUpdate();
     },
 
     getBroadcastedLists: async (): Promise<any[]> => {
@@ -372,7 +389,9 @@ export const ClientDataService = {
             headers: getHeaders()
         });
         if (!response.ok) throw new Error('Failed to import broadcasted list');
-        return response.json();
+        const data = await response.json();
+        triggerListUpdate();
+        return data;
     },
 
     createNote: async (propertyId: number, noteText: string): Promise<any> => {
