@@ -144,7 +144,7 @@ interface OverlayWindow {
 
 const DEFAULT_WIDGETS: Widget[] = [
   { id: 'shortcuts', type: 'shortcuts', title: 'Quick Access', x: 20, y: 20, w: 320, h: 460, visible: true, zIndex: 1 },
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 360, y: 20, w: 840, h: 520, visible: true, zIndex: 2 }
+  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 360, y: 20, w: 840, h: 650, visible: true, zIndex: 2 }
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -233,6 +233,22 @@ export const ClientWorkbench: React.FC = () => {
 
   const [favoriteStates, setFavoriteStates] = useState<Set<string>>(new Set());
   const [selectedState, setSelectedState] = useState<string>('');
+  const [myListStats, setMyListStats] = useState<Record<string, number>>({});
+
+  const handleStateClick = (stateCode: string) => {
+    const savedStatesRaw = localStorage.getItem('goauct_map_fav_states');
+    let currentFavs: string[] = [];
+    if (savedStatesRaw) {
+      try { currentFavs = JSON.parse(savedStatesRaw); } catch(e) {}
+    }
+    if (currentFavs.includes(stateCode)) {
+      currentFavs = currentFavs.filter(s => s !== stateCode);
+    } else {
+      currentFavs.push(stateCode);
+    }
+    localStorage.setItem('goauct_map_fav_states', JSON.stringify(currentFavs));
+    window.dispatchEvent(new Event('map-preferences-updated'));
+  };
 
   useEffect(() => {
     const loadFavoriteStates = () => {
@@ -279,29 +295,62 @@ export const ClientWorkbench: React.FC = () => {
 
   const mapCustomization = useMemo(() => {
     const config: Record<string, any> = {};
+
+    // 1. Base Intensity (Heatmap Option A) from My Lists (Counties amount)
+    Object.entries(myListStats).forEach(([stateCode, count]) => {
+      const countyCount = count as number;
+      let fillColor = '#0f766e'; // Dark Teal (1 county)
+      if (countyCount >= 5) fillColor = '#10b981'; // Neon Green (High Density)
+      else if (countyCount >= 2) fillColor = '#14b8a6'; // Medium Teal
+
+      config[stateCode] = { fill: fillColor };
+    });
     
+    // 2. Favorites Overlap (Brightest Cyan)
     favoriteStates.forEach(stateCode => {
       const cleanCode = stateCode.trim().toUpperCase();
       config[cleanCode] = {
-        fill: '#00e5ff', // Vibrant Cyan/Teal neon fill
+        ...config[cleanCode],
+        fill: '#00e5ff', // Vibrant Cyan neon fill for explicit favorites
       };
     });
 
+    // 3. Active Selection Overlay
     if (selectedState) {
       config[selectedState.toUpperCase()] = {
-        fill: '#00ffcc', // Mint highlight
+        ...config[selectedState.toUpperCase()],
+        fill: '#00ffcc', // Mint highlight for active selection
       };
     }
 
     return config;
-  }, [favoriteStates, selectedState]);
+  }, [favoriteStates, selectedState, myListStats]);
 
   useEffect(() => {
     ClientDataService.getLists().then(lists => {
+      // 1. Existing Upcoming Auctions logic
       const hasUpcoming = lists
         .filter((l: any) => l.has_upcoming_auction)
         .reduce((acc: number, curr: any) => acc + (curr.upcoming_auctions_count || 0), 0);
       setUpcomingAuctionsCount(hasUpcoming);
+
+      // 2. Map My List stats logic (Counties/Properties per State)
+      // Assuming list.name is often the State code (e.g., "FL") or has a relation
+      // We will count how many subfolders (counties) it has.
+      const stats: Record<string, number> = {};
+      lists.forEach((list: any) => {
+        const stateCode = list.name?.trim().toUpperCase();
+        if (stateCode && stateCode.length === 2) {
+          // It's likely a state folder. Count its subfolders (counties)
+          const countyCount = Array.isArray(list.subfolders) ? list.subfolders.length : 0;
+          if (countyCount > 0) {
+            stats[stateCode] = countyCount;
+          }
+        }
+      });
+      setMyListStats(stats);
+      localStorage.setItem('goauct_map_mylist_stats', JSON.stringify(stats));
+
     }).catch(() => { });
   }, []);
 
@@ -2202,9 +2251,7 @@ export const ClientWorkbench: React.FC = () => {
         {w.type === 'map' && (
           <div className="h-full min-h-[400px]">
             <MapDashboard 
-              stats={stateStats} 
-              selectedState={selectedState || undefined} 
-              onStateClick={(s) => setSelectedState(s === selectedState ? '' : s)} 
+              onStateClick={handleStateClick} 
               mapCustomization={mapCustomization} 
               favoriteStates={favoriteStates} 
             />
@@ -3489,9 +3536,7 @@ export const ClientWorkbench: React.FC = () => {
                             {w.type === 'map' && (
                               <div className="h-full min-h-[400px]">
                                 <MapDashboard 
-                                  stats={stateStats} 
-                                  selectedState={selectedState || undefined} 
-                                  onStateClick={(s) => setSelectedState(s === selectedState ? '' : s)} 
+                                  onStateClick={handleStateClick} 
                                   mapCustomization={mapCustomization} 
                                   favoriteStates={favoriteStates} 
                                 />
@@ -4308,12 +4353,10 @@ export const ClientWorkbench: React.FC = () => {
                         {loading ? (
                           <RefreshCw className="animate-spin text-blue-500" size={24} />
                         ) : (
-                          <MapDashboard
-                            stats={stateStats}
-                            selectedState={selectedState || undefined}
-                            onStateClick={(s) => setSelectedState(s === selectedState ? '' : s)}
-                            mapCustomization={mapCustomization}
-                            favoriteStates={favoriteStates}
+                          <MapDashboard 
+                            onStateClick={handleStateClick} 
+                            mapCustomization={mapCustomization} 
+                            favoriteStates={favoriteStates} 
                           />
                         )}
                       </div>
