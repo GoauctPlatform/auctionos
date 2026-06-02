@@ -18,6 +18,7 @@ import { PropertyMetricsWidget } from '../../components/widgets/PropertyMetricsW
 import { TopRecommendedWidget } from '../../components/widgets/TopRecommendedWidget';
 import { RehabCalcWidget } from '../../components/widgets/RehabCalcWidget';
 import { RecommendedDealsWidget } from '../../components/widgets/RecommendedDealsWidget';
+import { SmartAIDealFinder } from '../../components/widgets/SmartAIDealFinder';
 import { API_URL } from '../../services/httpClient';
 
 // Original rich page modules for IDE-style floating windows
@@ -47,7 +48,7 @@ import {
   Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
   Gavel, Calendar, ShieldAlert, Search, Plus, Filter, ArrowRight,
   Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare, LogOut,
-  MousePointer, TrendingUp, Lock, Unlock, LayoutDashboard, ExternalLink, Database
+  MousePointer, TrendingUp, Lock, Unlock, LayoutDashboard, ExternalLink, Database, Brain
 } from 'lucide-react';
 
 const CHART_COLORS = {
@@ -118,7 +119,7 @@ interface Widget {
   id: string;
   type: 'shortcuts' | 'property_metrics' | 'map' | 'recommended_deals' | 'live_auctions' | 'property_search' | 'chart' | 'dossier' | 'yield' |
   'my_lists' | 'field_missions' | 'connect' | 'settings' | 'profile' | 'team' | 'logs' | 'billings' | 'company' | 'notifications' | 'property_details' | 'create_task' | 'support_center' |
-  'node_canvas' | 'rehab_calc' | 'property_comparator' | 'contacts_search' | 'field_coordination' | 'acquisition_pipeline';
+  'node_canvas' | 'rehab_calc' | 'property_comparator' | 'contacts_search' | 'field_coordination' | 'acquisition_pipeline' | 'smart_ai_finder';
   title: string;
   x: number; // left offset in pixels
   y: number; // top offset in pixels
@@ -144,7 +145,8 @@ interface OverlayWindow {
 
 const DEFAULT_WIDGETS: Widget[] = [
   { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 20, y: 20, w: 1200, h: 650, visible: true, zIndex: 10 },
-  { id: 'property_metrics', type: 'property_metrics', title: 'Property Metrics', x: 20, y: 690, w: 900, h: 260, visible: false, zIndex: 1 }
+  { id: 'property_metrics', type: 'property_metrics', title: 'Property Metrics', x: 20, y: 690, w: 900, h: 260, visible: false, zIndex: 1 },
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 20, y: 960, w: 900, h: 420, visible: false, zIndex: 1 }
 ];
 
 export const ClientWorkbench: React.FC = () => {
@@ -723,6 +725,10 @@ export const ClientWorkbench: React.FC = () => {
       prev.map(p => (p.id === id ? { ...p, favorite: !p.favorite } : p))
     );
     logConsoleActivity(`Toggled favorite status for preset: "${id}"`);
+  };
+
+  const handleOpenPropertyDetails = (propertyId: string | number, parcelId: string) => {
+    openOverlayWindow('property_details', `🔍 Property: ${parcelId || propertyId}`, { propertyId, parcelId });
   };
 
   const openOverlayWindow = (
@@ -2426,6 +2432,12 @@ export const ClientWorkbench: React.FC = () => {
           </div>
         )}
 
+        {w.type === 'smart_ai_finder' && (
+          <div className="size-full overflow-hidden">
+            <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} />
+          </div>
+        )}
+
         {w.type === 'map' && (
           <div className="h-full min-h-[400px]">
             <MapDashboard 
@@ -3174,7 +3186,7 @@ export const ClientWorkbench: React.FC = () => {
                   </div>
 
                   <div className="flex flex-col space-y-1.5">
-                    {widgets.filter(w => ['map', 'property_metrics'].includes(w.id)).map(w => (
+                    {widgets.filter(w => ['map', 'property_metrics', 'smart_ai_finder'].includes(w.id)).map(w => (
                       <button
                         key={w.id}
                         onClick={() => toggleVisibility(w.id)}
@@ -3186,6 +3198,7 @@ export const ClientWorkbench: React.FC = () => {
                         <div className="flex items-center gap-2 text-xs">
                           {w.type === 'map' && <Map size={13} />}
                           {w.type === 'property_metrics' && <Activity size={13} />}
+                          {w.type === 'smart_ai_finder' && <Brain size={13} />}
                           <span className="truncate max-w-[130px]">{w.title}</span>
                         </div>
                         {w.visible ? <Eye size={12} /> : <EyeOff size={12} />}
@@ -3689,6 +3702,12 @@ export const ClientWorkbench: React.FC = () => {
                             {w.type === 'property_metrics' && (
                               <div className="size-full overflow-hidden">
                                 <PropertyMetricsWidget />
+                              </div>
+                            )}
+
+                            {w.type === 'smart_ai_finder' && (
+                              <div className="size-full overflow-hidden">
+                                <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} />
                               </div>
                             )}
 
@@ -4511,6 +4530,11 @@ export const ClientWorkbench: React.FC = () => {
                     {/* Widget 2: Property Metrics */}
                     {w.type === 'property_metrics' && (
                       <PropertyMetricsWidget />
+                    )}
+
+                    {/* Widget: Smart AI Deal Finder */}
+                    {w.type === 'smart_ai_finder' && (
+                      <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} />
                     )}
 
                     {/* GIS Heatmap widget */}
