@@ -167,13 +167,6 @@ export const ClientWorkbench: React.FC = () => {
         return DEFAULT_WIDGETS;
       }
 
-      // Self-healing: if ALL saved widgets are marked invisible, fallback to default layouts
-      const hasVisible = parsed.some((w: any) => w.visible);
-      if (!hasVisible) {
-        console.warn('ClientWorkbench: All saved widgets were invisible, falling back to default layout visibility.');
-        return DEFAULT_WIDGETS;
-      }
-
       // Self-healing: if any DEFAULT_WIDGETS are missing from the saved ones, merge them.
       const savedMap = new Map(parsed.map((w: any) => [w.id, w]));
       const merged = DEFAULT_WIDGETS.map(def => {
@@ -1603,7 +1596,16 @@ export const ClientWorkbench: React.FC = () => {
     const timer = setTimeout(() => {
       localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
     }, 500);
-    return () => clearTimeout(timer);
+
+    const handleBeforeUnload = () => {
+      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
   }, [widgets]);
 
   // Bring window to focus

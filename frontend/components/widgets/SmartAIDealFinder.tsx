@@ -45,6 +45,7 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
     
     const [selectedState, setSelectedState] = useState<string>('ALL');
     const [selectedCounty, setSelectedCounty] = useState<string>('ALL');
+    const [selectedAuctionType, setSelectedAuctionType] = useState<string>('ALL');
 
     // 1. Initial hydration and fetch available states list
     useEffect(() => {
@@ -178,13 +179,26 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
         }
     };
 
-    // 3. Filtered deals to display locally by county (state is filtered on database level for top performance)
+    // 3. Filtered deals to display locally by county and auction type (state is filtered on database level for top performance)
     const filteredDeals = useMemo(() => {
         return deals.filter(d => {
             const matchesCounty = selectedCounty === 'ALL' || (d.county && d.county.trim().toUpperCase() === selectedCounty.toUpperCase());
-            return matchesCounty;
+            
+            const cleanType = (d.property_category || d.purchase_option_type || d.property_type || '').toLowerCase();
+            let matchesType = true;
+            if (selectedAuctionType !== 'ALL') {
+                if (selectedAuctionType === 'DEED') {
+                    matchesType = cleanType.includes('deed');
+                } else if (selectedAuctionType === 'LIEN') {
+                    matchesType = cleanType.includes('lien');
+                } else if (selectedAuctionType === 'FORECLOSURE') {
+                    matchesType = cleanType.includes('foreclosure') || (!cleanType.includes('deed') && !cleanType.includes('lien'));
+                }
+            }
+            
+            return matchesCounty && matchesType;
         });
-    }, [deals, selectedCounty]);
+    }, [deals, selectedCounty, selectedAuctionType]);
 
     // Helper to get Rating shield color and style
     const getRatingStyle = (rating: string) => {
@@ -274,6 +288,22 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                             </select>
                         </div>
                     )}
+
+                    {/* Auction Type Selector */}
+                    <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1">
+                        <Filter size={11} className="text-[#93a1a1]" />
+                        <span className="text-[9px] font-black uppercase text-[#93a1a1]/60 tracking-wider mr-1">Type:</span>
+                        <select
+                            value={selectedAuctionType}
+                            onChange={(e) => setSelectedAuctionType(e.target.value)}
+                            className="bg-transparent text-[10px] font-black uppercase tracking-wider text-indigo-400 focus:outline-none border-none cursor-pointer [&>option]:bg-[#070d1a] [&>option]:text-white"
+                        >
+                            <option value="ALL">ALL TYPES</option>
+                            <option value="DEED">TAX DEED</option>
+                            <option value="LIEN">TAX LIEN</option>
+                            <option value="FORECLOSURE">FORECLOSURE</option>
+                        </select>
+                    </div>
 
                     {/* Refresh Button */}
                     <button
