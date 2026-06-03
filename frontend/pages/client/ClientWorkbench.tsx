@@ -142,6 +142,7 @@ interface OverlayWindow {
   isMinimized: boolean;
   isMaximized: boolean;
   data?: any;
+  refreshKey?: number;
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
@@ -736,10 +737,13 @@ export const ClientWorkbench: React.FC = () => {
 
     setOverlayWindows(prev => {
       const existingIdx = prev.findIndex(w => w.id === id);
+      const safeZ = prev.map(w => typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0);
+      const maxZ = safeZ.length > 0 ? Math.max(...safeZ) : 0;
+
       if (existingIdx !== -1) {
         return prev.map((w, idx) =>
           idx === existingIdx
-            ? { ...w, isMinimized: false, zIndex: Math.max(...prev.map(x => x.zIndex), 0) + 1 }
+            ? { ...w, isMinimized: false, zIndex: maxZ + 1 }
             : w
         );
       }
@@ -766,7 +770,6 @@ export const ClientWorkbench: React.FC = () => {
       }
       const x = Math.max((viewportW - w) / 2 + (prev.length * 20) % 200, 40);
       const y = Math.max((viewportH - h) / 2 + (prev.length * 20) % 200, 60);
-      const zIndex = Math.max(...prev.map(x => x.zIndex), 0) + 1;
 
       const newWin: OverlayWindow = {
         id,
@@ -776,7 +779,7 @@ export const ClientWorkbench: React.FC = () => {
         y,
         w,
         h,
-        zIndex,
+        zIndex: maxZ + 1,
         isMinimized: false,
         isMaximized: false,
         data,
@@ -796,8 +799,9 @@ export const ClientWorkbench: React.FC = () => {
   const focusOverlayWindow = (id: string) => {
     setActiveOverlayWindowId(id);
     setOverlayWindows(prev => {
-      const maxZ = Math.max(...prev.map(w => w.zIndex), 0);
-      return prev.map(w => (w.id === id ? { ...w, zIndex: maxZ + 1 } : w));
+      const safeZ = prev.map(w => typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0);
+      const maxZ = safeZ.length > 0 ? Math.max(...safeZ) : 0;
+      return prev.map(w => (w.id === id ? { ...w, isMinimized: false, zIndex: maxZ + 1 } : w));
     });
   };
 
@@ -810,9 +814,20 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const toggleMinimizeOverlayWindow = (id: string) => {
-    setOverlayWindows(prev =>
-      prev.map(w => (w.id === id ? { ...w, isMinimized: !w.isMinimized } : w))
-    );
+    setOverlayWindows(prev => {
+      const target = prev.find(w => w.id === id);
+      if (!target) return prev;
+      const willBeUnminimized = target.isMinimized;
+      const safeZ = prev.map(w => typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0);
+      const maxZ = safeZ.length > 0 ? Math.max(...safeZ) : 0;
+
+      if (willBeUnminimized) {
+        setActiveOverlayWindowId(id);
+        return prev.map(w => (w.id === id ? { ...w, isMinimized: false, zIndex: maxZ + 1 } : w));
+      } else {
+        return prev.map(w => (w.id === id ? { ...w, isMinimized: true } : w));
+      }
+    });
     logConsoleActivity(`Toggled minimize for window: "${id}"`);
   };
 
@@ -821,6 +836,13 @@ export const ClientWorkbench: React.FC = () => {
       prev.map(w => (w.id === id ? { ...w, isMaximized: !w.isMaximized } : w))
     );
     logConsoleActivity(`Toggled maximize for window: "${id}"`);
+  };
+
+  const refreshOverlayWindow = (id: string) => {
+    setOverlayWindows(prev =>
+      prev.map(w => (w.id === id ? { ...w, refreshKey: (w.refreshKey || 0) + 1 } : w))
+    );
+    logConsoleActivity(`Refreshed content for overlay window: "${id}"`);
   };
 
   interface OverlayInteraction {
@@ -6547,6 +6569,13 @@ export const ClientWorkbench: React.FC = () => {
                 {/* Action Buttons */}
                 <div className="flex items-center gap-1.5" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
                   <button
+                    onClick={() => refreshOverlayWindow(w.id)}
+                    className="size-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    title="Refresh Content"
+                  >
+                    <RefreshCw size={11} />
+                  </button>
+                  <button
                     onClick={() => toggleMinimizeOverlayWindow(w.id)}
                     className="size-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     title="Minimize"
@@ -6572,10 +6601,10 @@ export const ClientWorkbench: React.FC = () => {
 
               {/* Window Content Container */}
               <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-sol-base03 relative custom-scrollbar">
-                {w.type === 'my_lists' && <ClientLists onOpenPropertyDetails={handleOpenPropertyDetails} />}
-                {w.type === 'live_auctions' && <ClientAuctions />}
-                {w.type === 'property_search' && <ClientProperties onOpenPropertyDetails={handleOpenPropertyDetails} />}
-                {w.type === 'field_missions' && <InvestorTasksDashboard />}
+                {w.type === 'my_lists' && <ClientLists key={`${w.id}_${w.refreshKey || 0}`} onOpenPropertyDetails={handleOpenPropertyDetails} />}
+                {w.type === 'live_auctions' && <ClientAuctions key={`${w.id}_${w.refreshKey || 0}`} />}
+                {w.type === 'property_search' && <ClientProperties key={`${w.id}_${w.refreshKey || 0}`} onOpenPropertyDetails={handleOpenPropertyDetails} />}
+                {w.type === 'field_missions' && <InvestorTasksDashboard key={`${w.id}_${w.refreshKey || 0}`} />}
                 {w.type === 'settings' && (
                   <div className="p-6 dark:bg-sol-base03 min-h-full">
                     <OriginalSettings />
@@ -6628,7 +6657,12 @@ export const ClientWorkbench: React.FC = () => {
                 )}
                 {w.type === 'property_details' && (
                   <div className="size-full overflow-y-auto no-scrollbar scrollbar-none">
-                    <PropertyDetailPage readOnly={true} overrideId={w.data?.propertyId} onClose={() => closeOverlayWindow(w.id)} />
+                    <PropertyDetailPage 
+                      key={`${w.id}_${w.refreshKey || 0}`}
+                      readOnly={true} 
+                      overrideId={w.data?.propertyId} 
+                      onClose={() => closeOverlayWindow(w.id)} 
+                    />
                   </div>
                 )}
               </div>
