@@ -2412,8 +2412,8 @@ export const ClientWorkbench: React.FC = () => {
 
     // Route to full page components
     if (w.id === 'live_auctions') return <div className="size-full overflow-auto bg-white dark:bg-slate-900"><ClientAuctions /></div>;
-    if (w.id === 'property_search') return <div className="size-full overflow-auto bg-white dark:bg-slate-900"><ClientProperties /></div>;
-    if (w.id === 'my_lists') return <div className="size-full overflow-auto bg-white dark:bg-slate-900"><ClientLists /></div>;
+    if (w.id === 'property_search') return <div className="size-full overflow-auto bg-white dark:bg-slate-900"><ClientProperties onOpenPropertyDetails={handleOpenPropertyDetails} /></div>;
+    if (w.id === 'my_lists') return <div className="size-full overflow-auto bg-white dark:bg-slate-900"><ClientLists onOpenPropertyDetails={handleOpenPropertyDetails} /></div>;
 
     // Route to embedded widget content
     return (
@@ -3685,8 +3685,8 @@ export const ClientWorkbench: React.FC = () => {
                         if (!w) return null;
                         // Route to full page components
                         if (w.id === 'live_auctions') return <div className="size-full overflow-auto"><ClientAuctions /></div>;
-                        if (w.id === 'property_search') return <div className="size-full overflow-auto"><ClientProperties /></div>;
-                        if (w.id === 'my_lists') return <div className="size-full overflow-auto"><ClientLists /></div>;
+                        if (w.id === 'property_search') return <div className="size-full overflow-auto"><ClientProperties onOpenPropertyDetails={handleOpenPropertyDetails} /></div>;
+                        if (w.id === 'my_lists') return <div className="size-full overflow-auto"><ClientLists onOpenPropertyDetails={handleOpenPropertyDetails} /></div>;
                         // Route to embedded widget content
                         return (
                           <div className="size-full overflow-auto p-4 select-text">
@@ -4134,8 +4134,8 @@ export const ClientWorkbench: React.FC = () => {
                           const w = widgets.find(x => x.id === splitIdeTabId);
                           if (!w) return null;
                           if (w.id === 'live_auctions') return <div className="size-full overflow-auto"><ClientAuctions /></div>;
-                          if (w.id === 'property_search') return <div className="size-full overflow-auto"><ClientProperties /></div>;
-                          if (w.id === 'my_lists') return <div className="size-full overflow-auto"><ClientLists /></div>;
+                          if (w.id === 'property_search') return <div className="size-full overflow-auto"><ClientProperties onOpenPropertyDetails={handleOpenPropertyDetails} /></div>;
+                          if (w.id === 'my_lists') return <div className="size-full overflow-auto"><ClientLists onOpenPropertyDetails={handleOpenPropertyDetails} /></div>;
                           // For other types just show a simple info panel in split
                           return (
                             <div className="p-4 space-y-3">
@@ -4604,7 +4604,7 @@ export const ClientWorkbench: React.FC = () => {
                     {/* Widget 5: Property Search */}
                     {w.type === 'property_search' && (
                       <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900/80 rounded-lg no-scrollbar scrollbar-none">
-                        <ClientProperties />
+                        <ClientProperties onOpenPropertyDetails={handleOpenPropertyDetails} />
                       </div>
                     )}
 
@@ -4776,7 +4776,7 @@ export const ClientWorkbench: React.FC = () => {
                     {/* My Lists (Saved Lists & Folders) */}
                     {w.type === 'my_lists' && (
                       <div className="size-full overflow-auto bg-slate-50 dark:bg-slate-900 rounded-lg no-scrollbar scrollbar-none">
-                        <ClientLists />
+                        <ClientLists onOpenPropertyDetails={handleOpenPropertyDetails} />
                       </div>
                     )}
 
@@ -6572,9 +6572,9 @@ export const ClientWorkbench: React.FC = () => {
 
               {/* Window Content Container */}
               <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-sol-base03 relative custom-scrollbar">
-                {w.type === 'my_lists' && <ClientLists />}
+                {w.type === 'my_lists' && <ClientLists onOpenPropertyDetails={handleOpenPropertyDetails} />}
                 {w.type === 'live_auctions' && <ClientAuctions />}
-                {w.type === 'property_search' && <ClientProperties />}
+                {w.type === 'property_search' && <ClientProperties onOpenPropertyDetails={handleOpenPropertyDetails} />}
                 {w.type === 'field_missions' && <InvestorTasksDashboard />}
                 {w.type === 'settings' && (
                   <div className="p-6 dark:bg-sol-base03 min-h-full">

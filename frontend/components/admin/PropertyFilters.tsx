@@ -40,9 +40,10 @@ interface PropertyFiltersProps {
     onFilterChange: (filters: PropertyFilterParams) => void;
     readOnly?: boolean;
     initialFilters?: PropertyFilterParams;
+    onOpenPropertyDetails?: (propertyId: string | number, parcelId: string) => void;
 }
 
-const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readOnly = false, initialFilters }) => {
+const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readOnly = false, initialFilters, onOpenPropertyDetails }) => {
     const navigate = useNavigate();
     const [filters, setFilters] = useState<PropertyFilterParams>(initialFilters || {});
     const [showFilters, setShowFilters] = useState(false);
@@ -135,7 +136,11 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                         if (typeof newValue === 'string') {
                             handleChange('keyword', newValue);
                         } else if (newValue && newValue.parcel_id) {
-                            navigate(readOnly ? `/client/properties/${newValue.parcel_id}` : `/admin/properties/${newValue.parcel_id}`);
+                            if (readOnly && onOpenPropertyDetails) {
+                                onOpenPropertyDetails(newValue.id || newValue.parcel_id, newValue.parcel_id);
+                            } else {
+                                navigate(readOnly ? `/client/properties/${newValue.parcel_id}` : `/admin/properties/${newValue.parcel_id}`);
+                            }
                         }
                     }}
                     options={options}

@@ -192,7 +192,11 @@ const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => 
 };
 
 
-const ClientLists: React.FC = () => {
+interface ClientListsProps {
+    onOpenPropertyDetails?: (propertyId: string | number, parcelId: string) => void;
+}
+
+const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
     // Helper to match county name robustly (ignoring case, spaces, and the "County" suffix)
     const normalizedMatch = (c1: string, c2: string) => {
         if (!c1 || !c2) return false;
@@ -1898,7 +1902,14 @@ const ClientLists: React.FC = () => {
 
                                             <div className="flex flex-col items-end gap-2 print:hidden">
                                                 <div className="bg-slate-50 dark:bg-slate-800 p-1.5 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors"
-                                                    onClick={(e) => { e.stopPropagation(); navigate(`/client/properties/${prop.parcel_id || prop.id}`); }}
+                                                    onClick={(e) => { 
+                                                        e.stopPropagation(); 
+                                                        if (onOpenPropertyDetails) {
+                                                            onOpenPropertyDetails(prop.id, prop.parcel_id || '');
+                                                        } else {
+                                                            navigate(`/client/properties/${prop.parcel_id || prop.id}`); 
+                                                        }
+                                                    }}
                                                 >
                                                     <ExternalLinkIcon size={16} />
                                                 </div>

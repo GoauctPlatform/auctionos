@@ -11,9 +11,10 @@ interface PropertyListProps {
     filters?: any;
     readOnly?: boolean;
     onCreateCustom?: () => void;
+    onOpenPropertyDetails?: (propertyId: string | number, parcelId: string) => void;
 }
 
-const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, onCreateCustom }) => {
+const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, onCreateCustom, onOpenPropertyDetails }) => {
     const navigate = useNavigate();
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -246,7 +247,13 @@ const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, 
                         key={`view-${id}`}
                         icon={<span className="material-symbols-outlined text-green-600">visibility</span>}
                         label="View Details"
-                        onClick={() => navigate(readOnly ? `/client/properties/${id}` : `/admin/properties/${id}`)}
+                        onClick={() => {
+                            if (readOnly && onOpenPropertyDetails) {
+                                onOpenPropertyDetails(id, row.parcel_id || '');
+                            } else {
+                                navigate(readOnly ? `/client/properties/${id}` : `/admin/properties/${id}`);
+                            }
+                        }}
                     />
                 ];
 
@@ -315,7 +322,13 @@ const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, 
                     pageSizeOptions={[20, 50, 100]}
                     disableRowSelectionOnClick
                     density="compact"
-                    onRowClick={(params) => navigate(readOnly ? `/client/properties/${params.id}` : `/admin/properties/${params.id}`)}
+                    onRowClick={(params) => {
+                        if (readOnly && onOpenPropertyDetails) {
+                            onOpenPropertyDetails(params.id, params.row.parcel_id || '');
+                        } else {
+                            navigate(readOnly ? `/client/properties/${params.id}` : `/admin/properties/${params.id}`);
+                        }
+                    }}
                     sx={{
                         border: 'none',
                         '& .MuiDataGrid-columnHeaders': {

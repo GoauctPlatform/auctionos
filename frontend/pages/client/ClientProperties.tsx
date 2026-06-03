@@ -10,7 +10,11 @@ import { Autocomplete } from '@mui/material';
 
 import { useAuth } from '../../context/AuthContext';
 
-const ClientProperties: React.FC = () => {
+interface ClientPropertiesProps {
+    onOpenPropertyDetails?: (propertyId: string | number, parcelId: string) => void;
+}
+
+const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetails }) => {
     const { user } = useAuth();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -117,6 +121,7 @@ const ClientProperties: React.FC = () => {
                     onFilterChange={setFilters} 
                     readOnly={true} 
                     initialFilters={filters}
+                    onOpenPropertyDetails={onOpenPropertyDetails}
                 />
             </div>
             
@@ -125,6 +130,7 @@ const ClientProperties: React.FC = () => {
                     <PropertyList 
                         filters={filters} 
                         readOnly={true} 
+                        onOpenPropertyDetails={onOpenPropertyDetails}
                         onCreateCustom={() => {
                             if (user?.subscription_tier === 'trial') {
                                 alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
@@ -225,7 +231,11 @@ const ClientProperties: React.FC = () => {
                                 setSelectedState(null);
                                 setSelectedCounty(null);
                                 if (res && res.id) {
-                                    navigate(`/client/properties/${res.id}`);
+                                    if (onOpenPropertyDetails) {
+                                        onOpenPropertyDetails(res.id, res.parcel_id || '');
+                                    } else {
+                                        navigate(`/client/properties/${res.id}`);
+                                    }
                                 } else {
                                     alert("✅ Custom property created.");
                                 }
