@@ -126,6 +126,7 @@ class PropertyDashboardSchema(BaseModel):
     occupancy: Optional[str] = None
     purchase_option_type: Optional[str] = None
     availability_status: Optional[str] = None
+    gsi_url: Optional[str] = None
     
     # New Extended Detail Fields from Dashboard view perspective
     alternate_owner_address: Optional[str] = None

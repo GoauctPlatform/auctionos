@@ -11,6 +11,7 @@ from app.services.reconciliation_service import reconciliation_service
 from app.utils.state_mapper import normalize_state
 from app.services.intelligence_service import intelligence_service
 import uuid
+import json as _json
 
 router = APIRouter()
 
@@ -264,7 +265,10 @@ def read_properties(
             COALESCE(pah.listed_as, ae_lookup.tax_status) as auction_type,
             p.market_land_value,
             p.market_improvement_value,
-            p.owner_occupied
+            p.owner_occupied,
+            p.latitude,
+            p.longitude,
+            p.gsi_url
         FROM property_details p
         LEFT JOIN {history_table} pah ON pah.property_id = p.property_id
         {ae_join}
@@ -359,9 +363,36 @@ def read_properties(
             "market_land_value": r[42],
             "market_improvement_value": r[43],
             "owner_occupied": r[44],
+            "latitude": r[45],
+            "longitude": r[46],
+            "gsi_url": r[47],
         }
         for r in result
     ]
+
+    # ── Dynamically inject gsi_url if missing ──
+    from urllib.parse import quote
+    from app.core.config import settings
+    api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
+    
+    for item in items:
+        if not item.get("gsi_url") and api_key:
+            address = item.get("address") or ""
+            county = item.get("county") or ""
+            state = item.get("state_code") or ""
+            location_parts = [address, county, state]
+            location_str = ", ".join([p for p in location_parts if p]).strip()
+            if not location_str or location_str == ", ,":
+                location_str = item.get("parcel_id") or ""
+            
+            lat = item.get("latitude")
+            lng = item.get("longitude")
+            if lat is not None and lng is not None:
+                location_str = f"{lat},{lng}"
+
+            if location_str:
+                sanitized_location = quote(location_str.replace('\n', ' ').strip())
+                item["gsi_url"] = f"https://maps.googleapis.com/maps/api/streetview?size=640x400&location={sanitized_location}&fov=90&pitch=10&key={api_key}"
 
     return {"items": items, "total": total}
 
@@ -1215,7 +1246,6 @@ def get_property(
 
     if current_user:
         try:
-            import json as _json
             override_row = db.execute(
                 text("""
                     SELECT id, overrides
@@ -1244,6 +1274,31 @@ def get_property(
                 data["user_override_id"] = override_id
         except Exception as e:
             print(f"Override merge error (non-fatal): {e}")
+
+    # ── Dynamically inject gsi_url if missing ──
+    if not data.get("gsi_url"):
+        import os
+        from urllib.parse import quote
+        from app.core.config import settings
+        api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
+        if api_key:
+            address = data.get("address") or ""
+            county = data.get("county") or ""
+            state = data.get("state") or ""
+            location_parts = [address, county, state]
+            location_str = ", ".join([p for p in location_parts if p]).strip()
+            if not location_str or location_str == ", ,":
+                location_str = data.get("parcel_id") or ""
+            
+            # Use coordinates if available for better Street View accuracy
+            lat = data.get("latitude")
+            lng = data.get("longitude")
+            if lat is not None and lng is not None:
+                location_str = f"{lat},{lng}"
+
+            if location_str:
+                sanitized_location = quote(location_str.replace('\n', ' ').strip())
+                data["gsi_url"] = f"https://maps.googleapis.com/maps/api/streetview?size=640x400&location={sanitized_location}&fov=90&pitch=10&key={api_key}"
 
     return data
 

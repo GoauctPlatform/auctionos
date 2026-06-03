@@ -35,6 +35,7 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
 
     React.useEffect(() => {
         setProperty(initialProperty);
+        setStreetViewError(false);
     }, [initialProperty]);
 
     if (!property) return null;

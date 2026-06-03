@@ -92,6 +92,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
     const loadProperty = async (propertyId: string) => {
         try {
             setLoading(true);
+            setStreetViewError(false);
             const data = await PropertyService.getProperty(propertyId);
             setProperty(data);
             setLoading(false);
