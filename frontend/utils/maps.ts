@@ -10,7 +10,12 @@ export function getStreetViewUrl(
     size: string = '640x400'
 ): string {
     const key = import.meta.env.VITE_GOOGLE_STREET_VIEW_KEY;
-    if (!key) return '';
+    if (!key) {
+        if (typeof locationOrProperty === 'object' && locationOrProperty !== null) {
+            return locationOrProperty.gsi_url || locationOrProperty.details?.gsi_url || '';
+        }
+        return '';
+    }
 
     let locationStr = '';
 

@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://redis:6379"
     ZENROWS_API_KEY: Optional[str] = None
     ATTOM_API_KEY: Optional[str] = None
+    VITE_GOOGLE_STREET_VIEW_KEY: Optional[str] = None
     
     # Stripe Payment Integration
     STRIPE_SECRET_KEY: Optional[str] = None

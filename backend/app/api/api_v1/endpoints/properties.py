@@ -1429,3 +1429,147 @@ def force_status_update(
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/{property_id}/validate-gsi", response_model=dict)
+async def validate_property_gsi(
+    property_id: str,
+    db: Session = Depends(deps.get_db),
+    current_user: User = Depends(deps.get_current_active_user)
+) -> Any:
+    """
+    Validate a property's parcel data via GSI / Google Street View.
+    Checks Street View availability using Google Maps Street View Image Metadata API.
+    Updates the database with the pre-validated Street View URL if successful.
+    """
+    import os
+    import httpx
+    import json as _json
+    from urllib.parse import quote
+    from app.core.logger import logger
+    from app.core.config import settings
+
+    # 1. Fetch property details
+    query = text("""
+        SELECT id, property_id, parcel_id, address, county, state
+        FROM property_details
+        WHERE id::text = :pid OR property_id = :pid OR parcel_id = :pid
+        LIMIT 1
+    """)
+    row = db.execute(query, {"pid": property_id}).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Property not found")
+
+    # 2. Get API key from Settings/Env
+    api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
+    if not api_key:
+        logger.warning("GSI Validation requested but Google Maps API Key is not configured on the backend environment.")
+        return {
+            "is_valid": False,
+            "gsi_status": "Missing Key",
+            "message": "Google Maps API Key is not configured on the backend.",
+            "coordinates": None
+        }
+
+    # 3. Construct lookup location string
+    address = row.address or ""
+    county = row.county or ""
+    state = row.state or ""
+    location_parts = [address, county, state]
+    location_str = ", ".join([p for p in location_parts if p]).strip()
+
+    if not location_str or location_str == ", ,":
+        # Fallback to parcel ID if address fields are empty
+        location_str = row.parcel_id or ""
+
+    if not location_str:
+        return {
+            "is_valid": False,
+            "gsi_status": "No Location",
+            "message": "No address or parcel ID available for this property.",
+            "coordinates": None
+        }
+
+    # 4. Query Google Maps Street View Metadata API
+    try:
+        url = "https://maps.googleapis.com/maps/api/streetview/metadata"
+        params = {
+            "location": location_str,
+            "key": api_key
+        }
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(url, params=params)
+
+        if response.status_code != 200:
+            logger.error(f"Google Maps API returned HTTP {response.status_code} for metadata request")
+            return {
+                "is_valid": False,
+                "gsi_status": f"HTTP {response.status_code}",
+                "message": f"Google API returned status code {response.status_code}",
+                "coordinates": None
+            }
+
+        data = response.json()
+        status = data.get("status")
+
+        # 5. Process status and update DB
+        if status == "OK":
+            gsi_status = "Verified"
+            is_valid = True
+            coords = data.get("location")
+
+            # Construct Google Street View URL with API key embedded
+            sanitized_location = quote(location_str.replace('\n', ' ').strip())
+            gsi_url = f"https://maps.googleapis.com/maps/api/streetview?size=640x400&location={sanitized_location}&fov=90&pitch=10&key={api_key}"
+
+            # Save the url and metadata to property_details
+            update_query = text("""
+                UPDATE property_details
+                SET gsi_url = :gsi_url, gsi_data = :gsi_data, updated_at = NOW()
+                WHERE id = :id
+            """)
+            db.execute(update_query, {
+                "gsi_url": gsi_url,
+                "gsi_data": _json.dumps(data),
+                "id": row.id
+            })
+            db.commit()
+
+            return {
+                "is_valid": is_valid,
+                "gsi_status": gsi_status,
+                "coordinates": coords,
+                "pano_id": data.get("pano_id"),
+                "date": data.get("date")
+            }
+        elif status == "ZERO_RESULTS":
+            return {
+                "is_valid": False,
+                "gsi_status": "No Image",
+                "message": "Street View is not available at this location.",
+                "coordinates": None
+            }
+        elif status == "REQUEST_DENIED":
+            return {
+                "is_valid": False,
+                "gsi_status": "Key Denied",
+                "message": data.get("error_message", "API Key was denied by Google Maps."),
+                "coordinates": None
+            }
+        else:
+            return {
+                "is_valid": False,
+                "gsi_status": status or "Unknown Error",
+                "message": f"Google Maps returned status: {status}",
+                "coordinates": None
+            }
+
+    except Exception as e:
+        logger.error(f"GSI connection check failed for property {property_id}: {e}")
+        return {
+            "is_valid": False,
+            "gsi_status": "Connection Error",
+            "message": f"Failed to connect to Google API: {str(e)}",
+            "coordinates": None
+        }
+

@@ -597,11 +597,49 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
         }
     };
 
-    const handleRemoveProperty = async (propertyId: number) => {
+    const handleRemoveProperty = async (propertyId: number, targetListId?: number) => {
+        if (!window.confirm("Are you sure you want to remove this property?")) return;
+
         try {
-            if (selectedListId) {
-                await ClientDataService.removePropertyFromList(selectedListId, propertyId);
-                loadListProperties(selectedListId);
+            // Check if it's a favorite, and unfavorite it
+            if (favoritesSet.has(propertyId)) {
+                await PropertyService.toggleFavorite(propertyId, activeCompany?.id);
+                setFavoritesSet(prev => {
+                    const next = new Set(prev);
+                    next.delete(propertyId);
+                    return next;
+                });
+            }
+
+            const listId = targetListId || selectedListId;
+
+            if (listId) {
+                const currentList = lists.find(l => l.id === listId);
+                const isStandard = currentList?.tags === 'STANDARD';
+
+                let listProps = allListsProperties[listId] || [];
+                if (listProps.length === 0 && selectedListId === listId) {
+                    listProps = selectedListProperties;
+                }
+                const isLastProp = listProps.length <= 1;
+
+                await ClientDataService.removePropertyFromList(listId, propertyId);
+
+                let removeFolder = false;
+                if (isLastProp && !isStandard) {
+                    removeFolder = window.confirm(`This was the last property in folder "${currentList?.name || 'this folder'}". Do you want to delete the folder too?`);
+                }
+
+                if (removeFolder) {
+                    await ClientDataService.deleteList(listId);
+                    if (selectedListId === listId) {
+                        setSelectedListId(null);
+                        setSelectedStateName(null);
+                        setSelectedCountyName(null);
+                    }
+                } else {
+                    loadListProperties(listId);
+                }
             } else if (selectedStateName) {
                 const stateList = lists.find(l => l.tags === 'STANDARD' && l.name === selectedStateName);
                 if (stateList) {
@@ -634,7 +672,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
         setPropsLoading(true);
         try {
             const targetId = Number(bulkMoveTargetListId);
-            const idsArray = Array.from(selectedPropIds);
+            const idsArray = Array.from(selectedPropIds) as number[];
             await Promise.all(
                 idsArray.map(propId => 
                     ClientDataService.movePropertyBetweenLists(selectedListId, propId, targetId)
@@ -656,19 +694,56 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
 
     const handleBulkRemoveProperties = async () => {
         if (!selectedListId || selectedPropIds.size === 0) return;
-        if (!window.confirm(`Are you sure you want to remove the ${selectedPropIds.size} selected properties from this folder?`)) return;
+
+        const isRemovingAll = selectedPropIds.size >= selectedListProperties.length;
+        const currentList = lists.find(l => l.id === selectedListId);
+        const isStandard = currentList?.tags === 'STANDARD';
+
+        let removeFolder = false;
+
+        if (isRemovingAll && !isStandard) {
+            removeFolder = window.confirm(`You are removing all properties from folder "${currentList?.name}". Would you like to delete the folder as well? (Click OK to delete the folder, or Cancel to keep it empty)`);
+        } else {
+            if (!window.confirm(`Are you sure you want to remove the ${selectedPropIds.size} selected properties from this folder?`)) return;
+        }
+
         setPropsLoading(true);
         try {
-            const idsArray = Array.from(selectedPropIds);
-            await Promise.all(
-                idsArray.map(propId => 
-                    ClientDataService.removePropertyFromList(selectedListId, propId)
-                )
-            );
-            setSelectedPropIds(new Set());
+            const idsArray = Array.from(selectedPropIds) as number[];
+
+            // First: Unfavorite any removed properties that are in favoritesSet
+            for (const propId of idsArray) {
+                if (favoritesSet.has(propId)) {
+                    await PropertyService.toggleFavorite(propId, activeCompany?.id);
+                }
+            }
+
+            // Update favoritesSet state
+            setFavoritesSet(prev => {
+                const next = new Set(prev);
+                idsArray.forEach(id => next.delete(id));
+                return next;
+            });
+
+            if (removeFolder) {
+                await ClientDataService.deleteList(selectedListId);
+                setSelectedPropIds(new Set());
+                setSelectedListId(null);
+                setSelectedStateName(null);
+                setSelectedCountyName(null);
+                alert(`Successfully removed properties and deleted the folder.`);
+            } else {
+                await Promise.all(
+                    idsArray.map(propId => 
+                        ClientDataService.removePropertyFromList(selectedListId, propId)
+                    )
+                );
+                setSelectedPropIds(new Set());
+                loadListProperties(selectedListId);
+                alert(`Successfully removed ${idsArray.length} properties.`);
+            }
+
             loadLists();
-            loadListProperties(selectedListId);
-            alert(`Successfully removed ${idsArray.length} properties.`);
         } catch (err: any) {
             console.error(err);
             alert(err.message || "Failed to remove properties in bulk.");
@@ -990,22 +1065,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                     className="p-0.5 text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover/searchcard:opacity-100"
                                                     onClick={async (e) => {
                                                         e.stopPropagation();
-                                                        if (window.confirm(`Are you sure you want to remove property ${property.parcel_id} from folder "${list.name}"?`)) {
-                                                            try {
-                                                                await ClientDataService.removePropertyFromList(list.id, property.id);
-                                                                loadLists();
-                                                                if (selectedListId === list.id) {
-                                                                    if (selectedStateName) {
-                                                                        loadStateProperties(selectedStateName);
-                                                                    } else {
-                                                                        loadListProperties(list.id);
-                                                                    }
-                                                                }
-                                                                alert('✅ Property removed successfully.');
-                                                            } catch (err: any) {
-                                                                alert(err.message || 'Failed to remove property');
-                                                            }
-                                                        }
+                                                        await handleRemoveProperty(property.id, list.id);
                                                     }}
                                                 >
                                                     <span className="material-symbols-outlined text-[16px]">delete</span>

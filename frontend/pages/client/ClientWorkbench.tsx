@@ -808,26 +808,50 @@ export const ClientWorkbench: React.FC = () => {
   const closeOverlayWindow = (id: string) => {
     setOverlayWindows(prev => prev.filter(w => w.id !== id));
     if (activeOverlayWindowId === id) {
-      setActiveOverlayWindowId(null);
+      const visibleOthers = overlayWindows.filter(w => w.id !== id && !w.isMinimized);
+      if (visibleOthers.length > 0) {
+        const topMost = visibleOthers.reduce((top, w) => {
+          const currentZ = typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0;
+          const topZ = typeof top.zIndex === 'number' && !isNaN(top.zIndex) ? top.zIndex : 0;
+          return currentZ > topZ ? w : top;
+        }, visibleOthers[0]);
+        setActiveOverlayWindowId(topMost.id);
+      } else {
+        setActiveOverlayWindowId(null);
+      }
     }
     logConsoleActivity(`Closed overlay window: "${id}"`);
   };
 
   const toggleMinimizeOverlayWindow = (id: string) => {
-    setOverlayWindows(prev => {
-      const target = prev.find(w => w.id === id);
-      if (!target) return prev;
-      const willBeUnminimized = target.isMinimized;
-      const safeZ = prev.map(w => typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0);
-      const maxZ = safeZ.length > 0 ? Math.max(...safeZ) : 0;
+    const target = overlayWindows.find(w => w.id === id);
+    if (!target) return;
 
-      if (willBeUnminimized) {
-        setActiveOverlayWindowId(id);
+    const willBeUnminimized = target.isMinimized;
+    if (willBeUnminimized) {
+      setActiveOverlayWindowId(id);
+      setOverlayWindows(prev => {
+        const safeZ = prev.map(w => typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0);
+        const maxZ = safeZ.length > 0 ? Math.max(...safeZ) : 0;
         return prev.map(w => (w.id === id ? { ...w, isMinimized: false, zIndex: maxZ + 1 } : w));
-      } else {
-        return prev.map(w => (w.id === id ? { ...w, isMinimized: true } : w));
+      });
+    } else {
+      // Minimizing
+      if (activeOverlayWindowId === id) {
+        const visibleOthers = overlayWindows.filter(w => w.id !== id && !w.isMinimized);
+        if (visibleOthers.length > 0) {
+          const topMost = visibleOthers.reduce((top, w) => {
+            const currentZ = typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0;
+            const topZ = typeof top.zIndex === 'number' && !isNaN(top.zIndex) ? top.zIndex : 0;
+            return currentZ > topZ ? w : top;
+          }, visibleOthers[0]);
+          setActiveOverlayWindowId(topMost.id);
+        } else {
+          setActiveOverlayWindowId(null);
+        }
       }
-    });
+      setOverlayWindows(prev => prev.map(w => (w.id === id ? { ...w, isMinimized: true } : w)));
+    }
     logConsoleActivity(`Toggled minimize for window: "${id}"`);
   };
 
@@ -6712,6 +6736,8 @@ export const ClientWorkbench: React.FC = () => {
                   if (match) {
                     if (match.isMinimized) {
                       toggleMinimizeOverlayWindow(match.id);
+                    } else if (activeOverlayWindowId === match.id) {
+                      toggleMinimizeOverlayWindow(match.id);
                     } else {
                       focusOverlayWindow(match.id);
                     }
@@ -6743,6 +6769,8 @@ export const ClientWorkbench: React.FC = () => {
                 key={w.id}
                 onClick={() => {
                   if (w.isMinimized) {
+                    toggleMinimizeOverlayWindow(w.id);
+                  } else if (isActive) {
                     toggleMinimizeOverlayWindow(w.id);
                   } else {
                     focusOverlayWindow(w.id);
