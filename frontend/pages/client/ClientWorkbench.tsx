@@ -149,8 +149,35 @@ interface OverlayWindow {
 const DEFAULT_WIDGETS: Widget[] = [
   { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 20, y: 20, w: 620, h: 520, visible: true, zIndex: 10 },
   { id: 'property_metrics', type: 'property_metrics', title: 'Property Metrics', x: 20, y: 560, w: 900, h: 260, visible: false, zIndex: 1 },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 660, y: 20, w: 560, h: 520, visible: true, zIndex: 5 }
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 660, y: 20, w: 560, h: 520, visible: true, zIndex: 5 },
+  { id: 'dossier', type: 'dossier', title: 'Property Dossier', x: 1100, y: 20, w: 380, h: 560, visible: false, zIndex: 1 },
+  { id: 'chart', type: 'chart', title: 'Analytical Chart', x: 20, y: 480, w: 760, h: 380, visible: false, zIndex: 1 },
+  { id: 'yield', type: 'yield', title: 'Yield Breakdown', x: 800, y: 20, w: 360, h: 320, visible: false, zIndex: 1 },
+  { id: 'shortcuts', type: 'shortcuts', title: 'Quick Shortcuts', x: 20, y: 20, w: 340, h: 500, visible: false, zIndex: 1 },
+  { id: 'recommended_deals', type: 'recommended_deals', title: 'Recommended Deals', x: 660, y: 560, w: 560, h: 380, visible: false, zIndex: 1 },
+  { id: 'live_auctions', type: 'live_auctions', title: 'Live Auctions', x: 100, y: 100, w: 800, h: 600, visible: false, zIndex: 1 },
+  { id: 'property_search', type: 'property_search', title: 'Property Search', x: 150, y: 150, w: 800, h: 600, visible: false, zIndex: 1 },
+  { id: 'my_lists', type: 'my_lists', title: 'My Lists', x: 200, y: 200, w: 800, h: 600, visible: false, zIndex: 1 },
+  { id: 'field_missions', type: 'field_missions', title: 'Field Missions', x: 250, y: 250, w: 600, h: 500, visible: false, zIndex: 1 },
+  { id: 'connect', type: 'connect', title: 'Connect Hub', x: 300, y: 300, w: 500, h: 450, visible: false, zIndex: 1 },
+  { id: 'settings', type: 'settings', title: 'Workbench Settings', x: 350, y: 350, w: 400, h: 500, visible: false, zIndex: 1 },
+  { id: 'profile', type: 'profile', title: 'User Profile', x: 400, y: 400, w: 400, h: 450, visible: false, zIndex: 1 },
+  { id: 'team', type: 'team', title: 'Corporate Team Roster', x: 450, y: 450, w: 450, h: 500, visible: false, zIndex: 1 },
+  { id: 'logs', type: 'logs', title: 'Activity Console Logs', x: 500, y: 500, w: 500, h: 400, visible: false, zIndex: 1 },
+  { id: 'billings', type: 'billings', title: 'Billing & Plans', x: 550, y: 550, w: 500, h: 400, visible: false, zIndex: 1 },
+  { id: 'company', type: 'company', title: 'Active Corporate Context', x: 600, y: 600, w: 400, h: 350, visible: false, zIndex: 1 },
+  { id: 'notifications', type: 'notifications', title: 'System Notifications', x: 650, y: 650, w: 400, h: 450, visible: false, zIndex: 1 },
+  { id: 'property_details', type: 'property_details', title: 'Property Details', x: 1200, y: 100, w: 500, h: 600, visible: false, zIndex: 1 },
+  { id: 'create_task', type: 'create_task', title: 'Create Task Mission', x: 1250, y: 150, w: 500, h: 600, visible: false, zIndex: 1 },
+  { id: 'support_center', type: 'support_center', title: 'Support Hub', x: 1300, y: 200, w: 500, h: 600, visible: false, zIndex: 1 },
+  { id: 'field_coordination', type: 'field_coordination', title: 'Field Operations Coordination', x: 1350, y: 250, w: 500, h: 500, visible: false, zIndex: 1 },
+  { id: 'acquisition_pipeline', type: 'acquisition_pipeline', title: 'Acquisition Pipeline Map', x: 1400, y: 300, w: 550, h: 400, visible: false, zIndex: 1 },
+  { id: 'node_canvas', type: 'node_canvas', title: 'Node Flow Canvas', x: 1450, y: 50, w: 700, h: 550, visible: false, zIndex: 1 },
+  { id: 'rehab_calc', type: 'rehab_calc', title: 'Rehab & ROI Calculator', x: 1500, y: 100, w: 500, h: 600, visible: false, zIndex: 1 },
+  { id: 'property_comparator', type: 'property_comparator', title: 'Real Estate Compare Matrix', x: 1550, y: 150, w: 550, h: 450, visible: false, zIndex: 1 },
+  { id: 'contacts_search', type: 'contacts_search', title: 'County Registrar Directory', x: 1600, y: 200, w: 500, h: 500, visible: false, zIndex: 1 }
 ];
+
 
 export const ClientWorkbench: React.FC = () => {
   const navigate = useNavigate();
@@ -1653,6 +1680,7 @@ export const ClientWorkbench: React.FC = () => {
 
   // Save widgets state to local storage when modified (debounced to prevent UI lag during drag/resize)
   useEffect(() => {
+    if (!widgets || widgets.length === 0) return;
     const timer = setTimeout(() => {
       localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
     }, 500);
@@ -1665,7 +1693,9 @@ export const ClientWorkbench: React.FC = () => {
   // Immediate save on beforeunload to handle page reloads and tab closure
   useEffect(() => {
     const handleBeforeUnload = () => {
-      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgetsRef.current));
+      if (widgetsRef.current && widgetsRef.current.length > 0) {
+        localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgetsRef.current));
+      }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
