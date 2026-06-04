@@ -159,6 +159,7 @@ export const ClientWorkbench: React.FC = () => {
   // States
   const [widgets, setWidgets] = useState<Widget[]>(() => {
     try {
+      if (typeof window === 'undefined') return DEFAULT_WIDGETS;
       const saved = localStorage.getItem('goauct_workbench_widgets_v62');
       if (!saved) return DEFAULT_WIDGETS;
 
@@ -1649,8 +1650,16 @@ export const ClientWorkbench: React.FC = () => {
     widgetsRef.current = widgets;
   }, [widgets]);
 
+  const mountedRef = useRef(false);
+
   // Save widgets state to local storage when modified (immediate save on interaction end / discrete update, debounced during drag/resize)
   useEffect(() => {
+    // Skip the initial mount to prevent overwriting localStorage due to SSR hydration
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
+
     if (!widgets || widgets.length === 0) return;
 
     if (interaction === null) {
