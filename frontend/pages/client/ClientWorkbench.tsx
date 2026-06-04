@@ -157,22 +157,17 @@ export const ClientWorkbench: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // States
-  const [widgets, setWidgets] = useState<Widget[]>(DEFAULT_WIDGETS);
-  const [isLayoutLoaded, setIsLayoutLoaded] = useState(false);
-  const hasUserInteracted = useRef(false);
-
-  // Load from localStorage on client mount to guarantee hydration safety
-  useEffect(() => {
+  const [widgets, setWidgets] = useState<Widget[]>(() => {
     try {
       const saved = localStorage.getItem('goauct_workbench_widgets_v62');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
           const savedMap = new Map(parsed.map((w: any) => [w.id, w]));
-          const merged = DEFAULT_WIDGETS.map(def => {
+          return DEFAULT_WIDGETS.map(def => {
             const savedWidget = savedMap.get(def.id);
             if (savedWidget) {
-              // Keep saved position but merge any new default settings
+              // Keep saved position and visibility but merge any new default settings
               return {
                 ...def,
                 ...savedWidget,
@@ -187,15 +182,13 @@ export const ClientWorkbench: React.FC = () => {
             }
             return def;
           });
-          setWidgets(merged);
         }
       }
     } catch (e) {
       console.error('Failed to parse goauct_workbench_widgets_v62 from localStorage, falling back to default:', e);
-    } finally {
-      setIsLayoutLoaded(true);
     }
-  }, []);
+    return DEFAULT_WIDGETS;
+  });
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     const saved = localStorage.getItem('goauct_workbench_sidebarOpen');
     return saved === null ? true : saved === 'true';
@@ -649,7 +642,6 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const startCustomPresetCreation = () => {
-    hasUserInteracted.current = true;
     setBackupWidgetsBeforeCreate(JSON.parse(JSON.stringify(widgets)));
     setWidgets(prev => prev.map(w => ({ ...w, visible: false })));
     setIsCreatingPreset(true);
@@ -658,7 +650,6 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const toggleWidgetInPreset = (id: string) => {
-    hasUserInteracted.current = true;
     setWidgets(prev => {
       const match = prev.find(w => w.id === id);
       if (!match) return prev;
@@ -707,7 +698,6 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const cancelCustomPresetCreation = () => {
-    hasUserInteracted.current = true;
     if (backupWidgetsBeforeCreate) {
       setWidgets(backupWidgetsBeforeCreate);
     }
@@ -1255,7 +1245,6 @@ export const ClientWorkbench: React.FC = () => {
   // --- MDI EVENT LISTENER ---
   useEffect(() => {
     const handleOpenWidget = (e: Event) => {
-      hasUserInteracted.current = true;
       const customEvent = e as CustomEvent<{ widgetId: string }>;
       const { widgetId } = customEvent.detail;
 
@@ -1649,17 +1638,8 @@ export const ClientWorkbench: React.FC = () => {
       .finally(() => setMonthlyLoading(false));
   }, [selectedState]);
 
-  // Keep a ref of widgets for immediate save on unmount and beforeunload
-  const widgetsRef = useRef(widgets);
-  useEffect(() => {
-    widgetsRef.current = widgets;
-  }, [widgets]);
-
   // Save widgets state to local storage when modified (immediate save on interaction end / discrete update, debounced during drag/resize)
   useEffect(() => {
-    if (!isLayoutLoaded) return; // Do not save before we successfully loaded the layout from localStorage
-    if (!hasUserInteracted.current) return; // Skip saving until the user actually performs a layout interaction
-
     if (!widgets || widgets.length === 0) return;
 
     if (interaction === null) {
@@ -1673,25 +1653,10 @@ export const ClientWorkbench: React.FC = () => {
         clearTimeout(timer);
       };
     }
-  }, [widgets, interaction, isLayoutLoaded]);
-
-  // Immediate save on beforeunload to handle page reloads and tab closure
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (hasUserInteracted.current && widgetsRef.current && widgetsRef.current.length > 0) {
-        localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgetsRef.current));
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
+  }, [widgets, interaction]);
 
   // Bring window to focus
   const focusWidget = useCallback((id: string) => {
-    hasUserInteracted.current = true;
     setWidgets(prev => {
       const match = prev.find(w => w.id === id);
       if (match && match.zIndex < highestZIndex) {
@@ -1785,7 +1750,6 @@ export const ClientWorkbench: React.FC = () => {
   // Settings helper
   const handleResetLayoutCache = () => {
     if (confirm('Wipe layout cache and reset all widgets?')) {
-      hasUserInteracted.current = true;
       localStorage.removeItem('goauct_workbench_widgets_v62');
       setWidgets(DEFAULT_WIDGETS);
       setZoomScale(1.0);
@@ -2009,7 +1973,6 @@ export const ClientWorkbench: React.FC = () => {
     type: 'drag' | 'resize'
   ) => {
     e.preventDefault();
-    hasUserInteracted.current = true;
     focusWidget(widgetId);
 
     const targetWidget = widgets.find(w => w.id === widgetId);
@@ -2033,7 +1996,6 @@ export const ClientWorkbench: React.FC = () => {
     widgetId: string,
     type: 'drag' | 'resize'
   ) => {
-    hasUserInteracted.current = true;
     focusWidget(widgetId);
 
     const targetWidget = widgets.find(w => w.id === widgetId);
@@ -2296,7 +2258,6 @@ export const ClientWorkbench: React.FC = () => {
 
 
   const toggleVisibility = (id: string) => {
-    hasUserInteracted.current = true;
     let wasVisible = false;
     setWidgets(prev => {
       wasVisible = prev.find(w => w.id === id)?.visible || false;
@@ -2332,7 +2293,6 @@ export const ClientWorkbench: React.FC = () => {
     }
   };
   const applyPreset = (presetId: string) => {
-    hasUserInteracted.current = true;
     let nextZ = highestZIndex;
     const incrementZ = () => {
       nextZ += 1;
@@ -3452,7 +3412,6 @@ export const ClientWorkbench: React.FC = () => {
                           <button
                             key={action.id}
                             onClick={() => {
-                              hasUserInteracted.current = true;
                               setWidgets(prev => prev.map(w => w.id === action.id ? { ...w, visible: true } : w));
                               setActiveIdeTabId(action.id);
                               logConsoleActivity(`Opened "${action.label}" tab.`);
