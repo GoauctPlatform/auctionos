@@ -157,44 +157,44 @@ export const ClientWorkbench: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // States
-  const [widgets, setWidgets] = useState<Widget[]>(() => {
+  const [widgets, setWidgets] = useState<Widget[]>(DEFAULT_WIDGETS);
+  const [isLayoutLoaded, setIsLayoutLoaded] = useState(false);
+
+  // Load from localStorage on client mount to guarantee hydration safety
+  useEffect(() => {
     try {
-      if (typeof window === 'undefined') return DEFAULT_WIDGETS;
       const saved = localStorage.getItem('goauct_workbench_widgets_v62');
-      if (!saved) return DEFAULT_WIDGETS;
-
-      const parsed = JSON.parse(saved);
-      if (!Array.isArray(parsed) || parsed.length === 0) {
-        return DEFAULT_WIDGETS;
-      }
-
-      // Self-healing: if any DEFAULT_WIDGETS are missing from the saved ones, merge them.
-      const savedMap = new Map(parsed.map((w: any) => [w.id, w]));
-      const merged = DEFAULT_WIDGETS.map(def => {
-        const savedWidget = savedMap.get(def.id);
-        if (savedWidget) {
-          // Keep saved position but merge any new default settings
-          return {
-            ...def,
-            ...savedWidget,
-            x: typeof savedWidget.x === 'number' ? savedWidget.x : def.x,
-            y: typeof savedWidget.y === 'number' ? savedWidget.y : def.y,
-            w: typeof savedWidget.w === 'number' ? savedWidget.w : def.w,
-            h: typeof savedWidget.h === 'number' ? savedWidget.h : def.h,
-            visible: typeof savedWidget.visible === 'boolean' ? savedWidget.visible : def.visible,
-            zIndex: typeof savedWidget.zIndex === 'number' ? savedWidget.zIndex : def.zIndex,
-            isLocked: typeof savedWidget.isLocked === 'boolean' ? savedWidget.isLocked : def.isLocked,
-          };
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const savedMap = new Map(parsed.map((w: any) => [w.id, w]));
+          const merged = DEFAULT_WIDGETS.map(def => {
+            const savedWidget = savedMap.get(def.id);
+            if (savedWidget) {
+              // Keep saved position but merge any new default settings
+              return {
+                ...def,
+                ...savedWidget,
+                x: typeof savedWidget.x === 'number' ? savedWidget.x : def.x,
+                y: typeof savedWidget.y === 'number' ? savedWidget.y : def.y,
+                w: typeof savedWidget.w === 'number' ? savedWidget.w : def.w,
+                h: typeof savedWidget.h === 'number' ? savedWidget.h : def.h,
+                visible: typeof savedWidget.visible === 'boolean' ? savedWidget.visible : def.visible,
+                zIndex: typeof savedWidget.zIndex === 'number' ? savedWidget.zIndex : def.zIndex,
+                isLocked: typeof savedWidget.isLocked === 'boolean' ? savedWidget.isLocked : def.isLocked,
+              };
+            }
+            return def;
+          });
+          setWidgets(merged);
         }
-        return def;
-      });
-
-      return merged;
+      }
     } catch (e) {
       console.error('Failed to parse goauct_workbench_widgets_v62 from localStorage, falling back to default:', e);
-      return DEFAULT_WIDGETS;
+    } finally {
+      setIsLayoutLoaded(true);
     }
-  });
+  }, []);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     const saved = localStorage.getItem('goauct_workbench_sidebarOpen');
     return saved === null ? true : saved === 'true';
@@ -1654,6 +1654,8 @@ export const ClientWorkbench: React.FC = () => {
 
   // Save widgets state to local storage when modified (immediate save on interaction end / discrete update, debounced during drag/resize)
   useEffect(() => {
+    if (!isLayoutLoaded) return; // Do not save before we successfully loaded the layout from localStorage
+
     // Skip the initial mount to prevent overwriting localStorage due to SSR hydration
     if (!mountedRef.current) {
       mountedRef.current = true;
@@ -1673,7 +1675,7 @@ export const ClientWorkbench: React.FC = () => {
         clearTimeout(timer);
       };
     }
-  }, [widgets, interaction]);
+  }, [widgets, interaction, isLayoutLoaded]);
 
   // Immediate save on beforeunload to handle page reloads and tab closure
   useEffect(() => {
