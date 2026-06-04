@@ -155,6 +155,7 @@ export const ClientWorkbench: React.FC = () => {
   const { activeCompany, companies, selectCompany } = useCompany();
   const { startTour } = useTour();
   const canvasRef = useRef<HTMLDivElement>(null);
+  const hasLoadedLayoutRef = useRef(false);
 
   // Activity Console Logs CLI
   const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
@@ -272,6 +273,8 @@ export const ClientWorkbench: React.FC = () => {
         }
       } catch (err) {
         console.error('Failed to fetch workbench layout from backend:', err);
+      } finally {
+        hasLoadedLayoutRef.current = true;
       }
     };
     fetchLayout();
@@ -1717,6 +1720,7 @@ export const ClientWorkbench: React.FC = () => {
   });
 
   useEffect(() => {
+    if (!hasLoadedLayoutRef.current) return;
     if (!widgets || widgets.length === 0) return;
 
     if (interaction === null) {
