@@ -4,7 +4,8 @@ import { StatesService, StateContact } from '../../services/states.service';
 import { countyService } from '../../services/county.service';
 import { PropertyService } from '../../services/property.service';
 import { calculateDealScore } from '../../intelligence/scoringEngine';
-import { Brain, Filter, Sparkles, MapPin, ArrowRight, Coins, RefreshCw, Eye } from 'lucide-react';
+import { getStreetViewUrl } from '../../utils/maps';
+import { Brain, Filter, Sparkles, MapPin, ArrowRight, Coins, RefreshCw, Eye, Image } from 'lucide-react';
 
 interface SmartAIDealFinderProps {
     onOpenPropertyDetails: (propertyId: string | number, parcelId: string) => void;
@@ -31,6 +32,114 @@ function resolveStateCode(stateRaw: string): string {
   if (trimmed.length === 2) return trimmed.toUpperCase();
   return STATE_CODE_MAP[trimmed] || trimmed.toUpperCase().slice(0, 2);
 }
+
+interface AIDealCardProps {
+    prop: TopScoredProperty;
+    onPreviewProperty: (propertyId: string | number) => void;
+    onOpenPropertyDetails: (propertyId: string | number, parcelId: string) => void;
+    getRatingStyle: (rating: string) => string;
+    renderAuctionTypeBadge: (type: string | null) => React.ReactNode;
+}
+
+const AIDealCard: React.FC<AIDealCardProps> = ({
+    prop,
+    onPreviewProperty,
+    onOpenPropertyDetails,
+    getRatingStyle,
+    renderAuctionTypeBadge,
+}) => {
+    const [streetViewError, setStreetViewError] = useState(false);
+    const streetViewUrl = getStreetViewUrl(prop);
+
+    return (
+        <div
+            onClick={() => onPreviewProperty(prop.parcel_id)}
+            className="w-[280px] shrink-0 h-full max-h-[350px] flex flex-col justify-between bg-[#073642]/10 hover:bg-[#073642]/20 backdrop-blur-md border border-[#1a4554]/25 hover:border-cyan-500/35 rounded-2xl p-4 transition-all duration-300 shadow-lg hover:shadow-cyan-500/5 cursor-pointer group"
+            title="Click to show Quick View"
+        >
+            {/* Image / Cover Container */}
+            <div className="relative h-[120px] w-full rounded-xl overflow-hidden mb-3 bg-[#072b35] flex items-center justify-center">
+                {streetViewUrl && !streetViewError ? (
+                    <img 
+                        src={streetViewUrl} 
+                        alt={prop.address || ''}
+                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        onError={() => setStreetViewError(true)}
+                    />
+                ) : (
+                    <div className="flex flex-col items-center justify-center gap-1.5 text-[#586e75]">
+                        <Image size={24} className="opacity-40" />
+                        <span className="text-[7.5px] uppercase tracking-wider font-black opacity-60">No Street View</span>
+                    </div>
+                )}
+                
+                {/* Floating overlay gradients */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
+                
+                {/* Float Badges inside Image Container */}
+                <div className="absolute top-2 left-2 z-10">
+                    {renderAuctionTypeBadge(prop.property_category || prop.purchase_option_type || prop.property_type)}
+                </div>
+                
+                <div className={`absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-lg shadow-lg text-[9px] font-black ${getRatingStyle(prop.rating || 'B')}`}>
+                    <span>🏆</span>
+                    <span>{prop.rating || 'B'}</span>
+                    <span className="text-[7px] opacity-75">({prop.deal_score || 70}%)</span>
+                </div>
+
+                <div className="absolute bottom-2 left-2 z-10">
+                    <span className="font-mono text-[8px] font-bold text-slate-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                        #{prop.parcel_id}
+                    </span>
+                </div>
+            </div>
+
+            {/* Address Details */}
+            <div className="mb-2.5 flex-1 min-h-0 flex flex-col justify-center">
+                <h4 className="text-[11px] font-bold text-white truncate group-hover:text-cyan-400 transition-colors flex items-start gap-1">
+                    <MapPin size={11} className="text-cyan-400 shrink-0 mt-0.5" />
+                    {prop.address || 'Address Restricted'}
+                </h4>
+                <p className="text-[8.5px] text-[#93a1a1] uppercase font-bold tracking-wider mt-1 ml-4 truncate flex items-center gap-1">
+                    <span>{prop.county || 'UNKNOWN'} COUNTY, {prop.state}</span>
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-cyan-400 flex items-center gap-0.5 font-black text-[7px] uppercase tracking-widest">
+                        <Eye size={9} />
+                        Preview
+                    </span>
+                </p>
+            </div>
+
+            {/* Financial Info */}
+            <div className="grid grid-cols-2 gap-3 border-t border-b border-[#1a4554]/15 py-2.5 mb-2.5">
+                <div>
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 block">Opening Bid</span>
+                    <span className="text-xs font-black text-emerald-400 flex items-center gap-1 mt-0.5">
+                        <Coins size={11} className="text-emerald-400" />
+                        ${(prop.amount_due ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                    </span>
+                </div>
+                <div>
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 block">Assessed Value</span>
+                    <span className="text-xs font-black text-indigo-300 block mt-0.5">
+                        ${(prop.assessed_value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0 })}
+                    </span>
+                </div>
+            </div>
+
+            {/* Quick Details Button */}
+            <button
+                onClick={(e) => {
+                    e.stopPropagation(); // Avoid triggering card-level preview
+                    onOpenPropertyDetails(prop.parcel_id, prop.parcel_id);
+                }}
+                className="w-full py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-indigo-500/25 active:scale-[0.98] flex items-center justify-center gap-1.5"
+            >
+                <span>Dossier details</span>
+                <ArrowRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
+            </button>
+        </div>
+    );
+};
 
 export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({ 
     onOpenPropertyDetails,
@@ -333,71 +442,14 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                 ) : (
                     <div className="w-full h-full flex items-center overflow-x-auto gap-4 py-2 px-1 scroll-smooth select-text no-scrollbar scrollbar-none">
                         {filteredDeals.map((prop) => (
-                            <div
+                            <AIDealCard
                                 key={prop.parcel_id}
-                                onClick={() => onPreviewProperty(prop.parcel_id)}
-                                className="w-[280px] shrink-0 h-full max-h-[290px] flex flex-col justify-between bg-[#073642]/10 hover:bg-[#073642]/20 backdrop-blur-md border border-[#1a4554]/25 hover:border-cyan-500/35 rounded-2xl p-4 transition-all duration-300 shadow-lg hover:shadow-cyan-500/5 cursor-pointer group"
-                                title="Click to show Quick View"
-                            >
-                                {/* Top Badge & Score Row */}
-                                <div className="flex justify-between items-start">
-                                    <div className="flex flex-col gap-1.5">
-                                        {renderAuctionTypeBadge(prop.property_category || prop.purchase_option_type || prop.property_type)}
-                                        <span className="font-mono text-[8px] font-bold text-slate-400 tracking-wider">
-                                            #{prop.parcel_id}
-                                        </span>
-                                    </div>
-                                    <div className={`flex items-center gap-1 px-2.5 py-1 rounded-xl shadow-lg text-[10px] font-black ${getRatingStyle(prop.rating || 'B')}`}>
-                                        <span>🏆</span>
-                                        <span>{prop.rating || 'B'}</span>
-                                        <span className="text-[8px] opacity-75">({prop.deal_score || 70}%)</span>
-                                    </div>
-                                </div>
-
-                                {/* Address Details */}
-                                <div className="my-3 flex-1 min-h-0 flex flex-col justify-center">
-                                    <h4 className="text-[11px] font-bold text-white truncate group-hover:text-cyan-400 transition-colors flex items-start gap-1">
-                                        <MapPin size={11} className="text-cyan-400 shrink-0 mt-0.5" />
-                                        {prop.address || 'Address Restricted'}
-                                    </h4>
-                                    <p className="text-[8.5px] text-[#93a1a1] uppercase font-bold tracking-wider mt-1 ml-4 truncate flex items-center gap-1">
-                                        <span>{prop.county || 'UNKNOWN'} COUNTY, {prop.state}</span>
-                                        <span className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-cyan-400 flex items-center gap-0.5 font-black text-[7px] uppercase tracking-widest">
-                                            <Eye size={9} />
-                                            Preview
-                                        </span>
-                                    </p>
-                                </div>
-
-                                {/* Financial Info */}
-                                <div className="grid grid-cols-2 gap-3 border-t border-b border-[#1a4554]/15 py-3 mb-3">
-                                    <div>
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 block">Opening Bid</span>
-                                        <span className="text-xs font-black text-emerald-400 flex items-center gap-1 mt-0.5">
-                                            <Coins size={11} className="text-emerald-400" />
-                                            ${(prop.amount_due ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                                        </span>
-                                    </div>
-                                    <div>
-                                        <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 block">Assessed Value</span>
-                                        <span className="text-xs font-black text-indigo-300 block mt-0.5">
-                                            ${(prop.assessed_value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Quick Details Button */}
-                                <button
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Avoid triggering card-level preview
-                                        onOpenPropertyDetails(prop.parcel_id, prop.parcel_id);
-                                    }}
-                                    className="w-full py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-indigo-500/25 active:scale-[0.98] flex items-center justify-center gap-1.5"
-                                >
-                                    <span>Dossier details</span>
-                                    <ArrowRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
-                                </button>
-                            </div>
+                                prop={prop}
+                                onPreviewProperty={onPreviewProperty}
+                                onOpenPropertyDetails={onOpenPropertyDetails}
+                                getRatingStyle={getRatingStyle}
+                                renderAuctionTypeBadge={renderAuctionTypeBadge}
+                            />
                         ))}
                     </div>
                 )}

@@ -171,7 +171,10 @@ def get_top_scores(
             p.improvement_value,
             p.owner_address,
             p.purchase_option_type,
-            p.property_category
+            p.property_category,
+            p.latitude,
+            p.longitude,
+            p.gsi_url
         FROM property_scores s
         JOIN property_details p ON p.parcel_id = s.parcel_id
         WHERE {where_str}
@@ -188,7 +191,7 @@ def get_top_scores(
 
     results = db.execute(query, params).fetchall()
 
-    return [
+    items = [
         {
             "parcel_id": r[0],
             "deal_score": r[1],
@@ -208,9 +211,39 @@ def get_top_scores(
             "owner_address": r[15],
             "purchase_option_type": r[16],
             "property_category": r[17],
+            "latitude": r[18],
+            "longitude": r[19],
+            "gsi_url": r[20],
         }
         for r in results
     ]
+
+    # ── Dynamically inject gsi_url if missing ──
+    from urllib.parse import quote
+    import os
+    from app.core.config import settings
+    api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
+
+    for item in items:
+        if not item.get("gsi_url") and api_key:
+            address = item.get("address") or ""
+            county = item.get("county") or ""
+            state = item.get("state") or ""
+            location_parts = [address, county, state]
+            location_str = ", ".join([p for p in location_parts if p]).strip()
+            if not location_str or location_str == ", ,":
+                location_str = item.get("parcel_id") or ""
+
+            lat = item.get("latitude")
+            lng = item.get("longitude")
+            if lat is not None and lng is not None:
+                location_str = f"{lat},{lng}"
+
+            if location_str:
+                sanitized_location = quote(location_str.replace('\n', ' ').strip())
+                item["gsi_url"] = f"https://maps.googleapis.com/maps/api/streetview?size=640x400&location={sanitized_location}&fov=90&pitch=10&key={api_key}"
+
+    return items
 
 
 @router.get("/{parcel_id}", response_model=dict)
