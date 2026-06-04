@@ -145,8 +145,8 @@ interface OverlayWindow {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 20, y: 20, w: 620, h: 520, visible: false, zIndex: 10 },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 660, y: 20, w: 560, h: 520, visible: false, zIndex: 5 }
+  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 20, y: 20, w: 620, h: 520, visible: true, zIndex: 10 },
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 660, y: 20, w: 560, h: 520, visible: true, zIndex: 5 }
 ];
 
 
