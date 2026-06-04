@@ -6591,7 +6591,7 @@ export const ClientWorkbench: React.FC = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex items-center gap-1.5" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
+                <div className="flex items-center gap-1.5" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
                   <button
                     onClick={() => refreshOverlayWindow(w.id)}
                     className="size-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
