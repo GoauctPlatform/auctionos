@@ -1649,17 +1649,22 @@ export const ClientWorkbench: React.FC = () => {
     widgetsRef.current = widgets;
   }, [widgets]);
 
-  // Save widgets state to local storage when modified (debounced to prevent UI lag during drag/resize)
+  // Save widgets state to local storage when modified (immediate save on interaction end / discrete update, debounced during drag/resize)
   useEffect(() => {
     if (!widgets || widgets.length === 0) return;
-    const timer = setTimeout(() => {
-      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
-    }, 500);
 
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [widgets]);
+    if (interaction === null) {
+      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
+    } else {
+      const timer = setTimeout(() => {
+        localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
+      }, 500);
+
+      return () => {
+        clearTimeout(timer);
+      };
+    }
+  }, [widgets, interaction]);
 
   // Immediate save on beforeunload to handle page reloads and tab closure
   useEffect(() => {
@@ -2063,10 +2068,6 @@ export const ClientWorkbench: React.FC = () => {
     const handleMouseUp = () => {
       if (interaction) {
         setInteraction(null);
-        setWidgets(current => {
-          localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(current));
-          return current;
-        });
       }
     };
 
@@ -2111,10 +2112,6 @@ export const ClientWorkbench: React.FC = () => {
     const handleTouchEnd = () => {
       if (interaction) {
         setInteraction(null);
-        setWidgets(current => {
-          localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(current));
-          return current;
-        });
       }
     };
 
@@ -2283,18 +2280,7 @@ export const ClientWorkbench: React.FC = () => {
     return () => clearTimeout(timer);
   }, [propSearchQuery, propStateSelect, propCountySelect]);
 
-  const toggleWidgetLock = (id: string) => {
-    setWidgets(prev => {
-      const nextWidgets = prev.map(w =>
-        w.id === id ? { ...w, isLocked: !w.isLocked } : w
-      );
-      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(nextWidgets));
-      return nextWidgets;
-    });
-    const match = widgets.find(w => w.id === id);
-    const label = match ? match.title : id;
-    logConsoleActivity(`Toggled lock status for "${label}"`);
-  };
+
 
   const toggleVisibility = (id: string) => {
     let wasVisible = false;
@@ -3655,16 +3641,6 @@ export const ClientWorkbench: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleWidgetLock(w.id);
-                        }}
-                        className={`p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 transition-colors ${w.isLocked ? 'text-amber-500 hover:text-amber-600' : 'text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
-                        title={w.isLocked ? "Widget is Locked (Click to Unlock)" : "Widget is Unlocked (Click to Lock)"}
-                      >
-                        {w.isLocked ? <Lock size={10} /> : <Unlock size={10} />}
-                      </button>
                       <button
                         onClick={() => toggleVisibility(w.id)}
                         className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
