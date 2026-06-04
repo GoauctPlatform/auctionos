@@ -151,6 +151,8 @@ const DEFAULT_WIDGETS: Widget[] = [
 
 
 export const ClientWorkbench: React.FC = () => {
+  // Ref to track if component has mounted — used to skip the first-render save in the widgets persist effect
+  const isMountedRef = useRef(false);
   const navigate = useNavigate();
   const { activeCompany, companies, selectCompany } = useCompany();
   const { startTour } = useTour();
@@ -163,25 +165,34 @@ export const ClientWorkbench: React.FC = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const savedMap = new Map(parsed.map((w: any) => [w.id, w]));
-          return DEFAULT_WIDGETS.map(def => {
-            const savedWidget = savedMap.get(def.id);
-            if (savedWidget) {
-              // Keep saved position and visibility but merge any new default settings
+          // Use the saved array as the authoritative source.
+          // Validate and sanitize each saved widget, falling back to defaults for any corrupt fields.
+          const knownDefaultsMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
+          const sanitized: Widget[] = parsed
+            .filter((w: any) => typeof w.id === 'string' && w.id.length > 0)
+            .map((w: any) => {
+              const def = knownDefaultsMap.get(w.id);
               return {
-                ...def,
-                ...savedWidget,
-                x: typeof savedWidget.x === 'number' ? savedWidget.x : def.x,
-                y: typeof savedWidget.y === 'number' ? savedWidget.y : def.y,
-                w: typeof savedWidget.w === 'number' ? savedWidget.w : def.w,
-                h: typeof savedWidget.h === 'number' ? savedWidget.h : def.h,
-                visible: typeof savedWidget.visible === 'boolean' ? savedWidget.visible : def.visible,
-                zIndex: typeof savedWidget.zIndex === 'number' ? savedWidget.zIndex : def.zIndex,
-                isLocked: typeof savedWidget.isLocked === 'boolean' ? savedWidget.isLocked : def.isLocked,
-              };
-            }
-            return def;
-          });
+                // Start from the known default (for type/title safety) if available, else reconstruct
+                ...(def ?? {}),
+                // Override with all saved values
+                ...w,
+                // Guarantee numeric/boolean types to guard against JSON corruption
+                x: typeof w.x === 'number' && isFinite(w.x) ? w.x : (def?.x ?? 20),
+                y: typeof w.y === 'number' && isFinite(w.y) ? w.y : (def?.y ?? 20),
+                w: typeof w.w === 'number' && isFinite(w.w) && w.w > 0 ? w.w : (def?.w ?? 400),
+                h: typeof w.h === 'number' && isFinite(w.h) && w.h > 0 ? w.h : (def?.h ?? 300),
+                visible: typeof w.visible === 'boolean' ? w.visible : (def?.visible ?? false),
+                zIndex: typeof w.zIndex === 'number' && isFinite(w.zIndex) ? w.zIndex : (def?.zIndex ?? 10),
+                isLocked: typeof w.isLocked === 'boolean' ? w.isLocked : (def?.isLocked ?? false),
+              } as Widget;
+            });
+
+          // Append any brand-new DEFAULT_WIDGETS not yet present in the saved data
+          const savedIds = new Set(sanitized.map(w => w.id));
+          const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id));
+
+          return [...sanitized, ...newDefaults];
         }
       }
     } catch (e) {
@@ -1638,8 +1649,16 @@ export const ClientWorkbench: React.FC = () => {
       .finally(() => setMonthlyLoading(false));
   }, [selectedState]);
 
-  // Save widgets state to local storage when modified (immediate save on interaction end / discrete update, debounced during drag/resize)
+  // Save widgets state to local storage when modified.
+  // Skips the very first render (mount) to avoid a redundant write of data that was just read from localStorage.
+  // Saves immediately when no drag/resize interaction is active; debounces during active interactions.
   useEffect(() => {
+    if (!isMountedRef.current) {
+      // Mark as mounted after first effect run — subsequent calls are real user-driven changes
+      isMountedRef.current = true;
+      return;
+    }
+
     if (!widgets || widgets.length === 0) return;
 
     if (interaction === null) {
