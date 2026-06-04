@@ -57,31 +57,32 @@ const PropertyDetails: React.FC = () => {
     const [isEditing, setIsEditing] = useState(searchParams.get('edit') === 'true');
 
     // ── Property Fetch ────────────────────────────────────────────────────────
-    useEffect(() => {
-        const fetchProperty = async () => {
-            if (!id) return;
-            try {
-                const data = await AdminService.getProperty(id);
-                setProperty(data);
+    const fetchProperty = async () => {
+        if (!id) return;
+        try {
+            const data = await AdminService.getProperty(id);
+            setProperty(data);
 
-                // Background Check: Auto-Enrich via ATTOM if crucial details are missing.
-                const checkMissing = !data.year_built || !data.bedrooms || !data.owner_name || !data.assessed_value;
-                if (checkMissing && data.property_id) {
-                    AdminService.enrichProperty(data.property_id)
-                        .then(res => {
-                            if (res?.enriched_fields && Object.keys(res.enriched_fields).length > 0) {
-                                setProperty((prev: any) => ({ ...prev, ...res.enriched_fields }));
-                                console.log('ATTOM Auto-Enriched Property:', res.enriched_fields);
-                            }
-                        })
-                        .catch(err => console.debug('ATTOM Enrichment skipped or failed:', err));
-                }
-            } catch (error) {
-                console.error('Failed to fetch property details', error);
-            } finally {
-                setLoading(false);
+            // Background Check: Auto-Enrich via ATTOM if crucial details are missing.
+            const checkMissing = !data.year_built || !data.bedrooms || !data.owner_name || !data.assessed_value;
+            if (checkMissing && data.property_id) {
+                AdminService.enrichProperty(data.property_id)
+                    .then(res => {
+                        if (res?.enriched_fields && Object.keys(res.enriched_fields).length > 0) {
+                            setProperty((prev: any) => ({ ...prev, ...res.enriched_fields }));
+                            console.log('ATTOM Auto-Enriched Property:', res.enriched_fields);
+                        }
+                    })
+                    .catch(err => console.debug('ATTOM Enrichment skipped or failed:', err));
             }
-        };
+        } catch (error) {
+            console.error('Failed to fetch property details', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchProperty();
     }, [id]);
 
@@ -327,6 +328,7 @@ const PropertyDetails: React.FC = () => {
                             property={property}
                             onOpenFinancials={() => setIsFinOpen(true)}
                             onOpenMetadata={() => setIsMetaOpen(true)}
+                            onRefresh={fetchProperty}
                         />
                     </div>
 

@@ -543,6 +543,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                             onOpenFinancials={() => setIsFinOpen(true)}
                             onOpenMetadata={() => setIsMetaOpen(true)}
                             dealScore={localScore}
+                            onRefresh={() => loadProperty(id!)}
                         />
                     </div>
 

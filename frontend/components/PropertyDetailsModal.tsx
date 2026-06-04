@@ -54,6 +54,17 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
         }
     };
 
+    const handleRefresh = async () => {
+        if (!property?.id) return;
+        try {
+            const updated = await PropertyService.getProperty(property.id.toString());
+            setProperty(updated);
+            if (onUpdate) onUpdate(updated);
+        } catch (error) {
+            console.error('Failed to reload property details', error);
+        }
+    };
+
     const handleAddToStandardList = async () => {
         if (!property?.id) return;
         try {
@@ -219,6 +230,7 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
                             property={property} 
                             onOpenFinancials={() => setIsFinOpen(true)}
                             onOpenMetadata={() => setIsMetaOpen(true)}
+                            onRefresh={handleRefresh}
                         />
 
                         <div className="grid grid-cols-1 gap-6">

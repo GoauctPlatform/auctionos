@@ -10,9 +10,10 @@ interface Props {
     onOpenFinancials: () => void;
     onOpenMetadata: () => void;
     dealScore?: DealScoreResult | null;
+    onRefresh?: () => void;
 }
 
-export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials, onOpenMetadata, dealScore: passedScore }) => {
+export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials, onOpenMetadata, dealScore: passedScore, onRefresh }) => {
     const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
     const expandedKey = `expanded_info_${property.property_id}`;
     const isUnlocked = !!(property.is_processed || sessionStorage.getItem(expandedKey) === 'true');
@@ -41,10 +42,16 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                     'Content-Type': 'application/json',
                 },
             });
-            // Automatically reload the page to cleanly render the newly acquired county records
-            setTimeout(() => {
-                window.location.reload();
-            }, 800);
+            
+            // If custom refresh handler is provided, use it to refresh only the MDI tab content
+            if (onRefresh) {
+                onRefresh();
+            } else {
+                // Automatically reload the page to cleanly render the newly acquired county records
+                setTimeout(() => {
+                    window.location.reload();
+                }, 800);
+            }
         } catch (e) {
             console.error('Manual registry sync failed:', e);
             alert('Failed to sync property registry records.');
