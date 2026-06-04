@@ -33,15 +33,15 @@ export const TopRecommendedWidget: React.FC = () => {
     if (error) return <div className="text-xs text-red-400 italic p-4">{error}</div>;
 
     return (
-        <div className="space-y-3">
-            <h2 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2">
+        <div className="w-full h-full flex flex-col space-y-3">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 shrink-0">
                 <TrendingUp size={16} className="text-emerald-500" />
                 Top Recommended Deals
             </h2>
             {deals.length === 0 ? (
                 <p className="text-xs text-slate-400 italic">No deals found.</p>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 flex-1 overflow-y-auto no-scrollbar scrollbar-none pr-1">
                     {deals.map(p => (
                         <div key={p.id} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-start gap-3 transition-colors hover:border-emerald-500/30">
                             <div className="size-9 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shrink-0">

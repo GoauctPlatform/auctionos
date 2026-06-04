@@ -1654,7 +1654,7 @@ export const ClientWorkbench: React.FC = () => {
     };
   }, [widgets]);
 
-  // Immediate save on unmount and beforeunload to handle page reloads, tab closure, and route changes
+  // Immediate save on beforeunload to handle page reloads and tab closure
   useEffect(() => {
     const handleBeforeUnload = () => {
       localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgetsRef.current));
@@ -1663,7 +1663,6 @@ export const ClientWorkbench: React.FC = () => {
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgetsRef.current));
     };
   }, []);
 

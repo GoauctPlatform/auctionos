@@ -30,21 +30,21 @@ export const PropertyMetricsWidget: React.FC = () => {
     if (error) return <div className="text-xs text-red-400 italic p-4">{error}</div>;
 
     return (
-        <div className="space-y-4">
-            <h2 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2">
+        <div className="w-full h-full flex flex-col justify-between space-y-4">
+            <h2 className="text-sm font-black text-slate-800 dark:text-white flex items-center gap-2 shrink-0">
                 <Activity size={16} className="text-indigo-500" />
                 Property Metrics
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 flex-1">
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-center">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Foreclosures</p>
                     <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{data?.foreclosure || 0}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-center">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tax Liens</p>
                     <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{data?.lien || 0}</p>
                 </div>
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex flex-col justify-center">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tax Deeds</p>
                     <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{data?.deed || 0}</p>
                 </div>

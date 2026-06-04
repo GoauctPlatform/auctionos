@@ -54,11 +54,11 @@ const AIDealCard: React.FC<AIDealCardProps> = ({
     return (
         <div
             onClick={() => onPreviewProperty(prop.parcel_id)}
-            className="w-[280px] shrink-0 h-full max-h-[350px] flex flex-col justify-between bg-[#073642]/10 hover:bg-[#073642]/20 backdrop-blur-md border border-[#1a4554]/25 hover:border-cyan-500/35 rounded-2xl p-4 transition-all duration-300 shadow-lg hover:shadow-cyan-500/5 cursor-pointer group"
+            className="w-[300px] shrink-0 h-[92%] max-h-[380px] self-center flex flex-col justify-between bg-[#073642]/10 hover:bg-[#073642]/20 backdrop-blur-md border border-[#1a4554]/25 hover:border-cyan-500/35 rounded-2xl p-4 transition-all duration-300 shadow-lg hover:shadow-cyan-500/5 cursor-pointer group"
             title="Click to show Quick View"
         >
             {/* Image / Cover Container */}
-            <div className="relative h-[120px] w-full rounded-xl overflow-hidden mb-3 bg-[#072b35] flex items-center justify-center">
+            <div className="relative h-[120px] min-h-[120px] flex-1 max-h-[180px] w-full rounded-xl overflow-hidden mb-3 bg-[#072b35] flex items-center justify-center">
                 {streetViewUrl && !streetViewError ? (
                     <img 
                         src={streetViewUrl} 
