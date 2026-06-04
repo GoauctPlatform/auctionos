@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Property } from '../../types';
 import { calculateDealScore, DealScoreResult } from '../../intelligence/scoringEngine';
 import { PropertyScoreModal } from './PropertyScoreModal';
@@ -24,6 +24,16 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
         return isUnlocked;
     });
     const [syncing, setSyncing] = useState(false);
+
+    // Sync isExpanded with props/sessionStorage when property changes
+    useEffect(() => {
+        const stored = sessionStorage.getItem(expandedKey);
+        if (stored === 'false') {
+            setIsExpanded(false);
+        } else {
+            setIsExpanded(isUnlocked);
+        }
+    }, [property.property_id, isUnlocked, expandedKey]);
     
     // Fallback to local calculation if no score passed or persisted yet
     const displayScore = passedScore || calculateDealScore(property);
@@ -46,6 +56,8 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
             // If custom refresh handler is provided, use it to refresh only the MDI tab content
             if (onRefresh) {
                 onRefresh();
+                setSyncing(false);
+                setIsExpanded(true);
             } else {
                 // Automatically reload the page to cleanly render the newly acquired county records
                 setTimeout(() => {

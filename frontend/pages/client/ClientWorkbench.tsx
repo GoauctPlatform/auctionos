@@ -128,6 +128,7 @@ interface Widget {
   h: number; // height in pixels
   visible: boolean;
   zIndex: number;
+  isLocked?: boolean;
 }
 
 interface OverlayWindow {
@@ -183,6 +184,7 @@ export const ClientWorkbench: React.FC = () => {
             h: typeof savedWidget.h === 'number' ? savedWidget.h : def.h,
             visible: typeof savedWidget.visible === 'boolean' ? savedWidget.visible : def.visible,
             zIndex: typeof savedWidget.zIndex === 'number' ? savedWidget.zIndex : def.zIndex,
+            isLocked: typeof savedWidget.isLocked === 'boolean' ? savedWidget.isLocked : def.isLocked,
           };
         }
         return def;
@@ -887,6 +889,9 @@ export const ClientWorkbench: React.FC = () => {
     winId: string,
     type: 'drag' | 'resize'
   ) => {
+    if ((e.target as HTMLElement).closest('.window-action-buttons')) {
+      return;
+    }
     e.preventDefault();
     focusOverlayWindow(winId);
 
@@ -910,6 +915,9 @@ export const ClientWorkbench: React.FC = () => {
     winId: string,
     type: 'drag' | 'resize'
   ) => {
+    if (e.target && (e.target as HTMLElement).closest('.window-action-buttons')) {
+      return;
+    }
     focusOverlayWindow(winId);
 
     const win = overlayWindows.find(w => w.id === winId);
@@ -1987,7 +1995,7 @@ export const ClientWorkbench: React.FC = () => {
     focusWidget(widgetId);
 
     const targetWidget = widgets.find(w => w.id === widgetId);
-    if (!targetWidget) return;
+    if (!targetWidget || targetWidget.isLocked) return;
 
     setInteraction({
       type,
@@ -2010,7 +2018,7 @@ export const ClientWorkbench: React.FC = () => {
     focusWidget(widgetId);
 
     const targetWidget = widgets.find(w => w.id === widgetId);
-    if (!targetWidget) return;
+    if (!targetWidget || targetWidget.isLocked) return;
 
     const touch = e.touches[0];
     setInteraction({
@@ -2273,6 +2281,19 @@ export const ClientWorkbench: React.FC = () => {
     const timer = setTimeout(filterProperties, 300);
     return () => clearTimeout(timer);
   }, [propSearchQuery, propStateSelect, propCountySelect]);
+
+  const toggleWidgetLock = (id: string) => {
+    setWidgets(prev => {
+      const nextWidgets = prev.map(w =>
+        w.id === id ? { ...w, isLocked: !w.isLocked } : w
+      );
+      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(nextWidgets));
+      return nextWidgets;
+    });
+    const match = widgets.find(w => w.id === id);
+    const label = match ? match.title : id;
+    logConsoleActivity(`Toggled lock status for "${label}"`);
+  };
 
   const toggleVisibility = (id: string) => {
     let wasVisible = false;
@@ -4484,7 +4505,7 @@ export const ClientWorkbench: React.FC = () => {
                   <div
                     onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
                     onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
-                    className="h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 cursor-move"
+                    className={`h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 ${w.isLocked ? 'cursor-default' : 'cursor-move'}`}
                   >
                     <div className="flex items-center gap-2 select-none">
                       {/* Mobile touch grab handle badge */}
@@ -4511,6 +4532,16 @@ export const ClientWorkbench: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleWidgetLock(w.id);
+                        }}
+                        className={`p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 transition-colors ${w.isLocked ? 'text-amber-500 hover:text-amber-600' : 'text-slate-400 hover:text-slate-800 dark:hover:text-white'}`}
+                        title={w.isLocked ? "Widget is Locked (Click to Unlock)" : "Widget is Unlocked (Click to Lock)"}
+                      >
+                        {w.isLocked ? <Lock size={10} /> : <Unlock size={10} />}
+                      </button>
                       <button
                         onClick={() => toggleVisibility(w.id)}
                         className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
@@ -6495,13 +6526,15 @@ export const ClientWorkbench: React.FC = () => {
                   </div>
 
                   {/* Window Bottom-Right Resize Handle */}
-                  <div
-                    onMouseDown={(e) => handleMouseDown(e, w.id, 'resize')}
-                    onTouchStart={(e) => handleTouchStart(e, w.id, 'resize')}
-                    className="absolute bottom-0 right-0 size-4 cursor-se-resize flex items-end justify-end p-0.5 z-[100]"
-                  >
-                    <div className="size-2 border-r-2 border-b-2 border-slate-350 dark:border-slate-650 opacity-40 group-hover/window:opacity-100 transition-opacity" />
-                  </div>
+                  {!w.isLocked && (
+                    <div
+                      onMouseDown={(e) => handleMouseDown(e, w.id, 'resize')}
+                      onTouchStart={(e) => handleTouchStart(e, w.id, 'resize')}
+                      className="absolute bottom-0 right-0 size-4 cursor-se-resize flex items-end justify-end p-0.5 z-[100]"
+                    >
+                      <div className="size-2 border-r-2 border-b-2 border-slate-350 dark:border-slate-650 opacity-40 group-hover/window:opacity-100 transition-opacity" />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -6559,7 +6592,12 @@ export const ClientWorkbench: React.FC = () => {
           return (
             <div
               key={w.id}
-              onClick={() => focusOverlayWindow(w.id)}
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest('.window-action-buttons')) {
+                  return;
+                }
+                focusOverlayWindow(w.id);
+              }}
               style={{
                 position: 'absolute',
                 left: w.isMaximized ? 0 : w.x,
@@ -6590,30 +6628,42 @@ export const ClientWorkbench: React.FC = () => {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex items-center gap-1.5" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
+                <div className="flex items-center gap-1.5 window-action-buttons" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()} onClick={e => e.stopPropagation()}>
                   <button
-                    onClick={() => refreshOverlayWindow(w.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      refreshOverlayWindow(w.id);
+                    }}
                     className="size-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     title="Refresh Content"
                   >
                     <RefreshCw size={11} />
                   </button>
                   <button
-                    onClick={() => toggleMinimizeOverlayWindow(w.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMinimizeOverlayWindow(w.id);
+                    }}
                     className="size-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     title="Minimize"
                   >
                     <Minus size={12} />
                   </button>
                   <button
-                    onClick={() => toggleMaximizeOverlayWindow(w.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMaximizeOverlayWindow(w.id);
+                    }}
                     className="size-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                     title={w.isMaximized ? "Restore Size" : "Maximize"}
                   >
                     {w.isMaximized ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
                   </button>
                   <button
-                    onClick={() => closeOverlayWindow(w.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      closeOverlayWindow(w.id);
+                    }}
                     className="size-5 rounded-lg flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors"
                     title="Close"
                   >
