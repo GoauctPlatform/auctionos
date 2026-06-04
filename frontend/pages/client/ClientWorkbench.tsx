@@ -156,6 +156,15 @@ export const ClientWorkbench: React.FC = () => {
   const { startTour } = useTour();
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  // Activity Console Logs CLI
+  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
+  const [terminalInput, setTerminalInput] = useState('');
+
+  // Unified console logger helper
+  const logConsoleActivity = useCallback((msg: string) => {
+    setTerminalLogs(prev => [...prev, `[activity] ${msg}`].slice(-40));
+  }, []);
+
   // States
   const [widgets, setWidgets] = useState<Widget[]>(() => {
     try {
@@ -213,6 +222,60 @@ export const ClientWorkbench: React.FC = () => {
   });
 
   const [previewPropertyId, setPreviewPropertyId] = useState<string | number | null>(null);
+
+  // Load layout from backend database/Redis cache on mount
+  useEffect(() => {
+    const fetchLayout = async () => {
+      try {
+        const layout = await UserService.getWorkbenchLayout();
+        if (layout && Array.isArray(layout) && layout.length > 0) {
+          const knownDefaultsMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
+          const sanitized: Widget[] = layout
+            .filter((w: any) => typeof w.id === 'string' && w.id.length > 0)
+            .map((w: any) => {
+              const def = knownDefaultsMap.get(w.id);
+              return {
+                ...(def ?? {}),
+                ...w,
+                x: typeof w.x === 'number' && isFinite(w.x) ? w.x : (def?.x ?? 20),
+                y: typeof w.y === 'number' && isFinite(w.y) ? w.y : (def?.y ?? 20),
+                w: typeof w.w === 'number' && isFinite(w.w) && w.w > 0 ? w.w : (def?.w ?? 400),
+                h: typeof w.h === 'number' && isFinite(w.h) && w.h > 0 ? w.h : (def?.h ?? 300),
+                visible: typeof w.visible === 'boolean' ? w.visible : (def?.visible ?? false),
+                zIndex: typeof w.zIndex === 'number' && isFinite(w.zIndex) ? w.zIndex : (def?.zIndex ?? 10),
+                isLocked: typeof w.isLocked === 'boolean' ? w.isLocked : (def?.isLocked ?? false),
+              } as Widget;
+            });
+
+          const savedIds = new Set(sanitized.map(w => w.id));
+          const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id));
+          
+          setWidgets([...sanitized, ...newDefaults]);
+          logConsoleActivity('Loaded custom workbench layout from database and Redis.');
+        } else {
+          // If backend has no layout, try to synchronize current local state
+          const localLayout = localStorage.getItem('goauct_workbench_widgets_v62');
+          if (localLayout) {
+            try {
+              const parsed = JSON.parse(localLayout);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                await UserService.saveWorkbenchLayout(parsed);
+                logConsoleActivity('Synchronized local layout to database and Redis.');
+              }
+            } catch (err) {
+              console.error('Failed to sync local layout to backend:', err);
+            }
+          } else {
+            await UserService.saveWorkbenchLayout(DEFAULT_WIDGETS);
+            logConsoleActivity('Synchronized default layout to database and Redis.');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch workbench layout from backend:', err);
+      }
+    };
+    fetchLayout();
+  }, [logConsoleActivity]);
 
   useEffect(() => {
     const syncLocalFavorites = async () => {
@@ -1194,14 +1257,7 @@ export const ClientWorkbench: React.FC = () => {
   const [inviteRole, setInviteRole] = useState<'investor' | 'agent'>('agent');
   const [inviteSubmitting, setInviteSubmitting] = useState(false);
 
-  // Activity Console Logs CLI
-  const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
-  const [terminalInput, setTerminalInput] = useState('');
 
-  // Unified console logger helper
-  const logConsoleActivity = useCallback((msg: string) => {
-    setTerminalLogs(prev => [...prev, `[activity] ${msg}`].slice(-40));
-  }, []);
 
   const toggleTickerTape = () => {
     const next = !tickerTapeVisible;
@@ -1666,11 +1722,18 @@ export const ClientWorkbench: React.FC = () => {
     if (interaction === null) {
       // Immediate save — triggered by: toggle visibility, drag/resize end, preset apply, focus, lock
       localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
+      UserService.saveWorkbenchLayout(widgets).catch(err => {
+        console.error('Failed to save layout to backend:', err);
+      });
     } else {
       // Debounced save — triggered continuously while dragging or resizing
       const timer = setTimeout(() => {
-        localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(latestWidgetsRef.current));
-      }, 400);
+        const currentWidgets = latestWidgetsRef.current;
+        localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(currentWidgets));
+        UserService.saveWorkbenchLayout(currentWidgets).catch(err => {
+          console.error('Failed to save layout to backend:', err);
+        });
+      }, 500);
       return () => clearTimeout(timer);
     }
   }, [widgets, interaction]);
@@ -1775,7 +1838,10 @@ export const ClientWorkbench: React.FC = () => {
       setZoomScale(1.0);
       setPanX(0);
       setPanY(0);
-      logConsoleActivity('Wiped local layout cache, windows reset to absolute default coordinates.');
+      UserService.saveWorkbenchLayout(DEFAULT_WIDGETS).catch(err => {
+        console.error('Failed to reset layout on backend:', err);
+      });
+      logConsoleActivity('Wiped local layout cache and backend database, windows reset to absolute default coordinates.');
     }
   };
 

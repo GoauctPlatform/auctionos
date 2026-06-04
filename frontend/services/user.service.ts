@@ -102,4 +102,24 @@ export const UserService = {
             throw new Error(err.detail || 'Failed to switch company');
         }
     },
+
+    getWorkbenchLayout: async (): Promise<any> => {
+        const response = await fetch(`${API_URL}/users/me/workbench-layout`, {
+            headers: getHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to fetch workbench layout');
+        return response.json();
+    },
+
+    saveWorkbenchLayout: async (layout: any): Promise<void> => {
+        const response = await fetch(`${API_URL}/users/me/workbench-layout`, {
+            method: 'PUT',
+            headers: getHeaders(),
+            body: JSON.stringify(layout)
+        });
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || 'Failed to save workbench layout');
+        }
+    },
 };

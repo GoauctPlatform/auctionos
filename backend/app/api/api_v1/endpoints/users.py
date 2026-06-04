@@ -15,6 +15,22 @@ from app.core.rbac import allow_managers, allow_admin_only
 from app.services.activity import log_activity
 from app.core.email import send_email
 from app.core.email_templates import get_team_invite_template
+import json
+import logging
+import redis
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+# Setup Redis Client
+try:
+    if settings.REDIS_URL:
+        redis_client = redis.from_url(settings.REDIS_URL, decode_responses=True)
+    else:
+        redis_client = None
+except Exception as e:
+    logger.warning(f"Could not connect to Redis: {e}")
+    redis_client = None
 
 router = APIRouter()
 
@@ -202,6 +218,75 @@ def read_user_me(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     return current_user
+
+
+@router.get("/me/workbench-layout", response_model=Any)
+def get_workbench_layout(
+    current_user: User = Depends(deps.get_current_active_user),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """Get the current user's workbench layout from Redis cache or database."""
+    cache_key = f"user_layout:{current_user.id}"
+    
+    # Try Redis cache first
+    if redis_client:
+        try:
+            cached_layout = redis_client.get(cache_key)
+            if cached_layout:
+                return json.loads(cached_layout)
+        except Exception as e:
+            logger.warning(f"Error reading workbench layout from Redis: {e}")
+
+    # Fallback to database
+    if current_user.workbench_layout:
+        try:
+            layout_data = json.loads(current_user.workbench_layout)
+            # Repopulate Redis cache
+            if redis_client:
+                try:
+                    redis_client.set(cache_key, current_user.workbench_layout)
+                except Exception as e:
+                    logger.warning(f"Error writing workbench layout to Redis: {e}")
+            return layout_data
+        except Exception as e:
+            logger.error(f"Error parsing workbench layout from DB for user {current_user.id}: {e}")
+            return None
+
+    return None
+
+
+@router.put("/me/workbench-layout")
+def save_workbench_layout(
+    *,
+    layout: Any = Body(...),
+    current_user: User = Depends(deps.get_current_active_user),
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """Save the user's workbench layout to both database and Redis cache."""
+    try:
+        layout_str = json.dumps(layout)
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid layout format: {e}"
+        )
+
+    # Save to database
+    current_user.workbench_layout = layout_str
+    db.add(current_user)
+    db.commit()
+    db.refresh(current_user)
+
+    # Save to Redis cache
+    cache_key = f"user_layout:{current_user.id}"
+    if redis_client:
+        try:
+            redis_client.set(cache_key, layout_str)
+        except Exception as e:
+            logger.warning(f"Error writing workbench layout to Redis: {e}")
+
+    return {"ok": True, "workbench_layout": layout}
+
 
 @router.put("/{user_id}", response_model=UserSchema)
 def update_user(
