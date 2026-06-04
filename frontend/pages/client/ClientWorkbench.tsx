@@ -151,8 +151,6 @@ const DEFAULT_WIDGETS: Widget[] = [
 
 
 export const ClientWorkbench: React.FC = () => {
-  // Ref to track if component has mounted — used to skip the first-render save in the widgets persist effect
-  const isMountedRef = useRef(false);
   const navigate = useNavigate();
   const { activeCompany, companies, selectCompany } = useCompany();
   const { startTour } = useTour();
@@ -1649,28 +1647,31 @@ export const ClientWorkbench: React.FC = () => {
       .finally(() => setMonthlyLoading(false));
   }, [selectedState]);
 
-  // Save widgets state to local storage when modified.
-  // Skips the very first render (mount) to avoid a redundant write of data that was just read from localStorage.
-  // Saves immediately when no drag/resize interaction is active; debounces during active interactions.
+  // ─── Widget Layout Persistence ───────────────────────────────────────────
+  // Always persist the latest widgets state to localStorage.
+  // • When no drag/resize is active (interaction === null): save immediately.
+  // • During drag/resize (interaction !== null): debounce 400ms so we don't
+  //   thrash storage on every mousemove pixel.
+  // The save-on-mount is intentional and safe: it is idempotent (writes the
+  // same data that was just read by the lazy initializer) and guarantees the
+  // key always exists after the first render.
+  const latestWidgetsRef = useRef(widgets);
   useEffect(() => {
-    if (!isMountedRef.current) {
-      // Mark as mounted after first effect run — subsequent calls are real user-driven changes
-      isMountedRef.current = true;
-      return;
-    }
+    latestWidgetsRef.current = widgets;
+  });
 
+  useEffect(() => {
     if (!widgets || widgets.length === 0) return;
 
     if (interaction === null) {
+      // Immediate save — triggered by: toggle visibility, drag/resize end, preset apply, focus, lock
       localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
     } else {
+      // Debounced save — triggered continuously while dragging or resizing
       const timer = setTimeout(() => {
-        localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
-      }, 500);
-
-      return () => {
-        clearTimeout(timer);
-      };
+        localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(latestWidgetsRef.current));
+      }, 400);
+      return () => clearTimeout(timer);
     }
   }, [widgets, interaction]);
 
