@@ -118,7 +118,7 @@ const fallbackContacts: Record<string, any[]> = {
 
 interface Widget {
   id: string;
-  type: 'map' | 'smart_ai_finder';
+  type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'settings' | 'activity_logs';
   title: string;
   x: number; // left offset in pixels
   y: number; // top offset in pixels
@@ -127,6 +127,8 @@ interface Widget {
   visible: boolean;
   zIndex: number;
   isLocked?: boolean;
+  isIcon?: boolean;
+  refreshKey?: number;
 }
 
 interface OverlayWindow {
@@ -145,8 +147,14 @@ interface OverlayWindow {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 20, y: 20, w: 620, h: 520, visible: true, zIndex: 10 },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 660, y: 20, w: 560, h: 520, visible: true, zIndex: 5 }
+  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 24, y: 24, w: 624, h: 528, visible: true, zIndex: 10, isIcon: false },
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 672, y: 24, w: 576, h: 528, visible: true, zIndex: 5, isIcon: false },
+  { id: 'my_lists', type: 'my_lists', title: '📂 Saved Lists & Folders', x: 24, y: 576, w: 600, h: 480, visible: true, zIndex: 6, isIcon: true },
+  { id: 'live_auctions', type: 'live_auctions', title: '📅 Live Auctions Finder', x: 144, y: 576, w: 600, h: 480, visible: true, zIndex: 7, isIcon: true },
+  { id: 'property_search', type: 'property_search', title: '🔍 Property Search & Listing', x: 264, y: 576, w: 600, h: 480, visible: true, zIndex: 8, isIcon: true },
+  { id: 'field_missions', type: 'field_missions', title: '⚔️ Field Task Missions', x: 384, y: 576, w: 600, h: 480, visible: true, zIndex: 9, isIcon: true },
+  { id: 'settings', type: 'settings', title: '⚙️ System Settings', x: 504, y: 576, w: 600, h: 480, visible: true, zIndex: 4, isIcon: true },
+  { id: 'activity_logs', type: 'activity_logs', title: '📋 System Activity Logs', x: 624, y: 576, w: 600, h: 480, visible: true, zIndex: 3, isIcon: true }
 ];
 
 
@@ -156,6 +164,8 @@ export const ClientWorkbench: React.FC = () => {
   const { startTour } = useTour();
   const canvasRef = useRef<HTMLDivElement>(null);
   const hasLoadedLayoutRef = useRef(false);
+
+  const isMobileView = () => typeof window !== 'undefined' && window.innerWidth < 768;
 
   // Activity Console Logs CLI
   const [terminalLogs, setTerminalLogs] = useState<string[]>([]);
@@ -193,12 +203,17 @@ export const ClientWorkbench: React.FC = () => {
                 visible: typeof w.visible === 'boolean' ? w.visible : (def?.visible ?? false),
                 zIndex: typeof w.zIndex === 'number' && isFinite(w.zIndex) ? w.zIndex : (def?.zIndex ?? 10),
                 isLocked: typeof w.isLocked === 'boolean' ? w.isLocked : (def?.isLocked ?? false),
+                isIcon: typeof w.isIcon === 'boolean' ? w.isIcon : (isMobileView() ? true : false),
               } as Widget;
             });
 
           // Append any brand-new DEFAULT_WIDGETS not yet present in the saved data
           const savedIds = new Set(sanitized.map(w => w.id));
-          const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id));
+          const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id))
+            .map(d => ({
+              ...d,
+              isIcon: isMobileView() ? true : false
+            }));
 
           return [...sanitized, ...newDefaults];
         }
@@ -206,7 +221,10 @@ export const ClientWorkbench: React.FC = () => {
     } catch (e) {
       console.error('Failed to parse goauct_workbench_widgets_v62 from localStorage, falling back to default:', e);
     }
-    return DEFAULT_WIDGETS;
+    return DEFAULT_WIDGETS.map(d => ({
+      ...d,
+      isIcon: isMobileView() ? true : false
+    }));
   });
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     const saved = localStorage.getItem('goauct_workbench_sidebarOpen');
@@ -245,11 +263,16 @@ export const ClientWorkbench: React.FC = () => {
                 visible: typeof w.visible === 'boolean' ? w.visible : (def?.visible ?? false),
                 zIndex: typeof w.zIndex === 'number' && isFinite(w.zIndex) ? w.zIndex : (def?.zIndex ?? 10),
                 isLocked: typeof w.isLocked === 'boolean' ? w.isLocked : (def?.isLocked ?? false),
+                isIcon: typeof w.isIcon === 'boolean' ? w.isIcon : (isMobileView() ? true : false),
               } as Widget;
             });
 
           const savedIds = new Set(sanitized.map(w => w.id));
-          const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id));
+          const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id))
+            .map(d => ({
+              ...d,
+              isIcon: isMobileView() ? true : false
+            }));
           
           setWidgets([...sanitized, ...newDefaults]);
           logConsoleActivity('Loaded custom workbench layout from database and Redis.');
@@ -2132,6 +2155,19 @@ export const ClientWorkbench: React.FC = () => {
 
     const handleMouseUp = () => {
       if (interaction) {
+        setWidgets(prev =>
+          prev.map(w => {
+            if (w.id !== interaction.widgetId) return w;
+            const snap = (val: number, step = 24) => Math.round(val / step) * step;
+            return {
+              ...w,
+              x: snap(w.x),
+              y: snap(w.y),
+              w: Math.max(240, snap(w.w)),
+              h: Math.max(120, snap(w.h))
+            };
+          })
+        );
         setInteraction(null);
       }
     };
@@ -2176,6 +2212,19 @@ export const ClientWorkbench: React.FC = () => {
 
     const handleTouchEnd = () => {
       if (interaction) {
+        setWidgets(prev =>
+          prev.map(w => {
+            if (w.id !== interaction.widgetId) return w;
+            const snap = (val: number, step = 24) => Math.round(val / step) * step;
+            return {
+              ...w,
+              x: snap(w.x),
+              y: snap(w.y),
+              w: Math.max(240, snap(w.w)),
+              h: Math.max(120, snap(w.h))
+            };
+          })
+        );
         setInteraction(null);
       }
     };
@@ -2413,11 +2462,18 @@ export const ClientWorkbench: React.FC = () => {
 
     setWidgets(prev => {
       const updated = prev.map(w => {
-        let coords = { x: w.x, y: w.y, w: w.w, h: w.h, visible: true, zIndex: incrementZ() };
+        let coords: Partial<Widget> = { x: w.x, y: w.y, w: w.w, h: w.h, visible: true, zIndex: incrementZ(), isIcon: w.isIcon };
 
         if (presetId === 'default') {
           const match = DEFAULT_WIDGETS.find(d => d.id === w.id);
-          if (match) coords = { ...match, visible: true, zIndex: incrementZ() };
+          if (match) {
+            coords = { 
+              ...match, 
+              visible: true, 
+              isIcon: isMobileView() ? true : false, 
+              zIndex: incrementZ() 
+            };
+          }
         } else if (presetId === 'map_focus') {
           if (w.id === 'map') {
             coords = { x: 20, y: 20, w: 1200, h: 560, visible: true, zIndex: incrementZ() };
@@ -2480,6 +2536,86 @@ export const ClientWorkbench: React.FC = () => {
 
   const activeCode = selectedState ? resolveStateCode(selectedState) : null;
 
+  const renderWidgetContent = (w: Widget) => {
+    switch (w.type) {
+      case 'map':
+        return (
+          <div className="size-full min-h-[400px] relative flex items-center justify-center bg-slate-50/20 dark:bg-slate-800/10 rounded-xl overflow-hidden">
+            {loading ? (
+              <RefreshCw className="animate-spin text-blue-500" size={24} />
+            ) : (
+              <MapDashboard 
+                onStateClick={handleStateClick} 
+                mapCustomization={mapCustomization} 
+                favoriteStates={favoriteStates} 
+                selectedState={selectedState}
+                myListStats={myListStats}
+                activeMode={activeMode}
+                setActiveMode={setActiveMode}
+                stateStats={stateStats}
+                topProperties={topProperties}
+                loadingStats={loadingStats}
+                onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)}
+              />
+            )}
+          </div>
+        );
+      case 'smart_ai_finder':
+        return (
+          <div className="size-full overflow-hidden">
+            <SmartAIDealFinder 
+              onOpenPropertyDetails={handleOpenPropertyDetails} 
+              onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)} 
+            />
+          </div>
+        );
+      case 'my_lists':
+        return (
+          <div className="size-full overflow-auto">
+            <ClientLists 
+              key={`${w.id}_${w.refreshKey || 0}`} 
+              onOpenPropertyDetails={handleOpenPropertyDetails} 
+            />
+          </div>
+        );
+      case 'live_auctions':
+        return (
+          <div className="size-full overflow-auto">
+            <ClientAuctions key={`${w.id}_${w.refreshKey || 0}`} />
+          </div>
+        );
+      case 'property_search':
+        return (
+          <div className="size-full overflow-auto">
+            <ClientProperties 
+              key={`${w.id}_${w.refreshKey || 0}`} 
+              onOpenPropertyDetails={handleOpenPropertyDetails} 
+            />
+          </div>
+        );
+      case 'field_missions':
+        return (
+          <div className="size-full overflow-auto">
+            <InvestorTasksDashboard key={`${w.id}_${w.refreshKey || 0}`} />
+          </div>
+        );
+      case 'settings':
+        return (
+          <div className="p-6 dark:bg-sol-base03 min-h-full overflow-auto">
+            <OriginalSettings />
+          </div>
+        );
+      case 'activity_logs':
+        return (
+          <div className="p-6 dark:bg-sol-base03 min-h-full overflow-auto">
+            <ActivityLogsPage />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   const renderWidgetById = (id: string | null) => {
     if (!id) {
       return (
@@ -2495,32 +2631,9 @@ export const ClientWorkbench: React.FC = () => {
     const w = widgets.find(x => x.id === id);
     if (!w) return <p className="text-xs text-slate-400 italic p-4 bg-white dark:bg-slate-900">Widget not found</p>;
 
-    // Route to embedded widget content
     return (
       <div className="size-full overflow-auto p-4 select-text flex flex-col min-h-0 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
-        {w.type === 'smart_ai_finder' && (
-          <div className="size-full overflow-hidden">
-            <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)} />
-          </div>
-        )}
-
-        {w.type === 'map' && (
-          <div className="h-full min-h-[400px]">
-            <MapDashboard 
-              onStateClick={handleStateClick} 
-              mapCustomization={mapCustomization} 
-              favoriteStates={favoriteStates} 
-              selectedState={selectedState}
-              myListStats={myListStats}
-              activeMode={activeMode}
-              setActiveMode={setActiveMode}
-              stateStats={stateStats}
-              topProperties={topProperties}
-              loadingStats={loadingStats}
-              onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)}
-            />
-          </div>
-        )}
+        {renderWidgetContent(w)}
       </div>
     );
   };
@@ -2854,23 +2967,32 @@ export const ClientWorkbench: React.FC = () => {
                   </div>
 
                   <div className="flex flex-col space-y-1.5">
-                    {widgets.filter(w => ['map', 'smart_ai_finder'].includes(w.id)).map(w => (
-                      <button
-                        key={w.id}
-                        onClick={() => toggleVisibility(w.id)}
-                        className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${w.visible
-                            ? 'bg-blue-50/50 dark:bg-blue-950/10 border-blue-500/20 text-blue-700 dark:text-blue-400 font-bold'
-                            : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
-                          }`}
-                      >
-                        <div className="flex items-center gap-2 text-xs">
-                          {w.type === 'map' && <Map size={13} />}
-                          {w.type === 'smart_ai_finder' && <Brain size={13} />}
-                          <span className="truncate max-w-[130px]">{w.title}</span>
-                        </div>
-                        {w.visible ? <Eye size={12} /> : <EyeOff size={12} />}
-                      </button>
-                    ))}
+                    {widgets.map(w => {
+                      const Icon = w.type === 'map' ? Map :
+                                   w.type === 'smart_ai_finder' ? Brain :
+                                   w.type === 'my_lists' ? Folder :
+                                   w.type === 'live_auctions' ? Calendar :
+                                   w.type === 'property_search' ? Search :
+                                   w.type === 'field_missions' ? Gavel :
+                                   w.type === 'settings' ? Settings :
+                                   Activity;
+                      return (
+                        <button
+                          key={w.id}
+                          onClick={() => toggleVisibility(w.id)}
+                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${w.visible
+                              ? 'bg-blue-50/50 dark:bg-blue-955/10 border-blue-500/20 text-blue-700 dark:text-blue-400 font-bold'
+                              : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-650 font-semibold'
+                            }`}
+                        >
+                          <div className="flex items-center gap-2 text-xs">
+                            <Icon size={13} />
+                            <span className="truncate max-w-[130px]">{w.title.replace(/^[^\w\s]*/, '').trim()}</span>
+                          </div>
+                          {w.visible ? <Eye size={12} /> : <EyeOff size={12} />}
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <div className="flex flex-col space-y-1.5 pt-3 border-t border-slate-200/50 dark:border-slate-800/50">
@@ -2934,25 +3056,23 @@ export const ClientWorkbench: React.FC = () => {
 
                       <div className="flex flex-col space-y-1.5">
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Add Workspace Tools</span>
-                        {widgets
-                          .filter(w => !['my_lists', 'live_auctions', 'property_search', 'field_missions', 'property_details'].includes(w.type))
-                          .map(w => (
-                            <button
-                              key={w.id}
-                              onClick={() => toggleWidgetInPreset(w.id)}
-                              className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${w.visible
-                                  ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold'
-                                  : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
-                                }`}
-                            >
-                              <span className="text-xs truncate">{w.title}</span>
-                              {w.visible ? (
-                                <span className="size-2 rounded-full bg-indigo-500" />
-                              ) : (
-                                <span className="size-2 rounded-full border border-slate-400" />
-                              )}
-                            </button>
-                          ))}
+                        {widgets.map(w => (
+                          <button
+                            key={w.id}
+                            onClick={() => toggleWidgetInPreset(w.id)}
+                            className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${w.visible
+                                ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold'
+                                : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
+                              }`}
+                          >
+                            <span className="text-xs truncate">{w.title.replace(/^[^\w\s]*/, '').trim()}</span>
+                            {w.visible ? (
+                              <span className="size-2 rounded-full bg-indigo-500" />
+                            ) : (
+                              <span className="size-2 rounded-full border border-slate-400" />
+                            )}
+                          </button>
+                        ))}
                       </div>
 
                       <div className="flex items-center gap-2 pt-2">
@@ -3197,6 +3317,12 @@ export const ClientWorkbench: React.FC = () => {
                 const tabIcons: Record<string, React.ReactNode> = {
                   map: <Map size={10} />,
                   smart_ai_finder: <Brain size={10} />,
+                  my_lists: <Folder size={10} />,
+                  live_auctions: <Calendar size={10} />,
+                  property_search: <Search size={10} />,
+                  field_missions: <Gavel size={10} />,
+                  settings: <Settings size={10} />,
+                  activity_logs: <Activity size={10} />,
                 };
                 return (
                   <div
@@ -3304,28 +3430,7 @@ export const ClientWorkbench: React.FC = () => {
                         if (!w) return null;
                         return (
                           <div className="size-full overflow-auto p-4 select-text">
-                            {w.type === 'smart_ai_finder' && (
-                              <div className="size-full overflow-hidden">
-                                <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)} />
-                              </div>
-                            )}
-
-                            {w.type === 'map' && (
-                              <div className="h-full min-h-[400px]">
-                                <MapDashboard 
-                                  onStateClick={handleStateClick} 
-                                  mapCustomization={mapCustomization} 
-                                  favoriteStates={favoriteStates} 
-                                  selectedState={selectedState}
-                                  myListStats={myListStats}
-                                  activeMode={activeMode}
-                                  setActiveMode={setActiveMode}
-                                  stateStats={stateStats}
-                                  topProperties={topProperties}
-                                  loadingStats={loadingStats}
-                                />
-                              </div>
-                            )}
+                            {renderWidgetContent(w)}
                           </div>
                         );
                       })() : (
@@ -3373,22 +3478,9 @@ export const ClientWorkbench: React.FC = () => {
                         {(() => {
                           const w = widgets.find(x => x.id === splitIdeTabId);
                           if (!w) return null;
-                          if (w.id === 'live_auctions') return <div className="size-full overflow-auto"><ClientAuctions /></div>;
-                          if (w.id === 'property_search') return <div className="size-full overflow-auto"><ClientProperties onOpenPropertyDetails={handleOpenPropertyDetails} /></div>;
-                          if (w.id === 'my_lists') return <div className="size-full overflow-auto"><ClientLists onOpenPropertyDetails={handleOpenPropertyDetails} /></div>;
-                          // For other types just show a simple info panel in split
                           return (
-                            <div className="p-4 space-y-3">
-                              <div className="flex items-center gap-3">
-                                <div className="size-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center shadow">
-                                  <Sparkles size={14} className="text-white" />
-                                </div>
-                                <div>
-                                  <h3 className="text-sm font-black text-slate-900 dark:text-white">{w.title.replace(/^[^\w]+/, '')}</h3>
-                                  <p className="text-[10px] text-slate-500">Split Panel · {w.id}</p>
-                                </div>
-                              </div>
-                              <p className="text-xs text-slate-400">This widget's full content is rendered in Canvas Mode. The split panel supports <strong>Live Auctions</strong>, <strong>Property Search</strong>, and <strong>My Lists</strong> as full-page views.</p>
+                            <div className="size-full overflow-auto">
+                              {renderWidgetContent(w)}
                             </div>
                           );
                         })()}
@@ -3656,115 +3748,166 @@ export const ClientWorkbench: React.FC = () => {
               </svg>
 
               {/* Absolute-positioned widgets list */}
-              {widgets.filter(w => w.visible).map(w => (
-                <div
-                  key={w.id}
-                  id={
-                    w.id === 'map' ? 'tour-yield-heatmap' :
-                      w.id === 'smart_ai_finder' ? 'tour-suggested-deals' :
-                        undefined
-                  }
-                  onClick={() => focusWidget(w.id)}
-                  style={{
-                    position: 'absolute',
-                    left: w.x,
-                    top: w.y,
-                    width: w.w,
-                    height: w.h,
-                    zIndex: w.zIndex,
-                  }}
-                  className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-sol-base01/30 bg-white/75 dark:bg-sol-base02/80 backdrop-blur-md group/window rounded-xl"
-                >
-                  {/* Window Title Bar (Drag Handle) */}
-                  <div
-                    onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
-                    onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
-                    className={`h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 ${w.isLocked ? 'cursor-default' : 'cursor-move'}`}
-                  >
-                    <div className="flex items-center gap-2 select-none">
-                      {/* Mobile touch grab handle badge */}
+              {/* Absolute-positioned widgets list */}
+              {widgets.filter(w => w.visible).map(w => {
+                if (w.isIcon) {
+                  // Render compact app-like shortcut icon card
+                  const Icon = w.type === 'map' ? Map :
+                               w.type === 'smart_ai_finder' ? Brain :
+                               w.type === 'my_lists' ? Folder :
+                               w.type === 'live_auctions' ? Calendar :
+                               w.type === 'property_search' ? Search :
+                               w.type === 'field_missions' ? Gavel :
+                               w.type === 'settings' ? Settings :
+                               Activity;
+                  
+                  return (
+                    <div
+                      key={w.id}
+                      onClick={() => focusWidget(w.id)}
+                      onDoubleClick={(e) => {
+                        e.stopPropagation();
+                        setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
+                      }}
+                      style={{
+                        position: 'absolute',
+                        left: w.x,
+                        top: w.y,
+                        width: 96,
+                        height: 96,
+                        zIndex: w.zIndex,
+                      }}
+                      className="flex flex-col items-center justify-center cursor-grab active:cursor-grabbing group/icon select-none"
+                    >
+                      {/* Drag handles for mouse and touch */}
                       <div
-                        onTouchStart={(e) => {
-                          e.stopPropagation();
-                          handleTouchStart(e, w.id, 'drag');
-                        }}
-                        className="flex items-center gap-1 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-400/20 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider cursor-grab select-none active:cursor-grabbing shadow-sm"
+                        onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
+                        onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
+                        className="relative size-14 rounded-2xl flex items-center justify-center bg-white/40 dark:bg-sol-base02/40 backdrop-blur-md border border-slate-200/50 dark:border-sol-base01/30 shadow-lg group-hover/icon:scale-105 group-hover/icon:border-indigo-500/40 group-hover/icon:shadow-indigo-500/10 transition-all duration-200"
+                        title="Double-click to expand to full window"
                       >
-                        <Move size={8} className="animate-pulse" />
-                        <span>Grip</span>
+                        {/* Glow effect on hover */}
+                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 opacity-0 group-hover/icon:opacity-100 transition-opacity" />
+                        
+                        <Icon className="size-6 text-slate-700 dark:text-slate-200 group-hover/icon:text-indigo-600 dark:group-hover/icon:text-indigo-400 transition-colors" />
+                        
+                        {/* Tiny collapse/expand icon button in corner */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
+                          }}
+                          className="absolute -top-1 -right-1 size-5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-md scale-0 group-hover/icon:scale-100 transition-transform duration-150"
+                          title="Expand"
+                        >
+                          <Maximize size={8} />
+                        </button>
                       </div>
-
-                      {/* grabber icons */}
-                      <div className="grid grid-cols-2 gap-0.5 opacity-30">
-                        {[...Array(6)].map((_, i) => (
-                          <div key={i} className="size-[2px] rounded-full bg-slate-900 dark:bg-white" />
-                        ))}
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-950 dark:text-white">
-                        {w.title}
+                      
+                      {/* Shortcut label */}
+                      <span className="text-[10px] font-bold text-center tracking-wide text-slate-800 dark:text-slate-200 mt-2 truncate w-full px-1 drop-shadow-sm group-hover/icon:text-indigo-650 dark:group-hover/icon:text-indigo-400 transition-colors">
+                        {w.title.replace(/^[^\w\s]*/, '').trim()}
                       </span>
                     </div>
+                  );
+                }
 
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => toggleVisibility(w.id)}
-                        className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
-                        title="Minimize"
-                      >
-                        <Minimize2 size={10} />
-                      </button>
-                      <button
-                        onClick={() => toggleVisibility(w.id)}
-                        className="p-1 rounded hover:bg-red-500/10 hover:text-red-500 text-slate-400"
-                        title="Close"
-                      >
-                        <X size={10} />
-                      </button>
+                // Otherwise, render full widget window:
+                return (
+                  <div
+                    key={w.id}
+                    id={
+                      w.id === 'map' ? 'tour-yield-heatmap' :
+                        w.id === 'smart_ai_finder' ? 'tour-suggested-deals' :
+                          undefined
+                    }
+                    onClick={() => focusWidget(w.id)}
+                    style={{
+                      position: 'absolute',
+                      left: w.x,
+                      top: w.y,
+                      width: w.w,
+                      height: w.h,
+                      zIndex: w.zIndex,
+                    }}
+                    className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-sol-base01/30 bg-white/75 dark:bg-sol-base02/80 backdrop-blur-md group/window rounded-xl"
+                  >
+                    {/* Window Title Bar (Drag Handle) */}
+                    <div
+                      onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
+                      onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
+                      className={`h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 ${w.isLocked ? 'cursor-default' : 'cursor-move'}`}
+                    >
+                      <div className="flex items-center gap-2 select-none">
+                        {/* Mobile touch grab handle badge */}
+                        <div
+                          onTouchStart={(e) => {
+                            e.stopPropagation();
+                            handleTouchStart(e, w.id, 'drag');
+                          }}
+                          className="flex items-center gap-1 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-400/20 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider cursor-grab select-none active:cursor-grabbing shadow-sm"
+                        >
+                          <Move size={8} className="animate-pulse" />
+                          <span>Grip</span>
+                        </div>
+
+                        {/* grabber icons */}
+                        <div className="grid grid-cols-2 gap-0.5 opacity-30">
+                          {[...Array(6)].map((_, i) => (
+                            <div key={i} className="size-[2px] rounded-full bg-slate-900 dark:bg-white" />
+                          ))}
+                        </div>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-950 dark:text-white">
+                          {w.title}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: true } : item));
+                          }}
+                          className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                          title="Collapse to Shortcut Icon"
+                        >
+                          <Smartphone size={11} />
+                        </button>
+                        <button
+                          onClick={() => toggleVisibility(w.id)}
+                          className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                          title="Minimize"
+                        >
+                          <Minimize2 size={10} />
+                        </button>
+                        <button
+                          onClick={() => toggleVisibility(w.id)}
+                          className="p-1 rounded hover:bg-red-500/10 hover:text-red-500 text-slate-400"
+                          title="Close"
+                        >
+                          <X size={10} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Window Inner Content Scroll Area */}
-                  <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col">
-                     {/* Widget: Smart AI Deal Finder */}
-                    {w.type === 'smart_ai_finder' && (
-                      <SmartAIDealFinder onOpenPropertyDetails={handleOpenPropertyDetails} onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)} />
-                    )}
+                    {/* Window Inner Content Scroll Area */}
+                    <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col">
+                      {renderWidgetContent(w)}
+                    </div>
 
-                    {/* GIS Heatmap widget */}
-                    {w.type === 'map' && (
-                      <div className="size-full min-h-[400px] relative flex items-center justify-center bg-slate-50/20 dark:bg-slate-800/10 rounded-xl overflow-hidden">
-                        {loading ? (
-                          <RefreshCw className="animate-spin text-blue-500" size={24} />
-                        ) : (
-                          <MapDashboard 
-                            onStateClick={handleStateClick} 
-                            mapCustomization={mapCustomization} 
-                            favoriteStates={favoriteStates} 
-                            selectedState={selectedState}
-                            myListStats={myListStats}
-                            activeMode={activeMode}
-                            setActiveMode={setActiveMode}
-                            stateStats={stateStats}
-                            topProperties={topProperties}
-                            loadingStats={loadingStats}
-                          />
-                        )}
+                    {/* Window Bottom-Right Resize Handle */}
+                    {!w.isLocked && (
+                      <div
+                        onMouseDown={(e) => handleMouseDown(e, w.id, 'resize')}
+                        onTouchStart={(e) => handleTouchStart(e, w.id, 'resize')}
+                        className="absolute bottom-0 right-0 size-4 cursor-se-resize flex items-end justify-end p-0.5 z-[100]"
+                      >
+                        <div className="size-2 border-r-2 border-b-2 border-slate-350 dark:border-slate-655 opacity-40 group-hover/window:opacity-100 transition-opacity" />
                       </div>
                     )}
                   </div>
-
-                  {/* Window Bottom-Right Resize Handle */}
-                  {!w.isLocked && (
-                    <div
-                      onMouseDown={(e) => handleMouseDown(e, w.id, 'resize')}
-                      onTouchStart={(e) => handleTouchStart(e, w.id, 'resize')}
-                      className="absolute bottom-0 right-0 size-4 cursor-se-resize flex items-end justify-end p-0.5 z-[100]"
-                    >
-                      <div className="size-2 border-r-2 border-b-2 border-slate-350 dark:border-slate-650 opacity-40 group-hover/window:opacity-100 transition-opacity" />
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Infinite Canvas Floating Zoom & Lock Panel (Bottom-Left) */}
