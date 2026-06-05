@@ -167,9 +167,10 @@ export const CompanySelector: React.FC<CompanySelectorProps> = ({ compact = fals
                                 companies.map(c => (
                                     <div
                                         key={c.id}
+                                        onClick={() => { selectCompany(c.id); setOpen(false); }}
                                         className={`flex items-center justify-between px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer border-b border-slate-50 dark:border-slate-800/50 ${c.is_active ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
                                     >
-                                        <div className="flex items-center gap-2.5" onClick={() => { selectCompany(c.id); setOpen(false); }}>
+                                        <div className="flex items-center gap-2.5">
                                             <div className="size-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-[11px] font-black shrink-0">
                                                 {c.name.charAt(0).toUpperCase()}
                                             </div>
