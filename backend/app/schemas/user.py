@@ -32,6 +32,7 @@ class UserUpdate(BaseModel):
     is_superuser: Optional[bool] = None
     password: Optional[str] = None
     role: Optional[str] = None
+    workbench_layout: Optional[str] = None
 
 
 class User(BaseModel):
@@ -49,6 +50,7 @@ class User(BaseModel):
     linked_company_ids: Optional[List[int]] = []  # All company IDs this user belongs to
     terms_accepted: Optional[bool] = False
     newsletter_opt_in: Optional[bool] = False
+    workbench_layout: Optional[str] = None
 
     class Config:
         from_attributes = True
