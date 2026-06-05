@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { API_BASE_URL } from '../../services/httpClient';
 
 interface GISMapProps {
     property: any;
@@ -46,69 +47,36 @@ export const GISMap: React.FC<GISMapProps> = ({ property, className = "h-[450px]
         map.current.on('load', () => {
             if (!map.current) return;
 
-            // Try to parse and add parcel shape
-            if (property.parcel_shape_data) {
-                try {
-                    const geojson = JSON.parse(property.parcel_shape_data);
-                    
-                    map.current.addSource('parcel', {
-                        type: 'geojson',
-                        data: geojson
-                    });
-
-                    // Add a semi-transparent fill
-                    map.current.addLayer({
-                        id: 'parcel-fill',
-                        type: 'fill',
-                        source: 'parcel',
-                        paint: {
-                            'fill-color': '#0ea5e9', // primary blue
-                            'fill-opacity': 0.3
-                        }
-                    });
-
-                    // Add a solid outline
-                    map.current.addLayer({
-                        id: 'parcel-outline',
-                        type: 'line',
-                        source: 'parcel',
-                        paint: {
-                            'line-color': '#0284c7', // darker blue
-                            'line-width': 3
-                        }
-                    });
-
-                    // Fit bounds to polygon if possible
-                    try {
-                        const bounds = new mapboxgl.LngLatBounds();
-                        
-                        let coords = [];
-                        if (geojson.type === 'Feature') {
-                            coords = geojson.geometry.coordinates;
-                        } else if (geojson.type === 'Polygon') {
-                            coords = geojson.coordinates;
-                        }
-
-                        if (coords.length > 0) {
-                            // Simple flatten for bounds calculation
-                            const flatCoords = coords.flat(Infinity);
-                            for (let i = 0; i < flatCoords.length; i += 2) {
-                                bounds.extend([flatCoords[i], flatCoords[i+1]]);
-                            }
-                            map.current.fitBounds(bounds, { padding: 50, maxZoom: 19 });
-                        }
-                    } catch (e) {
-                        console.warn('Could not fit bounds to polygon', e);
-                    }
-
-                } catch (e) {
-                    console.error('Failed to parse parcel shape data:', e);
-                }
-            } else if (property.longitude && property.latitude) {
-                // If no shape data, at least add a marker
+            // Add a marker for the property center
+            if (property.longitude && property.latitude) {
                 new mapboxgl.Marker({ color: '#0ea5e9' })
                     .setLngLat([lng, lat])
                     .addTo(map.current);
+            }
+
+            // Add ATTOM Parcel Tiles layer
+            try {
+                map.current.addSource('attom-parcels', {
+                    type: 'raster',
+                    tiles: [
+                        `${API_BASE_URL}/api/v1/properties/parceltiles/{z}/{x}/{y}.png`
+                    ],
+                    tileSize: 256,
+                    attribution: '&copy; ATTOM Data Solutions'
+                });
+
+                map.current.addLayer({
+                    id: 'attom-parcels-layer',
+                    type: 'raster',
+                    source: 'attom-parcels',
+                    minzoom: 14,
+                    maxzoom: 22,
+                    paint: {
+                        'raster-opacity': 0.8
+                    }
+                });
+            } catch (e) {
+                console.error('Failed to add ATTOM parcel tiles layer:', e);
             }
         });
 

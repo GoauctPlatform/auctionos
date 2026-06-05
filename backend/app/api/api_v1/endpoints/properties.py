@@ -374,13 +374,28 @@ def read_properties(
         for r in result
     ]
 
-    # ── Inject secure gsi_url proxy path ──
+    # ── Dynamically inject gsi_url if missing ──
+    import os
+    from urllib.parse import quote
+    from app.core.config import settings
+    api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
+    
     for item in items:
-        gsi = item.get("gsi_url")
-        if not gsi or "maps.googleapis.com" in gsi or gsi.startswith("http"):
-            pid = item.get("parcel_id") or item.get("id")
-            if pid:
-                item["gsi_url"] = f"{settings.API_V1_STR}/properties/{pid}/streetview"
+        if not item.get("gsi_url") and api_key:
+            address = item.get("address") or ""
+            county = item.get("county") or ""
+            state = item.get("state_code") or ""
+            location_parts = [address, county, state]
+            location_str = ", ".join([p for p in location_parts if p]).strip()
+
+            lat = item.get("latitude")
+            lng = item.get("longitude")
+            if lat is not None and lng is not None:
+                location_str = f"{lat},{lng}"
+
+            if location_str:
+                sanitized_location = quote(location_str.replace('\n', ' ').strip())
+                item["gsi_url"] = f"https://maps.googleapis.com/maps/api/streetview?size=640x400&location={sanitized_location}&fov=90&pitch=10&key={api_key}"
 
     return {"items": items, "total": total}
 
@@ -1263,12 +1278,27 @@ def get_property(
         except Exception as e:
             print(f"Override merge error (non-fatal): {e}")
 
-    # ── Inject secure gsi_url proxy path ──
-    gsi = data.get("gsi_url")
-    if not gsi or "maps.googleapis.com" in gsi or gsi.startswith("http"):
-        pid = data.get("parcel_id") or data.get("id")
-        if pid:
-            data["gsi_url"] = f"{settings.API_V1_STR}/properties/{pid}/streetview"
+    # ── Dynamically inject gsi_url if missing ──
+    if not data.get("gsi_url"):
+        import os
+        from urllib.parse import quote
+        from app.core.config import settings
+        api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
+        if api_key:
+            address = data.get("address") or ""
+            county = data.get("county") or ""
+            state = data.get("state_code") or data.get("state") or ""
+            location_parts = [address, county, state]
+            location_str = ", ".join([p for p in location_parts if p]).strip()
+
+            lat = data.get("latitude")
+            lng = data.get("longitude")
+            if lat is not None and lng is not None:
+                location_str = f"{lat},{lng}"
+
+            if location_str:
+                sanitized_location = quote(location_str.replace('\n', ' ').strip())
+                data["gsi_url"] = f"https://maps.googleapis.com/maps/api/streetview?size=640x400&location={sanitized_location}&fov=90&pitch=10&key={api_key}"
 
     return data
 
@@ -1703,3 +1733,29 @@ def get_property_streetview(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching Street View Image: {str(e)}")
 
+@router.get("/parceltiles/{z}/{x}/{y}.png")
+def get_attom_parcel_tiles(z: str, x: str, y: str):
+    """
+    Proxy ATTOM Parcel Tiles API to hide the API key from the frontend.
+    """
+    api_key = settings.ATTOM_API_KEY
+    if not api_key:
+        raise HTTPException(status_code=500, detail="ATTOM API Key not configured on server.")
+        
+    attom_url = f"https://api.gateway.attomdata.com/parceltiles/{z}/{x}/{y}.png"
+    
+    try:
+        import requests
+        from fastapi.responses import StreamingResponse
+        res = requests.get(attom_url, params={"apikey": api_key}, stream=True, timeout=5.0)
+        if res.status_code == 200:
+            return StreamingResponse(res.iter_content(chunk_size=8192), media_type="image/png")
+        elif res.status_code == 204:
+            # Empty tile
+            raise HTTPException(status_code=204, detail="No content")
+        else:
+            raise HTTPException(status_code=res.status_code, detail="Failed to fetch tiles")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

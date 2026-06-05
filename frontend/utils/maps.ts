@@ -15,9 +15,6 @@ export function getStreetViewUrl(
     if (typeof locationOrProperty === 'object' && locationOrProperty !== null) {
         const dbGsiUrl = locationOrProperty.gsi_url || locationOrProperty.details?.gsi_url || '';
         if (dbGsiUrl) {
-            if (dbGsiUrl.startsWith('/')) {
-                return `${API_BASE_URL}${dbGsiUrl}`;
-            }
             return dbGsiUrl;
         }
     }
