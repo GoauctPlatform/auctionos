@@ -1602,8 +1602,7 @@ async def validate_property_gsi(
 @router.get("/{parcel_id}/streetview")
 def get_property_streetview(
     parcel_id: str,
-    db: Session = Depends(deps.get_db),
-    current_user = Depends(deps.get_current_active_user)
+    db: Session = Depends(deps.get_db)
 ):
     """
     Secure proxy endpoint for Google Street View static images.

@@ -15,7 +15,7 @@ import { PropertyOverridePanel } from '../../components/property/PropertyOverrid
 import html2canvas from 'html2canvas';
 import { QRCodeSVG } from 'qrcode.react';
 import { PropertyExportFlyer } from '../../components/property/PropertyExportFlyer';
-
+import { GISMap } from '../../components/property/GISMap';
 import { PropertyBasicInfo } from '../../components/property/PropertyBasicInfo';
 import { PropertyStructureCard } from '../../components/property/PropertyStructureCard';
 import { PropertyEstimatesComps } from '../../components/property/PropertyEstimatesComps';
@@ -456,42 +456,47 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 />
             )}
 
-            {/* Zillow-style Street View Hero */}
-            <div className="relative w-full h-[300px] sm:h-[450px] bg-slate-100 dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg group">
-                {getStreetViewUrl(property) && !streetViewError ? (
-                    <img 
-                        src={getStreetViewUrl(property)!} 
-                        alt="Property Street View"
-                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                        onError={() => setStreetViewError(true)}
-                    />
-                ) : (
-                    <div 
-                        className="w-full h-full bg-cover bg-center flex items-center justify-center"
-                        style={{ backgroundImage: `url('${property.imageUrl || '/placeholder.png'}')` }}
-                    >
-                        {!property.imageUrl && (
-                            <div className="text-slate-400 flex flex-col items-center gap-2">
-                                <span className="material-symbols-outlined text-4xl">image_not_supported</span>
-                                <span className="text-xs font-bold uppercase tracking-widest">No Preview Available</span>
-                            </div>
-                        )}
-                    </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
-                
-                {/* Floating Map Link Badge */}
-                {property.map_link && (
-                    <a 
-                        href={property.map_link} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="absolute bottom-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-full shadow-xl flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-white hover:bg-primary hover:text-white transition-all transform hover:scale-105"
-                    >
-                        <span className="material-symbols-outlined text-[18px]">map</span>
-                        View on Google Maps
-                    </a>
-                )}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                {/* Zillow-style Street View Hero */}
+                <div className="relative w-full h-[300px] sm:h-[450px] bg-slate-100 dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg group">
+                    {getStreetViewUrl(property) && !streetViewError ? (
+                        <img 
+                            src={getStreetViewUrl(property)!} 
+                            alt="Property Street View"
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            onError={() => setStreetViewError(true)}
+                        />
+                    ) : (
+                        <div 
+                            className="w-full h-full bg-cover bg-center flex items-center justify-center"
+                            style={{ backgroundImage: `url('${property.imageUrl || '/placeholder.png'}')` }}
+                        >
+                            {!property.imageUrl && (
+                                <div className="text-slate-400 flex flex-col items-center gap-2">
+                                    <span className="material-symbols-outlined text-4xl">image_not_supported</span>
+                                    <span className="text-xs font-bold uppercase tracking-widest">No Preview Available</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent pointer-events-none" />
+                    
+                    {/* Floating Map Link Badge */}
+                    {property.map_link && (
+                        <a 
+                            href={property.map_link} 
+                            target="_blank" 
+                            rel="noreferrer"
+                            className="absolute bottom-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-full shadow-xl flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-white hover:bg-primary hover:text-white transition-all transform hover:scale-105"
+                        >
+                            <span className="material-symbols-outlined text-[18px]">map</span>
+                            View on Google Maps
+                        </a>
+                    )}
+                </div>
+
+                {/* GIS Lot Map */}
+                <GISMap property={property} className="h-[300px] sm:h-[450px]" />
             </div>
 
             {/* Import Error Banner */}

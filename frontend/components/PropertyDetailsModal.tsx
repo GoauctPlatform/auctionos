@@ -15,6 +15,7 @@ import { PropertyUserActions } from './property/PropertyUserActions';
 import { PropertyFinancialsModal } from './property/PropertyFinancialsModal';
 import { PropertyMetadataModal } from './property/PropertyMetadataModal';
 import { PropertyMap } from './property/PropertyMap';
+import { GISMap } from './property/GISMap';
 
 interface Props {
     property: Property | null;
@@ -196,30 +197,33 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
                     </button>
                 </div>
 
-                {/* Street View Hero Section */}
-                <div className="relative w-full h-64 bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden mb-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                    {getStreetViewUrl(property) && !streetViewError ? (
-                        <img 
-                            src={getStreetViewUrl(property)!} 
-                            alt="Property Preview"
-                            className="w-full h-full object-cover"
-                            onError={() => setStreetViewError(true)}
-                        />
-                    ) : (
-                        <div 
-                            className="w-full h-full bg-cover bg-center flex items-center justify-center opacity-50"
-                            style={{ backgroundImage: `url('${property.imageUrl || '/placeholder.png'}')` }}
-                        >
-                            {!property.imageUrl && (
-                                <span className="material-symbols-outlined text-4xl text-slate-300">image</span>
-                            )}
+                {/* Street View & GIS Lot Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div className="relative w-full h-64 bg-slate-100 dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-sm">
+                        {getStreetViewUrl(property) && !streetViewError ? (
+                            <img 
+                                src={getStreetViewUrl(property)!} 
+                                alt="Property Preview"
+                                className="w-full h-full object-cover"
+                                onError={() => setStreetViewError(true)}
+                            />
+                        ) : (
+                            <div 
+                                className="w-full h-full bg-cover bg-center flex items-center justify-center opacity-50"
+                                style={{ backgroundImage: `url('${property.imageUrl || '/placeholder.png'}')` }}
+                            >
+                                {!property.imageUrl && (
+                                    <span className="material-symbols-outlined text-4xl text-slate-300">image</span>
+                                )}
+                            </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                        <div className="absolute bottom-4 left-4 text-white">
+                            <div className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Street View Preview</div>
+                            <div className="text-lg font-black tracking-tight">{property.address || property.parcel_id}</div>
                         </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
-                    <div className="absolute bottom-4 left-4 text-white">
-                        <div className="text-xs font-bold uppercase tracking-widest opacity-80 mb-1">Street View Preview</div>
-                        <div className="text-lg font-black tracking-tight">{property.address || property.parcel_id}</div>
                     </div>
+                    <GISMap property={property} className="h-64 rounded-xl" />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
