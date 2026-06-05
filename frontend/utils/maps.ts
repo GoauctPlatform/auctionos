@@ -15,6 +15,11 @@ export function getStreetViewUrl(
     if (typeof locationOrProperty === 'object' && locationOrProperty !== null) {
         const dbGsiUrl = locationOrProperty.gsi_url || locationOrProperty.details?.gsi_url || '';
         if (dbGsiUrl) {
+            if (dbGsiUrl.startsWith('/')) {
+                // Remove /api/v1 from dbGsiUrl if API_BASE_URL already includes it, or prepend it cleanly
+                const cleanBaseUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '');
+                return `${cleanBaseUrl}${dbGsiUrl}`;
+            }
             return dbGsiUrl;
         }
     }
