@@ -1,15 +1,18 @@
 from typing import List, Any, Optional
 from datetime import date
+from urllib.parse import quote
 from fastapi import APIRouter, Depends, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import re
+import os
 from app.api import deps
 from app.schemas.property import PropertyDashboardSchema, PaginatedPropertyResponse
 from app.models.user import User
 from app.services.reconciliation_service import reconciliation_service
 from app.utils.state_mapper import normalize_state
 from app.services.intelligence_service import intelligence_service
+from app.core.config import settings
 import uuid
 import json as _json
 
@@ -371,8 +374,6 @@ def read_properties(
     ]
 
     # ── Dynamically inject gsi_url if missing ──
-    from urllib.parse import quote
-    from app.core.config import settings
     api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
     
     for item in items:
