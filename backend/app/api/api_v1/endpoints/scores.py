@@ -218,30 +218,13 @@ def get_top_scores(
         for r in results
     ]
 
-    # ── Dynamically inject gsi_url if missing ──
-    from urllib.parse import quote
-    import os
-    from app.core.config import settings
-    api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
-
+    # ── Inject secure gsi_url proxy path ──
     for item in items:
-        if not item.get("gsi_url") and api_key:
-            address = item.get("address") or ""
-            county = item.get("county") or ""
-            state = item.get("state") or ""
-            location_parts = [address, county, state]
-            location_str = ", ".join([p for p in location_parts if p]).strip()
-            if not location_str or location_str == ", ,":
-                location_str = item.get("parcel_id") or ""
-
-            lat = item.get("latitude")
-            lng = item.get("longitude")
-            if lat is not None and lng is not None:
-                location_str = f"{lat},{lng}"
-
-            if location_str:
-                sanitized_location = quote(location_str.replace('\n', ' ').strip())
-                item["gsi_url"] = f"https://maps.googleapis.com/maps/api/streetview?size=640x400&location={sanitized_location}&fov=90&pitch=10&key={api_key}"
+        gsi = item.get("gsi_url")
+        if not gsi or "maps.googleapis.com" in gsi or gsi.startswith("http"):
+            pid = item.get("parcel_id") or item.get("id")
+            if pid:
+                item["gsi_url"] = f"{settings.API_V1_STR}/properties/{pid}/streetview"
 
     return items
 

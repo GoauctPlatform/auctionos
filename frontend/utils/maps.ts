@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '../services/httpClient';
+
 /**
  * Generates a Google Street View Static API URL for a given location.
  * Supports both a single property object or individual address components.
@@ -13,6 +15,9 @@ export function getStreetViewUrl(
     if (typeof locationOrProperty === 'object' && locationOrProperty !== null) {
         const dbGsiUrl = locationOrProperty.gsi_url || locationOrProperty.details?.gsi_url || '';
         if (dbGsiUrl) {
+            if (dbGsiUrl.startsWith('/')) {
+                return `${API_BASE_URL}${dbGsiUrl}`;
+            }
             return dbGsiUrl;
         }
     }

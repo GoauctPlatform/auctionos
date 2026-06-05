@@ -1,7 +1,8 @@
 from typing import List, Any, Optional
 from datetime import date
 from urllib.parse import quote
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Depends, Form, HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 import re
@@ -373,27 +374,13 @@ def read_properties(
         for r in result
     ]
 
-    # ── Dynamically inject gsi_url if missing ──
-    api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
-    
+    # ── Inject secure gsi_url proxy path ──
     for item in items:
-        if not item.get("gsi_url") and api_key:
-            address = item.get("address") or ""
-            county = item.get("county") or ""
-            state = item.get("state_code") or ""
-            location_parts = [address, county, state]
-            location_str = ", ".join([p for p in location_parts if p]).strip()
-            if not location_str or location_str == ", ,":
-                location_str = item.get("parcel_id") or ""
-            
-            lat = item.get("latitude")
-            lng = item.get("longitude")
-            if lat is not None and lng is not None:
-                location_str = f"{lat},{lng}"
-
-            if location_str:
-                sanitized_location = quote(location_str.replace('\n', ' ').strip())
-                item["gsi_url"] = f"https://maps.googleapis.com/maps/api/streetview?size=640x400&location={sanitized_location}&fov=90&pitch=10&key={api_key}"
+        gsi = item.get("gsi_url")
+        if not gsi or "maps.googleapis.com" in gsi or gsi.startswith("http"):
+            pid = item.get("parcel_id") or item.get("id")
+            if pid:
+                item["gsi_url"] = f"{settings.API_V1_STR}/properties/{pid}/streetview"
 
     return {"items": items, "total": total}
 
@@ -1276,30 +1263,12 @@ def get_property(
         except Exception as e:
             print(f"Override merge error (non-fatal): {e}")
 
-    # ── Dynamically inject gsi_url if missing ──
-    if not data.get("gsi_url"):
-        import os
-        from urllib.parse import quote
-        from app.core.config import settings
-        api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
-        if api_key:
-            address = data.get("address") or ""
-            county = data.get("county") or ""
-            state = data.get("state") or ""
-            location_parts = [address, county, state]
-            location_str = ", ".join([p for p in location_parts if p]).strip()
-            if not location_str or location_str == ", ,":
-                location_str = data.get("parcel_id") or ""
-            
-            # Use coordinates if available for better Street View accuracy
-            lat = data.get("latitude")
-            lng = data.get("longitude")
-            if lat is not None and lng is not None:
-                location_str = f"{lat},{lng}"
-
-            if location_str:
-                sanitized_location = quote(location_str.replace('\n', ' ').strip())
-                data["gsi_url"] = f"https://maps.googleapis.com/maps/api/streetview?size=640x400&location={sanitized_location}&fov=90&pitch=10&key={api_key}"
+    # ── Inject secure gsi_url proxy path ──
+    gsi = data.get("gsi_url")
+    if not gsi or "maps.googleapis.com" in gsi or gsi.startswith("http"):
+        pid = data.get("parcel_id") or data.get("id")
+        if pid:
+            data["gsi_url"] = f"{settings.API_V1_STR}/properties/{pid}/streetview"
 
     return data
 
@@ -1628,4 +1597,110 @@ async def validate_property_gsi(
             "message": f"Failed to connect to Google API: {str(e)}",
             "coordinates": None
         }
+
+
+@router.get("/{parcel_id}/streetview")
+def get_property_streetview(
+    parcel_id: str,
+    db: Session = Depends(deps.get_db),
+    current_user = Depends(deps.get_current_active_user)
+):
+    """
+    Secure proxy endpoint for Google Street View static images.
+    - Prevents leaking the server's Google API Key to the client.
+    - Resolves coordinates or address dynamically.
+    - Caches responses locally to avoid redundant billing from Google.
+    """
+    import httpx
+    
+    # 1. Resolve uploads directory
+    uploads_dir = os.getenv("UPLOADS_DIR", os.path.join(os.getcwd(), "uploads"))
+    streetview_dir = os.path.join(uploads_dir, "streetview")
+    os.makedirs(streetview_dir, exist_ok=True)
+    
+    cached_path = os.path.join(streetview_dir, f"{parcel_id}.jpg")
+    no_image_path = os.path.join(streetview_dir, f"{parcel_id}_no_image.txt")
+    
+    # 2. Check cache
+    if os.path.exists(cached_path):
+        return FileResponse(cached_path, media_type="image/jpeg")
+        
+    if os.path.exists(no_image_path):
+        raise HTTPException(status_code=404, detail="Street View imagery not available at this location.")
+        
+    # 3. Fetch property details to construct search location
+    query = text("""
+        SELECT id, address, county, state, latitude, longitude
+        FROM property_details
+        WHERE parcel_id = :pid OR id::text = :pid OR property_id = :pid
+        LIMIT 1
+    """)
+    row = db.execute(query, {"pid": parcel_id}).fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Property not found")
+        
+    # 4. Construct location string
+    lat = row.latitude
+    lng = row.longitude
+    if lat is not None and lng is not None:
+        location_str = f"{lat},{lng}"
+    else:
+        address = row.address or ""
+        county = row.county or ""
+        state = row.state or ""
+        location_parts = [address, county, state]
+        location_str = ", ".join([p for p in location_parts if p]).strip()
+        if not location_str or location_str == ", ,":
+            location_str = parcel_id
+            
+    if not location_str:
+        raise HTTPException(status_code=400, detail="Insufficient location details to look up Street View.")
+        
+    # 5. Fetch API key
+    api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Google Street View API Key not configured on server.")
+        
+    # 6. Check Metadata API first (Free call)
+    try:
+        metadata_url = "https://maps.googleapis.com/maps/api/streetview/metadata"
+        m_params = {
+            "location": location_str,
+            "key": api_key
+        }
+        m_res = httpx.get(metadata_url, params=m_params, timeout=10.0)
+        if m_res.status_code == 200:
+            m_data = m_res.json()
+            status = m_data.get("status")
+            if status != "OK":
+                # Save no image indicator so we don't query Google again for this property
+                with open(no_image_path, "w") as f:
+                    f.write(status or "ZERO_RESULTS")
+                raise HTTPException(status_code=404, detail="Street View imagery not available at this location.")
+        else:
+            raise HTTPException(status_code=500, detail="Failed to query Google Street View Metadata.")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error checking Street View Metadata: {str(e)}")
+        
+    # 7. Fetch Static Image (Paid call)
+    try:
+        streetview_url = "https://maps.googleapis.com/maps/api/streetview"
+        s_params = {
+            "size": "640x400",
+            "location": location_str,
+            "fov": "90",
+            "pitch": "10",
+            "key": api_key
+        }
+        s_res = httpx.get(streetview_url, params=s_params, timeout=15.0)
+        if s_res.status_code == 200:
+            with open(cached_path, "wb") as f:
+                f.write(s_res.content)
+            return FileResponse(cached_path, media_type="image/jpeg")
+        else:
+            raise HTTPException(status_code=500, detail=f"Google Static API returned status {s_res.status_code}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching Street View Image: {str(e)}")
 

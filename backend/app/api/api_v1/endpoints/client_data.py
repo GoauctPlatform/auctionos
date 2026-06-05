@@ -961,28 +961,11 @@ def get_list_properties(
                 except Exception:
                     pass
 
-            # ── Dynamically inject gsi_url if missing ──
+            # ── Inject secure gsi_url proxy path ──
             gsi_url = p.gsi_url
-            if not gsi_url:
-                import os
-                from urllib.parse import quote
+            if not gsi_url or "maps.googleapis.com" in gsi_url or gsi_url.startswith("http"):
                 from app.core.config import settings
-                api_key = settings.VITE_GOOGLE_STREET_VIEW_KEY or os.getenv("VITE_GOOGLE_STREET_VIEW_KEY") or os.getenv("GOOGLE_API_KEY", "")
-                if api_key:
-                    address = p.address or ""
-                    county = p.county or ""
-                    state = p.state or ""
-                    location_parts = [address, county, state]
-                    location_str = ", ".join([p for p in location_parts if p]).strip()
-                    if not location_str or location_str == ", ,":
-                        location_str = p.parcel_id or ""
-                    
-                    if p.latitude is not None and p.longitude is not None:
-                        location_str = f"{p.latitude},{p.longitude}"
-
-                    if location_str:
-                        sanitized_location = quote(location_str.replace('\n', ' ').strip())
-                        gsi_url = f"https://maps.googleapis.com/maps/api/streetview?size=640x400&location={sanitized_location}&fov=90&pitch=10&key={api_key}"
+                gsi_url = f"{settings.API_V1_STR}/properties/{p.parcel_id}/streetview"
 
             prop_dict = {
                 "id": p.id,
