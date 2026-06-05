@@ -148,13 +148,7 @@ interface OverlayWindow {
 
 const DEFAULT_WIDGETS: Widget[] = [
   { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 24, y: 24, w: 624, h: 528, visible: true, zIndex: 10, isIcon: false },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 672, y: 24, w: 576, h: 528, visible: true, zIndex: 5, isIcon: false },
-  { id: 'my_lists', type: 'my_lists', title: '📂 Saved Lists & Folders', x: 24, y: 576, w: 600, h: 480, visible: true, zIndex: 6, isIcon: true },
-  { id: 'live_auctions', type: 'live_auctions', title: '📅 Live Auctions Finder', x: 144, y: 576, w: 600, h: 480, visible: true, zIndex: 7, isIcon: true },
-  { id: 'property_search', type: 'property_search', title: '🔍 Property Search & Listing', x: 264, y: 576, w: 600, h: 480, visible: true, zIndex: 8, isIcon: true },
-  { id: 'field_missions', type: 'field_missions', title: '⚔️ Field Task Missions', x: 384, y: 576, w: 600, h: 480, visible: true, zIndex: 9, isIcon: true },
-  { id: 'settings', type: 'settings', title: '⚙️ System Settings', x: 504, y: 576, w: 600, h: 480, visible: true, zIndex: 4, isIcon: true },
-  { id: 'activity_logs', type: 'activity_logs', title: '📋 System Activity Logs', x: 624, y: 576, w: 600, h: 480, visible: true, zIndex: 3, isIcon: true }
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 672, y: 24, w: 576, h: 528, visible: true, zIndex: 5, isIcon: false }
 ];
 
 
@@ -187,7 +181,7 @@ export const ClientWorkbench: React.FC = () => {
           // Validate and sanitize each saved widget, falling back to defaults for any corrupt fields.
           const knownDefaultsMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
           const sanitized: Widget[] = parsed
-            .filter((w: any) => typeof w.id === 'string' && w.id.length > 0)
+            .filter((w: any) => typeof w.id === 'string' && w.id.length > 0 && knownDefaultsMap.has(w.id))
             .map((w: any) => {
               const def = knownDefaultsMap.get(w.id);
               return {
@@ -250,7 +244,7 @@ export const ClientWorkbench: React.FC = () => {
         if (layout && Array.isArray(layout) && layout.length > 0) {
           const knownDefaultsMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
           const sanitized: Widget[] = layout
-            .filter((w: any) => typeof w.id === 'string' && w.id.length > 0)
+            .filter((w: any) => typeof w.id === 'string' && w.id.length > 0 && knownDefaultsMap.has(w.id))
             .map((w: any) => {
               const def = knownDefaultsMap.get(w.id);
               return {

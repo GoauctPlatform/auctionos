@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, Rea
 import { CompanyService, Company } from '../services/company.service';
 import { AuthService } from '../services/auth.service';
 import { API_URL, getHeaders } from '../services/httpClient';
+import { useAuth } from './AuthContext';
 
 interface CompanyContextType {
     companies: Company[];
@@ -27,7 +28,7 @@ export const CompanyProvider: React.FC<{ children: ReactNode }> = ({ children })
 
     const [companies, setCompanies] = useState<Company[]>(cached);
     const [loading, setLoading] = useState(cached.length === 0); // Only show loading if no cached data
-    const user = AuthService.getCurrentUser();
+    const { user, updateUser } = useAuth();
 
     const refresh = useCallback(async () => {
         if (!user) return;
@@ -83,15 +84,10 @@ export const CompanyProvider: React.FC<{ children: ReactNode }> = ({ children })
                 headers: getHeaders(),
                 body: JSON.stringify({ company_id: id }),
             });
-            // Update token in localStorage so active_company_id is reflected immediately
-            const stored = localStorage.getItem('user');
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                parsed.active_company_id = id;
-                localStorage.setItem('user', JSON.stringify(parsed));
-            }
+            updateUser({ active_company_id: id });
         } else {
             await CompanyService.selectActive(id);
+            updateUser({ active_company_id: id });
         }
         await refresh();
     };
