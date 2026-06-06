@@ -127,7 +127,13 @@ export const GISMap: React.FC<GISMapProps> = ({ property, className = "h-[450px]
                 center={[initialLat, initialLng]} 
                 zoom={initialZoom} 
                 style={{ width: '100%', height: '100%', zIndex: 10 }}
-                zoomControl={true}
+                zoomControl={false}
+                scrollWheelZoom={false}
+                dragging={false}
+                touchZoom={false}
+                doubleClickZoom={false}
+                boxZoom={false}
+                keyboard={false}
             >
                 {/* Satellite Base Layer (ESRI World Imagery) */}
                 <TileLayer
