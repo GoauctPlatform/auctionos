@@ -35,6 +35,10 @@ export interface TopScoredProperty extends StoredScore {
     latitude?: number | null;
     longitude?: number | null;
     gsi_url?: string | null;
+    legal_description?: string | null;
+    estimated_value?: number | null;
+    max_bid?: number | null;
+    description?: string | null;
 }
 
 const SCORES_URL = `${API_URL}/scores`;
