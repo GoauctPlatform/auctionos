@@ -147,8 +147,8 @@ interface OverlayWindow {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 24, y: 24, w: 624, h: 528, visible: true, zIndex: 10, isIcon: false },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 672, y: 24, w: 576, h: 528, visible: true, zIndex: 5, isIcon: false }
+  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 40, y: 40, w: 900, h: 750, visible: true, zIndex: 10, isIcon: false },
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 960, y: 40, w: 900, h: 750, visible: true, zIndex: 5, isIcon: false }
 ];
 
 
@@ -173,7 +173,7 @@ export const ClientWorkbench: React.FC = () => {
   // States
   const [widgets, setWidgets] = useState<Widget[]>(() => {
     try {
-      const saved = localStorage.getItem('goauct_workbench_widgets_v62');
+      const saved = localStorage.getItem('goauct_workbench_widgets_v63');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
@@ -213,7 +213,7 @@ export const ClientWorkbench: React.FC = () => {
         }
       }
     } catch (e) {
-      console.error('Failed to parse goauct_workbench_widgets_v62 from localStorage, falling back to default:', e);
+      console.error('Failed to parse goauct_workbench_widgets_v63 from localStorage, falling back to default:', e);
     }
     return DEFAULT_WIDGETS.map(d => ({
       ...d,
@@ -1168,7 +1168,7 @@ export const ClientWorkbench: React.FC = () => {
   // Infinite Canvas physics states with persistent localStorage fallback
   const [zoomScale, setZoomScale] = useState(() => {
     const saved = localStorage.getItem('goauct_canvas_zoom');
-    return saved ? Number(saved) : 1.0;
+    return saved ? Number(saved) : 0.8;
   });
   const [panX, setPanX] = useState(() => {
     const saved = localStorage.getItem('goauct_canvas_pan_x');
@@ -1742,7 +1742,7 @@ export const ClientWorkbench: React.FC = () => {
 
     if (interaction === null) {
       // Immediate save — triggered by: toggle visibility, drag/resize end, preset apply, focus, lock
-      localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(widgets));
+      localStorage.setItem('goauct_workbench_widgets_v63', JSON.stringify(widgets));
       UserService.saveWorkbenchLayout(widgets).catch(err => {
         console.error('Failed to save layout to backend:', err);
       });
@@ -1750,7 +1750,7 @@ export const ClientWorkbench: React.FC = () => {
       // Debounced save — triggered continuously while dragging or resizing
       const timer = setTimeout(() => {
         const currentWidgets = latestWidgetsRef.current;
-        localStorage.setItem('goauct_workbench_widgets_v62', JSON.stringify(currentWidgets));
+        localStorage.setItem('goauct_workbench_widgets_v63', JSON.stringify(currentWidgets));
         UserService.saveWorkbenchLayout(currentWidgets).catch(err => {
           console.error('Failed to save layout to backend:', err);
         });
