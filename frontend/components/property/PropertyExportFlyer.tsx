@@ -22,6 +22,8 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
     const equity = arv - maxBid;
     const rent = details?.rental_value || arv * 0.008;
 
+    const isTaxLien = (property.property_category || property.purchase_option_type || property.property_type || property.auction_type || '').toLowerCase().includes('lien');
+
     return (
         <div 
             id="property-sales-flyer"
@@ -186,36 +188,70 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                                 {price ? `$${price.toLocaleString()}` : 'N/A'}
                             </span>
                         </div>
-                        <div>
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Estimated ARV</span>
-                            <span className="text-lg font-black text-emerald-600 block">
-                                {arv ? `$${Math.round(arv).toLocaleString()}` : 'N/A'}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Recommended Max Bid</span>
-                            <span className="text-lg font-black text-amber-600 block">
-                                {maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'N/A'}
-                            </span>
-                        </div>
-                        <div>
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Estimated Rent / Mo</span>
-                            <span className="text-lg font-black text-slate-800 block">
-                                {rent ? `$${Math.round(rent).toLocaleString()}` : 'N/A'}
-                            </span>
-                        </div>
+                        {isTaxLien ? (
+                            <>
+                                <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Est. Debt Value</span>
+                                    <span className="text-lg font-black text-rose-600 block">
+                                        {price ? `$${price.toLocaleString()}` : 'N/A'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Target Interest Rate</span>
+                                    <span className="text-lg font-black text-amber-600 block">
+                                        &gt; 16%
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Assessed Value</span>
+                                    <span className="text-lg font-black text-slate-800 block">
+                                        {assessedVal ? `$${Math.round(assessedVal).toLocaleString()}` : 'N/A'}
+                                    </span>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Estimated ARV</span>
+                                    <span className="text-lg font-black text-emerald-600 block">
+                                        {arv ? `$${Math.round(arv).toLocaleString()}` : 'N/A'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Recommended Max Bid</span>
+                                    <span className="text-lg font-black text-amber-600 block">
+                                        {maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'N/A'}
+                                    </span>
+                                </div>
+                                <div>
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Estimated Rent / Mo</span>
+                                    <span className="text-lg font-black text-slate-800 block">
+                                        {rent ? `$${Math.round(rent).toLocaleString()}` : 'N/A'}
+                                    </span>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     {/* Spread Highlight Bar */}
-                    <div className="bg-indigo-50 border border-indigo-100 p-3.5 rounded-xl flex items-center justify-between shadow-sm">
-                        <div className="space-y-0.5">
-                            <span className="text-[8px] font-black text-indigo-700 uppercase tracking-widest block">Potential Equity Spread</span>
-                            <span className="text-[10px] font-semibold text-slate-500">Spread over Recommended Max Bid</span>
+                    {isTaxLien ? (
+                        <div className="bg-rose-50 border border-rose-100 p-3.5 rounded-xl flex items-center justify-between shadow-sm">
+                            <div className="space-y-0.5">
+                                <span className="text-[8px] font-black text-rose-700 uppercase tracking-widest block">Tax Lien Investment</span>
+                                <span className="text-[10px] font-semibold text-slate-500">Subject to redemption period</span>
+                            </div>
                         </div>
-                        <span className="text-lg font-black text-indigo-650">
-                            {equity ? `$${Math.round(equity).toLocaleString()}` : 'N/A'}
-                        </span>
-                    </div>
+                    ) : (
+                        <div className="bg-indigo-50 border border-indigo-100 p-3.5 rounded-xl flex items-center justify-between shadow-sm">
+                            <div className="space-y-0.5">
+                                <span className="text-[8px] font-black text-indigo-700 uppercase tracking-widest block">Potential Equity Spread</span>
+                                <span className="text-[10px] font-semibold text-slate-500">Spread over Recommended Max Bid</span>
+                            </div>
+                            <span className="text-lg font-black text-indigo-650">
+                                {equity ? `$${Math.round(equity).toLocaleString()}` : 'N/A'}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 

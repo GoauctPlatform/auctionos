@@ -38,6 +38,8 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
     // Fallback to local calculation if no score passed or persisted yet
     const displayScore = passedScore || calculateDealScore(property);
 
+    const isTaxLien = (property.property_category || property.purchase_option_type || property.property_type || property.auction_type || '').toLowerCase().includes('lien');
+
     const handleUnlockAndSync = async () => {
         if (!property.property_id) return;
         setSyncing(true);
@@ -226,24 +228,43 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                                     {property.tax_year ? <span className="text-[10px] text-slate-400 ml-1">({property.tax_year})</span> : ''}
                                 </p>
                             </div>
-                            <div>
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Opening Bid</label>
-                                <p className="text-sm font-black text-rose-600 dark:text-rose-400">
-                                    {property.amount_due ? `$${property.amount_due.toLocaleString()}` : '-'}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Recommended Max Bid</label>
-                                <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                                    {(() => {
-                                        const d = property.details || (property as any);
-                                        const assessedVal = property.assessed_value || d.assessed_value ? Number(property.assessed_value || d.assessed_value) : 0;
-                                        const arv = d.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
-                                        const maxBid = d.max_bid || property.max_bid || (arv * 0.7);
-                                        return maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'N/A';
-                                    })()}
-                                </p>
-                            </div>
+                            {isTaxLien ? (
+                                <>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Est. Debt Value</label>
+                                        <p className="text-sm font-black text-rose-600 dark:text-rose-400">
+                                            {property.amount_due ? `$${property.amount_due.toLocaleString()}` : '-'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Target Interest Rate</label>
+                                        <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                                            &gt; 16%
+                                        </p>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Opening Bid</label>
+                                        <p className="text-sm font-black text-rose-600 dark:text-rose-400">
+                                            {property.amount_due ? `$${property.amount_due.toLocaleString()}` : '-'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Recommended Max Bid</label>
+                                        <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                                            {(() => {
+                                                const d = property.details || (property as any);
+                                                const assessedVal = property.assessed_value || d.assessed_value ? Number(property.assessed_value || d.assessed_value) : 0;
+                                                const arv = d.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
+                                                const maxBid = d.max_bid || property.max_bid || (arv * 0.7);
+                                                return maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'N/A';
+                                            })()}
+                                        </p>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Legal Description (Full Width) */}

@@ -57,6 +57,8 @@ const AIDealCard: React.FC<AIDealCardProps> = ({
     const arv = prop.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
     const maxBid = prop.max_bid || (arv * 0.7);
 
+    const isTaxLien = (prop.property_category || prop.purchase_option_type || prop.property_type || '').toLowerCase().includes('lien');
+
     return (
         <div
             onClick={() => onPreviewProperty(prop.parcel_id)}
@@ -139,15 +141,30 @@ const AIDealCard: React.FC<AIDealCardProps> = ({
                         <span className="text-[11px] font-black text-emerald-400">${price.toLocaleString(undefined, { minimumFractionDigits: 0 })}</span>
                     </div>
                     
-                    <div className="flex flex-col">
-                        <span className="text-[8px] text-[#586e75] uppercase font-black tracking-widest">Est. ARV</span>
-                        <span className="text-[11px] font-black text-indigo-300">${Math.round(arv).toLocaleString()}</span>
-                    </div>
+                    {isTaxLien ? (
+                        <>
+                            <div className="flex flex-col bg-[#002b36]/40 px-2 py-0.5 rounded border border-amber-500/20">
+                                <span className="text-[8px] text-amber-500/80 uppercase font-black tracking-widest">Target Interest Rate</span>
+                                <span className="text-[11px] font-black text-amber-400">&gt; 16%</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[8px] text-[#586e75] uppercase font-black tracking-widest">Est. Debt Value</span>
+                                <span className="text-[11px] font-black text-indigo-300">${Math.round(price).toLocaleString()}</span>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="flex flex-col">
+                                <span className="text-[8px] text-[#586e75] uppercase font-black tracking-widest">Est. ARV</span>
+                                <span className="text-[11px] font-black text-indigo-300">${Math.round(arv).toLocaleString()}</span>
+                            </div>
 
-                    <div className="flex flex-col bg-[#002b36]/40 px-2 py-0.5 rounded border border-amber-500/20">
-                        <span className="text-[8px] text-amber-500/80 uppercase font-black tracking-widest">Recommended Max Bid</span>
-                        <span className="text-[11px] font-black text-amber-400">${Math.round(maxBid).toLocaleString()}</span>
-                    </div>
+                            <div className="flex flex-col bg-[#002b36]/40 px-2 py-0.5 rounded border border-amber-500/20">
+                                <span className="text-[8px] text-amber-500/80 uppercase font-black tracking-widest">Recommended Max Bid</span>
+                                <span className="text-[11px] font-black text-amber-400">${Math.round(maxBid).toLocaleString()}</span>
+                            </div>
+                        </>
+                    )}
 
                     {prop.legal_description && (
                         <div className="relative group/legal flex flex-col cursor-default">
