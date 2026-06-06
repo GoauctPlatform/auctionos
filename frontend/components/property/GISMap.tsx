@@ -90,6 +90,13 @@ export const GISMap: React.FC<GISMapProps> = ({ property, className = "h-[450px]
         map.current.on('load', () => {
             initializeMapLayers(lng, lat, false);
 
+            // Force resize after load to prevent 0x0 canvas bugs if rendered off-screen
+            setTimeout(() => {
+                if (map.current) {
+                    map.current.resize();
+                }
+            }, 500);
+
             // If we don't have explicit coordinates, try to Geocode the address
             if (!hasCoords) {
                 const addressString = [
@@ -124,8 +131,11 @@ export const GISMap: React.FC<GISMapProps> = ({ property, className = "h-[450px]
     }, [property]);
 
     return (
-        <div className={`relative w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg ${className}`}>
-            <div ref={mapContainer} className="absolute inset-0 w-full h-full" />
+        <div 
+            className={`relative w-full rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg ${className}`}
+            style={{ minHeight: '300px' }}
+        >
+            <div ref={mapContainer} className="absolute inset-0 w-full h-full" style={{ width: '100%', height: '100%' }} />
             <div className="absolute top-4 left-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-lg shadow-xl z-10 flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary text-[20px]">satellite_alt</span>
                 <span className="text-sm font-bold text-slate-800 dark:text-white">GIS Lot View</span>
