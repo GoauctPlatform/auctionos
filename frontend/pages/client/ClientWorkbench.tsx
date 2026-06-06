@@ -4123,86 +4123,92 @@ export const ClientWorkbench: React.FC = () => {
         })}
 
         {/* ─── DOCK / BARRA DE TAREFAS HÍBRIDA (Estilo macOS) ─── */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-sol-base02/85 backdrop-blur-md rounded-2xl border border-slate-700/50 dark:border-sol-base01/30 flex items-center gap-3 z-[99999] shadow-2xl transition-all select-none">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-sol-base02/85 backdrop-blur-md rounded-2xl border border-slate-700/50 dark:border-sol-base01/30 flex items-center gap-3 z-[99999] shadow-2xl transition-all select-none max-w-[95vw] sm:max-w-max">
           {/* Core Shortcuts to open windows */}
-          {[
-            { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
-            { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
-            { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-405 text-cyan-500' },
-            { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'hover:text-purple-400 text-purple-500' },
-            { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
-          ].map(item => {
-            const Icon = item.icon;
-            const isOpen = item.id === 'workbench_home' ? false : overlayWindows.some(w => w.type === item.id);
-            const isMin = item.id === 'workbench_home' ? false : overlayWindows.find(w => w.type === item.id)?.isMinimized;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  if (item.id === 'workbench_home') {
-                    setOverlayWindows(prev => prev.map(w => ({ ...w, isMinimized: true })));
-                    setActiveOverlayWindowId(null);
-                    logConsoleActivity('Minimizing all active workspace windows.');
-                    navigate('/client');
-                    return;
-                  }
-                  const match = overlayWindows.find(w => w.type === item.id);
-                  if (match) {
-                    if (match.isMinimized) {
-                      toggleMinimizeOverlayWindow(match.id);
-                    } else if (activeOverlayWindowId === match.id) {
-                      toggleMinimizeOverlayWindow(match.id);
-                    } else {
-                      focusOverlayWindow(match.id);
+          <div className="flex items-center gap-3 shrink-0">
+            {[
+              { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
+              { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
+              { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
+              { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'hover:text-purple-400 text-purple-500' },
+              { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
+            ].map(item => {
+              const Icon = item.icon;
+              const isOpen = item.id === 'workbench_home' ? false : overlayWindows.some(w => w.type === item.id);
+              const isMin = item.id === 'workbench_home' ? false : overlayWindows.find(w => w.type === item.id)?.isMinimized;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    if (item.id === 'workbench_home') {
+                      setOverlayWindows(prev => prev.map(w => ({ ...w, isMinimized: true })));
+                      setActiveOverlayWindowId(null);
+                      logConsoleActivity('Minimizing all active workspace windows.');
+                      navigate('/client');
+                      return;
                     }
-                  } else {
-                    openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : '⚔️ Field Task Missions');
-                  }
-                }}
-                className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 ${item.color} ${isOpen ? 'bg-slate-800 border border-slate-700' : 'bg-transparent'} ${isMin ? 'opacity-50' : ''}`}
-                title={item.label}
-              >
-                <Icon size={18} />
-                {isOpen && (
-                  <span className="absolute bottom-1 size-1 bg-indigo-500 rounded-full animate-pulse" />
-                )}
-              </button>
-            );
-          })}
+                    const match = overlayWindows.find(w => w.type === item.id);
+                    if (match) {
+                      if (match.isMinimized) {
+                        toggleMinimizeOverlayWindow(match.id);
+                      } else if (activeOverlayWindowId === match.id) {
+                        toggleMinimizeOverlayWindow(match.id);
+                      } else {
+                        focusOverlayWindow(match.id);
+                      }
+                    } else {
+                      openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : '⚔️ Field Task Missions');
+                    }
+                  }}
+                  className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 ${item.color} ${isOpen ? 'bg-slate-800 border border-slate-700' : 'bg-transparent'} ${isMin ? 'opacity-50' : ''}`}
+                  title={item.label}
+                >
+                  <Icon size={18} />
+                  {isOpen && (
+                    <span className="absolute bottom-1 size-1 bg-indigo-500 rounded-full animate-pulse" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
           {/* Separator if we have open property detail windows */}
           {overlayWindows.some(w => w.type === 'property_details') && (
-            <div className="w-[1px] h-8 bg-slate-700/50" />
+            <div className="w-[1px] h-8 bg-slate-700/50 shrink-0" />
           )}
 
-          {/* Open Property Details Windows list */}
-          {overlayWindows.filter(w => w.type === 'property_details').map(w => {
-            const isActive = activeOverlayWindowId === w.id;
-            return (
-              <button
-                key={w.id}
-                onClick={() => {
-                  if (w.isMinimized) {
-                    toggleMinimizeOverlayWindow(w.id);
-                  } else if (isActive) {
-                    toggleMinimizeOverlayWindow(w.id);
-                  } else {
-                    focusOverlayWindow(w.id);
-                  }
-                }}
-                className={`relative h-10 px-2 rounded-xl flex items-center gap-1.5 transition-all text-left bg-slate-800/60 border border-slate-700/50 hover:bg-slate-700/60 ${w.isMinimized ? 'opacity-50' : ''}`}
-                title={w.title}
-              >
-                <FileText size={14} className="text-indigo-400" />
-                <span className="text-[8px] font-black text-slate-350 max-w-[80px] truncate uppercase tracking-wider">
-                  {w.data?.parcelId || 'Property'}
-                </span>
-                {isActive && !w.isMinimized && (
-                  <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 size-1 bg-indigo-500 rounded-full" />
-                )}
-              </button>
-            );
-          })}
+          {/* Open Property Details Windows list (SCROLLABLE) */}
+          {overlayWindows.filter(w => w.type === 'property_details').length > 0 && (
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+              {overlayWindows.filter(w => w.type === 'property_details').map(w => {
+                const isActive = activeOverlayWindowId === w.id;
+                return (
+                  <button
+                    key={w.id}
+                    onClick={() => {
+                      if (w.isMinimized) {
+                        toggleMinimizeOverlayWindow(w.id);
+                      } else if (isActive) {
+                        toggleMinimizeOverlayWindow(w.id);
+                      } else {
+                        focusOverlayWindow(w.id);
+                      }
+                    }}
+                    className={`relative shrink-0 h-10 px-2 rounded-xl flex items-center gap-1.5 transition-all text-left bg-slate-800/60 border border-slate-700/50 hover:bg-slate-700/60 ${w.isMinimized ? 'opacity-50' : ''}`}
+                    title={w.title}
+                  >
+                    <FileText size={14} className="text-indigo-400" />
+                    <span className="text-[8px] font-black text-slate-200 max-w-[80px] truncate uppercase tracking-wider">
+                      {w.data?.parcelId || 'Property'}
+                    </span>
+                    {isActive && !w.isMinimized && (
+                      <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 size-1 bg-indigo-500 rounded-full" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
       </div>
