@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import debounce from 'lodash/debounce';
 import { getStateStats, StateStat, getMonthlyStats, MonthlyAuctionStat, getTopScoredProperties, TopScoredProperty } from '../../services/scores.service';
 import { ClientDataService, PropertyService } from '../../services/property.service';
 import { AuctionService } from '../../services/auction.service';
@@ -42,6 +43,9 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
+import { ResponsiveGridLayout } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 import {
   Compass, Map, BarChart2, Folder, Terminal, Award,
   HelpCircle, ShieldCheck, RefreshCw, FileText, CheckCircle,
@@ -147,8 +151,8 @@ interface OverlayWindow {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 40, y: 40, w: 900, h: 750, visible: true, zIndex: 10, isIcon: false },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 960, y: 40, w: 900, h: 750, visible: true, zIndex: 5, isIcon: false }
+  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 0, y: 0, w: 8, h: 4, visible: true, zIndex: 10, isIcon: false },
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 8, y: 0, w: 4, h: 4, visible: true, zIndex: 5, isIcon: false }
 ];
 
 
@@ -173,27 +177,22 @@ export const ClientWorkbench: React.FC = () => {
   // States
   const [widgets, setWidgets] = useState<Widget[]>(() => {
     try {
-      const saved = localStorage.getItem('goauct_workbench_widgets_v63');
+      const saved = localStorage.getItem('goauct_workbench_widgets_v64');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Use the saved array as the authoritative source.
-          // Validate and sanitize each saved widget, falling back to defaults for any corrupt fields.
           const knownDefaultsMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
           const sanitized: Widget[] = parsed
             .filter((w: any) => typeof w.id === 'string' && w.id.length > 0 && knownDefaultsMap.has(w.id))
             .map((w: any) => {
               const def = knownDefaultsMap.get(w.id);
               return {
-                // Start from the known default (for type/title safety) if available, else reconstruct
                 ...(def ?? {}),
-                // Override with all saved values
                 ...w,
-                // Guarantee numeric/boolean types to guard against JSON corruption
-                x: typeof w.x === 'number' && isFinite(w.x) ? w.x : (def?.x ?? 20),
-                y: typeof w.y === 'number' && isFinite(w.y) ? w.y : (def?.y ?? 20),
-                w: typeof w.w === 'number' && isFinite(w.w) && w.w > 0 ? w.w : (def?.w ?? 400),
-                h: typeof w.h === 'number' && isFinite(w.h) && w.h > 0 ? w.h : (def?.h ?? 300),
+                x: typeof w.x === 'number' && isFinite(w.x) ? w.x : (def?.x ?? 0),
+                y: typeof w.y === 'number' && isFinite(w.y) ? w.y : (def?.y ?? 0),
+                w: typeof w.w === 'number' && isFinite(w.w) && w.w > 0 ? w.w : (def?.w ?? 6),
+                h: typeof w.h === 'number' && isFinite(w.h) && w.h > 0 ? w.h : (def?.h ?? 4),
                 visible: typeof w.visible === 'boolean' ? w.visible : (def?.visible ?? false),
                 zIndex: typeof w.zIndex === 'number' && isFinite(w.zIndex) ? w.zIndex : (def?.zIndex ?? 10),
                 isLocked: typeof w.isLocked === 'boolean' ? w.isLocked : (def?.isLocked ?? false),
@@ -201,7 +200,6 @@ export const ClientWorkbench: React.FC = () => {
               } as Widget;
             });
 
-          // Append any brand-new DEFAULT_WIDGETS not yet present in the saved data
           const savedIds = new Set(sanitized.map(w => w.id));
           const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id))
             .map(d => ({
@@ -213,7 +211,7 @@ export const ClientWorkbench: React.FC = () => {
         }
       }
     } catch (e) {
-      console.error('Failed to parse goauct_workbench_widgets_v63 from localStorage, falling back to default:', e);
+      console.error('Failed to parse goauct_workbench_widgets_v64 from localStorage, falling back to default:', e);
     }
     return DEFAULT_WIDGETS.map(d => ({
       ...d,
@@ -250,10 +248,10 @@ export const ClientWorkbench: React.FC = () => {
               return {
                 ...(def ?? {}),
                 ...w,
-                x: typeof w.x === 'number' && isFinite(w.x) ? w.x : (def?.x ?? 20),
-                y: typeof w.y === 'number' && isFinite(w.y) ? w.y : (def?.y ?? 20),
-                w: typeof w.w === 'number' && isFinite(w.w) && w.w > 0 ? w.w : (def?.w ?? 400),
-                h: typeof w.h === 'number' && isFinite(w.h) && w.h > 0 ? w.h : (def?.h ?? 300),
+                x: typeof w.x === 'number' && isFinite(w.x) ? w.x : (def?.x ?? 0),
+                y: typeof w.y === 'number' && isFinite(w.y) ? w.y : (def?.y ?? 0),
+                w: typeof w.w === 'number' && isFinite(w.w) && w.w > 0 ? w.w : (def?.w ?? 6),
+                h: typeof w.h === 'number' && isFinite(w.h) && w.h > 0 ? w.h : (def?.h ?? 4),
                 visible: typeof w.visible === 'boolean' ? w.visible : (def?.visible ?? false),
                 zIndex: typeof w.zIndex === 'number' && isFinite(w.zIndex) ? w.zIndex : (def?.zIndex ?? 10),
                 isLocked: typeof w.isLocked === 'boolean' ? w.isLocked : (def?.isLocked ?? false),
@@ -272,20 +270,20 @@ export const ClientWorkbench: React.FC = () => {
           logConsoleActivity('Loaded custom workbench layout from database and Redis.');
         } else {
           // If backend has no layout, try to synchronize current local state
-          const localLayout = localStorage.getItem('goauct_workbench_widgets_v62');
+          const localLayout = localStorage.getItem('goauct_workbench_widgets_v64');
           if (localLayout) {
             try {
               const parsed = JSON.parse(localLayout);
               if (Array.isArray(parsed) && parsed.length > 0) {
                 await UserService.saveWorkbenchLayout(parsed);
-                logConsoleActivity('Synchronized local layout to database and Redis.');
+                logConsoleActivity('Synchronized local grid layout to database and Redis.');
               }
             } catch (err) {
               console.error('Failed to sync local layout to backend:', err);
             }
           } else {
             await UserService.saveWorkbenchLayout(DEFAULT_WIDGETS);
-            logConsoleActivity('Synchronized default layout to database and Redis.');
+            logConsoleActivity('Synchronized default grid layout to database and Redis.');
           }
         }
       } catch (err) {
@@ -2073,6 +2071,34 @@ export const ClientWorkbench: React.FC = () => {
     window.addEventListener('mouseup', onUp);
   };
 
+  // Debounced API call to save layout to backend to prevent spamming while dragging
+  const debouncedSaveLayout = useMemo(() => debounce(async (layoutToSave: any[]) => {
+    try {
+      await UserService.saveWorkbenchLayout(layoutToSave);
+      console.log('Layout automatically saved to database & Redis');
+    } catch (err) {
+      console.error('Failed to autosave layout:', err);
+    }
+  }, 1500), []);
+
+  const onGridLayoutChange = useCallback((layout: any[]) => {
+    // Merge new grid coordinates with our widget state
+    setWidgets(prev => {
+      const next = prev.map(w => {
+        const updated = layout.find((l: any) => l.i === w.id);
+        if (updated) {
+          return { ...w, x: updated.x, y: updated.y, w: updated.w, h: updated.h };
+        }
+        return w;
+      });
+      // Save locally
+      localStorage.setItem('goauct_workbench_widgets_v64', JSON.stringify(next));
+      // Save to backend
+      debouncedSaveLayout(next);
+      return next;
+    });
+  }, [debouncedSaveLayout]);
+
   // Window Drag & Resize Mouse Handlers
   const handleMouseDown = (
     e: React.MouseEvent,
@@ -3741,8 +3767,29 @@ export const ClientWorkbench: React.FC = () => {
                 })()}
               </svg>
 
-              {/* Absolute-positioned widgets list */}
-              {/* Absolute-positioned widgets list */}
+              {/* Responsive Grid Layout widgets list */}
+              <ResponsiveGridLayout
+                className="layout w-full min-h-[800px] pb-32"
+                layouts={{
+                  lg: widgets.filter(w => w.visible).map(w => ({
+                    i: w.id,
+                    x: w.x,
+                    y: w.y,
+                    w: w.isIcon ? 1 : w.w,
+                    h: w.isIcon ? 1 : w.h,
+                    isResizable: !w.isIcon
+                  }))
+                }}
+                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                rowHeight={120}
+                onLayoutChange={onGridLayoutChange}
+                isDraggable={!isCanvasLocked}
+                isResizable={!isCanvasLocked}
+                draggableHandle=".drag-handle"
+                margin={[24, 24]}
+                useCSSTransforms={true}
+              >
               {widgets.filter(w => w.visible).map(w => {
                 if (w.isIcon) {
                   // Render compact app-like shortcut icon card
@@ -3763,29 +3810,16 @@ export const ClientWorkbench: React.FC = () => {
                         e.stopPropagation();
                         setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
                       }}
-                      style={{
-                        position: 'absolute',
-                        left: w.x,
-                        top: w.y,
-                        width: 96,
-                        height: 96,
-                        zIndex: w.zIndex,
-                      }}
-                      className="flex flex-col items-center justify-center cursor-grab active:cursor-grabbing group/icon select-none"
+                      style={{ zIndex: w.zIndex }}
+                      className="drag-handle flex flex-col items-center justify-center cursor-grab active:cursor-grabbing group/icon select-none w-full h-full"
                     >
-                      {/* Drag handles for mouse and touch */}
                       <div
-                        onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
-                        onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
-                        className="relative size-14 rounded-2xl flex items-center justify-center bg-white/40 dark:bg-sol-base02/40 backdrop-blur-md border border-slate-200/50 dark:border-sol-base01/30 shadow-lg group-hover/icon:scale-105 group-hover/icon:border-indigo-500/40 group-hover/icon:shadow-indigo-500/10 transition-all duration-200"
+                        className="relative size-16 rounded-2xl flex items-center justify-center bg-white/60 dark:bg-sol-base02/60 backdrop-blur-md border border-slate-200/50 dark:border-sol-base01/50 shadow-lg group-hover/icon:scale-105 group-hover/icon:border-indigo-500/50 group-hover/icon:shadow-indigo-500/20 transition-all duration-200"
                         title="Double-click to expand to full window"
                       >
-                        {/* Glow effect on hover */}
                         <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 opacity-0 group-hover/icon:opacity-100 transition-opacity" />
+                        <Icon className="size-8 text-slate-700 dark:text-slate-200 group-hover/icon:text-indigo-600 dark:group-hover/icon:text-indigo-400 transition-colors" />
                         
-                        <Icon className="size-6 text-slate-700 dark:text-slate-200 group-hover/icon:text-indigo-600 dark:group-hover/icon:text-indigo-400 transition-colors" />
-                        
-                        {/* Tiny collapse/expand icon button in corner */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -3798,8 +3832,7 @@ export const ClientWorkbench: React.FC = () => {
                         </button>
                       </div>
                       
-                      {/* Shortcut label */}
-                      <span className="text-[10px] font-bold text-center tracking-wide text-slate-800 dark:text-slate-200 mt-2 truncate w-full px-1 drop-shadow-sm group-hover/icon:text-indigo-650 dark:group-hover/icon:text-indigo-400 transition-colors">
+                      <span className="text-[11px] font-bold text-center tracking-wide text-slate-800 dark:text-slate-200 mt-2 truncate w-full px-1 drop-shadow-sm group-hover/icon:text-indigo-650 dark:group-hover/icon:text-indigo-400 transition-colors">
                         {w.title.replace(/^[^\w\s]*/, '').trim()}
                       </span>
                     </div>
@@ -3816,92 +3849,67 @@ export const ClientWorkbench: React.FC = () => {
                           undefined
                     }
                     onClick={() => focusWidget(w.id)}
-                    style={{
-                      position: 'absolute',
-                      left: w.x,
-                      top: w.y,
-                      width: w.w,
-                      height: w.h,
-                      zIndex: w.zIndex,
-                    }}
-                    className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-sol-base01/30 bg-white/75 dark:bg-sol-base02/80 backdrop-blur-md group/window rounded-xl"
+                    style={{ zIndex: w.zIndex }}
+                    className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-sol-base01/30 bg-white/80 dark:bg-sol-base02/85 backdrop-blur-xl group/window rounded-2xl h-full"
                   >
                     {/* Window Title Bar (Drag Handle) */}
                     <div
-                      onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
-                      onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
-                      className={`h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 ${w.isLocked ? 'cursor-default' : 'cursor-move'}`}
+                      className={`drag-handle h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 ${w.isLocked ? 'cursor-default' : 'cursor-move'}`}
                     >
                       <div className="flex items-center gap-2 select-none">
-                        {/* Mobile touch grab handle badge */}
                         <div
-                          onTouchStart={(e) => {
-                            e.stopPropagation();
-                            handleTouchStart(e, w.id, 'drag');
-                          }}
-                          className="flex items-center gap-1 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-400/20 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider cursor-grab select-none active:cursor-grabbing shadow-sm"
+                          className="flex items-center gap-1 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-400/20 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider shadow-sm"
                         >
                           <Move size={8} className="animate-pulse" />
                           <span>Grip</span>
                         </div>
 
-                        {/* grabber icons */}
                         <div className="grid grid-cols-2 gap-0.5 opacity-30">
                           {[...Array(6)].map((_, i) => (
                             <div key={i} className="size-[2px] rounded-full bg-slate-900 dark:bg-white" />
                           ))}
                         </div>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-950 dark:text-white">
+                        <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white">
                           {w.title}
                         </span>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: true } : item));
                           }}
-                          className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                          className="p-1.5 rounded-lg hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-400 hover:text-slate-800 dark:hover:text-white"
                           title="Collapse to Shortcut Icon"
                         >
-                          <Smartphone size={11} />
+                          <Smartphone size={12} />
                         </button>
                         <button
-                          onClick={() => toggleVisibility(w.id)}
-                          className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                          onClick={(e) => { e.stopPropagation(); toggleVisibility(w.id); }}
+                          className="p-1.5 rounded-lg hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-400 hover:text-slate-800 dark:hover:text-white"
                           title="Minimize"
                         >
-                          <Minimize2 size={10} />
+                          <Minimize2 size={12} />
                         </button>
                         <button
-                          onClick={() => toggleVisibility(w.id)}
-                          className="p-1 rounded hover:bg-red-500/10 hover:text-red-500 text-slate-400"
+                          onClick={(e) => { e.stopPropagation(); toggleVisibility(w.id); }}
+                          className="p-1.5 rounded-lg hover:bg-red-500/10 hover:text-red-500 text-slate-400"
                           title="Close"
                         >
-                          <X size={10} />
+                          <X size={12} />
                         </button>
                       </div>
                     </div>
 
                     {/* Window Inner Content Scroll Area */}
-                    <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col">
+                    <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col" onMouseDown={(e) => e.stopPropagation()}>
                       {renderWidgetContent(w)}
                     </div>
-
-                    {/* Window Bottom-Right Resize Handle */}
-                    {!w.isLocked && (
-                      <div
-                        onMouseDown={(e) => handleMouseDown(e, w.id, 'resize')}
-                        onTouchStart={(e) => handleTouchStart(e, w.id, 'resize')}
-                        className="absolute bottom-0 right-0 size-4 cursor-se-resize flex items-end justify-end p-0.5 z-[100]"
-                      >
-                        <div className="size-2 border-r-2 border-b-2 border-slate-350 dark:border-slate-655 opacity-40 group-hover/window:opacity-100 transition-opacity" />
-                      </div>
-                    )}
                   </div>
                 );
               })}
+              </ResponsiveGridLayout>
             </div>
 
             {/* Infinite Canvas Floating Zoom & Lock Panel (Bottom-Left) */}
