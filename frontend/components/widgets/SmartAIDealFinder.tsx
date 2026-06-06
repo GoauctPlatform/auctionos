@@ -390,9 +390,9 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                 </div>
 
                 {/* Filters and Controls */}
-                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <div className="flex items-center gap-3 max-w-full overflow-x-auto no-scrollbar pb-1 shrink-0">
                     {/* State Selector */}
-                    <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1">
+                    <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1 shrink-0">
                         <Filter size={11} className="text-[#93a1a1]" />
                         <span className="text-[9px] font-black uppercase text-[#93a1a1]/60 tracking-wider mr-1">State:</span>
                         <select
@@ -409,7 +409,7 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
 
                     {/* County Selector */}
                     {selectedState !== 'ALL' && availableCounties.length > 0 && (
-                        <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1">
+                        <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1 shrink-0">
                             <Filter size={11} className="text-[#93a1a1]" />
                             <span className="text-[9px] font-black uppercase text-[#93a1a1]/60 tracking-wider mr-1">County:</span>
                             <select
@@ -426,7 +426,7 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                     )}
 
                     {/* Auction Type Selector */}
-                    <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1">
+                    <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1 shrink-0">
                         <Filter size={11} className="text-[#93a1a1]" />
                         <span className="text-[9px] font-black uppercase text-[#93a1a1]/60 tracking-wider mr-1">Type:</span>
                         <select
@@ -445,7 +445,7 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                     <button
                         onClick={() => fetchFreshDeals(selectedState)}
                         disabled={loading}
-                        className="p-2 hover:bg-[#073642]/50 border border-[#1a4554]/20 hover:border-cyan-500/35 rounded-xl transition-all text-slate-400 hover:text-white"
+                        className="p-2 hover:bg-[#073642]/50 border border-[#1a4554]/20 hover:border-cyan-500/35 rounded-xl transition-all text-slate-400 hover:text-white shrink-0"
                         title="Refresh deals"
                     >
                         <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />

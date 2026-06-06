@@ -313,7 +313,7 @@ export const ClientWorkbench: React.FC = () => {
     syncLocalFavorites();
   }, []);
 
-  const [activeMode, setActiveMode] = useState<'preferences' | 'volume' | 'scoring'>(() => {
+  const [activeMode, setActiveMode] = useState<'preferences' | 'volume' | 'scoring' | 'analytics'>(() => {
     try {
       const saved = localStorage.getItem('goauct_map_active_mode');
       return (saved as any) || 'preferences';

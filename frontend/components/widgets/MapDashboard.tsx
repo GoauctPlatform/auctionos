@@ -3,7 +3,9 @@ import USMap from '../USMap';
 import { StateStat, TopScoredProperty, getTopScoredProperties, submitScore } from '../../services/scores.service';
 import { PropertyService } from '../../services/property.service';
 import { calculateDealScore } from '../../intelligence/scoringEngine';
-import { Map, Star, Award, Layers, X, RefreshCw } from 'lucide-react';
+import { AuctionService } from '../../services/auction.service';
+import { AuctionEvent } from '../../types';
+import { Map, Star, Award, Layers, X, RefreshCw, ArrowLeft, Eye, ArrowRight, BarChart2 } from 'lucide-react';
 
 interface MapDashboardProps {
     selectedState?: string;
@@ -11,13 +13,15 @@ interface MapDashboardProps {
     mapCustomization: any;
     favoriteStates: Set<string>;
     myListStats: Record<string, number>;
-    activeMode: 'preferences' | 'volume' | 'scoring';
-    setActiveMode: (mode: 'preferences' | 'volume' | 'scoring') => void;
+    activeMode: 'preferences' | 'volume' | 'scoring' | 'analytics';
+    setActiveMode: (mode: 'preferences' | 'volume' | 'scoring' | 'analytics') => void;
     stateStats: StateStat[];
     topProperties: TopScoredProperty[];
     loadingStats?: boolean;
     onPreviewProperty?: (parcelId: string | number) => void;
+    onOpenPropertyDetails?: (propertyId: string | number, parcelId: string) => void;
 }
+
 
 class DashboardErrorBoundary extends React.Component<any, any> {
     state: any;
@@ -94,6 +98,9 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
 
     const [localDeals, setLocalDeals] = useState<TopScoredProperty[]>([]);
     const [loadingLocalDeals, setLoadingLocalDeals] = useState<boolean>(false);
+    
+    const [upcomingAuctions, setUpcomingAuctions] = useState<AuctionEvent[]>([]);
+    const [loadingAuctions, setLoadingAuctions] = useState<boolean>(false);
 
     // Dynamic on-demand scores calculation and loading (Auto-Hydration)
     useEffect(() => {
@@ -181,6 +188,29 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
         loadDealsForState();
     }, [selectedState, activeMode]);
 
+    // Dynamic upcoming auctions fetch for Volume Mode
+    useEffect(() => {
+        if (!selectedState || activeMode !== 'volume') {
+            setUpcomingAuctions([]);
+            return;
+        }
+
+        const loadAuctions = async () => {
+            setLoadingAuctions(true);
+            try {
+                // Get closest upcoming auctions
+                const res = await AuctionService.getAuctionEvents({ state: selectedState, limit: 5 });
+                setUpcomingAuctions(res.items || []);
+            } catch (err) {
+                console.error(`MapDashboard: Failed to load upcoming auctions for state ${selectedState}`, err);
+            } finally {
+                setLoadingAuctions(false);
+            }
+        };
+
+        loadAuctions();
+    }, [selectedState, activeMode]);
+
     return (
         <DashboardErrorBoundary>
         <div className="w-full h-full flex flex-col gap-4 bg-[#070d1a] text-white p-4 md:p-6 rounded-3xl border border-[#1a4554]/20 shadow-2xl select-none relative overflow-hidden">
@@ -246,13 +276,27 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
                         <Award size={12} />
                         Deals
                     </button>
+                    <button
+                        onClick={() => {
+                            setActiveMode('analytics');
+                            onStateClick(''); // Clear selected state on mode switch
+                        }}
+                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 ${
+                            activeMode === 'analytics'
+                                ? 'bg-blue-500 text-[#070d1a] shadow-lg'
+                                : 'text-slate-400 hover:text-blue-400'
+                        }`}
+                    >
+                        <BarChart2 size={12} />
+                        Analytics
+                    </button>
                 </div>
             </div>
 
             {/* Main Content Dashboard with Split Panel support */}
             <div className="relative z-10 flex-1 flex flex-col md:flex-row gap-4 overflow-hidden h-full">
                 {/* Visual Map Area */}
-                <div className={`flex-1 flex flex-col gap-3 min-h-[350px] bg-[#073642]/20 backdrop-blur-md rounded-2xl border border-[#1a4554]/25 p-4 justify-center items-center relative overflow-hidden transition-all duration-500 ${selectedState ? 'md:max-w-[65%]' : 'w-full'}`}>
+                <div className={`${!selectedState ? 'flex-1 flex' : 'hidden'} flex-col gap-3 min-h-[350px] bg-[#073642]/20 backdrop-blur-md rounded-2xl border border-[#1a4554]/25 p-4 justify-center items-center relative overflow-hidden transition-all duration-500 w-full`}>
                     
                     {/* Glowing indicators */}
                     <div className="absolute top-4 left-4 flex flex-col gap-2">
@@ -289,6 +333,17 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
                                 </span>
                             </div>
                         )}
+                        {activeMode === 'analytics' && (
+                            <div className="flex items-center gap-2 bg-[#002b36]/60 border border-[#1a4554]/40 px-2.5 py-1.5 rounded-lg">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-400"></span>
+                                </span>
+                                <span className="text-[9px] font-black uppercase tracking-wider text-blue-400">
+                                    Global Analytics View
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="w-full flex-1 flex items-center justify-center p-2 relative">
@@ -318,10 +373,18 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
 
                 {/* Dynamic Slide-out Sliding Details Panel */}
                 {selectedState && (
-                    <div className="w-full md:w-[35%] bg-[#002b36]/90 backdrop-blur-md border border-[#1a4554]/30 rounded-2xl p-4 flex flex-col gap-4 overflow-y-auto transition-all duration-300">
+                    <div className="w-full bg-[#002b36]/90 backdrop-blur-md border border-[#1a4554]/30 rounded-2xl p-4 flex flex-col gap-4 overflow-y-auto transition-all duration-300">
                         {/* Panel Header */}
                         <div className="flex justify-between items-center border-b border-[#1a4554]/20 pb-2">
                             <div className="flex items-center gap-2">
+                                <button 
+                                    onClick={() => onStateClick(selectedState)} 
+                                    className="p-1.5 mr-2 bg-[#073642]/50 hover:bg-cyan-500/20 rounded-lg text-slate-400 hover:text-cyan-400 transition-colors flex items-center gap-1"
+                                    title="Back to Map"
+                                >
+                                    <ArrowLeft size={16} />
+                                    <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline-block">Back</span>
+                                </button>
                                 <span className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-400">
                                     {selectedState}
                                 </span>
@@ -395,6 +458,32 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <div className="bg-[#073642]/30 border border-[#1a4554]/20 rounded-xl p-3 flex flex-col gap-2">
+                                    <h4 className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mb-1">Upcoming Auctions</h4>
+                                    {loadingAuctions ? (
+                                        <div className="flex items-center justify-center py-4">
+                                            <RefreshCw className="animate-spin text-amber-400" size={14} />
+                                        </div>
+                                    ) : upcomingAuctions.length === 0 ? (
+                                        <p className="text-[10px] text-slate-400 italic">No upcoming auctions found for {selectedState}.</p>
+                                    ) : (
+                                        <div className="flex flex-col gap-2 max-h-[180px] overflow-y-auto no-scrollbar scrollbar-none">
+                                            {upcomingAuctions.map(auc => (
+                                                <div key={auc.id} className="bg-[#002b36]/60 border border-[#1a4554]/30 rounded p-2 text-[10px]">
+                                                    <div className="flex justify-between font-bold text-white mb-1">
+                                                        <span className="truncate pr-2">{auc.name || `Auction #${auc.id}`}</span>
+                                                        <span className="text-amber-400 shrink-0">{auc.auction_date ? new Date(auc.auction_date).toLocaleDateString() : 'TBA'}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-slate-400">
+                                                        <span>{auc.county} County</span>
+                                                        <span className="uppercase">{auc.tax_status || 'Unknown'}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 
@@ -424,24 +513,74 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
                                             {localDeals.slice(0, 4).map((prop, idx) => (
                                                 <div 
                                                     key={prop.parcel_id} 
-                                                    onClick={() => onPreviewProperty && onPreviewProperty(prop.parcel_id)}
-                                                    className="bg-[#073642]/30 border border-[#1a4554]/20 hover:border-purple-500/40 hover:bg-[#073642]/50 active:scale-[0.98] p-2.5 rounded-xl transition-all flex items-center justify-between gap-2 cursor-pointer"
+                                                    className="bg-[#073642]/30 border border-[#1a4554]/20 hover:border-purple-500/40 p-2.5 rounded-xl transition-all flex flex-col gap-2 group"
                                                 >
-                                                    <div className="min-w-0">
-                                                        <p className="text-[10px] font-bold text-white truncate">{prop.address || prop.parcel_id}</p>
-                                                        <p className="text-[8px] text-slate-400 uppercase tracking-widest mt-0.5">{prop.county} County</p>
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <div className="min-w-0">
+                                                            <p className="text-[10px] font-bold text-white truncate" title={prop.address || String(prop.parcel_id)}>
+                                                                {prop.address || prop.parcel_id}
+                                                            </p>
+                                                            <p className="text-[8px] text-slate-400 uppercase tracking-widest mt-0.5">{prop.county} County</p>
+                                                        </div>
+                                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
+                                                            prop.rating === 'A+' || prop.rating === 'A' 
+                                                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
+                                                                : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                                        }`}>
+                                                            {prop.deal_score} {prop.rating}
+                                                        </span>
                                                     </div>
-                                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
-                                                        prop.rating === 'A+' || prop.rating === 'A' 
-                                                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' 
-                                                            : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                                                    }`}>
-                                                        {prop.deal_score} {prop.rating}
-                                                    </span>
+                                                    
+                                                    {/* Actions Row */}
+                                                    <div className="flex items-center gap-2 mt-1 pt-2 border-t border-[#1a4554]/20 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); onPreviewProperty && onPreviewProperty(prop.parcel_id); }}
+                                                            className="flex-1 bg-[#002b36]/60 hover:bg-cyan-500/20 text-cyan-400 border border-[#1a4554]/40 hover:border-cyan-500/40 rounded py-1 flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors"
+                                                        >
+                                                            <Eye size={10} /> Preview
+                                                        </button>
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); onOpenPropertyDetails && onOpenPropertyDetails(prop.parcel_id, prop.parcel_id); }}
+                                                            className="flex-1 bg-[#002b36]/60 hover:bg-purple-500/20 text-purple-400 border border-[#1a4554]/40 hover:border-purple-500/40 rounded py-1 flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase tracking-wider transition-colors"
+                                                        >
+                                                            Dossier <ArrowRight size={10} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
+                                </div>
+                            </div>
+                        )}
+
+                        {activeMode === 'analytics' && (
+                            <div className="flex flex-col gap-4">
+                                <div className="bg-[#073642]/30 border border-[#1a4554]/20 rounded-xl p-3">
+                                    <h4 className="text-[10px] text-blue-400 font-bold uppercase tracking-wider mb-2">State KPI Overview</h4>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div className="bg-[#002b36]/60 border border-[#1a4554]/30 rounded-lg p-2">
+                                            <div className="text-[8px] text-slate-400 uppercase tracking-widest mb-1">Total Properties</div>
+                                            <div className="text-sm font-black text-white">{activeStateStat?.volume || 0}</div>
+                                        </div>
+                                        <div className="bg-[#002b36]/60 border border-[#1a4554]/30 rounded-lg p-2">
+                                            <div className="text-[8px] text-slate-400 uppercase tracking-widest mb-1">Avg Deal Score</div>
+                                            <div className="text-sm font-black text-purple-400">{activeStateStat?.average_score ? Math.round(activeStateStat.average_score) : 0}</div>
+                                        </div>
+                                    </div>
+                                    <div className="mt-3 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-lg p-2">
+                                        <div className="text-[8px] text-slate-400 uppercase tracking-widest mb-2">Portfolio Mix</div>
+                                        <div className="flex h-2 w-full rounded-full overflow-hidden mb-1">
+                                            <div style={{ width: `${((activeStateStat?.deed_volume || 0) / Math.max(1, (activeStateStat?.volume || 1))) * 100}%`, backgroundColor: '#8B5CF6' }}></div>
+                                            <div style={{ width: `${((activeStateStat?.lien_volume || 0) / Math.max(1, (activeStateStat?.volume || 1))) * 100}%`, backgroundColor: '#F59E0B' }}></div>
+                                            <div style={{ width: `${((activeStateStat?.foreclosure_volume || 0) / Math.max(1, (activeStateStat?.volume || 1))) * 100}%`, backgroundColor: '#EF4444' }}></div>
+                                        </div>
+                                        <div className="flex justify-between text-[8px] text-slate-400 uppercase tracking-widest">
+                                            <span className="text-[#8B5CF6]">Deeds</span>
+                                            <span className="text-[#F59E0B]">Liens</span>
+                                            <span className="text-[#EF4444]">Foreclosures</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
