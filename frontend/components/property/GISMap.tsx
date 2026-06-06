@@ -23,15 +23,16 @@ export const GISMap: React.FC<GISMapProps> = ({ property, className = "h-[450px]
 
         mapboxgl.accessToken = token;
 
-        // Default to US center if no coordinates
         let lng = -98.5795;
         let lat = 39.8283;
         let zoom = 4;
 
+        let hasCoords = false;
         if (property.longitude && property.latitude) {
             lng = parseFloat(property.longitude);
             lat = parseFloat(property.latitude);
             zoom = 18; // Close zoom for satellite
+            hasCoords = true;
         }
 
         map.current = new mapboxgl.Map({
@@ -44,39 +45,70 @@ export const GISMap: React.FC<GISMapProps> = ({ property, className = "h-[450px]
 
         map.current.addControl(new mapboxgl.NavigationControl(), 'top-right');
 
-        map.current.on('load', () => {
+        const initializeMapLayers = (currentLng: number, currentLat: number, isGeocoded: boolean) => {
             if (!map.current) return;
 
             // Add a marker for the property center
-            if (property.longitude && property.latitude) {
+            if (hasCoords || isGeocoded) {
                 new mapboxgl.Marker({ color: '#0ea5e9' })
-                    .setLngLat([lng, lat])
+                    .setLngLat([currentLng, currentLat])
                     .addTo(map.current);
             }
 
             // Add ATTOM Parcel Tiles layer
             try {
-                map.current.addSource('attom-parcels', {
-                    type: 'raster',
-                    tiles: [
-                        `${API_BASE_URL}/api/v1/properties/parceltiles/{z}/{x}/{y}.png`
-                    ],
-                    tileSize: 256,
-                    attribution: '&copy; ATTOM Data Solutions'
-                });
+                if (!map.current.getSource('attom-parcels')) {
+                    map.current.addSource('attom-parcels', {
+                        type: 'raster',
+                        tiles: [
+                            `${API_BASE_URL}/api/v1/properties/parceltiles/{z}/{x}/{y}.png`
+                        ],
+                        tileSize: 256,
+                        attribution: '&copy; ATTOM Data Solutions'
+                    });
 
-                map.current.addLayer({
-                    id: 'attom-parcels-layer',
-                    type: 'raster',
-                    source: 'attom-parcels',
-                    minzoom: 14,
-                    maxzoom: 22,
-                    paint: {
-                        'raster-opacity': 0.8
-                    }
-                });
+                    map.current.addLayer({
+                        id: 'attom-parcels-layer',
+                        type: 'raster',
+                        source: 'attom-parcels',
+                        minzoom: 14,
+                        maxzoom: 22,
+                        paint: {
+                            'raster-opacity': 0.8
+                        }
+                    });
+                }
             } catch (e) {
                 console.error('Failed to add ATTOM parcel tiles layer:', e);
+            }
+        };
+
+        map.current.on('load', () => {
+            initializeMapLayers(lng, lat, false);
+
+            // If we don't have explicit coordinates, try to Geocode the address
+            if (!hasCoords) {
+                const addressString = [
+                    property.address || property.parcel_address || (property.owner_address ? String(property.owner_address).split('\n')[0] : ''),
+                    property.city,
+                    property.state,
+                    property.zip_code || property.zip
+                ].filter(Boolean).join(', ');
+
+                if (addressString.length > 5) {
+                    fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(addressString)}.json?access_token=${token}&limit=1`)
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.features && data.features.length > 0) {
+                                const [gLng, gLat] = data.features[0].center;
+                                if (map.current) {
+                                    map.current.flyTo({ center: [gLng, gLat], zoom: 18, pitch: 45 });
+                                    initializeMapLayers(gLng, gLat, true);
+                                }
+                            }
+                        })
+                        .catch(err => console.error('Geocoding failed', err));
+                }
             }
         });
 
