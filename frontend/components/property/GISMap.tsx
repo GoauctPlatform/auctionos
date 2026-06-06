@@ -29,10 +29,14 @@ export const GISMap: React.FC<GISMapProps> = ({ property, className = "h-[450px]
 
         let hasCoords = false;
         if (property.longitude && property.latitude) {
-            lng = parseFloat(property.longitude);
-            lat = parseFloat(property.latitude);
-            zoom = 18; // Close zoom for satellite
-            hasCoords = true;
+            const pLng = parseFloat(property.longitude);
+            const pLat = parseFloat(property.latitude);
+            if (!isNaN(pLng) && !isNaN(pLat)) {
+                lng = pLng;
+                lat = pLat;
+                zoom = 18; // Close zoom for satellite
+                hasCoords = true;
+            }
         }
 
         map.current = new mapboxgl.Map({
