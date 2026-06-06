@@ -456,7 +456,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 />
             )}
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+            <div className="w-full mb-6">
                 {/* Zillow-style Street View Hero */}
                 <div className="relative w-full h-[300px] sm:h-[450px] bg-slate-100 dark:bg-slate-900 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg group">
                     {getStreetViewUrl(property) && !streetViewError ? (
@@ -494,9 +494,6 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         </a>
                     )}
                 </div>
-
-                {/* GIS Lot Map */}
-                <GISMap property={property} className="h-[300px] sm:h-[450px]" />
             </div>
 
             {/* Import Error Banner */}
@@ -569,7 +566,8 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
                     <PropertyRedemptionCard stateCode={property.state} auctionType={property.auction_type} />
 
-                    <div id="tour-property-maps">
+                    <div id="tour-property-maps" className="space-y-4">
+                        <GISMap property={property} className="w-full h-[300px] sm:h-[450px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg" />
                         <PropertyMap property={property} />
                     </div>
 

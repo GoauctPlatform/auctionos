@@ -1599,62 +1599,7 @@ async def validate_property_gsi(
         }
 
 
-@router.get("/{parcel_id}/streetview")
-def get_property_streetview(
-    parcel_id: str,
-    db: Session = Depends(deps.get_db)
-):
-    """
-    Secure proxy endpoint for Google Street View static images.
-    - Prevents leaking the server's Google API Key to the client.
-    - Resolves coordinates or address dynamically.
-    - Caches responses locally to avoid redundant billing from Google.
-    """
-    import httpx
-    
-    # 1. Resolve uploads directory
-    uploads_dir = os.getenv("UPLOADS_DIR", os.path.join(os.getcwd(), "uploads"))
-    streetview_dir = os.path.join(uploads_dir, "streetview")
-    os.makedirs(streetview_dir, exist_ok=True)
-    
-    cached_path = os.path.join(streetview_dir, f"{parcel_id}.jpg")
-    no_image_path = os.path.join(streetview_dir, f"{parcel_id}_no_image.txt")
-    
-    # 2. Check cache
-    if os.path.exists(cached_path):
-        return FileResponse(cached_path, media_type="image/jpeg")
-        
-    if os.path.exists(no_image_path):
-        raise HTTPException(status_code=404, detail="Street View imagery not available at this location.")
-        
-    # 3. Fetch property details to construct search location
-    query = text("""
-        SELECT id, address, county, state, latitude, longitude
-        FROM property_details
-        WHERE parcel_id = :pid OR id::text = :pid OR property_id = :pid
-        LIMIT 1
-    """)
-    row = db.execute(query, {"pid": parcel_id}).fetchone()
-    if not row:
-        raise HTTPException(status_code=404, detail="Property not found")
-        
-    # 4. Construct location string
-    lat = row.latitude
-    lng = row.longitude
-    if lat is not None and lng is not None:
-        location_str = f"{lat},{lng}"
-    else:
-        address = row.address or ""
-        county = row.county or ""
-        state = row.state or ""
-        location_parts = [address, county, state]
-        location_str = ", ".join([p for p in location_parts if p]).strip()
-        if not location_str or location_str == ", ,":
-            location_str = parcel_id
-            
-    if not location_str:
-        raise HTTPException(status_code=400, detail="Insufficient location details to look up Street View.")
-        
+
 @router.get("/{parcel_id}/streetview")
 def get_property_streetview(
     parcel_id: str,
@@ -1695,7 +1640,7 @@ def get_property_streetview(
         """)
         row = db.execute(query, {"pid": parcel_id}).fetchone()
         if not row:
-            raise HTTPException(status_code=404, detail="Property not found")
+            raise HTTPException(status_code=404, detail=f"Property not found: {parcel_id}")
             
         # 4. Construct location string
         lat = row.latitude
