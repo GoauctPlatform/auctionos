@@ -4123,7 +4123,7 @@ export const ClientWorkbench: React.FC = () => {
         })}
 
         {/* ─── DOCK / BARRA DE TAREFAS HÍBRIDA (Estilo macOS) ─── */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-sol-base02/85 backdrop-blur-md rounded-2xl border border-slate-700/50 dark:border-sol-base01/30 flex items-center gap-3 z-[99999] shadow-2xl transition-all select-none max-w-[95vw] sm:max-w-max">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-sol-base02/85 backdrop-blur-md rounded-2xl border border-slate-700/50 dark:border-sol-base01/30 flex items-center gap-3 z-[99999] shadow-2xl transition-all select-none max-w-[95vw] lg:max-w-[85vw]">
           {/* Core Shortcuts to open windows */}
           <div className="flex items-center gap-3 shrink-0">
             {[
@@ -4179,7 +4179,7 @@ export const ClientWorkbench: React.FC = () => {
 
           {/* Open Property Details Windows list (SCROLLABLE) */}
           {overlayWindows.filter(w => w.type === 'property_details').length > 0 && (
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-1 min-w-0 pr-2">
               {overlayWindows.filter(w => w.type === 'property_details').map(w => {
                 const isActive = activeOverlayWindowId === w.id;
                 return (
