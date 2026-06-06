@@ -233,6 +233,7 @@ export const ClientWorkbench: React.FC = () => {
   });
 
   const [previewPropertyId, setPreviewPropertyId] = useState<string | number | null>(null);
+  const [layoutLoadedFromDb, setLayoutLoadedFromDb] = useState(false);
 
   // Load layout from backend database/Redis cache on mount
   useEffect(() => {
@@ -290,6 +291,7 @@ export const ClientWorkbench: React.FC = () => {
         console.error('Failed to fetch workbench layout from backend:', err);
       } finally {
         hasLoadedLayoutRef.current = true;
+        setLayoutLoadedFromDb(true);
       }
     };
     fetchLayout();
@@ -2091,6 +2093,8 @@ export const ClientWorkbench: React.FC = () => {
   }, [debouncedSaveLayout]);
 
   const onGridLayoutChange = useCallback((layout: any[]) => {
+    if (!layoutLoadedFromDb) return;
+    
     // Merge new grid coordinates with our widget state
     updateWidgetsAndSave(prev => {
       return prev.map(w => {
@@ -3780,16 +3784,6 @@ export const ClientWorkbench: React.FC = () => {
               {/* Responsive Grid Layout widgets list */}
               <ResponsiveGridLayout
                 className="layout w-full min-h-[800px] pb-32"
-                layouts={{
-                  lg: widgets.filter(w => w.visible).map(w => ({
-                    i: w.id,
-                    x: w.x,
-                    y: w.y,
-                    w: w.isIcon ? 1 : w.w,
-                    h: w.isIcon ? 1 : w.h,
-                    isResizable: !w.isIcon
-                  }))
-                }}
                 breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
                 cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                 rowHeight={120}
@@ -3801,6 +3795,14 @@ export const ClientWorkbench: React.FC = () => {
                 useCSSTransforms={true}
               >
               {widgets.filter(w => w.visible).map(w => {
+                const gridProps = {
+                  x: w.x,
+                  y: w.y,
+                  w: w.isIcon ? 1 : w.w,
+                  h: w.isIcon ? 1 : w.h,
+                  isResizable: !w.isIcon
+                };
+
                 if (w.isIcon) {
                   // Render compact app-like shortcut icon card
                   const Icon = w.type === 'map' ? Map :
@@ -3815,6 +3817,7 @@ export const ClientWorkbench: React.FC = () => {
                   return (
                     <div
                       key={w.id}
+                      data-grid={gridProps}
                       onClick={() => focusWidget(w.id)}
                       onDoubleClick={(e) => {
                         e.stopPropagation();
@@ -3853,6 +3856,7 @@ export const ClientWorkbench: React.FC = () => {
                 return (
                   <div
                     key={w.id}
+                    data-grid={gridProps}
                     id={
                       w.id === 'map' ? 'tour-yield-heatmap' :
                         w.id === 'smart_ai_finder' ? 'tour-suggested-deals' :
@@ -3924,6 +3928,19 @@ export const ClientWorkbench: React.FC = () => {
 
             {/* Infinite Canvas Floating Zoom & Lock Panel (Bottom-Left) */}
             <div className="absolute bottom-4 left-4 z-[100] flex flex-col items-center gap-2 p-1.5 bg-white/90 dark:bg-sol-base02/90 backdrop-blur-md border border-slate-200/80 dark:border-sol-base01/30 rounded-2xl shadow-2xl select-none">
+              {/* Reset Auto-Arrange Button */}
+              <button
+                onClick={() => {
+                  updateWidgetsAndSave(() => DEFAULT_WIDGETS.map(d => ({ ...d, isIcon: true })));
+                }}
+                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-all shadow-sm"
+                title="Auto Arrange / Reset Widgets"
+              >
+                <LayoutGrid size={14} />
+              </button>
+
+              <div className="w-6 h-[1px] bg-slate-200 dark:bg-sol-base01/30" />
+
               {/* Lock Button */}
               <button
                 onClick={() => setIsCanvasLocked(prev => !prev)}
