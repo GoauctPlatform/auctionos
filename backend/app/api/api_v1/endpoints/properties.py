@@ -1716,27 +1716,49 @@ def get_property_streetview(
 def get_attom_parcel_tiles(z: str, x: str, y: str):
     """
     Proxy ATTOM Parcel Tiles API to hide the API key from the frontend.
+    Caches the binary tiles in Redis for 30 days to drastically reduce ATTOM API costs.
     """
     import os
+    import redis
     from dotenv import dotenv_values
+    from fastapi import Response, HTTPException
+    
     env_vars = dotenv_values(".env")
     api_key = env_vars.get("ATTOM_API_KEY") or os.getenv("ATTOM_API_KEY") or settings.ATTOM_API_KEY
     if not api_key:
         raise HTTPException(status_code=500, detail="ATTOM API Key not configured on server.")
         
+    cache_key = f"attom_tile:{z}:{x}:{y}"
+    r = None
+    try:
+        r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=False)
+        cached_tile = r.get(cache_key)
+        if cached_tile:
+            # Return cached image instantly without hitting ATTOM API
+            return Response(content=cached_tile, media_type="image/png")
+    except Exception as e:
+        print(f"Redis cache error: {e}")
+        # Proceed without cache if Redis is down
+
     attom_url = f"https://api.gateway.attomdata.com/parceltiles/{z}/{x}/{y}.png"
     
     try:
         import requests
-        from fastapi.responses import StreamingResponse
-        res = requests.get(attom_url, params={"apikey": api_key}, stream=True, timeout=5.0)
+        res = requests.get(attom_url, params={"apikey": api_key}, timeout=5.0)
         if res.status_code == 200:
-            return StreamingResponse(res.iter_content(chunk_size=8192), media_type="image/png")
+            tile_content = res.content
+            # Cache the tile for 30 days (2592000 seconds)
+            if r:
+                try:
+                    r.setex(cache_key, 2592000, tile_content)
+                except Exception as e:
+                    print(f"Failed to save tile to Redis: {e}")
+            return Response(content=tile_content, media_type="image/png")
         elif res.status_code == 204:
             # Empty tile
             raise HTTPException(status_code=204, detail="No content")
         else:
-            raise HTTPException(status_code=res.status_code, detail=f"Failed to fetch tiles: {res.text}. Key len: {len(api_key) if api_key else 0}, starts with: {api_key[:4] if api_key else 'None'}")
+            raise HTTPException(status_code=res.status_code, detail=f"Failed to fetch tiles: {res.text}")
     except HTTPException:
         raise
     except Exception as e:

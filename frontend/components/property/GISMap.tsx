@@ -141,7 +141,7 @@ export const GISMap: React.FC<GISMapProps> = ({ property, className = "h-[450px]
                     url={`${API_BASE_URL}/api/v1/properties/parceltiles/{z}/{x}/{y}.png`}
                     attribution="&copy; ATTOM Data Solutions"
                     maxZoom={22}
-                    minZoom={14}
+                    minZoom={17}
                     opacity={1}
                     className="saturate-[3] contrast-[1.5] drop-shadow-md"
                 />
