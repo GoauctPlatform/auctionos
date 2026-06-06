@@ -17,11 +17,34 @@ interface GISMapProps {
     className?: string;
 }
 
-// Component to handle dynamic recentering and geocoding
+// Component to handle dynamic recentering, geocoding, and resize bugs
 const MapController = ({ property }: { property: any }) => {
     const map = useMap();
 
     useEffect(() => {
+        // Fix for "cut off" grey areas in Leaflet when container size changes
+        const fixSize = () => {
+            if (map) {
+                map.invalidateSize();
+            }
+        };
+        
+        // Trigger resize multiple times to ensure all CSS transitions are caught
+        setTimeout(fixSize, 100);
+        setTimeout(fixSize, 500);
+        setTimeout(fixSize, 1500);
+
+        // Add a ResizeObserver to automatically fix size if layout changes
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => {
+                if (map) map.invalidateSize();
+            });
+        });
+        const container = map.getContainer();
+        if (container) {
+            resizeObserver.observe(container);
+        }
+
         let hasCoords = false;
         let pLng = -98.5795;
         let pLat = 39.8283;
@@ -63,6 +86,11 @@ const MapController = ({ property }: { property: any }) => {
                     .catch(err => console.error('Geocoding failed', err));
             }
         }
+
+        return () => {
+            if (container) resizeObserver.unobserve(container);
+            resizeObserver.disconnect();
+        };
     }, [property, map]);
 
     return null;
@@ -104,7 +132,7 @@ export const GISMap: React.FC<GISMapProps> = ({ property, className = "h-[450px]
                 {/* Satellite Base Layer (ESRI World Imagery) */}
                 <TileLayer
                     url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                    attribution="Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community"
+                    attribution="Tiles &copy; Esri &mdash; Source: Esri"
                     maxZoom={19}
                 />
                 
@@ -114,7 +142,8 @@ export const GISMap: React.FC<GISMapProps> = ({ property, className = "h-[450px]
                     attribution="&copy; ATTOM Data Solutions"
                     maxZoom={22}
                     minZoom={14}
-                    opacity={0.8}
+                    opacity={1}
+                    className="saturate-[3] contrast-[1.5] drop-shadow-md"
                 />
 
                 {hasCoords && <Marker position={[initialLat, initialLng]} />}
