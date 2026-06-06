@@ -124,14 +124,13 @@ interface Widget {
   id: string;
   type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'settings' | 'activity_logs';
   title: string;
-  x: number; // left offset in pixels
-  y: number; // top offset in pixels
-  w: number; // width in pixels
-  h: number; // height in pixels
+  x: number; // grid column index
+  y: number; // grid row index
+  w: number; // width in grid columns
+  h: number; // height in grid rows
   visible: boolean;
   zIndex: number;
   isLocked?: boolean;
-  isIcon?: boolean;
   refreshKey?: number;
 }
 
@@ -150,10 +149,14 @@ interface OverlayWindow {
   refreshKey?: number;
 }
 
+// Default layout: 2 widgets side-by-side, each occupying 6 of 12 columns
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 0, y: 0, w: 8, h: 4, visible: true, zIndex: 10, isIcon: true },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 1, y: 0, w: 4, h: 4, visible: true, zIndex: 5, isIcon: true }
+  { id: 'map',             type: 'map',            title: 'US Heatmap & Activity',  x: 0, y: 0, w: 6, h: 5, visible: true, zIndex: 10 },
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 6, y: 0, w: 6, h: 5, visible: true, zIndex: 5  },
 ];
+
+// localStorage key — bump version to clear stale icon state
+const LAYOUT_KEY = 'goauct_workbench_v65';
 
 
 export const ClientWorkbench: React.FC = () => {
@@ -175,49 +178,45 @@ export const ClientWorkbench: React.FC = () => {
   }, []);
 
   // States
+  // Widgets state — initialized from localStorage (sync), then overwritten from backend (async)
   const [widgets, setWidgets] = useState<Widget[]>(() => {
     try {
-      const saved = localStorage.getItem('goauct_workbench_widgets_v64');
+      const saved = localStorage.getItem(LAYOUT_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          const knownDefaultsMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
+          const knownMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
           const sanitized: Widget[] = parsed
-            .filter((w: any) => typeof w.id === 'string' && w.id.length > 0 && knownDefaultsMap.has(w.id))
+            .filter((w: any) => typeof w.id === 'string' && knownMap.has(w.id))
             .map((w: any) => {
-              const def = knownDefaultsMap.get(w.id);
+              const def = knownMap.get(w.id)!;
               return {
-                ...(def ?? {}),
+                ...def,
                 ...w,
-                x: typeof w.x === 'number' && isFinite(w.x) ? w.x : (def?.x ?? 0),
-                y: typeof w.y === 'number' && isFinite(w.y) ? w.y : (def?.y ?? 0),
-                w: typeof w.w === 'number' && isFinite(w.w) && w.w > 0 ? w.w : (def?.w ?? 6),
-                h: typeof w.h === 'number' && isFinite(w.h) && w.h > 0 ? w.h : (def?.h ?? 4),
-                visible: typeof w.visible === 'boolean' ? w.visible : (def?.visible ?? false),
-                zIndex: typeof w.zIndex === 'number' && isFinite(w.zIndex) ? w.zIndex : (def?.zIndex ?? 10),
-                isLocked: typeof w.isLocked === 'boolean' ? w.isLocked : (def?.isLocked ?? false),
-                isIcon: typeof w.isIcon === 'boolean' ? w.isIcon : (isMobileView() ? true : false),
+                x: Number.isFinite(w.x) ? w.x : def.x,
+                y: Number.isFinite(w.y) ? w.y : def.y,
+                w: Number.isFinite(w.w) && w.w > 0 ? w.w : def.w,
+                h: Number.isFinite(w.h) && w.h > 0 ? w.h : def.h,
+                visible: typeof w.visible === 'boolean' ? w.visible : def.visible,
+                zIndex: Number.isFinite(w.zIndex) ? w.zIndex : def.zIndex,
               } as Widget;
             });
-
+          // Add any new widgets not in saved state
           const savedIds = new Set(sanitized.map(w => w.id));
-          const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id))
-            .map(d => ({
-              ...d,
-              isIcon: isMobileView() ? true : false
-            }));
-
-          return [...sanitized, ...newDefaults];
+          const missing = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id));
+          return [...sanitized, ...missing];
         }
       }
     } catch (e) {
-      console.error('Failed to parse goauct_workbench_widgets_v64 from localStorage, falling back to default:', e);
+      console.error('Failed to parse workbench layout from localStorage:', e);
     }
-    return DEFAULT_WIDGETS.map(d => ({
-      ...d,
-      isIcon: isMobileView() ? true : false
-    }));
+    return DEFAULT_WIDGETS;
   });
+
+  // Guard: only allow onLayoutChange to save AFTER the user has actually dragged/resized.
+  // This prevents the grid's automatic mount-time layout recalculation from overwriting the user's saved state.
+  const userInteractedRef = useRef(false);
+
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     const saved = localStorage.getItem('goauct_workbench_sidebarOpen');
     return saved === null ? true : saved === 'true';
@@ -233,69 +232,66 @@ export const ClientWorkbench: React.FC = () => {
   });
 
   const [previewPropertyId, setPreviewPropertyId] = useState<string | number | null>(null);
-  const [layoutLoadedFromDb, setLayoutLoadedFromDb] = useState(false);
 
-  // Load layout from backend database/Redis cache on mount
+  // Load layout from backend database/Redis cache on mount.
+  // IMPORTANT: we only enable saves via onLayoutChange AFTER this completes,
+  // to prevent the grid's mount-time auto-recalculation from overwriting user preferences.
   useEffect(() => {
     const fetchLayout = async () => {
       try {
         const layout = await UserService.getWorkbenchLayout();
         if (layout && Array.isArray(layout) && layout.length > 0) {
-          const knownDefaultsMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
+          const knownMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
           const sanitized: Widget[] = layout
-            .filter((w: any) => typeof w.id === 'string' && w.id.length > 0 && knownDefaultsMap.has(w.id))
+            .filter((w: any) => typeof w.id === 'string' && knownMap.has(w.id))
             .map((w: any) => {
-              const def = knownDefaultsMap.get(w.id);
+              const def = knownMap.get(w.id)!;
               return {
-                ...(def ?? {}),
+                ...def,
                 ...w,
-                x: typeof w.x === 'number' && isFinite(w.x) ? w.x : (def?.x ?? 0),
-                y: typeof w.y === 'number' && isFinite(w.y) ? w.y : (def?.y ?? 0),
-                w: typeof w.w === 'number' && isFinite(w.w) && w.w > 0 ? w.w : (def?.w ?? 6),
-                h: typeof w.h === 'number' && isFinite(w.h) && w.h > 0 ? w.h : (def?.h ?? 4),
-                visible: typeof w.visible === 'boolean' ? w.visible : (def?.visible ?? false),
-                zIndex: typeof w.zIndex === 'number' && isFinite(w.zIndex) ? w.zIndex : (def?.zIndex ?? 10),
-                isLocked: typeof w.isLocked === 'boolean' ? w.isLocked : (def?.isLocked ?? false),
-                isIcon: typeof w.isIcon === 'boolean' ? w.isIcon : (isMobileView() ? true : false),
+                x: Number.isFinite(w.x) ? w.x : def.x,
+                y: Number.isFinite(w.y) ? w.y : def.y,
+                w: Number.isFinite(w.w) && w.w > 0 ? w.w : def.w,
+                h: Number.isFinite(w.h) && w.h > 0 ? w.h : def.h,
+                visible: typeof w.visible === 'boolean' ? w.visible : def.visible,
+                zIndex: Number.isFinite(w.zIndex) ? w.zIndex : def.zIndex,
               } as Widget;
             });
-
           const savedIds = new Set(sanitized.map(w => w.id));
-          const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id))
-            .map(d => ({
-              ...d,
-              isIcon: isMobileView() ? true : false
-            }));
-          
-          setWidgets([...sanitized, ...newDefaults]);
-          logConsoleActivity('Loaded custom workbench layout from database and Redis.');
+          const missing = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id));
+          const merged = [...sanitized, ...missing];
+          setWidgets(merged);
+          localStorage.setItem(LAYOUT_KEY, JSON.stringify(merged));
+          logConsoleActivity('Loaded workbench layout from database & Redis.');
         } else {
-          // If backend has no layout, try to synchronize current local state
-          const localLayout = localStorage.getItem('goauct_workbench_widgets_v64');
+          // Backend has no layout yet — push our current local state up
+          const localLayout = localStorage.getItem(LAYOUT_KEY);
           if (localLayout) {
             try {
               const parsed = JSON.parse(localLayout);
               if (Array.isArray(parsed) && parsed.length > 0) {
                 await UserService.saveWorkbenchLayout(parsed);
-                logConsoleActivity('Synchronized local grid layout to database and Redis.');
+                logConsoleActivity('Synchronized local layout to database & Redis.');
               }
             } catch (err) {
               console.error('Failed to sync local layout to backend:', err);
             }
           } else {
             await UserService.saveWorkbenchLayout(DEFAULT_WIDGETS);
-            logConsoleActivity('Synchronized default grid layout to database and Redis.');
+            logConsoleActivity('Initialized default layout in database & Redis.');
           }
         }
       } catch (err) {
         console.error('Failed to fetch workbench layout from backend:', err);
       } finally {
         hasLoadedLayoutRef.current = true;
-        setLayoutLoadedFromDb(true);
+        // CRITICAL: only allow drag/resize saves after this point
+        setTimeout(() => { userInteractedRef.current = true; }, 300);
       }
     };
     fetchLayout();
   }, [logConsoleActivity]);
+
 
   useEffect(() => {
     const syncLocalFavorites = async () => {
@@ -2073,45 +2069,47 @@ export const ClientWorkbench: React.FC = () => {
     window.addEventListener('mouseup', onUp);
   };
 
-  // Debounced API call to save layout to backend to prevent spamming while dragging
+  // Debounced API call to save layout to backend
   const debouncedSaveLayout = useMemo(() => debounce(async (layoutToSave: any[]) => {
     try {
       await UserService.saveWorkbenchLayout(layoutToSave);
-      console.log('Layout automatically saved to database & Redis');
+      console.log('[Workbench] Layout saved to database & Redis');
     } catch (err) {
-      console.error('Failed to autosave layout:', err);
+      console.error('[Workbench] Failed to save layout:', err);
     }
   }, 1500), []);
+
+  // Central save helper — always writes to both localStorage and backend
+  const saveWidgets = useCallback((widgets: Widget[]) => {
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify(widgets));
+    debouncedSaveLayout(widgets);
+  }, [debouncedSaveLayout]);
 
   const updateWidgetsAndSave = useCallback((updater: (prev: Widget[]) => Widget[]) => {
     setWidgets(prev => {
       const next = updater(prev);
-      localStorage.setItem('goauct_workbench_widgets_v64', JSON.stringify(next));
-      debouncedSaveLayout(next);
+      saveWidgets(next);
       return next;
     });
-  }, [debouncedSaveLayout]);
+  }, [saveWidgets]);
 
-  const onGridLayoutChange = useCallback((layout: any[]) => {
-    if (!layoutLoadedFromDb) return;
-    
-    // Merge new grid coordinates with our widget state
-    updateWidgetsAndSave(prev => {
-      return prev.map(w => {
+  // Called by react-grid-layout ONLY when user finishes dragging or resizing a widget.
+  // Using onDragStop + onResizeStop (not onLayoutChange) avoids the mount-time fire.
+  const onItemInteractionEnd = useCallback((layout: any[]) => {
+    if (!userInteractedRef.current) return;
+    setWidgets(prev => {
+      const next = prev.map(w => {
         const updated = layout.find((l: any) => l.i === w.id);
         if (updated) {
-          return { 
-            ...w, 
-            x: updated.x, 
-            y: updated.y, 
-            w: w.isIcon ? w.w : updated.w, 
-            h: w.isIcon ? w.h : updated.h 
-          };
+          return { ...w, x: updated.x, y: updated.y, w: updated.w, h: updated.h };
         }
         return w;
       });
+      saveWidgets(next);
+      return next;
     });
-  }, [updateWidgetsAndSave]);
+  }, [saveWidgets]);
+
 
   // Window Drag & Resize Mouse Handlers
   const handleMouseDown = (
@@ -3781,160 +3779,95 @@ export const ClientWorkbench: React.FC = () => {
                 })()}
               </svg>
 
-              {/* Responsive Grid Layout widgets list */}
+              {/* Dashboard Grid Layout */}
               <ResponsiveGridLayout
                 className="layout w-full min-h-[800px] pb-32"
                 breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
                 cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                 rowHeight={120}
-                onLayoutChange={onGridLayoutChange}
+                layouts={{
+                  lg: widgets.filter(w => w.visible).map(w => ({
+                    i: w.id,
+                    x: w.x,
+                    y: w.y,
+                    w: w.w,
+                    h: w.h,
+                    minW: 2,
+                    minH: 2,
+                  }))
+                }}
+                onDragStop={(_layout, _old, _item, _placeholder, _e, _el) => {
+                  userInteractedRef.current = true;
+                  onItemInteractionEnd(_layout);
+                }}
+                onResizeStop={(_layout, _old, _item, _placeholder, _e, _el) => {
+                  userInteractedRef.current = true;
+                  onItemInteractionEnd(_layout);
+                }}
                 isDraggable={!isCanvasLocked}
                 isResizable={!isCanvasLocked}
                 draggableHandle=".drag-handle"
-                margin={[24, 24]}
+                margin={[16, 16]}
+                containerPadding={[16, 16]}
                 useCSSTransforms={true}
               >
-              {widgets.filter(w => w.visible).map(w => {
-                const gridProps = {
-                  x: w.x,
-                  y: w.y,
-                  w: w.isIcon ? 1 : w.w,
-                  h: w.isIcon ? 1 : w.h,
-                  isResizable: !w.isIcon
-                };
-
-                if (w.isIcon) {
-                  // Render compact app-like shortcut icon card
-                  const Icon = w.type === 'map' ? Map :
-                               w.type === 'smart_ai_finder' ? Brain :
-                               w.type === 'my_lists' ? Folder :
-                               w.type === 'live_auctions' ? Calendar :
-                               w.type === 'property_search' ? Search :
-                               w.type === 'field_missions' ? Gavel :
-                               w.type === 'settings' ? Settings :
-                               Activity;
-                  
-                  return (
-                    <div
-                      key={w.id}
-                      data-grid={gridProps}
-                      onClick={() => focusWidget(w.id)}
-                      onDoubleClick={(e) => {
-                        e.stopPropagation();
-                        updateWidgetsAndSave(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
-                      }}
-                      style={{ zIndex: w.zIndex }}
-                      className="drag-handle flex flex-col items-center justify-center cursor-grab active:cursor-grabbing group/icon select-none w-full h-full"
-                    >
-                      <div
-                        className="relative size-16 rounded-2xl flex items-center justify-center bg-white/60 dark:bg-sol-base02/60 backdrop-blur-md border border-slate-200/50 dark:border-sol-base01/50 shadow-lg group-hover/icon:scale-105 group-hover/icon:border-indigo-500/50 group-hover/icon:shadow-indigo-500/20 transition-all duration-200"
-                        title="Double-click to expand to full window"
-                      >
-                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 opacity-0 group-hover/icon:opacity-100 transition-opacity" />
-                        <Icon className="size-8 text-slate-700 dark:text-slate-200 group-hover/icon:text-indigo-600 dark:group-hover/icon:text-indigo-400 transition-colors" />
-                        
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            updateWidgetsAndSave(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
-                          }}
-                          className="absolute -top-1 -right-1 size-5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-md scale-0 group-hover/icon:scale-100 transition-transform duration-150"
-                          title="Expand"
-                        >
-                          <Maximize size={8} />
-                        </button>
+              {widgets.filter(w => w.visible).map(w => (
+                <div
+                  key={w.id}
+                  id={
+                    w.id === 'map' ? 'tour-yield-heatmap' :
+                      w.id === 'smart_ai_finder' ? 'tour-suggested-deals' :
+                        undefined
+                  }
+                  onClick={() => focusWidget(w.id)}
+                  style={{ zIndex: w.zIndex }}
+                  className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-sol-base01/30 bg-white/80 dark:bg-sol-base02/85 backdrop-blur-xl group/window rounded-2xl h-full"
+                >
+                  {/* Window Title Bar (Drag Handle) */}
+                  <div
+                    className={`drag-handle h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 ${w.isLocked ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`}
+                  >
+                    <div className="flex items-center gap-2 select-none">
+                      <div className="grid grid-cols-2 gap-0.5 opacity-40">
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className="size-[3px] rounded-full bg-slate-500 dark:bg-slate-400" />
+                        ))}
                       </div>
-                      
-                      <span className="text-[11px] font-bold text-center tracking-wide text-slate-800 dark:text-slate-200 mt-2 truncate w-full px-1 drop-shadow-sm group-hover/icon:text-indigo-650 dark:group-hover/icon:text-indigo-400 transition-colors">
-                        {w.title.replace(/^[^\w\s]*/, '').trim()}
+                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white">
+                        {w.title}
                       </span>
                     </div>
-                  );
-                }
 
-                // Otherwise, render full widget window:
-                return (
-                  <div
-                    key={w.id}
-                    data-grid={gridProps}
-                    id={
-                      w.id === 'map' ? 'tour-yield-heatmap' :
-                        w.id === 'smart_ai_finder' ? 'tour-suggested-deals' :
-                          undefined
-                    }
-                    onClick={() => focusWidget(w.id)}
-                    style={{ zIndex: w.zIndex }}
-                    className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-sol-base01/30 bg-white/80 dark:bg-sol-base02/85 backdrop-blur-xl group/window rounded-2xl h-full"
-                  >
-                    {/* Window Title Bar (Drag Handle) */}
-                    <div
-                      className={`drag-handle h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 ${w.isLocked ? 'cursor-default' : 'cursor-move'}`}
-                    >
-                      <div className="flex items-center gap-2 select-none">
-                        <div
-                          className="flex items-center gap-1 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-400/20 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider shadow-sm"
-                        >
-                          <Move size={8} className="animate-pulse" />
-                          <span>Grip</span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-0.5 opacity-30">
-                          {[...Array(6)].map((_, i) => (
-                            <div key={i} className="size-[2px] rounded-full bg-slate-900 dark:bg-white" />
-                          ))}
-                        </div>
-                        <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white">
-                          {w.title}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            updateWidgetsAndSave(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: true } : item));
-                          }}
-                          className="p-1.5 rounded-lg hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-400 hover:text-slate-800 dark:hover:text-white"
-                          title="Collapse to Shortcut Icon"
-                        >
-                          <Smartphone size={12} />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleVisibility(w.id); }}
-                          className="p-1.5 rounded-lg hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-400 hover:text-slate-800 dark:hover:text-white"
-                          title="Minimize"
-                        >
-                          <Minimize2 size={12} />
-                        </button>
-                        <button
-                          onClick={(e) => { e.stopPropagation(); toggleVisibility(w.id); }}
-                          className="p-1.5 rounded-lg hover:bg-red-500/10 hover:text-red-500 text-slate-400"
-                          title="Close"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Window Inner Content Scroll Area */}
-                    <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col" onMouseDown={(e) => e.stopPropagation()}>
-                      {renderWidgetContent(w)}
+                    <div className="flex items-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); toggleVisibility(w.id); }}
+                        className="p-1.5 rounded-lg hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-400 hover:text-slate-800 dark:hover:text-white"
+                        title="Hide Widget"
+                      >
+                        <Minimize2 size={12} />
+                      </button>
                     </div>
                   </div>
-                );
-              })}
+
+                  {/* Window Inner Content Scroll Area */}
+                  <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col" onMouseDown={(e) => e.stopPropagation()}>
+                    {renderWidgetContent(w)}
+                  </div>
+                </div>
+              ))}
               </ResponsiveGridLayout>
             </div>
 
-            {/* Infinite Canvas Floating Zoom & Lock Panel (Bottom-Left) */}
+            {/* Floating Control Panel (Bottom-Left) */}
             <div className="absolute bottom-4 left-4 z-[100] flex flex-col items-center gap-2 p-1.5 bg-white/90 dark:bg-sol-base02/90 backdrop-blur-md border border-slate-200/80 dark:border-sol-base01/30 rounded-2xl shadow-2xl select-none">
-              {/* Reset Auto-Arrange Button */}
+              {/* Reset / Auto-Arrange Button */}
               <button
                 onClick={() => {
-                  updateWidgetsAndSave(() => DEFAULT_WIDGETS.map(d => ({ ...d, isIcon: true })));
+                  userInteractedRef.current = true;
+                  updateWidgetsAndSave(() => DEFAULT_WIDGETS.map(d => ({ ...d, visible: true })));
                 }}
                 className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-all shadow-sm"
-                title="Auto Arrange / Reset Widgets"
+                title="Auto Arrange / Reset Layout"
               >
                 <LayoutGrid size={14} />
               </button>
