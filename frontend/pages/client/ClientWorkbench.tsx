@@ -645,8 +645,10 @@ export const ClientWorkbench: React.FC = () => {
     return localStorage.getItem('goauct_workbench_splitIdeTabId');
   });
   const [splitLeftWidthPct, setSplitLeftWidthPct] = useState<number>(() => {
-    const saved = localStorage.getItem('goauct_workbench_splitLeftWidthPct');
-    return saved ? Number(saved) : 50;
+    // Priority: canvas split key > legacy key > default 33%
+    const saved = localStorage.getItem('goauct_split_pct') ||
+                  localStorage.getItem('goauct_workbench_splitLeftWidthPct');
+    return saved ? Number(saved) : 33;
   });
   const splitDraggingRef = useRef(false);
 
@@ -2046,6 +2048,7 @@ export const ClientWorkbench: React.FC = () => {
 
   // Split panel divider drag handler
   const handleSplitDividerMouseDown = (e: React.MouseEvent) => {
+    if (isCanvasLocked) return;
     e.preventDefault();
     splitDraggingRef.current = true;
     const startX = e.clientX;
@@ -2057,13 +2060,18 @@ export const ClientWorkbench: React.FC = () => {
     const onMove = (moveE: MouseEvent) => {
       if (!splitDraggingRef.current) return;
       const delta = moveE.clientX - startX;
-      const newPct = Math.min(80, Math.max(20, startPct + (delta / containerW) * 100));
+      const newPct = Math.min(60, Math.max(20, startPct + (delta / containerW) * 100));
       setSplitLeftWidthPct(Math.round(newPct));
     };
     const onUp = () => {
       splitDraggingRef.current = false;
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
+      // Persist the split position to localStorage on release
+      setSplitLeftWidthPct(prev => {
+        localStorage.setItem('goauct_split_pct', String(prev));
+        return prev;
+      });
     };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
@@ -3660,264 +3668,162 @@ export const ClientWorkbench: React.FC = () => {
           </div>
         )}
 
-        {/* ─── INTERACTIVE WORKSPACE CANVAS (VIEWPORT) ─── */}
-        {layoutTemplate === 'canvas' && (
-          <div
-            ref={canvasRef}
-            onMouseDown={handleCanvasMouseDown}
-            onTouchStart={handleCanvasTouchStart}
-            className="flex-1 h-full overflow-hidden relative bg-slate-150 dark:bg-[var(--bg-primary)] cursor-grab active:cursor-grabbing border-r border-slate-200 dark:border-slate-800"
-          >
-            {/* Zoomable & Pannable sliding plane container */}
-            <div
-              id="infinite-plane"
-              style={{
-                transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`,
-                transformOrigin: '0 0',
-                width: '4000px',
-                height: '4000px',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                transition: isPanningCanvas ? 'none' : 'transform 0.05s linear',
-              }}
-            >
-              {/* Grid dotted backdrop */}
-              <div
-                className="absolute inset-0 canvas-grid pointer-events-none"
-                style={{
-                  backgroundImage: 'radial-gradient(var(--border) 1.5px, transparent 1.5px)',
-                  backgroundSize: '24px 24px',
-                  opacity: 0.16,
-                }}
-              />
+        {/* ─── SPLIT PANEL WORKBENCH (replaces infinite canvas) ─── */}
+        {layoutTemplate === 'canvas' && (() => {
+          const mapWidget     = widgets.find(w => w.id === 'map');
+          const aiWidget      = widgets.find(w => w.id === 'smart_ai_finder');
+          const mapVisible    = mapWidget?.visible ?? true;
+          const aiVisible     = aiWidget?.visible ?? true;
 
-              {/* Dynamic SVG Connection Arrows Layer */}
-              <svg className="absolute inset-0 pointer-events-none w-full h-full z-0">
-                <defs>
-                  <marker
-                    id="arrow-head"
-                    viewBox="0 0 10 10"
-                    refX="8"
-                    refY="5"
-                    markerWidth="5"
-                    markerHeight="5"
-                    orient="auto-start-reverse"
-                  >
-                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366f1" />
-                  </marker>
-                  <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity="0.85" />
-                    <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.85" />
-                  </linearGradient>
-                </defs>
-                <style>{`
-                @keyframes edge-flow {
-                  to {
-                    stroke-dashoffset: -40;
-                  }
-                }
-                .edge-animation {
-                  animation: edge-flow 1.5s linear infinite;
-                }
-                .custom-scrollbar::-webkit-scrollbar {
-                  width: 6px;
-                  height: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                  background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                  background: #cbd5e1;
-                  border-radius: 4px;
-                }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-                  background: #334155;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                  background: #94a3b8;
-                }
-              `}</style>
-                {/* Render connections */}
-                {(() => {
-                  const connections: { from: string; to: string }[] = [
-                    // Set 1: Deals Suite
-                    { from: 'smart_ai_finder', to: 'dossier' },
-                    { from: 'dossier', to: 'rehab_calc' },
-                    // Set 2: GIS Suite
-                    { from: 'map', to: 'chart' },
-                    { from: 'chart', to: 'yield' }
-                  ];
+          return (
+            <div className="flex-1 flex overflow-hidden min-h-0 relative bg-slate-100 dark:bg-[var(--bg-primary)]">
 
-                  return connections.map((conn, idx) => {
-                    const w1 = widgets.find(w => w.id === conn.from);
-                    const w2 = widgets.find(w => w.id === conn.to);
-
-                    if (!w1 || !w2 || !w1.visible || !w2.visible) return null;
-
-                    const x1 = w1.x + w1.w / 2;
-                    const y1 = w1.y + w1.h / 2;
-                    const x2 = w2.x + w2.w / 2;
-                    const y2 = w2.y + w2.h / 2;
-
-                    const midX = (x1 + x2) / 2;
-                    const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
-
-                    return (
-                      <path
-                        key={idx}
-                        d={path}
-                        stroke="url(#edge-gradient)"
-                        strokeWidth="2.5"
-                        fill="none"
-                        strokeDasharray="6 4"
-                        markerEnd="url(#arrow-head)"
-                        className="edge-animation"
-                      />
-                    );
-                  });
-                })()}
-              </svg>
-
-              {/* Dashboard Grid Layout */}
-              <ResponsiveGridLayout
-                className="layout w-full min-h-[800px] pb-32"
-                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                rowHeight={120}
-                layouts={{
-                  lg: widgets.filter(w => w.visible).map(w => ({
-                    i: w.id,
-                    x: w.x,
-                    y: w.y,
-                    w: w.w,
-                    h: w.h,
-                    minW: 2,
-                    minH: 2,
-                  }))
-                }}
-                onDragStop={(_layout, _old, _item, _placeholder, _e, _el) => {
-                  userInteractedRef.current = true;
-                  onItemInteractionEnd(_layout);
-                }}
-                onResizeStop={(_layout, _old, _item, _placeholder, _e, _el) => {
-                  userInteractedRef.current = true;
-                  onItemInteractionEnd(_layout);
-                }}
-                isDraggable={!isCanvasLocked}
-                isResizable={!isCanvasLocked}
-                draggableHandle=".drag-handle"
-                margin={[16, 16]}
-                containerPadding={[16, 16]}
-                useCSSTransforms={true}
-              >
-              {widgets.filter(w => w.visible).map(w => (
+              {/* ── LEFT PANEL: Smart AI Deal Finder (1/3) ── */}
+              {aiVisible && aiWidget && (
                 <div
-                  key={w.id}
-                  id={
-                    w.id === 'map' ? 'tour-yield-heatmap' :
-                      w.id === 'smart_ai_finder' ? 'tour-suggested-deals' :
-                        undefined
-                  }
-                  onClick={() => focusWidget(w.id)}
-                  style={{ zIndex: w.zIndex }}
-                  className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-sol-base01/30 bg-white/80 dark:bg-sol-base02/85 backdrop-blur-xl group/window rounded-2xl h-full"
+                  style={{ width: `${splitLeftWidthPct}%`, minWidth: '240px', maxWidth: '60%' }}
+                  className="flex flex-col h-full border-r border-slate-200 dark:border-slate-700/60 overflow-hidden shrink-0"
                 >
-                  {/* Window Title Bar (Drag Handle) */}
-                  <div
-                    className={`drag-handle h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 ${w.isLocked ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'}`}
-                  >
-                    <div className="flex items-center gap-2 select-none">
-                      <div className="grid grid-cols-2 gap-0.5 opacity-40">
+                  {/* Panel Title Bar */}
+                  <div className="h-9 px-3 flex items-center justify-between shrink-0 bg-slate-50 dark:bg-sol-base03 border-b border-slate-200 dark:border-slate-700/60">
+                    <div className="flex items-center gap-2">
+                      <div className="grid grid-cols-2 gap-[2px] opacity-40">
                         {[...Array(6)].map((_, i) => (
-                          <div key={i} className="size-[3px] rounded-full bg-slate-500 dark:bg-slate-400" />
+                          <div key={i} className="size-[3px] rounded-full bg-slate-500" />
                         ))}
                       </div>
-                      <span className="text-[11px] font-black uppercase tracking-wider text-slate-900 dark:text-white">
-                        {w.title}
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">
+                        {aiWidget.title}
                       </span>
                     </div>
-
-                    <div className="flex items-center gap-1.5" onMouseDown={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); toggleVisibility(w.id); }}
-                        className="p-1.5 rounded-lg hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-400 hover:text-slate-800 dark:hover:text-white"
-                        title="Hide Widget"
-                      >
-                        <Minimize2 size={12} />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => updateWidgetsAndSave(prev => prev.map(w => w.id === 'smart_ai_finder' ? { ...w, visible: false } : w))}
+                      className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                      title="Hide panel"
+                    >
+                      <Minimize2 size={11} />
+                    </button>
                   </div>
-
-                  {/* Window Inner Content Scroll Area */}
-                  <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col" onMouseDown={(e) => e.stopPropagation()}>
-                    {renderWidgetContent(w)}
+                  {/* Panel Content */}
+                  <div className="flex-1 min-h-0 overflow-auto">
+                    {renderWidgetContent(aiWidget)}
                   </div>
                 </div>
-              ))}
-              </ResponsiveGridLayout>
+              )}
+
+              {/* ── RESIZABLE DIVIDER ── */}
+              {aiVisible && mapVisible && (
+                <div
+                  onMouseDown={handleSplitDividerMouseDown}
+                  className="w-1 shrink-0 cursor-col-resize bg-slate-200 dark:bg-slate-700/60 hover:bg-indigo-500/60 dark:hover:bg-indigo-500/60 transition-colors active:bg-indigo-600 relative group select-none z-10"
+                  title="Drag to resize panels"
+                >
+                  <div className="absolute inset-y-0 -left-1 -right-1" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-[3px] opacity-0 group-hover:opacity-100 transition-opacity">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="w-[3px] h-[3px] rounded-full bg-indigo-600" />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── RIGHT PANEL: US Heatmap (2/3) ── */}
+              {mapVisible && mapWidget && (
+                <div
+                  className="flex-1 flex flex-col h-full overflow-hidden min-w-0"
+                >
+                  {/* Panel Title Bar */}
+                  <div className="h-9 px-3 flex items-center justify-between shrink-0 bg-slate-50 dark:bg-sol-base03 border-b border-slate-200 dark:border-slate-700/60">
+                    <div className="flex items-center gap-2">
+                      <div className="grid grid-cols-2 gap-[2px] opacity-40">
+                        {[...Array(6)].map((_, i) => (
+                          <div key={i} className="size-[3px] rounded-full bg-slate-500" />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">
+                        {mapWidget.title}
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => updateWidgetsAndSave(prev => prev.map(w => w.id === 'map' ? { ...w, visible: false } : w))}
+                      className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
+                      title="Hide panel"
+                    >
+                      <Minimize2 size={11} />
+                    </button>
+                  </div>
+                  {/* Panel Content */}
+                  <div id="tour-yield-heatmap" className="flex-1 min-h-0 overflow-hidden">
+                    {renderWidgetContent(mapWidget)}
+                  </div>
+                </div>
+              )}
+
+              {/* ── EMPTY STATE: all panels hidden ── */}
+              {!aiVisible && !mapVisible && (
+                <div className="flex-1 flex flex-col items-center justify-center gap-4 text-slate-400 dark:text-slate-600">
+                  <LayoutGrid size={40} strokeWidth={1} />
+                  <p className="text-sm font-semibold">All panels are hidden</p>
+                  <button
+                    onClick={() => updateWidgetsAndSave(prev => prev.map(w => ({ ...w, visible: true })))}
+                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors"
+                  >
+                    Show All Panels
+                  </button>
+                </div>
+              )}
+
+              {/* ── FLOATING CONTROL PILL (Bottom-Left) ── */}
+              <div className="absolute bottom-4 left-4 z-[100] flex items-center gap-1.5 px-2 py-1.5 bg-white/90 dark:bg-sol-base02/90 backdrop-blur-md border border-slate-200/80 dark:border-sol-base01/30 rounded-2xl shadow-2xl select-none">
+
+                {/* Reset layout button */}
+                <button
+                  onClick={() => {
+                    setSplitLeftWidthPct(33);
+                    localStorage.setItem('goauct_split_pct', '33');
+                    updateWidgetsAndSave(() => DEFAULT_WIDGETS.map(d => ({ ...d, visible: true })));
+                  }}
+                  className="size-7 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-all"
+                  title="Reset layout"
+                >
+                  <LayoutGrid size={12} />
+                </button>
+
+                <div className="w-[1px] h-4 bg-slate-200 dark:bg-sol-base01/30" />
+
+                {/* Toggle AI panel */}
+                <button
+                  onClick={() => updateWidgetsAndSave(prev => prev.map(w => w.id === 'smart_ai_finder' ? { ...w, visible: !w.visible } : w))}
+                  className={`size-7 rounded-lg flex items-center justify-center transition-all text-xs font-black ${aiVisible ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-sol-base03 text-slate-400'}`}
+                  title={aiVisible ? 'Hide AI panel' : 'Show AI panel'}
+                >
+                  AI
+                </button>
+
+                {/* Toggle Map panel */}
+                <button
+                  onClick={() => updateWidgetsAndSave(prev => prev.map(w => w.id === 'map' ? { ...w, visible: !w.visible } : w))}
+                  className={`size-7 rounded-lg flex items-center justify-center transition-all ${mapVisible ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-sol-base03 text-slate-400'}`}
+                  title={mapVisible ? 'Hide Map panel' : 'Show Map panel'}
+                >
+                  <Map size={12} />
+                </button>
+
+                <div className="w-[1px] h-4 bg-slate-200 dark:bg-sol-base01/30" />
+
+                {/* Lock drag divider */}
+                <button
+                  onClick={() => setIsCanvasLocked(prev => !prev)}
+                  className={`size-7 rounded-lg flex items-center justify-center transition-all ${isCanvasLocked ? 'bg-red-100 dark:bg-red-900/30 text-red-500' : 'bg-slate-100 dark:bg-sol-base03 text-slate-400 hover:text-slate-700'}`}
+                  title={isCanvasLocked ? 'Unlock divider' : 'Lock divider'}
+                >
+                  {isCanvasLocked ? <Lock size={12} /> : <Unlock size={12} />}
+                </button>
+              </div>
+
             </div>
-
-            {/* Floating Control Panel (Bottom-Left) */}
-            <div className="absolute bottom-4 left-4 z-[100] flex flex-col items-center gap-2 p-1.5 bg-white/90 dark:bg-sol-base02/90 backdrop-blur-md border border-slate-200/80 dark:border-sol-base01/30 rounded-2xl shadow-2xl select-none">
-              {/* Reset / Auto-Arrange Button */}
-              <button
-                onClick={() => {
-                  userInteractedRef.current = true;
-                  updateWidgetsAndSave(() => DEFAULT_WIDGETS.map(d => ({ ...d, visible: true })));
-                }}
-                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center text-slate-500 hover:text-indigo-600 dark:text-slate-400 dark:hover:text-indigo-400 transition-all shadow-sm"
-                title="Auto Arrange / Reset Layout"
-              >
-                <LayoutGrid size={14} />
-              </button>
-
-              <div className="w-6 h-[1px] bg-slate-200 dark:bg-sol-base01/30" />
-
-              {/* Lock Button */}
-              <button
-                onClick={() => setIsCanvasLocked(prev => !prev)}
-                className={`size-8 rounded-xl flex items-center justify-center transition-all ${isCanvasLocked
-                    ? 'bg-red-500/10 text-red-500 border border-red-500/25 hover:bg-red-500/20 shadow-sm'
-                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 text-slate-400 hover:text-slate-650'
-                  }`}
-                title={isCanvasLocked ? "Canvas is Locked (Click to Unlock)" : "Canvas is Unlocked (Click to Lock)"}
-              >
-                {isCanvasLocked ? <Lock size={14} /> : <Unlock size={14} />}
-              </button>
-
-              <div className="w-6 h-[1px] bg-slate-200 dark:bg-sol-base01/30" />
-
-              {/* Zoom In (+) */}
-              <button
-                onClick={() => setZoomScale(prev => Math.min(2.0, parseFloat((prev + 0.1).toFixed(2))))}
-                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
-                title="Zoom In"
-              >
-                +
-              </button>
-
-              {/* Reset Zoom Indicator */}
-              <button
-                onClick={() => { setZoomScale(1.0); setPanX(0); setPanY(0); }}
-                className="text-[9px] font-black text-slate-455 hover:text-indigo-500 dark:hover:text-indigo-400 py-1 transition-colors select-none tracking-tight text-center"
-                title="Reset Zoom to 100%"
-              >
-                {Math.round(zoomScale * 100)}%
-              </button>
-
-              {/* Zoom Out (-) */}
-              <button
-                onClick={() => setZoomScale(prev => Math.max(0.3, parseFloat((prev - 0.1).toFixed(2))))}
-                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
-                title="Zoom Out"
-              >
-                -
-              </button>
-            </div>
-
-          </div>
-        )}
+          );
+        })()}
 
         {/* ─── HYBRID VIRTUAL DESKTOP WINDOW OVERLAYS ─── */}
         {overlayWindows.filter(w => !w.isMinimized).map(w => {
