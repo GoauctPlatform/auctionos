@@ -151,8 +151,8 @@ interface OverlayWindow {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 0, y: 0, w: 8, h: 4, visible: true, zIndex: 10, isIcon: false },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 8, y: 0, w: 4, h: 4, visible: true, zIndex: 5, isIcon: false }
+  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 0, y: 0, w: 8, h: 4, visible: true, zIndex: 10, isIcon: true },
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 1, y: 0, w: 4, h: 4, visible: true, zIndex: 5, isIcon: true }
 ];
 
 
@@ -1759,7 +1759,7 @@ export const ClientWorkbench: React.FC = () => {
 
   // Bring window to focus
   const focusWidget = useCallback((id: string) => {
-    setWidgets(prev => {
+    updateWidgetsAndSave(prev => {
       const match = prev.find(w => w.id === id);
       if (match && match.zIndex < highestZIndex) {
         const nextZ = highestZIndex + 1;
@@ -2081,23 +2081,33 @@ export const ClientWorkbench: React.FC = () => {
     }
   }, 1500), []);
 
-  const onGridLayoutChange = useCallback((layout: any[]) => {
-    // Merge new grid coordinates with our widget state
+  const updateWidgetsAndSave = useCallback((updater: (prev: Widget[]) => Widget[]) => {
     setWidgets(prev => {
-      const next = prev.map(w => {
-        const updated = layout.find((l: any) => l.i === w.id);
-        if (updated) {
-          return { ...w, x: updated.x, y: updated.y, w: updated.w, h: updated.h };
-        }
-        return w;
-      });
-      // Save locally
+      const next = updater(prev);
       localStorage.setItem('goauct_workbench_widgets_v64', JSON.stringify(next));
-      // Save to backend
       debouncedSaveLayout(next);
       return next;
     });
   }, [debouncedSaveLayout]);
+
+  const onGridLayoutChange = useCallback((layout: any[]) => {
+    // Merge new grid coordinates with our widget state
+    updateWidgetsAndSave(prev => {
+      return prev.map(w => {
+        const updated = layout.find((l: any) => l.i === w.id);
+        if (updated) {
+          return { 
+            ...w, 
+            x: updated.x, 
+            y: updated.y, 
+            w: w.isIcon ? w.w : updated.w, 
+            h: w.isIcon ? w.h : updated.h 
+          };
+        }
+        return w;
+      });
+    });
+  }, [updateWidgetsAndSave]);
 
   // Window Drag & Resize Mouse Handlers
   const handleMouseDown = (
@@ -2418,7 +2428,7 @@ export const ClientWorkbench: React.FC = () => {
 
   const toggleVisibility = (id: string) => {
     let wasVisible = false;
-    setWidgets(prev => {
+    updateWidgetsAndSave(prev => {
       wasVisible = prev.find(w => w.id === id)?.visible || false;
       const targetNextVisible = !wasVisible;
 
@@ -2436,7 +2446,7 @@ export const ClientWorkbench: React.FC = () => {
       } else if (activeIdeTabId === id) {
         // If we closed the active tab, pick another visible one if any
         setTimeout(() => {
-          setWidgets(currentWidgets => {
+          updateWidgetsAndSave(currentWidgets => {
             const open = currentWidgets.filter(w => w.visible);
             if (open.length > 0) {
               setActiveIdeTabId(open[0].id);
@@ -3808,7 +3818,7 @@ export const ClientWorkbench: React.FC = () => {
                       onClick={() => focusWidget(w.id)}
                       onDoubleClick={(e) => {
                         e.stopPropagation();
-                        setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
+                        updateWidgetsAndSave(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
                       }}
                       style={{ zIndex: w.zIndex }}
                       className="drag-handle flex flex-col items-center justify-center cursor-grab active:cursor-grabbing group/icon select-none w-full h-full"
@@ -3823,7 +3833,7 @@ export const ClientWorkbench: React.FC = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
+                            updateWidgetsAndSave(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
                           }}
                           className="absolute -top-1 -right-1 size-5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-md scale-0 group-hover/icon:scale-100 transition-transform duration-150"
                           title="Expand"
@@ -3878,7 +3888,7 @@ export const ClientWorkbench: React.FC = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: true } : item));
+                            updateWidgetsAndSave(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: true } : item));
                           }}
                           className="p-1.5 rounded-lg hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-slate-400 hover:text-slate-800 dark:hover:text-white"
                           title="Collapse to Shortcut Icon"
