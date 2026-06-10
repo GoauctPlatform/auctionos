@@ -16,6 +16,9 @@ export interface User {
   name?: string;
   full_name?: string;
   subscription_tier?: string;
+  active_company_id?: number | null;
+  company_id?: number | null;
+  linked_company_ids?: number[];
 }
 
 // Auth State
