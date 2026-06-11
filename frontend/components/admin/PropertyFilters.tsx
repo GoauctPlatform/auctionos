@@ -12,6 +12,7 @@ export interface PropertyFilterParams {
     state?: string;
     keyword?: string;
     min_score?: number;
+    is_custom?: boolean;
 
     // Optional Filters
     auction_name?: string;
@@ -123,6 +124,63 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
         }
     }, [filters.state]);
 
+    const CATEGORY_CHIPS = [
+        { label: 'All Categories', value: 'all' },
+        { label: 'Tax Deed', value: 'Tax Deed' },
+        { label: 'Tax Lien', value: 'Tax Lien' },
+        { label: 'Foreclosure', value: 'Foreclosure' },
+        { label: 'Custom Properties', value: 'custom' },
+    ];
+
+    const getActiveChipValue = () => {
+        if (filters.is_custom) return 'custom';
+        if (filters.property_category) return filters.property_category;
+        return 'all';
+    };
+
+    const handleChipClick = (value: string) => {
+        isInternalUpdate.current = false;
+        if (value === 'all') {
+            setFilters(prev => ({ ...prev, property_category: undefined, is_custom: undefined }));
+        } else if (value === 'custom') {
+            setFilters(prev => ({ ...prev, property_category: undefined, is_custom: true }));
+        } else {
+            setFilters(prev => ({ ...prev, property_category: value, is_custom: undefined }));
+        }
+    };
+
+    const inputSx = {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: '12px',
+            height: '38px',
+            fontSize: '0.85rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            '.dark &': {
+                backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            },
+            '& fieldset': {
+                borderColor: 'rgba(226, 232, 240, 0.8)',
+                '.dark &': {
+                    borderColor: 'rgba(51, 65, 85, 0.6)',
+                }
+            },
+            '&:hover fieldset': {
+                borderColor: '#6366f1',
+            },
+            '&.Mui-focused fieldset': {
+                borderColor: '#4f46e5',
+                borderWidth: '1.5px',
+            }
+        },
+        '& .MuiInputLabel-root': {
+            fontSize: '0.85rem',
+            top: '-2px',
+            '&.MuiInputLabel-shrink': {
+                top: '0px',
+            }
+        }
+    };
+
     useEffect(() => {
         if (isInternalUpdate.current) {
             isInternalUpdate.current = false;
@@ -145,9 +203,31 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
     return (
         <div className={`flex flex-col w-full transition-all dark:[&_input]:text-white dark:[&_label]:text-slate-400 dark:[&_.MuiSelect-select]:text-white dark:[&_fieldset]:border-slate-600 ${
             variant === 'header' 
-            ? 'bg-transparent p-0 shadow-none border-none' 
+            ? 'bg-transparent p-0 gap-3 shadow-none border-none' 
             : 'gap-4 mb-6 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700'
         }`}>
+            {/* Category/Source Filter Chips Row */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none shrink-0 select-none">
+                {CATEGORY_CHIPS.map(chip => {
+                    const activeVal = getActiveChipValue();
+                    const isSelected = activeVal === chip.value;
+                    return (
+                        <button
+                            key={chip.value}
+                            type="button"
+                            onClick={() => handleChipClick(chip.value)}
+                            className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-205 border cursor-pointer ${
+                                isSelected
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 dark:bg-slate-900/40 dark:text-slate-400 dark:border-slate-800 dark:hover:bg-slate-900/80'
+                            }`}
+                        >
+                            {chip.label}
+                        </button>
+                    );
+                })}
+            </div>
+
             {/* Primary Search Row */}
             <div className={`flex flex-wrap gap-2.5 items-center w-full ${variant === 'header' ? 'flex-nowrap' : ''}`}>
                 <Autocomplete
@@ -191,18 +271,18 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                             variant="outlined"
                             size="small"
                             placeholder="Parcel ID, Zip, Address..."
-                            className="bg-white dark:bg-slate-900"
+                            sx={inputSx}
                             InputProps={{
                                 ...params.InputProps,
                                 startAdornment: (
                                     <React.Fragment>
-                                        <SearchIcon className="text-slate-400 ml-2" fontSize="small" />
+                                        <SearchIcon className="text-slate-400 ml-1 mr-0.5" fontSize="small" />
                                         {params.InputProps.startAdornment}
                                     </React.Fragment>
                                 ),
                                 endAdornment: (
                                     <React.Fragment>
-                                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                        {loading ? <CircularProgress color="inherit" size={16} /> : null}
                                         {params.InputProps.endAdornment}
                                     </React.Fragment>
                                 ),
@@ -216,7 +296,10 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                     id="state-filter-autocomplete"
                     options={stateOptions}
                     getOptionLabel={(option) => typeof option === 'string' ? option : option.state}
-                    value={stateOptions.find(s => s.state === filters.state) || null}
+                    value={
+                        stateOptions.find(s => s.state?.toLowerCase() === filters.state?.toLowerCase()) || 
+                        (filters.state ? { state: filters.state, url: '' } : null)
+                    }
                     onChange={(event, newValue) => {
                         const stateVal = newValue ? (typeof newValue === 'string' ? newValue : newValue.state) : undefined;
                         handleChange('state', stateVal);
@@ -228,7 +311,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                             label="State"
                             variant="outlined"
                             size="small"
-                            className="bg-white dark:bg-slate-900"
+                            sx={inputSx}
                         />
                     )}
                     sx={{ width: variant === 'header' ? 120 : 160 }}
@@ -241,7 +324,11 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                     options={countyOptions}
                     disabled={!filters.state}
                     getOptionLabel={(option) => option}
-                    value={filters.county || null}
+                    value={
+                        countyOptions.find(c => c?.toLowerCase() === filters.county?.toLowerCase()) || 
+                        filters.county || 
+                        null
+                    }
                     onChange={(event, newValue) => {
                         handleChange('county', newValue || undefined);
                     }}
@@ -251,7 +338,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                             label="County"
                             variant="outlined"
                             size="small"
-                            className="bg-white dark:bg-slate-900"
+                            sx={inputSx}
                             placeholder={!filters.state ? "State first" : "All counties"}
                         />
                     )}
@@ -264,6 +351,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                     size="small"
                     onClick={() => setShowFilters(!showFilters)}
                     className={`whitespace-nowrap ${variant === 'header' ? 'ml-0' : 'ml-auto'}`}
+                    sx={variant === 'header' ? { height: '38px', borderRadius: '12px', fontWeight: 'bold' } : {}}
                 >
                     {showFilters ? 'Hide Filters' : 'More Filters'}
                 </Button>
@@ -274,6 +362,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                     onClick={handleClear}
                     color="secondary"
                     className="whitespace-nowrap"
+                    sx={variant === 'header' ? { height: '38px', borderRadius: '12px', fontWeight: 'bold' } : {}}
                 >
                     Clear
                 </Button>
@@ -402,17 +491,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                                     label="Show Unavailable Properties Only"
                                 />
 
-                                <FormControl size="small" fullWidth>
-                                    <InputLabel>Category</InputLabel>
-                                    <Select label="Category" value={filters.property_category || ''} onChange={(e) => handleChange('property_category', e.target.value)}>
-                                        <MenuItem value=""><em>Any</em></MenuItem>
-                                        <MenuItem value="Tax Lien">Tax Lien</MenuItem>
-                                        <MenuItem value="Tax Deed">Tax Deed</MenuItem>
-                                        <MenuItem value="Foreclosure">Foreclosure</MenuItem>
-                                        <MenuItem value="Cert">Certificate</MenuItem>
-                                        <MenuItem value="Quit Claim">Quit Claim</MenuItem>
-                                    </Select>
-                                </FormControl>
+                                {/* Category is now managed directly by quick selector chips */}
 
                                 <TextField label="Tax Year" type="number" size="small" fullWidth value={filters.tax_year || ''} onChange={(e) => handleChange('tax_year', e.target.value)} />
 

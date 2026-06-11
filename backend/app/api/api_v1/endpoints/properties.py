@@ -54,6 +54,7 @@ def read_properties(
     added_since: Optional[str] = None,
     is_unavailable: Optional[bool] = None,
     min_score: Optional[float] = None,
+    is_custom: Optional[bool] = None,
 ) -> Any:
     
     # 1. Build Base Filter Query
@@ -191,6 +192,12 @@ def read_properties(
 
     if is_unavailable is True:
         where_clauses.append("p.availability_status = 'unavailable'")
+
+    if is_custom is not None:
+        if is_custom:
+            where_clauses.append("p.created_by_user_id IS NOT NULL")
+        else:
+            where_clauses.append("p.created_by_user_id IS NULL")
 
     if min_score is not None:
         where_clauses.append("ps.deal_score >= :min_score")
