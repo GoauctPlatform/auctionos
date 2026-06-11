@@ -2,6 +2,7 @@ import React from 'react';
 import { Property, PropertyStatus } from '../types';
 import { ExternalLink, MapPin, BadgeDollarSign, Scan, Info, Edit, Eye, Share2 } from 'lucide-react';
 import { getStreetViewUrl } from '../utils/maps';
+import { calculateDealScore } from '../intelligence/scoringEngine';
 
 interface PropertyCardProps {
     property: Property;
@@ -25,6 +26,13 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     const [streetViewError, setStreetViewError] = React.useState(false);
     const streetViewUrl = getStreetViewUrl(property);
 
+    // Calculate or retrieve Deal Score & Grade
+    const scoreResult = calculateDealScore(property);
+    const grade = property.deal_rating || scoreResult.rating;
+    const score = property.deal_score !== null && property.deal_score !== undefined 
+        ? Math.round(property.deal_score) 
+        : scoreResult.score;
+
     const getStatusColor = (status: PropertyStatus) => {
         switch (status) {
             case PropertyStatus.Active: return 'bg-green-500';
@@ -43,7 +51,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                         type="checkbox"
                         className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer transition-transform hover:scale-110"
                         checked={isSelected}
-                        onChange={(e) => onSelect(property.id, e.target.checked)}
+                        onChange={(e) => onSelect(String(property.id), e.target.checked)}
                     />
                 </div>
             )}
@@ -64,6 +72,26 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                     />
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+
+                {/* Grade Badge */}
+                {grade && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm shadow-md z-10 border border-slate-200/50 dark:border-slate-800/50">
+                        <span className={`px-2 py-0.5 rounded font-black text-[10px] ${
+                            grade === 'A+' ? 'bg-emerald-600 text-white' :
+                            grade === 'A' ? 'bg-emerald-500 text-white' :
+                            grade === 'B' ? 'bg-blue-500 text-white' :
+                            grade === 'C' ? 'bg-amber-500 text-white' :
+                            grade === 'D' ? 'bg-orange-500 text-white' :
+                            grade === 'F' ? 'bg-red-500 text-white' :
+                            'bg-slate-500 text-white'
+                        }`}>
+                            {grade}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
+                            {score}%
+                        </span>
+                    </div>
+                )}
 
                 {/* Status Badge */}
                 <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-sm">
@@ -96,56 +124,94 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
                 {/* Metadata Grid */}
                 <div className="grid grid-cols-2 gap-3 pt-2">
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                    {/* Parcel ID */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
                         <Scan size={14} className="text-slate-400" />
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Parcel ID</span>
-                            <span className="text-xs font-mono text-slate-700 dark:text-slate-300 truncate w-20">
-                                {property.smart_tag || '-'}
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Parcel ID</span>
+                            <span className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 truncate" title={property.parcel_id || property.smart_tag}>
+                                {property.parcel_id || property.smart_tag || '-'}
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <BadgeDollarSign size={14} className="text-slate-400" />
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Opening Bid</span>
-                            <span className="text-xs font-medium text-red-600 dark:text-red-400">
+
+                    {/* Opening Bid */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <BadgeDollarSign size={14} className="text-red-500" />
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Opening Bid</span>
+                            <span className="text-xs font-bold text-red-600 dark:text-red-400 truncate">
                                 {property.amount_due ? `$${property.amount_due.toLocaleString()}` : '-'}
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <div className="text-slate-400 material-symbols-outlined text-[14px]">calendar_month</div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Auction</span>
-                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                                {property.next_auction_date || '-'}
+
+                    {/* Assessed Value */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">payments</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Assessed Value</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
+                                {property.assessed_value || property.details?.assessed_value ? `$${(property.assessed_value || property.details?.assessed_value)?.toLocaleString()}` : '-'}
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">County</span>
-                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                                {property.county || '-'}
+
+                    {/* Category */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">tag</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Category</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
+                                {property.property_category || property.details?.property_category || property.auction_type || '-'}
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <div className="text-slate-400 material-symbols-outlined text-[14px]">landscape</div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Acreage</span>
-                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+
+                    {/* Occupancy */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">sensor_door</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Occupancy</span>
+                            <span className={`text-xs font-semibold truncate ${
+                                (property.occupancy || '').toLowerCase() === 'occupied' ? 'text-orange-600 dark:text-orange-400' :
+                                (property.occupancy || '').toLowerCase() === 'vacant' ? 'text-green-600 dark:text-green-400' :
+                                'text-slate-700 dark:text-slate-300'
+                            }`}>
+                                {property.occupancy || (property.owner_occupied === 'true' || property.owner_occupied === true ? 'Occupied' : property.owner_occupied === 'false' || property.owner_occupied === false ? 'Vacant' : 'Unknown')}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Acreage */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">landscape</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Acreage</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
                                 {property.lot_acres || property.details?.lot_acres ? `${property.lot_acres || property.details?.lot_acres} Acres` : '-'}
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <div className="text-slate-400 material-symbols-outlined text-[14px]">home</div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Type</span>
-                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                                {property.property_type || '-'}
+
+                    {/* Property Type */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">home</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Parcel Type</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate" title={property.property_type || property.details?.property_type}>
+                                {property.property_type || property.details?.property_type || '-'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Auction Date */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">calendar_month</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Auction Date</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate" title={property.next_auction_date || property.auction_name}>
+                                {property.next_auction_date || property.auction_name || '-'}
                             </span>
                         </div>
                     </div>

@@ -272,7 +272,8 @@ def read_properties(
             p.owner_occupied,
             p.latitude,
             p.longitude,
-            p.gsi_url
+            p.gsi_url,
+            p.id
         FROM property_details p
         LEFT JOIN {history_table} pah ON pah.property_id = p.property_id
         {ae_join}
@@ -370,6 +371,7 @@ def read_properties(
             "latitude": r[45],
             "longitude": r[46],
             "gsi_url": r[47],
+            "id": r[48],
         }
         for r in result
     ]
