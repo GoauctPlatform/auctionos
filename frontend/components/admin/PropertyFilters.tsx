@@ -4,6 +4,8 @@ import { useDebounce } from 'use-debounce';
 import SearchIcon from '@mui/icons-material/Search';
 import { PropertyService } from '../../services/property.service';
 import { useNavigate } from 'react-router-dom';
+import { StatesService } from '../../services/states.service';
+import { countyService } from '../../services/county.service';
 
 export interface PropertyFilterParams {
     county?: string;
@@ -98,6 +100,29 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
         };
     }, [inputValue]);
 
+    // State and County options dropdown logic
+    const [stateOptions, setStateOptions] = useState<any[]>([]);
+    const [countyOptions, setCountyOptions] = useState<string[]>([]);
+
+    useEffect(() => {
+        StatesService.getContacts()
+            .then(res => setStateOptions(res || []))
+            .catch(err => console.error("PropertyFilters: Failed to load states", err));
+    }, []);
+
+    useEffect(() => {
+        if (filters.state) {
+            countyService.getCounties(filters.state)
+                .then(res => setCountyOptions(res || []))
+                .catch(err => {
+                    console.error("PropertyFilters: Failed to load counties", err);
+                    setCountyOptions([]);
+                });
+        } else {
+            setCountyOptions([]);
+        }
+    }, [filters.state]);
+
     useEffect(() => {
         if (isInternalUpdate.current) {
             isInternalUpdate.current = false;
@@ -120,15 +145,15 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
     return (
         <div className={`flex flex-col w-full transition-all dark:[&_input]:text-white dark:[&_label]:text-slate-400 dark:[&_.MuiSelect-select]:text-white dark:[&_fieldset]:border-slate-600 ${
             variant === 'header' 
-            ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50 dark:border-slate-700/50 p-3 sm:p-4 rounded-xl' 
+            ? 'bg-transparent p-0 shadow-none border-none' 
             : 'gap-4 mb-6 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700'
         }`}>
             {/* Primary Search Row */}
-            <div className={`flex flex-wrap gap-3 items-center w-full ${variant === 'header' ? 'flex-nowrap overflow-x-auto no-scrollbar' : ''}`}>
+            <div className={`flex flex-wrap gap-2.5 items-center w-full ${variant === 'header' ? 'flex-nowrap' : ''}`}>
                 <Autocomplete
                     freeSolo
                     id="keyword-search-autocomplete"
-                    sx={{ minWidth: 250, flexGrow: 1 }}
+                    sx={{ minWidth: 220, flexGrow: 1 }}
                     open={open}
                     onOpen={() => setOpen(true)}
                     onClose={() => setOpen(false)}
@@ -185,21 +210,53 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                         />
                     )}
                 />
-                <TextField
-                    label="County"
-                    variant="outlined"
-                    size="small"
-                    value={filters.county || ''}
-                    onChange={(e) => handleChange('county', e.target.value)}
-                    className="bg-white dark:bg-slate-900 w-[150px]"
+                
+                {/* State Autocomplete */}
+                <Autocomplete
+                    id="state-filter-autocomplete"
+                    options={stateOptions}
+                    getOptionLabel={(option) => typeof option === 'string' ? option : option.state}
+                    value={stateOptions.find(s => s.state === filters.state) || null}
+                    onChange={(event, newValue) => {
+                        const stateVal = newValue ? (typeof newValue === 'string' ? newValue : newValue.state) : undefined;
+                        handleChange('state', stateVal);
+                        handleChange('county', undefined); // Clear county selection
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="State"
+                            variant="outlined"
+                            size="small"
+                            className="bg-white dark:bg-slate-900"
+                        />
+                    )}
+                    sx={{ width: variant === 'header' ? 120 : 160 }}
+                    disablePortal
                 />
-                <TextField
-                    label="State"
-                    variant="outlined"
-                    size="small"
-                    value={filters.state || ''}
-                    onChange={(e) => handleChange('state', e.target.value)}
-                    className="bg-white dark:bg-slate-900 w-[150px]"
+
+                {/* County Autocomplete */}
+                <Autocomplete
+                    id="county-filter-autocomplete"
+                    options={countyOptions}
+                    disabled={!filters.state}
+                    getOptionLabel={(option) => option}
+                    value={filters.county || null}
+                    onChange={(event, newValue) => {
+                        handleChange('county', newValue || undefined);
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="County"
+                            variant="outlined"
+                            size="small"
+                            className="bg-white dark:bg-slate-900"
+                            placeholder={!filters.state ? "State first" : "All counties"}
+                        />
+                    )}
+                    sx={{ width: variant === 'header' ? 150 : 200 }}
+                    disablePortal
                 />
 
                 <Button
