@@ -110,23 +110,18 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
     return (
         <>
             {viewMode === 'map' ? (
-                <div className="relative w-full h-[calc(100vh-64px)] overflow-hidden">
-                    <MapPropertySearchLayout 
-                        filters={filters} 
-                        hasActiveFilters={hasActiveFilters} 
-                        onOpenPropertyDetails={onOpenPropertyDetails} 
-                    />
-                    
-                    <div className="absolute top-0 left-0 sm:w-[calc(100%-450px)] w-full z-30 pointer-events-none p-3 sm:p-5 flex flex-col gap-2 transition-all">
+                <div className="flex flex-col w-full h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
+                    {/* Modern Top Header */}
+                    <div className="z-30 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 p-2 sm:p-4 shadow-sm flex flex-col gap-2">
                         {/* Top Action Bar */}
-                        <div className="flex justify-between items-center pointer-events-auto w-full px-2">
-                            <Typography variant="h6" className="font-black text-slate-800 dark:text-white drop-shadow-md bg-white/70 dark:bg-slate-900/70 backdrop-blur-md px-4 py-1.5 rounded-full hidden sm:block border border-white/20">
+                        <div className="flex justify-between items-center w-full px-2">
+                            <Typography variant="h6" className="font-black text-slate-800 dark:text-white hidden sm:block">
                                 Property Search
                             </Typography>
                             <div className="flex gap-2 ml-auto">
                                 <Button 
                                     variant="contained" 
-                                    className="bg-white/95 text-slate-800 hover:bg-white backdrop-blur-md shadow-lg rounded-xl font-bold normal-case text-sm"
+                                    className="bg-white/95 text-slate-800 hover:bg-white border border-slate-200 shadow-sm rounded-xl font-bold normal-case text-sm"
                                     onClick={() => setViewMode('list')}
                                     startIcon={<span className="material-symbols-outlined text-[18px]">list</span>}
                                 >
@@ -135,7 +130,7 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                                 <Button 
                                     variant="contained" 
                                     color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
-                                    className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500'} rounded-xl shadow-lg font-bold normal-case text-sm`}
+                                    className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500'} rounded-xl shadow-sm font-bold normal-case text-sm`}
                                     onClick={() => {
                                         if (user?.subscription_tier === 'trial') {
                                             alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
@@ -150,8 +145,8 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                             </div>
                         </div>
 
-                        {/* Floating Modern Header Search Bar */}
-                        <div className="pointer-events-auto w-full mx-auto mt-2">
+                        {/* Property Filters */}
+                        <div className="w-full">
                             <PropertyFilters 
                                 onFilterChange={setFilters} 
                                 readOnly={true} 
@@ -160,6 +155,15 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                                 variant="header"
                             />
                         </div>
+                    </div>
+
+                    {/* Full Map */}
+                    <div className="flex-1 relative w-full h-full">
+                        <MapPropertySearchLayout 
+                            filters={filters} 
+                            hasActiveFilters={hasActiveFilters} 
+                            onOpenPropertyDetails={onOpenPropertyDetails} 
+                        />
                     </div>
                 </div>
             ) : (
