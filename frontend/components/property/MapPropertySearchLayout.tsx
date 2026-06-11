@@ -129,7 +129,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
 
     // Load favorites on mount
     useEffect(() => {
-        ClientDataService.getFavorites().then(favs => {
+        PropertyService.getFavorites().then(favs => {
             if (favs && Array.isArray(favs)) {
                 setFavorites(new Set(favs));
             } else {
@@ -144,7 +144,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
     const handleToggleFavorite = async (property: any) => {
         try {
             const id = property.id;
-            const res = await ClientDataService.toggleFavorite(id);
+            const res = await PropertyService.toggleFavorite(id);
             setFavorites(prev => {
                 const next = new Set(prev);
                 if (res.is_favorite) {
