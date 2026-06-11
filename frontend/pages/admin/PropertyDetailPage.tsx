@@ -80,6 +80,18 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         loadLists();
     }, [id, activeCompany?.id]);
 
+    useEffect(() => {
+        if (property && searchParams.get('action') === 'export_flyer') {
+            const timeout = setTimeout(() => {
+                handleExport('pdf');
+                const newParams = new URLSearchParams(location.search);
+                newParams.delete('action');
+                navigate({ search: newParams.toString() }, { replace: true });
+            }, 800);
+            return () => clearTimeout(timeout);
+        }
+    }, [property, location.search]);
+
     const loadLists = async () => {
         try {
             const data = await ClientDataService.getLists(activeCompany?.id);

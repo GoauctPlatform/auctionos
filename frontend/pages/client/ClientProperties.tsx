@@ -117,15 +117,16 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                         onOpenPropertyDetails={onOpenPropertyDetails} 
                     />
                     
-                    <div className="absolute top-0 left-0 sm:w-[calc(100%-450px)] w-full z-30 pointer-events-none p-4 sm:p-6 flex flex-col gap-4 transition-all">
-                        <div className="flex justify-between items-center pointer-events-auto">
-                            <Typography variant="h4" className="font-bold text-white drop-shadow-md">
+                    <div className="absolute top-0 left-0 sm:w-[calc(100%-450px)] w-full z-30 pointer-events-none p-3 sm:p-5 flex flex-col gap-2 transition-all">
+                        {/* Top Action Bar */}
+                        <div className="flex justify-between items-center pointer-events-auto w-full px-2">
+                            <Typography variant="h6" className="font-black text-slate-800 dark:text-white drop-shadow-md bg-white/70 dark:bg-slate-900/70 backdrop-blur-md px-4 py-1.5 rounded-full hidden sm:block border border-white/20">
                                 Property Search
                             </Typography>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2 ml-auto">
                                 <Button 
                                     variant="contained" 
-                                    className="bg-white/90 text-slate-800 hover:bg-white backdrop-blur-md shadow-lg"
+                                    className="bg-white/95 text-slate-800 hover:bg-white backdrop-blur-md shadow-lg rounded-xl font-bold normal-case text-sm"
                                     onClick={() => setViewMode('list')}
                                     startIcon={<span className="material-symbols-outlined text-[18px]">list</span>}
                                 >
@@ -134,7 +135,7 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                                 <Button 
                                     variant="contained" 
                                     color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
-                                    className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-600'} rounded-lg shadow-lg`}
+                                    className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500'} rounded-xl shadow-lg font-bold normal-case text-sm`}
                                     onClick={() => {
                                         if (user?.subscription_tier === 'trial') {
                                             alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
@@ -149,12 +150,14 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                             </div>
                         </div>
 
-                        <div className="pointer-events-auto shadow-2xl rounded-2xl">
+                        {/* Floating Modern Header Search Bar */}
+                        <div className="pointer-events-auto w-full mx-auto mt-2">
                             <PropertyFilters 
                                 onFilterChange={setFilters} 
                                 readOnly={true} 
                                 initialFilters={filters}
                                 onOpenPropertyDetails={onOpenPropertyDetails}
+                                variant="header"
                             />
                         </div>
                     </div>

@@ -41,9 +41,10 @@ interface PropertyFiltersProps {
     readOnly?: boolean;
     initialFilters?: PropertyFilterParams;
     onOpenPropertyDetails?: (propertyId: string | number, parcelId: string) => void;
+    variant?: 'standard' | 'header';
 }
 
-const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readOnly = false, initialFilters, onOpenPropertyDetails }) => {
+const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readOnly = false, initialFilters, onOpenPropertyDetails, variant = 'standard' }) => {
     const navigate = useNavigate();
     const [filters, setFilters] = useState<PropertyFilterParams>(initialFilters || {});
     const [showFilters, setShowFilters] = useState(false);
@@ -117,9 +118,13 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
     };
 
     return (
-        <div className="flex flex-col gap-4 mb-6 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 w-full transition-all dark:[&_input]:text-white dark:[&_label]:text-slate-400 dark:[&_.MuiSelect-select]:text-white dark:[&_fieldset]:border-slate-600">
+        <div className={`flex flex-col w-full transition-all dark:[&_input]:text-white dark:[&_label]:text-slate-400 dark:[&_.MuiSelect-select]:text-white dark:[&_fieldset]:border-slate-600 ${
+            variant === 'header' 
+            ? 'bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-lg border-b border-slate-200/50 dark:border-slate-700/50 p-3 sm:p-4 rounded-xl' 
+            : 'gap-4 mb-6 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700'
+        }`}>
             {/* Primary Search Row */}
-            <div className="flex flex-wrap gap-4 items-center w-full">
+            <div className={`flex flex-wrap gap-3 items-center w-full ${variant === 'header' ? 'flex-nowrap overflow-x-auto no-scrollbar' : ''}`}>
                 <Autocomplete
                     freeSolo
                     id="keyword-search-autocomplete"
@@ -198,12 +203,12 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                 />
 
                 <Button
-                    variant={showFilters ? "contained" : "outlined"}
+                    variant={showFilters ? "contained" : (variant === 'header' ? "text" : "outlined")}
                     size="small"
                     onClick={() => setShowFilters(!showFilters)}
-                    className="ml-auto"
+                    className={`whitespace-nowrap ${variant === 'header' ? 'ml-0' : 'ml-auto'}`}
                 >
-                    {showFilters ? 'Hide Filters' : 'Refine Filters'}
+                    {showFilters ? 'Hide Filters' : 'More Filters'}
                 </Button>
 
                 <Button
@@ -211,15 +216,16 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                     size="small"
                     onClick={handleClear}
                     color="secondary"
+                    className="whitespace-nowrap"
                 >
-                    Clear All
+                    Clear
                 </Button>
             </div>
 
             {/* Expanded Filters Section */}
             {showFilters && (
-                <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-                    <Divider className="my-6" />
+                <div className={`animate-in fade-in slide-in-from-top-4 duration-300 ${variant === 'header' ? 'mt-4 pt-4 border-t border-slate-100 dark:border-slate-800' : ''}`}>
+                    {variant !== 'header' && <Divider className="my-6" />}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Optional Filters */}

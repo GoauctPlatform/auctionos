@@ -8,6 +8,7 @@ interface PropertyCardProps {
     onView: (property: Property) => void;
     onFavorite: (property: Property) => void;
     onFlyer: (property: Property) => void;
+    isFavorite?: boolean;
     isSelected?: boolean;
     onSelect?: (id: string, checked: boolean) => void;
 }
@@ -17,6 +18,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
     onView,
     onFavorite,
     onFlyer,
+    isFavorite,
     isSelected,
     onSelect
 }) => {
@@ -181,10 +183,10 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                         </button>
                         <button
                             onClick={() => onFavorite(property)}
-                            className="flex-1 flex justify-center items-center gap-2 p-2 text-slate-500 hover:text-yellow-500 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
-                            title="Add to Favorites"
+                            className={`flex-1 flex justify-center items-center gap-2 p-2 rounded-lg transition-all ${isFavorite ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' : 'text-slate-500 hover:text-yellow-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                            title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
                         >
-                            <span className="material-symbols-outlined text-[18px]">star</span>
+                            <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0" }}>star</span>
                             <span className="text-xs font-semibold">Favorite</span>
                         </button>
                         <button

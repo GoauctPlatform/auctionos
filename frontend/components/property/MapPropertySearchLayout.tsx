@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { useNavigate } from 'react-router-dom';
 import { PropertyFilterParams } from '../admin/PropertyFilters';
 import { AdminService } from '../../services/admin.service';
+import { ClientDataService } from '../../services/property.service';
 import { PropertyCard } from '../PropertyCard';
 import { CircularProgress, Button, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -83,14 +85,42 @@ const MapBoundsController = ({ properties, activeState, geocodedProps }: { prope
 };
 
 export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = ({ filters, hasActiveFilters, onOpenPropertyDetails }) => {
+    const navigate = useNavigate();
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [geocodedProps, setGeocodedProps] = useState<Record<string, {lat: number, lng: number}>>({});
-    
-    const pageSize = 20;
+    const [favorites, setFavorites] = useState<Set<number>>(new Set());
+
+    const pageSize = 50;
+
+    // Load favorites on mount
+    useEffect(() => {
+        ClientDataService.getFavorites().then(favs => {
+            setFavorites(new Set(favs));
+        }).catch(err => console.error('Error loading favorites:', err));
+    }, []);
+
+    const handleToggleFavorite = async (property: any) => {
+        try {
+            const id = property.id;
+            const res = await ClientDataService.toggleFavorite(id);
+            setFavorites(prev => {
+                const next = new Set(prev);
+                if (res.is_favorite) {
+                    next.add(id);
+                } else {
+                    next.delete(id);
+                }
+                return next;
+            });
+        } catch (error) {
+            console.error('Failed to toggle favorite', error);
+            alert('Failed to update favorite status');
+        }
+    };
 
     const fetchProperties = async (resetPage = false) => {
         setLoading(true);
@@ -234,8 +264,9 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                             key={p.id || p.parcel_id}
                             property={{...p, id: p.id || p.parcel_id, title: p.address || 'Property', status: (p.availability_status || '').toLowerCase() === 'available' ? 'Active' : 'Sold'}}
                             onView={() => onOpenPropertyDetails && onOpenPropertyDetails(p.id || p.parcel_id, p.parcel_id)}
-                            onFavorite={() => console.log('Add to favorites', p.id)}
-                            onFlyer={() => console.log('Generate flyer', p.id)}
+                            onFavorite={() => handleToggleFavorite(p)}
+                            onFlyer={(property) => navigate(`/client/properties/${property.id || property.parcel_id}?action=export_flyer`)}
+                            isFavorite={favorites.has(p.id)}
                         />
                     ))}
 
