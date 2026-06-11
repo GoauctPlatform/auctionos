@@ -6,9 +6,8 @@ import { getStreetViewUrl } from '../utils/maps';
 interface PropertyCardProps {
     property: Property;
     onView: (property: Property) => void;
-    onEdit: (property: Property) => void;
-    onExport: (property: Property) => void;
-    onDelete: (property: Property) => void;
+    onFavorite: (property: Property) => void;
+    onFlyer: (property: Property) => void;
     isSelected?: boolean;
     onSelect?: (id: string, checked: boolean) => void;
 }
@@ -16,9 +15,8 @@ interface PropertyCardProps {
 export const PropertyCard: React.FC<PropertyCardProps> = ({
     property,
     onView,
-    onEdit,
-    onExport,
-    onDelete,
+    onFavorite,
+    onFlyer,
     isSelected,
     onSelect
 }) => {
@@ -124,11 +122,28 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                         </div>
                     </div>
                     <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <div className="text-slate-400 material-symbols-outlined text-[14px]">person</div>
                         <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Occupancy</span>
+                            <span className="text-[10px] text-slate-400 uppercase font-semibold">County</span>
                             <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                                {property.occupancy || '-'}
+                                {property.county || '-'}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                        <div className="text-slate-400 material-symbols-outlined text-[14px]">landscape</div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Acreage</span>
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                                {property.lot_acres || property.details?.lot_acres ? `${property.lot_acres || property.details?.lot_acres} Acres` : '-'}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                        <div className="text-slate-400 material-symbols-outlined text-[14px]">home</div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Type</span>
+                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                                {property.property_type || '-'}
                             </span>
                         </div>
                     </div>
@@ -155,36 +170,32 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 w-full justify-between">
                         <button
                             onClick={() => onView(property)}
-                            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
+                            className="flex-1 flex justify-center items-center gap-2 p-2 text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
                             title="View Details"
                         >
                             <Eye size={18} />
+                            <span className="text-xs font-semibold">Preview</span>
                         </button>
                         <button
-                            onClick={() => onEdit(property)}
-                            className="p-2 text-slate-400 hover:text-blue-500 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
-                            title="Edit"
+                            onClick={() => onFavorite(property)}
+                            className="flex-1 flex justify-center items-center gap-2 p-2 text-slate-500 hover:text-yellow-500 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
+                            title="Add to Favorites"
                         >
-                            <Edit size={18} />
+                            <span className="material-symbols-outlined text-[18px]">star</span>
+                            <span className="text-xs font-semibold">Favorite</span>
                         </button>
                         <button
-                            onClick={() => onExport(property)}
-                            className="p-2 text-slate-400 hover:text-green-500 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
-                            title="Export"
+                            onClick={() => onFlyer(property)}
+                            className="flex-1 flex justify-center items-center gap-2 p-2 text-slate-500 hover:text-purple-500 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
+                            title="Generate Flyer"
                         >
-                            <Share2 size={18} />
+                            <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                            <span className="text-xs font-semibold">Flyer</span>
                         </button>
                     </div>
-                    <button
-                        onClick={() => onDelete(property)}
-                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                        title="Delete"
-                    >
-                        <span className="material-symbols-outlined text-[20px]">delete</span>
-                    </button>
                 </div>
             </div>
         </div>

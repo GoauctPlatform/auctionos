@@ -7,6 +7,7 @@ import { AdminService } from '../../services/admin.service';
 import { PropertyCard } from '../PropertyCard';
 import { CircularProgress, Button, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import { geocodeAddress } from '../../services/geocoding.service';
 
 // Fix Leaflet's default icon path issues in React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -23,13 +24,46 @@ interface MapPropertySearchLayoutProps {
 }
 
 // Controller to handle automatic map bounds based on properties
-const MapBoundsController = ({ properties, activeState }: { properties: any[], activeState: string | undefined }) => {
+const MapBoundsController = ({ properties, activeState, geocodedProps }: { properties: any[], activeState: string | undefined, geocodedProps: Record<string, {lat: number, lng: number}> }) => {
     const map = useMap();
 
     useEffect(() => {
+        // Fix for grey areas (invalid size) on Leaflet load
+        const resizeObserver = new ResizeObserver(() => {
+            requestAnimationFrame(() => map.invalidateSize());
+        });
+        const container = map.getContainer();
+        if (container) resizeObserver.observe(container);
+
+        setTimeout(() => map.invalidateSize(), 100);
+        setTimeout(() => map.invalidateSize(), 500);
+
+        return () => {
+            if (container) resizeObserver.unobserve(container);
+            resizeObserver.disconnect();
+        };
+    }, [map]);
+
+    useEffect(() => {
         if (properties.length > 0) {
-            const lats = properties.map(p => parseFloat(p.latitude)).filter(n => !isNaN(n));
-            const lngs = properties.map(p => parseFloat(p.longitude)).filter(n => !isNaN(n));
+            const lats: number[] = [];
+            const lngs: number[] = [];
+
+            properties.forEach(p => {
+                let lat = parseFloat(p.latitude);
+                let lng = parseFloat(p.longitude);
+                if (isNaN(lat) || isNaN(lng)) {
+                    const fallback = geocodedProps[p.id || p.parcel_id];
+                    if (fallback) {
+                        lat = fallback.lat;
+                        lng = fallback.lng;
+                    }
+                }
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    lats.push(lat);
+                    lngs.push(lng);
+                }
+            });
 
             if (lats.length > 0 && lngs.length > 0) {
                 const bounds = L.latLngBounds(
@@ -43,7 +77,7 @@ const MapBoundsController = ({ properties, activeState }: { properties: any[], a
             // Default to US View
             map.setView([39.8283, -98.5795], 4);
         }
-    }, [properties, activeState, map]);
+    }, [properties, activeState, map, geocodedProps]);
 
     return null;
 };
@@ -54,6 +88,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
     const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [geocodedProps, setGeocodedProps] = useState<Record<string, {lat: number, lng: number}>>({});
     
     const pageSize = 20;
 
@@ -104,6 +139,24 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
         }
     }, [filters, hasActiveFilters]);
 
+    // Asynchronous Geocoding Fallback for properties lacking lat/lng
+    useEffect(() => {
+        properties.forEach(async (p) => {
+            const lat = parseFloat(p.latitude);
+            const lng = parseFloat(p.longitude);
+            if (isNaN(lat) || isNaN(lng)) {
+                const id = p.id || p.parcel_id;
+                if (!geocodedProps[id]) {
+                    const addressStr = `${p.address || p.parcel_id}, ${p.county || ''} County, ${p.state || ''} ${p.zip_code || ''}`;
+                    const coords = await geocodeAddress(addressStr);
+                    if (coords) {
+                        setGeocodedProps(prev => ({...prev, [id]: coords}));
+                    }
+                }
+            }
+        });
+    }, [properties]);
+
     return (
         <div className="absolute inset-0 w-full h-full overflow-hidden flex">
             {/* Map Background */}
@@ -121,9 +174,18 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                     />
                     
                     {properties.map(p => {
-                        const lat = parseFloat(p.latitude);
-                        const lng = parseFloat(p.longitude);
-                        if (isNaN(lat) || isNaN(lng)) return null;
+                        let lat = parseFloat(p.latitude);
+                        let lng = parseFloat(p.longitude);
+                        
+                        if (isNaN(lat) || isNaN(lng)) {
+                            const fallback = geocodedProps[p.id || p.parcel_id];
+                            if (fallback) {
+                                lat = fallback.lat;
+                                lng = fallback.lng;
+                            } else {
+                                return null;
+                            }
+                        }
 
                         return (
                             <Marker key={p.id || p.parcel_id} position={[lat, lng]}>
@@ -143,7 +205,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                         );
                     })}
                     
-                    <MapBoundsController properties={properties} activeState={filters.state} />
+                    <MapBoundsController properties={properties} activeState={filters.state} geocodedProps={geocodedProps} />
                 </MapContainer>
             </div>
 
@@ -172,9 +234,8 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                             key={p.id || p.parcel_id}
                             property={{...p, id: p.id || p.parcel_id, title: p.address || 'Property', status: (p.availability_status || '').toLowerCase() === 'available' ? 'Active' : 'Sold'}}
                             onView={() => onOpenPropertyDetails && onOpenPropertyDetails(p.id || p.parcel_id, p.parcel_id)}
-                            onEdit={() => {}}
-                            onExport={() => {}}
-                            onDelete={() => {}}
+                            onFavorite={() => console.log('Add to favorites', p.id)}
+                            onFlyer={() => console.log('Generate flyer', p.id)}
                         />
                     ))}
 

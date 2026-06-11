@@ -91,7 +91,17 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
         }
     }, [searchParams]);
 
-    const [viewMode, setViewMode] = useState<'map' | 'list'>('map');
+    const [viewMode, setViewMode] = useState<'map' | 'list'>(() => {
+        try {
+            return (sessionStorage.getItem('property_search_view') as 'map' | 'list') || 'map';
+        } catch {
+            return 'map';
+        }
+    });
+
+    useEffect(() => {
+        sessionStorage.setItem('property_search_view', viewMode);
+    }, [viewMode]);
 
     // availability='available' is the default — always show results when it's set
     const hasActiveFilters = filters.availability !== undefined || 
