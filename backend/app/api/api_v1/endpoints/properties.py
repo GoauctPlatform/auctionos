@@ -87,7 +87,8 @@ def read_properties(
         params["auction_date"] = f"{auction_date}%"
     if auction_types:
         # Filter by multiple types if provided (e.g. Deed, Lien, Foreclosure)
-        where_clauses.append("LOWER(pah.listed_as) = ANY(:auction_types) OR LOWER(p.property_category) = ANY(:auction_types)")
+        # Check in pah.listed_as, p.property_type, and p.property_category to prevent schema mismatches
+        where_clauses.append("LOWER(pah.listed_as) = ANY(:auction_types) OR LOWER(p.property_type) = ANY(:auction_types) OR LOWER(p.property_category) = ANY(:auction_types)")
         params["auction_types"] = [t.lower() for t in auction_types]
     if min_amount_due is not None:
         where_clauses.append("p.amount_due >= :min_amount_due")
@@ -96,8 +97,10 @@ def read_properties(
         where_clauses.append("p.amount_due <= :max_amount_due")
         params["max_amount_due"] = max_amount_due
     if property_category:
-        where_clauses.append("p.property_category = :property_category")
-        params["property_category"] = property_category
+        # Clean "Tax Deed" -> "deed", "Tax Lien" -> "lien", etc. and search case-insensitively
+        cat_clean = property_category.lower().replace("tax", "").strip()
+        where_clauses.append("(LOWER(p.property_type) LIKE :cat_clean OR LOWER(p.property_category) LIKE :cat_clean)")
+        params["cat_clean"] = f"%{cat_clean}%"
     if occupancy:
         where_clauses.append("p.occupancy ILIKE :occupancy")
         params["occupancy"] = f"%{occupancy}%"
@@ -105,7 +108,8 @@ def read_properties(
         where_clauses.append("p.tax_year = :tax_year")
         params["tax_year"] = tax_year
     if property_type:
-        where_clauses.append("p.property_type ILIKE :property_type")
+        # Check both columns due to inverted mapping (p.property_category contains Land Only, structures, etc.)
+        where_clauses.append("(p.property_type ILIKE :property_type OR p.property_category ILIKE :property_type)")
         params["property_type"] = f"%{property_type}%"
         
     # Apply New Filters
