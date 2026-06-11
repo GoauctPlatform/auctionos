@@ -29,43 +29,76 @@ const MapBoundsController = ({ properties, activeState, geocodedProps }: { prope
     const map = useMap();
 
     useEffect(() => {
+        if (typeof window === 'undefined' || typeof ResizeObserver === 'undefined') return;
+
         // Fix for grey areas (invalid size) on Leaflet load
         const resizeObserver = new ResizeObserver(() => {
-            requestAnimationFrame(() => map.invalidateSize());
+            try {
+                requestAnimationFrame(() => map.invalidateSize());
+            } catch (err) {
+                console.error("Failed to invalidate map size:", err);
+            }
         });
+        
         const container = map.getContainer();
-        if (container) resizeObserver.observe(container);
+        if (container) {
+            try {
+                resizeObserver.observe(container);
+            } catch (err) {
+                console.error("Failed to observe map container:", err);
+            }
+        }
 
-        setTimeout(() => map.invalidateSize(), 100);
-        setTimeout(() => map.invalidateSize(), 500);
+        const t1 = setTimeout(() => {
+            try { map.invalidateSize(); } catch {}
+        }, 100);
+        const t2 = setTimeout(() => {
+            try { map.invalidateSize(); } catch {}
+        }, 500);
 
         return () => {
-            if (container) resizeObserver.unobserve(container);
-            resizeObserver.disconnect();
+            if (container && resizeObserver) {
+                try { resizeObserver.unobserve(container); } catch {}
+            }
+            try { resizeObserver.disconnect(); } catch {}
+            clearTimeout(t1);
+            clearTimeout(t2);
         };
     }, [map]);
 
     useEffect(() => {
-        if (properties.length > 0) {
-            const lats: number[] = [];
-            const lngs: number[] = [];
-
-            properties.forEach(p => {
-                let lat = parseFloat(p.latitude);
-                let lng = parseFloat(p.longitude);
-                if (isNaN(lat) || isNaN(lng)) {
-                    const fallback = geocodedProps[p.id || p.parcel_id];
-                    if (fallback) {
-                        lat = fallback.lat;
-                        lng = fallback.lng;
-                    }
+        if (!properties || properties.length === 0) {
+            try {
+                if (!activeState) {
+                    map.setView([39.8283, -98.5795], 4);
                 }
-                if (!isNaN(lat) && !isNaN(lng)) {
-                    lats.push(lat);
-                    lngs.push(lng);
-                }
-            });
+            } catch (error) {
+                console.error("Failed to set default view:", error);
+            }
+            return;
+        }
 
+        const lats: number[] = [];
+        const lngs: number[] = [];
+
+        properties.forEach(p => {
+            if (!p) return;
+            let lat = parseFloat(p.latitude);
+            let lng = parseFloat(p.longitude);
+            if (isNaN(lat) || isNaN(lng)) {
+                const fallback = geocodedProps[p.id || p.parcel_id];
+                if (fallback) {
+                    lat = fallback.lat;
+                    lng = fallback.lng;
+                }
+            }
+            if (!isNaN(lat) && !isNaN(lng)) {
+                lats.push(lat);
+                lngs.push(lng);
+            }
+        });
+
+        try {
             if (lats.length > 0 && lngs.length > 0) {
                 const bounds = L.latLngBounds(
                     L.latLng(Math.min(...lats), Math.min(...lngs)),
@@ -74,9 +107,8 @@ const MapBoundsController = ({ properties, activeState, geocodedProps }: { prope
                 // Pad bounds so markers aren't right on the edge
                 map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
             }
-        } else if (!activeState) {
-            // Default to US View
-            map.setView([39.8283, -98.5795], 4);
+        } catch (error) {
+            console.error("Failed to fit bounds on map:", error);
         }
     }, [properties, activeState, map, geocodedProps]);
 
@@ -98,8 +130,15 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
     // Load favorites on mount
     useEffect(() => {
         ClientDataService.getFavorites().then(favs => {
-            setFavorites(new Set(favs));
-        }).catch(err => console.error('Error loading favorites:', err));
+            if (favs && Array.isArray(favs)) {
+                setFavorites(new Set(favs));
+            } else {
+                setFavorites(new Set());
+            }
+        }).catch(err => {
+            console.error('Error loading favorites:', err);
+            setFavorites(new Set());
+        });
     }, []);
 
     const handleToggleFavorite = async (property: any) => {
@@ -203,7 +242,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                         maxZoom={19}
                     />
                     
-                    {properties.map(p => {
+                    {properties.filter(Boolean).map(p => {
                         let lat = parseFloat(p.latitude);
                         let lng = parseFloat(p.longitude);
                         
