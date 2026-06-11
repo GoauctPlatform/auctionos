@@ -859,15 +859,21 @@ def purchase_property_action(
             if current_status != "available":
                 raise HTTPException(status_code=400, detail=f"Cannot purchase property. Current state is '{current_status}'. Must be 'available'.")
             
-            # Auction Linkage Validation for non-privileged users
+            # Auction Linkage Validation: Must be linked to an auction
+            auction_q = text("SELECT 1 FROM property_auction_history WHERE property_id = :prop_id LIMIT 1")
+            has_auction = db.execute(auction_q, {"prop_id": prop_id}).fetchone()
+            if not has_auction:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Cannot purchase this property because it is not linked to any active auction."
+                )
+            
+            # Prevent direct simulation purchase for clients on live auctions
             if not current_user.is_superuser:
-                auction_q = text("SELECT 1 FROM property_auction_history WHERE property_id = :prop_id LIMIT 1")
-                has_auction = db.execute(auction_q, {"prop_id": prop_id}).fetchone()
-                if has_auction:
-                    raise HTTPException(
-                        status_code=403, 
-                        detail="This property is linked to a live auction. Clients must bid via the official portal instead of direct purchase."
-                    )
+                raise HTTPException(
+                    status_code=403, 
+                    detail="This property is linked to a live auction. Clients must bid via the official portal instead of direct purchase."
+                )
                 
             # Perform atomic update
             new_status = "purchased"

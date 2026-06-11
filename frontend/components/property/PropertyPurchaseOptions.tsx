@@ -93,53 +93,61 @@ export const PropertyPurchaseOptions: React.FC<Props> = ({
             {/* Action Buttons */}
             <div className="space-y-3">
                 {isAvailable ? (
-                    <>
-                        <button 
-                            onClick={() => auctionInfoLink ? window.open(auctionInfoLink, '_blank') : setIsApplyOpen(true)}
-                            className="w-full py-3 px-4 bg-slate-900 dark:bg-slate-700 text-white rounded-xl hover:bg-slate-800 dark:hover:bg-slate-600 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm uppercase tracking-widest"
-                        >
-                            <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
-                            Online Instructions
-                        </button>
-                        
-                        {readOnly && hasActiveAuction ? (
-                            <div
-                                onClick={() => auctionListLink ? window.open(auctionListLink, '_blank') : handleAuctionRedirect()}
-                                className="group relative overflow-hidden bg-orange-600 dark:bg-orange-500 text-white rounded-xl p-5 text-center shadow-lg transition-all duration-300 hover:bg-orange-700 dark:hover:bg-orange-400 cursor-pointer hover:shadow-orange-500/20 active:scale-[0.98]"
+                    hasActiveAuction ? (
+                        <>
+                            <button 
+                                onClick={() => auctionInfoLink ? window.open(auctionInfoLink, '_blank') : setIsApplyOpen(true)}
+                                className="w-full py-3 px-4 bg-slate-900 dark:bg-slate-700 text-white rounded-xl hover:bg-slate-800 dark:hover:bg-slate-600 font-bold text-xs transition-all flex items-center justify-center gap-2 shadow-sm uppercase tracking-widest"
                             >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-white/20"></div>
-                                <h3 className="font-black text-lg uppercase tracking-tight mb-1">
-                                    Go to Live Auction
-                                </h3>
-                                <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">
-                                    {property.current_auction_name || 'Auction Entry Detected'}
-                                </p>
-                                <div className="mt-3 flex items-center justify-center gap-2 text-[10px] font-black bg-white/10 py-1 px-3 rounded-full group-hover:bg-white/20 transition-colors text-white">
-                                    <span className="material-symbols-outlined text-[14px]">gavel</span>
-                                    BID ON EXTERNAL PORTAL
+                                <span className="material-symbols-outlined text-[18px]">how_to_reg</span>
+                                Online Instructions
+                            </button>
+                            
+                            {readOnly ? (
+                                <div
+                                    onClick={() => auctionListLink ? window.open(auctionListLink, '_blank') : handleAuctionRedirect()}
+                                    className="group relative overflow-hidden bg-orange-600 dark:bg-orange-500 text-white rounded-xl p-5 text-center shadow-lg transition-all duration-300 hover:bg-orange-700 dark:hover:bg-orange-400 cursor-pointer hover:shadow-orange-500/20 active:scale-[0.98]"
+                                >
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-white/20"></div>
+                                    <h3 className="font-black text-lg uppercase tracking-tight mb-1">
+                                        Go to Live Auction
+                                    </h3>
+                                    <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">
+                                        {property.current_auction_name || 'Auction Entry Detected'}
+                                    </p>
+                                    <div className="mt-3 flex items-center justify-center gap-2 text-[10px] font-black bg-white/10 py-1 px-3 rounded-full group-hover:bg-white/20 transition-colors text-white">
+                                        <span className="material-symbols-outlined text-[14px]">gavel</span>
+                                        BID ON EXTERNAL PORTAL
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div
-                                onClick={actionLoading ? undefined : onSimulatePurchase}
-                                className={`group relative overflow-hidden bg-emerald-600 dark:bg-emerald-500 text-white rounded-xl p-5 text-center shadow-lg transition-all duration-300 ${
-                                    actionLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700 dark:hover:bg-emerald-400 cursor-pointer hover:shadow-emerald-500/20 active:scale-[0.98]'
-                                }`}
-                            >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-white/20"></div>
-                                <h3 className="font-black text-lg uppercase tracking-tight mb-1">
-                                    {actionLoading ? 'Verifying...' : 'Purchase Online'}
-                                </h3>
-                                <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">
-                                    {property.county} County Direct
-                                </p>
-                                <div className="mt-3 flex items-center justify-center gap-2 text-[10px] font-black bg-white/10 py-1 px-3 rounded-full group-hover:bg-white/20 transition-colors">
-                                    <span className="material-symbols-outlined text-[14px]">bolt</span>
-                                    SIMULATE TRANSACTION
+                            ) : (
+                                <div
+                                    onClick={actionLoading ? undefined : onSimulatePurchase}
+                                    className={`group relative overflow-hidden bg-emerald-600 dark:bg-emerald-500 text-white rounded-xl p-5 text-center shadow-lg transition-all duration-300 ${
+                                        actionLoading ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-700 dark:hover:bg-emerald-400 cursor-pointer hover:shadow-emerald-500/20 active:scale-[0.98]'
+                                    }`}
+                                >
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-white/20"></div>
+                                    <h3 className="font-black text-lg uppercase tracking-tight mb-1">
+                                        {actionLoading ? 'Verifying...' : 'Purchase Online'}
+                                    </h3>
+                                    <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">
+                                        {property.county} County Direct
+                                    </p>
+                                    <div className="mt-3 flex items-center justify-center gap-2 text-[10px] font-black bg-white/10 py-1 px-3 rounded-full group-hover:bg-white/20 transition-colors">
+                                        <span className="material-symbols-outlined text-[14px]">bolt</span>
+                                        SIMULATE TRANSACTION
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </>
+                            )}
+                        </>
+                    ) : (
+                        <div className="bg-slate-50 dark:bg-slate-900/40 text-slate-400 rounded-xl p-6 text-center border border-dashed border-slate-200 dark:border-slate-800">
+                            <span className="material-symbols-outlined text-3xl mb-2 text-amber-500 dark:text-amber-400">gavel</span>
+                            <h3 className="font-bold text-sm uppercase tracking-widest text-slate-700 dark:text-slate-300">Purchase Unavailable</h3>
+                            <p className="text-[10px] mt-1 italic text-slate-500 dark:text-slate-400">No active auction linked to this property.</p>
+                        </div>
+                    )
                 ) : (
                     <div className="bg-slate-100 dark:bg-slate-900/50 text-slate-400 rounded-xl p-6 text-center border border-dashed border-slate-200 dark:border-slate-800">
                         <span className="material-symbols-outlined text-3xl mb-2">lock_clock</span>

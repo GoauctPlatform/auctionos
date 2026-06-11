@@ -143,6 +143,17 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
     const [favorites, setFavorites] = useState<Set<number>>(new Set());
 
     const pageSize = 50;
+    const [selectedPropertyId, setSelectedPropertyId] = useState<string | number | null>(null);
+
+    // Scroll sidebar to selected property card when it changes
+    useEffect(() => {
+        if (selectedPropertyId) {
+            const element = document.getElementById(`property-card-${selectedPropertyId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+    }, [selectedPropertyId]);
 
     // Load favorites on mount
     useEffect(() => {
@@ -225,6 +236,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
             setProperties([]);
             setIsSidebarOpen(false);
         }
+        setSelectedPropertyId(null);
     }, [filters, hasActiveFilters]);
 
     // Asynchronous Geocoding Fallback for properties lacking lat/lng
@@ -276,7 +288,16 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                         }
 
                         return (
-                            <Marker key={p.id || p.parcel_id} position={[lat, lng]}>
+                            <Marker 
+                                key={p.id || p.parcel_id} 
+                                position={[lat, lng]}
+                                eventHandlers={{
+                                    click: () => {
+                                        setSelectedPropertyId(p.id || p.parcel_id);
+                                        setIsSidebarOpen(true);
+                                    }
+                                }}
+                            >
                                 <Popup>
                                     <div className="text-sm font-semibold">{p.address || p.parcel_id}</div>
                                     <div className="text-xs text-slate-500">{p.county} County, {p.state}</div>
@@ -317,16 +338,25 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                         </div>
                     )}
                     
-                    {properties.map(p => (
-                        <PropertyCard 
-                            key={p.id || p.parcel_id}
-                            property={{...p, id: p.id || p.parcel_id, title: p.address || 'Property', status: (p.availability_status || '').toLowerCase() === 'available' ? 'Active' : 'Sold'}}
-                            onView={() => onOpenPropertyDetails && onOpenPropertyDetails(p.id || p.parcel_id, p.parcel_id)}
-                            onFavorite={() => handleToggleFavorite(p)}
-                            onFlyer={(property) => navigate(`/client/properties/${property.id || property.parcel_id}?action=export_flyer`)}
-                            isFavorite={favorites.has(p.id)}
-                        />
-                    ))}
+                    {properties.map(p => {
+                        const isCardSelected = selectedPropertyId === (p.id || p.parcel_id);
+                        return (
+                            <div 
+                                key={p.id || p.parcel_id} 
+                                id={`property-card-${p.id || p.parcel_id}`}
+                                className="transition-all duration-300"
+                            >
+                                <PropertyCard 
+                                    property={{...p, id: p.id || p.parcel_id, title: p.address || 'Property', status: (p.availability_status || '').toLowerCase() === 'available' ? 'Active' : 'Sold'}}
+                                    onView={() => onOpenPropertyDetails && onOpenPropertyDetails(p.id || p.parcel_id, p.parcel_id)}
+                                    onFavorite={() => handleToggleFavorite(p)}
+                                    onFlyer={(property) => navigate(`/client/properties/${property.id || property.parcel_id}?action=export_flyer`)}
+                                    isFavorite={favorites.has(p.id)}
+                                    isSelected={isCardSelected}
+                                />
+                            </div>
+                        );
+                    })}
 
                     {loading && (
                         <div className="flex justify-center py-4">
