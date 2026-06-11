@@ -8,6 +8,7 @@ import { countyService } from '../../services/county.service';
 import { StatesService, StateContact } from '../../services/states.service';
 import { Autocomplete } from '@mui/material';
 import { MapPropertySearchLayout } from '../../components/property/MapPropertySearchLayout';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 import { useAuth } from '../../context/AuthContext';
 
@@ -147,23 +148,27 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
 
                         {/* Property Filters */}
                         <div className="w-full">
-                            <PropertyFilters 
-                                onFilterChange={setFilters} 
-                                readOnly={true} 
-                                initialFilters={filters}
-                                onOpenPropertyDetails={onOpenPropertyDetails}
-                                variant="header"
-                            />
+                            <ErrorBoundary name="PropertyFilters">
+                                <PropertyFilters 
+                                    onFilterChange={setFilters} 
+                                    readOnly={true} 
+                                    initialFilters={filters}
+                                    onOpenPropertyDetails={onOpenPropertyDetails}
+                                    variant="header"
+                                />
+                            </ErrorBoundary>
                         </div>
                     </div>
 
                     {/* Full Map */}
                     <div className="flex-1 relative w-full h-full">
-                        <MapPropertySearchLayout 
-                            filters={filters} 
-                            hasActiveFilters={hasActiveFilters} 
-                            onOpenPropertyDetails={onOpenPropertyDetails} 
-                        />
+                        <ErrorBoundary name="MapLayout">
+                            <MapPropertySearchLayout 
+                                filters={filters} 
+                                hasActiveFilters={hasActiveFilters} 
+                                onOpenPropertyDetails={onOpenPropertyDetails} 
+                            />
+                        </ErrorBoundary>
                     </div>
                 </div>
             ) : (
