@@ -5,6 +5,12 @@ export enum UserRole {
   AGENT = 'agent'
 }
 
+export enum PropertyStatus {
+  Active = 'Active',
+  Pending = 'Pending',
+  Sold = 'Sold'
+}
+
 // Minimal Users
 export interface User {
   id: number;
