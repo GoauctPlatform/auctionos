@@ -270,9 +270,10 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                 
                 // Busca as propriedades gerais do banco de dados (que não exigem score pré-calculado no DB)
                 const rawProps = await PropertyService.getProperties(rawFilters);
+                const propsList = Array.isArray(rawProps) ? rawProps : (rawProps?.items || []);
                 const scoredProps: TopScoredProperty[] = [];
                 
-                for (const prop of rawProps) {
+                for (const prop of propsList) {
                     if (!prop.parcel_id) continue;
                     
                     // Calcula o score e a nota usando o motor oficial do sistema

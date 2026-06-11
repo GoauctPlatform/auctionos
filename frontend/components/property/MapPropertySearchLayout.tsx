@@ -25,8 +25,25 @@ interface MapPropertySearchLayoutProps {
 }
 
 // Controller to handle automatic map bounds based on properties
-const MapBoundsController = ({ properties, activeState, geocodedProps }: { properties: any[], activeState: string | undefined, geocodedProps: Record<string, {lat: number, lng: number}> }) => {
+const MapBoundsController = ({ properties, activeState, activeCounty, geocodedProps }: { properties: any[], activeState: string | undefined, activeCounty: string | undefined, geocodedProps: Record<string, {lat: number, lng: number}> }) => {
     const map = useMap();
+
+    // 1. Zoom/Pan to active state and/or county immediately when they change in the filters
+    useEffect(() => {
+        if (!activeState) return;
+        const zoomToRegion = async () => {
+            const regionStr = activeCounty ? `${activeCounty} County, ${activeState}` : activeState;
+            try {
+                const coords = await geocodeAddress(regionStr);
+                if (coords) {
+                    map.setView([coords.lat, coords.lng], activeCounty ? 10 : 6);
+                }
+            } catch (err) {
+                console.error("Failed to zoom to region:", err);
+            }
+        };
+        zoomToRegion();
+    }, [activeState, activeCounty, map]);
 
     useEffect(() => {
         if (typeof window === 'undefined' || typeof ResizeObserver === 'undefined') return;
@@ -169,10 +186,12 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
 
             const params: any = { ...filters, limit, skip };
 
-            const items = await PropertyService.getProperties(params);
+            const response = await PropertyService.getProperties(params);
+            const items = Array.isArray(response) ? response : ((response as any).items || []);
+            const total = Array.isArray(response) ? response.length : ((response as any).total || 0);
             
             // Sort by availability: available first
-            const sortedItems = items.sort((a: any, b: any) => {
+            const sortedItems = [...items].sort((a: any, b: any) => {
                 const aAvail = (a.availability_status || '').toLowerCase() === 'available' ? 0 : 1;
                 const bAvail = (b.availability_status || '').toLowerCase() === 'available' ? 0 : 1;
                 return aAvail - bAvail;
@@ -189,7 +208,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                 });
             }
 
-            setHasMore(sortedItems.length === pageSize);
+            setHasMore(skip + sortedItems.length < total);
             setPage(currentPage + 1);
         } catch (err) {
             console.error('Error fetching properties', err);
@@ -274,7 +293,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                         );
                     })}
                     
-                    <MapBoundsController properties={properties} activeState={filters.state} geocodedProps={geocodedProps} />
+                    <MapBoundsController properties={properties} activeState={filters.state} activeCounty={filters.county} geocodedProps={geocodedProps} />
                 </MapContainer>
             </div>
 

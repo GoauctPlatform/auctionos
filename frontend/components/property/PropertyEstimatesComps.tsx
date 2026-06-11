@@ -161,7 +161,8 @@ export const PropertyEstimatesComps: React.FC<Props> = ({ property }) => {
                     county: property.county,
                     state: property.state
                 });
-                const filtered = results.filter((p: any) => p.parcel_id !== property.parcel_id);
+                const items = Array.isArray(results) ? results : (results?.items || []);
+                const filtered = items.filter((p: any) => p.parcel_id !== property.parcel_id);
                 setRealComps(filtered);
             } catch (err) {
                 console.error("Failed to load real comps", err);

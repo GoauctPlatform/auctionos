@@ -2,7 +2,7 @@ import { API_URL, getHeaders, getMultiPartHeaders } from './httpClient';
 import { PropertyDetails as Property } from '../types';
 
 export const PropertyService = {
-    getProperties: async (filters: any = {}): Promise<Property[]> => {
+    getProperties: async (filters: any = {}): Promise<any> => {
         try {
             const queryParams = new URLSearchParams();
             Object.entries(filters).forEach(([key, value]) => {
@@ -21,7 +21,22 @@ export const PropertyService = {
             if (!response.ok) {
                 throw new Error('Failed to fetch properties');
             }
-            return await response.json();
+            
+            const data = await response.json();
+            
+            // Normalize properties so they always have 'state' populated from 'state_code'
+            if (data && data.items && Array.isArray(data.items)) {
+                data.items = data.items.map((p: any) => ({
+                    ...p,
+                    state: p.state || p.state_code
+                }));
+            } else if (Array.isArray(data)) {
+                return data.map((p: any) => ({
+                    ...p,
+                    state: p.state || p.state_code
+                }));
+            }
+            return data;
         } catch (error) {
             console.error('Error fetching properties:', error);
             throw error;

@@ -133,8 +133,9 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
                         state: selectedState
                     });
                     
+                    const propsList = Array.isArray(rawProps) ? rawProps : (rawProps?.items || []);
                     const scoredProps: TopScoredProperty[] = [];
-                    for (const prop of rawProps) {
+                    for (const prop of propsList) {
                         if (!prop.parcel_id) continue;
                         
                         const scoreResult = calculateDealScore(prop);
