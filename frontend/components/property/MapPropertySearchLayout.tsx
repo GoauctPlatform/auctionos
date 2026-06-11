@@ -4,8 +4,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate } from 'react-router-dom';
 import { PropertyFilterParams } from '../admin/PropertyFilters';
-import { AdminService } from '../../services/admin.service';
-import { ClientDataService } from '../../services/property.service';
+import { PropertyService, ClientDataService } from '../../services/property.service';
 import { PropertyCard } from '../PropertyCard';
 import { CircularProgress, Button, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -131,7 +130,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
 
             const params: any = { ...filters, limit, skip };
 
-            const { items, total } = await AdminService.listProperties(params);
+            const items = await PropertyService.getProperties(params);
             
             // Sort by availability: available first
             const sortedItems = items.sort((a: any, b: any) => {
@@ -145,12 +144,13 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                 setIsSidebarOpen(true);
             } else {
                 setProperties(prev => {
-                    const newProps = [...prev, ...sortedItems];
-                    return newProps;
+                    const existingIds = new Set(prev.map(p => p.id || p.parcel_id));
+                    const newItems = sortedItems.filter((p: any) => !existingIds.has(p.id || p.parcel_id));
+                    return [...prev, ...newItems];
                 });
             }
 
-            setHasMore(skip + limit < total);
+            setHasMore(sortedItems.length === pageSize);
             setPage(currentPage + 1);
         } catch (err) {
             console.error('Error fetching properties', err);
