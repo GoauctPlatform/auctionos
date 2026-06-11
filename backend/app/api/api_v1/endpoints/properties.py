@@ -284,7 +284,8 @@ def read_properties(
             p.latitude,
             p.longitude,
             p.gsi_url,
-            p.id
+            p.id,
+            p.max_bid
         FROM property_details p
         LEFT JOIN {history_table} pah ON pah.property_id = p.property_id
         {ae_join}
@@ -383,6 +384,7 @@ def read_properties(
             "longitude": r[46],
             "gsi_url": r[47],
             "id": r[48],
+            "max_bid": r[49] if len(r) > 49 else None,
         }
         for r in result
     ]

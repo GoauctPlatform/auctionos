@@ -114,11 +114,8 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                 <div className="flex flex-col w-full h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
                     {/* Modern Top Header */}
                     <div className="z-30 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-2 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-                        {/* Title and Filters Combined */}
+                        {/* Filters Combined */}
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1 min-w-0">
-                            <Typography variant="h6" className="font-black text-slate-800 dark:text-white shrink-0 tracking-tight text-base hidden lg:block select-none">
-                                Property Search
-                            </Typography>
                             <div className="flex-1 w-full">
                                 <ErrorBoundary name="PropertyFilters">
                                     <PropertyFilters 

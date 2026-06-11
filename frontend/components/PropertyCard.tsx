@@ -33,6 +33,12 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         ? Math.round(property.deal_score) 
         : scoreResult.score;
 
+    // Financial Metrics Calculation
+    const assessedVal = property.assessed_value ? Number(property.assessed_value) : 0;
+    const arv = property.estimated_value || property.details?.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
+    const maxBid = property.max_bid || property.details?.max_bid || (arv * 0.7);
+    const spread = arv - maxBid;
+
     const getStatusColor = (status: PropertyStatus) => {
         switch (status) {
             case PropertyStatus.Active: return 'bg-green-500';
@@ -101,10 +107,19 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                     </span>
                 </div>
 
-                {/* Price Tag */}
-                <div className="absolute bottom-3 left-3">
-                    <div className="text-white font-bold text-xl drop-shadow-md">
-                        {property.price ? `$${property.price.toLocaleString()}` : 'Price TBD'}
+                {/* Max Bid & Spread Overlay */}
+                <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end select-none">
+                    <div className="flex flex-col text-left">
+                        <span className="text-[9px] font-black text-slate-350 dark:text-slate-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Max Bid</span>
+                        <div className="text-white font-black text-sm drop-shadow-md leading-none">
+                            {maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'TBD'}
+                        </div>
+                    </div>
+                    <div className="flex flex-col items-end text-right">
+                        <span className="text-[9px] font-black text-indigo-300 dark:text-indigo-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Est. Spread</span>
+                        <div className="text-emerald-400 font-black text-sm drop-shadow-md leading-none">
+                            {spread && spread > 0 ? `$${Math.round(spread).toLocaleString()}` : 'TBD'}
+                        </div>
                     </div>
                 </div>
             </div>
