@@ -169,6 +169,21 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
         });
     }, []);
 
+    // Listen to selection event from search autocomplete
+    useEffect(() => {
+        const handlePropertySelected = (e: Event) => {
+            const customEvent = e as CustomEvent;
+            if (customEvent.detail && customEvent.detail.id) {
+                setSelectedPropertyId(customEvent.detail.id);
+                setIsSidebarOpen(true);
+            }
+        };
+        window.addEventListener('property-selected-from-search', handlePropertySelected);
+        return () => {
+            window.removeEventListener('property-selected-from-search', handlePropertySelected);
+        };
+    }, []);
+
     const handleToggleFavorite = async (property: any) => {
         try {
             const id = property.id;

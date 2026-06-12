@@ -105,6 +105,18 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white leading-tight flex items-center gap-2">
                         {property.address || property.parcel_id || 'Unknown Property'}
+                        {(property.address || property.parcel_id) && (
+                            <button 
+                                onClick={() => {
+                                    navigator.clipboard.writeText(property.address || property.parcel_id || '');
+                                    alert('Address copied to clipboard!');
+                                }}
+                                className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                                title="Copy Address"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                            </button>
+                        )}
                     </h2>
                     <p className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-[18px] text-slate-400">location_on</span>
@@ -168,9 +180,23 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                             </div>
                             <div>
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Parcel ID</label>
-                                <p className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 truncate">
-                                    {property.parcel_id || '-'}
-                                </p>
+                                <div className="flex items-center gap-1.5">
+                                    <p className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 truncate">
+                                        {property.parcel_id || '-'}
+                                    </p>
+                                    {property.parcel_id && (
+                                        <button 
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(property.parcel_id || '');
+                                                alert('Parcel ID copied to clipboard!');
+                                            }}
+                                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                                            title="Copy Parcel ID"
+                                        >
+                                            <span className="material-symbols-outlined text-[14px]">content_copy</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">C/S Number</label>

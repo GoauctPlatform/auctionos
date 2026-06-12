@@ -238,9 +238,13 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                     onOpen={() => setOpen(true)}
                     onClose={() => setOpen(false)}
                     inputValue={inputValue}
-                    onInputChange={(event, newInputValue) => {
+                    onInputChange={(event, newInputValue, reason) => {
                         setInputValue(newInputValue);
-                        handleChange('keyword', newInputValue);
+                        if (reason === 'input') {
+                            handleChange('keyword', newInputValue);
+                        } else if (reason === 'clear') {
+                            handleChange('keyword', '');
+                        }
                     }}
                     onChange={(event, newValue: any) => {
                         if (typeof newValue === 'string') {
@@ -251,10 +255,16 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                             } else {
                                 navigate(readOnly ? `/client/properties/${newValue.parcel_id}` : `/admin/properties/${newValue.parcel_id}`);
                             }
+
+                            // Dispatch custom event to select property in map/sidebar search view
+                            const selectEvent = new CustomEvent('property-selected-from-search', { 
+                                detail: { id: newValue.id || newValue.parcel_id } 
+                            });
+                            window.dispatchEvent(selectEvent);
                         }
                     }}
                     options={options}
-                    getOptionLabel={(option: any) => typeof option === 'string' ? option : `${option.parcel_id || 'Unknown'} - ${option.address || option.county || ''}`}
+                    getOptionLabel={(option: any) => typeof option === 'string' ? option : (option.parcel_id || '')}
                     renderOption={(props, option: any) => (
                         <li {...props} key={option.parcel_id}>
                             <div className="flex flex-col">
