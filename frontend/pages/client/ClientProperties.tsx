@@ -113,7 +113,7 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
             {viewMode === 'map' ? (
                 <div className="flex flex-col w-full h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
                     {/* Modern Top Header */}
-                    <div className="z-30 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-2 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="z-30 w-full bg-white/40 dark:bg-slate-950/35 backdrop-blur-xl border-b border-slate-200/30 dark:border-slate-800/50 px-4 py-2 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 sticky top-0">
                         {/* Filters Combined */}
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1 min-w-0">
                             <div className="flex-1 w-full">
@@ -133,7 +133,7 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                         <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
                             <Button 
                                 variant="contained" 
-                                className="bg-white/95 text-slate-800 hover:bg-white border border-slate-200 dark:border-slate-800 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 shadow-sm rounded-xl font-bold normal-case text-xs h-[38px] px-3 transition-all"
+                                className="bg-white/40 text-slate-800 hover:bg-white/60 border border-slate-200/50 dark:border-slate-800/50 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:bg-slate-900/60 shadow-sm rounded-xl font-bold normal-case text-xs h-[38px] px-3 transition-all"
                                 onClick={() => setViewMode('list')}
                                 startIcon={<span className="material-symbols-outlined text-[16px]">list</span>}
                             >
@@ -199,7 +199,7 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                             </Button>
                         </div>
                     </div>
-                    <div id="tour-properties-filters" className="sticky top-0 z-40 pt-2 pb-1 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md -mx-4 px-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
+                    <div id="tour-properties-filters" className="sticky top-0 z-40 pt-3 pb-2 bg-white/40 dark:bg-slate-950/35 backdrop-blur-xl border-b border-slate-200/30 dark:border-slate-800/50 -mx-4 px-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12 shadow-sm transition-all duration-300">
                         <PropertyFilters 
                             onFilterChange={setFilters} 
                             readOnly={true} 
