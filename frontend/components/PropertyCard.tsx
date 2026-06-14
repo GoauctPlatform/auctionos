@@ -41,7 +41,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         ? Number(property.estimated_value) 
         : (property.details?.estimated_value !== undefined && property.details?.estimated_value !== null)
             ? Number(property.details.estimated_value)
-            : (assessedVal ? assessedVal * 1.5 : 0);
+            : (assessedVal ? assessedVal * 1.0 : 0);
 
     const maxBid = (property.max_bid !== undefined && property.max_bid !== null)
         ? Number(property.max_bid) 

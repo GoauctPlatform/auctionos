@@ -89,7 +89,7 @@ export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ op
                         const assessedVal = property.assessed_value ? Number(property.assessed_value) : 0;
                         const details = property.details;
                         
-                        const arv = details?.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
+                        const arv = details?.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.0 : 0);
                         const maxBid = details?.max_bid || (arv * 0.7);
                         const equity = arv - maxBid;
                         const rent = details?.rental_value || arv * 0.008;

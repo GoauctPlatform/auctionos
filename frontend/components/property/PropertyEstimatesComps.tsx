@@ -31,8 +31,8 @@ interface CompRow {
 const generateComps = (property: Property, type: 'sale' | 'rent'): CompRow[] => {
     const d = property.details || (property as any);
     const basePrice = type === 'sale'
-        ? (property.assessed_value || d.assessed_value || 0) * 1.5
-        : (property.assessed_value || d.assessed_value || 0) * 1.5 * 0.008;
+        ? (property.assessed_value || d.assessed_value || 0) * 1.0
+        : (property.assessed_value || d.assessed_value || 0) * 1.0 * 0.008;
 
     const baseSqft = property.sqft || d.building_area_sqft || d.sqft || null;
     const baseAcreage = property.lot_acres || d.lot_acres || null;
@@ -174,7 +174,7 @@ export const PropertyEstimatesComps: React.FC<Props> = ({ property }) => {
 
     const d = property.details || (property as any);
 
-    const finalArv = d.estimated_value || property.estimated_value || metrics?.arv || (property.assessed_value ? Number(property.assessed_value) * 1.5 : 0);
+    const finalArv = d.estimated_value || property.estimated_value || metrics?.arv || (property.assessed_value ? Number(property.assessed_value) * 1.0 : 0);
     const finalRent = metrics?.rent || (finalArv > 0 ? Math.round(finalArv * 0.007) : 0);
 
     const arvComps = useMemo(() => {

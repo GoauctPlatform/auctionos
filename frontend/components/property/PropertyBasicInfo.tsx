@@ -283,7 +283,7 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                                             {(() => {
                                                 const d = property.details || (property as any);
                                                 const assessedVal = property.assessed_value || d.assessed_value ? Number(property.assessed_value || d.assessed_value) : 0;
-                                                const arv = d.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
+                                                const arv = d.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.0 : 0);
                                                 const maxBid = d.max_bid || property.max_bid || (arv * 0.7);
                                                 return maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'N/A';
                                             })()}

@@ -54,7 +54,7 @@ const AIDealCard: React.FC<AIDealCardProps> = ({
     // Financial logic (same as PropertyPreviewDrawer)
     const price = prop.amount_due || 0;
     const assessedVal = prop.assessed_value ? Number(prop.assessed_value) : 0;
-    const arv = prop.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
+    const arv = prop.estimated_value || (assessedVal ? assessedVal * 1.0 : 0);
     const maxBid = prop.max_bid || (arv * 0.7);
 
     const isTaxLien = (prop.property_category || prop.purchase_option_type || prop.property_type || '').toLowerCase().includes('lien');

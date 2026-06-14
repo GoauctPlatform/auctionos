@@ -31,7 +31,7 @@ export const estimateARV = (property: Property): ARVEstimate => {
     // 1. High Confidence: We have sqft and property structural details
     if (sqft > 0 && assessed > 0) {
         // Base value combines assessed and market average per sqft
-        const impliedPpsf = (assessed / sqft) * 1.5; // Estimated market PPSF
+        const impliedPpsf = (assessed / sqft) * 1.0; // Estimated market PPSF
         const adjustedPpsf = impliedPpsf * regionalModifier;
         baseValue = sqft * adjustedPpsf;
         
@@ -53,9 +53,9 @@ export const estimateARV = (property: Property): ARVEstimate => {
     // 3. Low Confidence: Only basic assessed value available
     else if (assessed > 0) {
         // Generic historical multiplier
-        baseValue = assessed * 1.5 * regionalModifier;
+        baseValue = assessed * 1.0 * regionalModifier;
         confidence = 'Low';
-        method = 'RVN: Assessed Proxy x1.5';
+        method = 'RVN: Assessed Proxy x1.0';
     }
 
     // Safety fallback: if previous external fields are requested, they serve only as reference, RVN rules.
