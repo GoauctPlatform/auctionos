@@ -280,6 +280,23 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                             <Info size={16} />
                         </a>
                     )}
+                    {(() => {
+                        const lat = property.latitude || property.details?.latitude;
+                        const lng = property.longitude || property.details?.longitude;
+                        if (!lat || !lng) return null;
+                        return (
+                            <a 
+                                href={`https://earth.google.com/web/search/${lat},${lng}`} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-md transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-wider ml-auto" 
+                                title="Open in Google Earth 3D"
+                            >
+                                <span className="material-symbols-outlined text-[15px]">public</span>
+                                Earth 3D
+                            </a>
+                        );
+                    })()}
                 </div>
 
                 {/* Actions */}

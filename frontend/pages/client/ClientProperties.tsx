@@ -164,6 +164,7 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                                 filters={filters} 
                                 hasActiveFilters={hasActiveFilters} 
                                 onOpenPropertyDetails={onOpenPropertyDetails} 
+                                onFilterChange={setFilters}
                             />
                         </ErrorBoundary>
                     </div>

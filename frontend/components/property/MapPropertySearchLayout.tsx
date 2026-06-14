@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +8,7 @@ import { PropertyService, ClientDataService } from '../../services/property.serv
 import { PropertyCard } from '../PropertyCard';
 import { CircularProgress, Button, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { geocodeAddress } from '../../services/geocoding.service';
+import { geocodeAddress, reverseGeocode } from '../../services/geocoding.service';
 
 // Fix Leaflet's default icon path issues in React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -22,6 +22,7 @@ interface MapPropertySearchLayoutProps {
     filters: PropertyFilterParams;
     hasActiveFilters: boolean;
     onOpenPropertyDetails?: (propertyId: string | number, parcelId: string) => void;
+    onFilterChange?: (filters: PropertyFilterParams) => void;
 }
 
 // Controller to handle automatic map bounds based on properties
@@ -132,7 +133,26 @@ const MapBoundsController = ({ properties, activeState, activeCounty, geocodedPr
     return null;
 };
 
-export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = ({ filters, hasActiveFilters, onOpenPropertyDetails }) => {
+const MapClickHandler = ({ onMapClick, active }: { onMapClick: (e: any) => void, active: boolean }) => {
+    useMapEvents({
+        click(e) {
+            if (active) {
+                onMapClick(e);
+            }
+        }
+    });
+    return null;
+};
+
+const customPinIcon = L.divIcon({
+    html: `<div class="flex items-center justify-center w-8 h-8 rounded-full bg-rose-500 border-2 border-white shadow-lg text-white"><span class="material-symbols-outlined text-[18px]">pin_drop</span></div>`,
+    className: 'custom-filter-pin',
+    iconSize: [32, 32],
+    iconAnchor: [16, 32],
+    popupAnchor: [0, -32]
+});
+
+export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = ({ filters, hasActiveFilters, onOpenPropertyDetails, onFilterChange }) => {
     const navigate = useNavigate();
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -141,6 +161,38 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [geocodedProps, setGeocodedProps] = useState<Record<string, {lat: number, lng: number}>>({});
     const [favorites, setFavorites] = useState<Set<number>>(new Set());
+
+    const [isPinDropMode, setIsPinDropMode] = useState(false);
+    const [droppedPin, setDroppedPin] = useState<{ lat: number, lng: number } | null>(null);
+    const [pinLocationDetails, setPinLocationDetails] = useState<any | null>(null);
+    const [isResolvingPin, setIsResolvingPin] = useState(false);
+
+    const handleMapClick = async (e: any) => {
+        const lat = e.latlng.lat;
+        const lng = e.latlng.lng;
+        setDroppedPin({ lat, lng });
+        setIsResolvingPin(true);
+        setPinLocationDetails(null);
+        try {
+            const result = await reverseGeocode(lat, lng);
+            setPinLocationDetails(result);
+        } catch (err) {
+            console.error("Failed to reverse geocode clicked coordinates:", err);
+        } finally {
+            setIsResolvingPin(false);
+        }
+    };
+
+    const handleApplyPinFilter = () => {
+        if (!pinLocationDetails || !onFilterChange) return;
+        onFilterChange({
+            ...filters,
+            state: pinLocationDetails.stateCode || undefined,
+            county: pinLocationDetails.county || undefined
+        });
+        setDroppedPin(null);
+        setIsPinDropMode(false);
+    };
 
     const pageSize = 50;
     const [selectedPropertyId, setSelectedPropertyId] = useState<string | number | null>(null);
@@ -276,6 +328,26 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
         <div className="absolute inset-0 w-full h-full overflow-hidden flex">
             {/* Map Background */}
             <div className="flex-1 relative z-0">
+                {/* Floating Map Tools */}
+                <div className="absolute top-4 left-4 z-[1000] flex flex-col gap-2">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setIsPinDropMode(!isPinDropMode);
+                            if (isPinDropMode) setDroppedPin(null);
+                        }}
+                        className={`flex items-center justify-center gap-2 px-4 h-[38px] rounded-xl text-xs font-black border shadow-lg transition-all backdrop-blur-md cursor-pointer ${
+                            isPinDropMode
+                            ? 'bg-rose-600 hover:bg-rose-500 text-white border-rose-500 active:scale-95'
+                            : 'bg-white/95 hover:bg-white text-slate-800 border-slate-200/50 dark:bg-slate-900/95 dark:text-slate-200 dark:border-slate-800/50 dark:hover:bg-slate-900/80 active:scale-95'
+                        }`}
+                        title={isPinDropMode ? "Cancel Pin Drop" : "Drop Pin to Filter State & County"}
+                    >
+                        <span className="material-symbols-outlined text-[18px]">{isPinDropMode ? 'close' : 'add_location'}</span>
+                        {isPinDropMode ? 'Click map to place pin (or cancel)' : 'Drop Filter Pin'}
+                    </button>
+                </div>
+
                 <MapContainer 
                     center={[39.8283, -98.5795]} 
                     zoom={4} 
@@ -287,6 +359,72 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                         attribution="Tiles &copy; Esri &mdash; Source: Esri"
                         maxZoom={19}
                     />
+
+                    <MapClickHandler onMapClick={handleMapClick} active={isPinDropMode} />
+
+                    {droppedPin && (
+                        <Marker 
+                            position={[droppedPin.lat, droppedPin.lng]}
+                            icon={customPinIcon}
+                        >
+                            <Popup onClose={() => setDroppedPin(null)}>
+                                <div className="p-1.5 text-left min-w-[200px] select-none font-sans">
+                                    <h4 className="font-black text-slate-900 dark:text-white text-xs mb-1.5 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-[16px] text-rose-500">pin_drop</span>
+                                        Filter Region Location
+                                    </h4>
+                                    {isResolvingPin ? (
+                                        <div className="flex items-center gap-2 py-2 text-xs text-slate-500 dark:text-slate-400">
+                                            <CircularProgress size={12} color="inherit" />
+                                            <span className="font-bold">Locating region...</span>
+                                        </div>
+                                    ) : pinLocationDetails ? (
+                                        <div className="space-y-3">
+                                            <div>
+                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Identified Area</span>
+                                                <p className="text-xs font-bold text-slate-700 dark:text-slate-200">
+                                                    {pinLocationDetails.city ? `${pinLocationDetails.city}, ` : ''}
+                                                    {pinLocationDetails.county ? `${pinLocationDetails.county} County, ` : ''}
+                                                    {pinLocationDetails.stateCode || pinLocationDetails.state || ''}
+                                                </p>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button 
+                                                    size="small" 
+                                                    variant="contained" 
+                                                    className="bg-indigo-600 hover:bg-indigo-500 text-white text-[10px] font-bold py-1.5 px-3 normal-case rounded-lg shadow-sm"
+                                                    onClick={handleApplyPinFilter}
+                                                >
+                                                    Apply Filter
+                                                </Button>
+                                                <Button 
+                                                    size="small" 
+                                                    variant="outlined" 
+                                                    color="error"
+                                                    className="text-[10px] font-bold py-1.5 px-3 normal-case rounded-lg"
+                                                    onClick={() => setDroppedPin(null)}
+                                                >
+                                                    Remove Pin
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-2.5">
+                                            <p className="text-xs text-rose-500 font-bold">Failed to resolve region.</p>
+                                            <Button 
+                                                size="small" 
+                                                variant="outlined" 
+                                                className="text-[10px] font-bold py-1.5 px-3 normal-case rounded-lg"
+                                                onClick={() => setDroppedPin(null)}
+                                            >
+                                                Dismiss
+                                            </Button>
+                                        </div>
+                                    )}
+                                </div>
+                            </Popup>
+                        </Marker>
+                    )}
                     
                     {properties.filter(Boolean).map(p => {
                         let lat = parseFloat(p.latitude);

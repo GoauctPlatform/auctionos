@@ -144,6 +144,21 @@ export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ op
                                                     >
                                                         <span className="material-symbols-outlined text-[10px]">map</span> View Map
                                                     </a>
+                                                    {(() => {
+                                                        const lat = property.latitude || property.details?.latitude;
+                                                        const lng = property.longitude || property.details?.longitude;
+                                                        if (!lat || !lng) return null;
+                                                        return (
+                                                            <a 
+                                                                href={`https://earth.google.com/web/search/${lat},${lng}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="bg-emerald-600/90 hover:bg-emerald-600 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded shadow-lg flex items-center gap-1 transition-all"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[10px]">public</span> Earth 3D
+                                                            </a>
+                                                        );
+                                                    })()}
                                                 </div>
 
                                                 {/* Deal Score Widget floated on bottom right */}

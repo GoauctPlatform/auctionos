@@ -117,6 +117,22 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                                 <span className="material-symbols-outlined text-[16px]">content_copy</span>
                             </button>
                         )}
+                        {(() => {
+                            const lat = property.latitude || property.details?.latitude;
+                            const lng = property.longitude || property.details?.longitude;
+                            if (!lat || !lng) return null;
+                            return (
+                                <a 
+                                    href={`https://earth.google.com/web/search/${lat},${lng}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-emerald-550 hover:text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                                    title="Open in Google Earth 3D"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">public</span>
+                                </a>
+                            );
+                        })()}
                     </h2>
                     <p className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-[18px] text-slate-400">location_on</span>

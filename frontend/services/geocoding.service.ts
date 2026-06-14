@@ -114,3 +114,74 @@ export const geocodeAddress = async (address: string): Promise<{ lat: number, ln
         }
     });
 };
+
+const STATE_CODE_MAP: Record<string, string> = {
+    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+    'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+    'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
+    'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+    'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO',
+    'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
+    'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH',
+    'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+    'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
+    'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY',
+    'district of columbia': 'DC', 'washington dc': 'DC', 'puerto rico': 'PR'
+};
+
+export interface ReverseGeocodeResult {
+    city?: string;
+    county?: string;
+    state?: string;
+    stateCode?: string;
+    country?: string;
+}
+
+export const reverseGeocode = async (lat: number, lng: number): Promise<ReverseGeocodeResult | null> => {
+    return geocoderQueue.add(async () => {
+        try {
+            console.log('Reverse geocoding fresh coordinates via fetch:', lat, lng);
+            const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`;
+
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json',
+                    'User-Agent': 'GoAuct-App/1.0'
+                }
+            });
+
+            if (!response.ok) {
+                console.error('Nominatim API error:', response.status, response.statusText);
+                return null;
+            }
+
+            const data = await response.json();
+            if (data && data.address) {
+                const addr = data.address;
+                const city = addr.city || addr.town || addr.village || addr.hamlet || addr.suburb || '';
+                const countyRaw = addr.county || '';
+                // Clean county name: strip ' County' from the end
+                const county = countyRaw.replace(/\s+county\s*$/i, '').trim();
+                const state = addr.state || '';
+                
+                // Map state name to state code
+                const stateLower = state.toLowerCase().trim();
+                const stateCode = STATE_CODE_MAP[stateLower] || state.toUpperCase().slice(0, 2);
+
+                const result = {
+                    city,
+                    county,
+                    state,
+                    stateCode,
+                    country: addr.country || ''
+                };
+                console.log('Reverse geocoded successfully:', result);
+                return result;
+            }
+            return null;
+        } catch (error) {
+            console.error('Reverse geocoding exception:', error);
+            return null;
+        }
+    });
+};
