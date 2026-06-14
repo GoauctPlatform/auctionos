@@ -120,6 +120,7 @@ class PropertyDashboardSchema(BaseModel):
     tax_year: Optional[int] = None
     lot_acres: Optional[float] = None
     estimated_value: Optional[float] = None
+    max_bid: Optional[float] = None
     land_value: Optional[float] = None
     improvement_value: Optional[float] = None
     property_type: Optional[str] = None

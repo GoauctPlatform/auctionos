@@ -33,11 +33,23 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
         ? Math.round(property.deal_score) 
         : scoreResult.score;
 
+    const isTaxLien = (property.property_category || property.purchase_option_type || property.property_type || property.auction_type || '').toLowerCase().includes('lien');
+
     // Financial Metrics Calculation
     const assessedVal = property.assessed_value ? Number(property.assessed_value) : 0;
-    const arv = property.estimated_value || property.details?.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
-    const maxBid = property.max_bid || property.details?.max_bid || (arv * 0.7);
-    const spread = arv - maxBid;
+    const arv = (property.estimated_value !== undefined && property.estimated_value !== null)
+        ? Number(property.estimated_value) 
+        : (property.details?.estimated_value !== undefined && property.details?.estimated_value !== null)
+            ? Number(property.details.estimated_value)
+            : (assessedVal ? assessedVal * 1.5 : 0);
+
+    const maxBid = (property.max_bid !== undefined && property.max_bid !== null)
+        ? Number(property.max_bid) 
+        : (property.details?.max_bid !== undefined && property.details?.max_bid !== null)
+            ? Number(property.details.max_bid)
+            : (arv * 0.7);
+
+    const spread = (arv > 0 && maxBid > 0) ? (arv - maxBid) : 0;
 
     const getStatusColor = (status: PropertyStatus) => {
         switch (status) {
@@ -109,18 +121,37 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
                 {/* Max Bid & Spread Overlay */}
                 <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end select-none">
-                    <div className="flex flex-col text-left">
-                        <span className="text-[9px] font-black text-slate-350 dark:text-slate-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Max Bid</span>
-                        <div className="text-white font-black text-sm drop-shadow-md leading-none">
-                            {maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'TBD'}
-                        </div>
-                    </div>
-                    <div className="flex flex-col items-end text-right">
-                        <span className="text-[9px] font-black text-indigo-300 dark:text-indigo-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Est. Spread</span>
-                        <div className="text-emerald-400 font-black text-sm drop-shadow-md leading-none">
-                            {spread && spread > 0 ? `$${Math.round(spread).toLocaleString()}` : 'TBD'}
-                        </div>
-                    </div>
+                    {isTaxLien ? (
+                        <>
+                            <div className="flex flex-col text-left">
+                                <span className="text-[9px] font-black text-slate-350 dark:text-slate-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Est. Debt</span>
+                                <div className="text-white font-black text-sm drop-shadow-md leading-none">
+                                    {property.amount_due ? `$${Math.round(property.amount_due).toLocaleString()}` : 'TBD'}
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end text-right">
+                                <span className="text-[9px] font-black text-indigo-300 dark:text-indigo-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Interest</span>
+                                <div className="text-emerald-400 font-black text-sm drop-shadow-md leading-none">
+                                    &gt; 16%
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="flex flex-col text-left">
+                                <span className="text-[9px] font-black text-slate-350 dark:text-slate-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Max Bid</span>
+                                <div className="text-white font-black text-sm drop-shadow-md leading-none">
+                                    {maxBid > 0 ? `$${Math.round(maxBid).toLocaleString()}` : 'TBD'}
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end text-right">
+                                <span className="text-[9px] font-black text-indigo-300 dark:text-indigo-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Est. Spread</span>
+                                <div className="text-emerald-400 font-black text-sm drop-shadow-md leading-none">
+                                    {spread && spread > 0 ? `$${Math.round(spread).toLocaleString()}` : 'TBD'}
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 

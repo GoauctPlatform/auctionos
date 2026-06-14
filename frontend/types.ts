@@ -117,6 +117,8 @@ export interface Property {
   zoning?: string;
   subdivision?: string;
   legal_description?: string;
+  max_bid?: number;
+  estimated_value?: number;
 
   latitude?: number;
   longitude?: number;

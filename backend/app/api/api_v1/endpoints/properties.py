@@ -234,6 +234,7 @@ def read_properties(
     total = db.execute(text(count_query), params).scalar()
 
     # 3. Get Items
+    import json as _json
     items_query = f"""
         SELECT 
             p.parcel_id, 
@@ -285,9 +286,11 @@ def read_properties(
             p.longitude,
             p.gsi_url,
             p.id,
-            p.max_bid
+            p.max_bid,
+            puo.overrides as user_overrides
         FROM property_details p
         LEFT JOIN {history_table} pah ON pah.property_id = p.property_id
+        LEFT JOIN property_user_overrides puo ON puo.property_id = p.property_id AND puo.user_id = :uid
         {ae_join}
         {score_join}
         WHERE {where_str}
@@ -333,8 +336,9 @@ def read_properties(
 
     result = db.execute(text(items_query), params).fetchall()
     
-    items = [
-        {
+    items = []
+    for r in result:
+        item = {
             "parcel_id": r[0] if r[0] else "",
             "county": r[1],
             "state_code": r[2],
@@ -384,10 +388,16 @@ def read_properties(
             "longitude": r[46],
             "gsi_url": r[47],
             "id": r[48],
-            "max_bid": r[49] if len(r) > 49 else None,
+            "max_bid": r[49] if len(r) > 49 and r[49] is not None else None,
         }
-        for r in result
-    ]
+        # Merge user overrides if present
+        if len(r) > 50 and r[50]:
+            user_overrides = r[50] if isinstance(r[50], dict) else (_json.loads(r[50]) if r[50] else {})
+            if user_overrides:
+                for key, new_val in user_overrides.items():
+                    if new_val is not None:
+                        item[key] = new_val
+        items.append(item)
 
     # ── Inject secure gsi_url proxy path ──
     for item in items:
@@ -413,6 +423,7 @@ class PropertyUpdateRequest(BaseModel):
     tax_year: Optional[int] = None
     lot_acres: Optional[float] = None
     estimated_value: Optional[float] = None
+    max_bid: Optional[float] = None
     land_value: Optional[float] = None
     improvement_value: Optional[float] = None
     property_type: Optional[str] = None
