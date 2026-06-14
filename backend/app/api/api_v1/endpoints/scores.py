@@ -137,7 +137,7 @@ def get_top_scores(
     """
     where_clauses = [
         "1=1",
-        "LOWER(TRIM(COALESCE(s.status, p.availability_status))) = 'available'",
+        "LOWER(TRIM(p.availability_status)) = 'available'",
         "p.created_by_user_id IS NULL"  # Exclude user-created custom properties
     ]
     params: dict = {"limit": limit}
@@ -165,7 +165,7 @@ def get_top_scores(
             COALESCE(s.state, p.state) as state,
             p.amount_due,
             p.assessed_value,
-            COALESCE(s.status, p.availability_status) as availability_status,
+            p.availability_status as availability_status,
             p.property_type,
             p.lot_acres,
             p.improvement_value,
