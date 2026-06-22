@@ -47,7 +47,7 @@ import { ResponsiveGridLayout } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import {
-  Compass, Map, BarChart2, Folder, Terminal, Award,
+  Compass, Map as MapIcon, BarChart2, Folder, Terminal, Award,
   HelpCircle, ShieldCheck, RefreshCw, FileText, CheckCircle,
   Smartphone, Settings, Layout, Layers, X, Maximize2, Minimize2, Minus,
   Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
@@ -3008,7 +3008,7 @@ export const ClientWorkbench: React.FC = () => {
 
                   <div className="flex flex-col space-y-1.5">
                     {widgets.map(w => {
-                      const Icon = w.type === 'map' ? Map :
+                      const Icon = w.type === 'map' ? MapIcon :
                                    w.type === 'smart_ai_finder' ? Brain :
                                    w.type === 'my_lists' ? Folder :
                                    w.type === 'live_auctions' ? Calendar :
@@ -3355,7 +3355,7 @@ export const ClientWorkbench: React.FC = () => {
                 const isActive = activeIdeTabId === w.id;
                 const isSplit = splitIdeTabId === w.id;
                 const tabIcons: Record<string, React.ReactNode> = {
-                  map: <Map size={10} />,
+                  map: <MapIcon size={10} />,
                   smart_ai_finder: <Brain size={10} />,
                   my_lists: <Folder size={10} />,
                   live_auctions: <Calendar size={10} />,
@@ -3806,7 +3806,7 @@ export const ClientWorkbench: React.FC = () => {
                   className={`size-7 rounded-lg flex items-center justify-center transition-all ${mapVisible ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-sol-base03 text-slate-400'}`}
                   title={mapVisible ? 'Hide Map panel' : 'Show Map panel'}
                 >
-                  <Map size={12} />
+                  <MapIcon size={12} />
                 </button>
 
                 <div className="w-[1px] h-4 bg-slate-200 dark:bg-sol-base01/30" />

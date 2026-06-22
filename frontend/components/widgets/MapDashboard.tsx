@@ -86,7 +86,8 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
     stateStats,
     topProperties,
     loadingStats = false,
-    onPreviewProperty
+    onPreviewProperty,
+    onOpenPropertyDetails
 }) => {
     // Helper to find stats for active state
     const activeStateStat = selectedState ? stateStats.find(s => s.state_code === selectedState) : null;

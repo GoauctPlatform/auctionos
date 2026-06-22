@@ -21,7 +21,7 @@ export const AuctionList: React.FC = () => {
         try {
             setIsLoading(true);
             const data = await AuctionService.getAuctionEvents(filters);
-            setAuctions(data);
+            setAuctions(data.items || []);
         } catch (error) {
             console.error('Failed to fetch auctions', error);
         } finally {

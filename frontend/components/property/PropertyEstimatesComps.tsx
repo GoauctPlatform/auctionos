@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { PropertyDetails as Property } from '../../types';
+import { Property } from '../../types';
 import { PropertyService } from '../../services/property.service';
 import { Modal } from '../Modal';
 

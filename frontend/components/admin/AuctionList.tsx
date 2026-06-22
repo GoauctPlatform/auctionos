@@ -219,9 +219,9 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
             field: 'state_county', 
             headerName: 'State / County', 
             width: 180, 
-            valueGetter: (params: any) => {
-                const s = params.row?.state || '';
-                const c = params.row?.county || '';
+            valueGetter: (value: any, row: any) => {
+                const s = row?.state || '';
+                const c = row?.county || '';
                 if (s && c) return `${s} - ${c}`;
                 return s || c || '';
             }

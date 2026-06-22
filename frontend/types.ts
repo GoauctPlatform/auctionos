@@ -2,7 +2,9 @@
 export enum UserRole {
   ADMIN = 'admin',
   MANAGER = 'manager',
-  AGENT = 'agent'
+  AGENT = 'agent',
+  CLIENT = 'client',
+  SUPERUSER = 'superuser'
 }
 
 export enum PropertyStatus {
@@ -25,6 +27,7 @@ export interface User {
   active_company_id?: number | null;
   company_id?: number | null;
   linked_company_ids?: number[];
+  is_verified?: boolean;
 }
 
 // Auth State
@@ -107,6 +110,9 @@ export interface Property {
   created_at?: string;
   updated_at?: string;
   auction_id?: number | null;
+  county?: string;
+  parcel_address?: string;
+  imageUrl?: string;
   
   // V3 Extended Fields
   property_type?: string;

@@ -276,6 +276,15 @@ export const PropertyService = {
         });
         if (!response.ok) throw new Error('Failed to fetch valuation metrics');
         return response.json();
+    },
+
+    forceStatusUpdate: async (): Promise<any> => {
+        const response = await fetch(`${API_URL}/properties/force-status-update`, {
+            method: 'POST',
+            headers: getHeaders()
+        });
+        if (!response.ok) throw new Error('Failed to force status update');
+        return response.json();
     }
 };
 
@@ -450,15 +459,6 @@ export const ClientDataService = {
             headers: getHeaders()
         });
         if (!response.ok) throw new Error('Failed to move property');
-    },
-
-    forceStatusUpdate: async (): Promise<any> => {
-        const response = await fetch(`${API_URL}/properties/force-status-update`, {
-            method: 'POST',
-            headers: getHeaders()
-        });
-        if (!response.ok) throw new Error('Failed to force status update');
-        return response.json();
     },
 
     createCustomProperty: async (data: any): Promise<any> => {
