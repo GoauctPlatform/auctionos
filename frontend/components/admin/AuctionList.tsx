@@ -36,7 +36,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
         if (hideFilterSelector) return 'all';
         const saved = localStorage.getItem('goauct_favorites_filter_active');
         if (saved) return saved as 'all' | 'favorites';
-        return 'favorites'; // Default to favorites by default
+        return 'all'; // Default to all by default
     });
 
     const handleSetFilterMode = (mode: 'all' | 'favorites') => {
