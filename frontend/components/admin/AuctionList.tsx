@@ -382,7 +382,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
                         paginationModel={paginationModel}
                         onPaginationModelChange={setPaginationModel}
                         initialState={{
-                            sorting: { sortModel: [{ field: 'auction_date', sort: 'asc' }] }
+                            sorting: { sortModel: [{ field: 'auction_date', sort: 'desc' }] }
                         }}
                         pageSizeOptions={[20, 50, 100]}
                         disableRowSelectionOnClick
