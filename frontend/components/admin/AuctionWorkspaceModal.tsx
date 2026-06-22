@@ -67,6 +67,7 @@ export const AuctionWorkspaceModal: React.FC<AuctionWorkspaceModalProps> = ({ ev
             onClose={onClose} 
             maxWidth="xl" 
             fullWidth 
+            sx={{ zIndex: 9999999 }}
             PaperProps={{ sx: { height: '90vh', maxHeight: '90vh', borderRadius: 4, overflow: 'hidden' } }}
         >
             <DialogTitle className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 shrink-0">
