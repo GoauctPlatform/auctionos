@@ -81,24 +81,20 @@ const ClientAuctions: React.FC = () => {
 
     return (
         <div className="p-6 w-full space-y-6 px-4 sm:px-8 lg:px-12">
-            <div className="flex justify-between items-center">
-                <Typography variant="h4" className="font-bold text-slate-800 dark:text-white">
-                    Live Auctions
-                </Typography>
+            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-blue-500">info</span>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                        <b>Tip:</b> Click on any auction in the calendar or list to view <b>Redemption Intelligence</b> and matched properties.
+                    </p>
+                </div>
                 <button
                     onClick={() => startTour('live_auctions')}
-                    className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse shrink-0"
                 >
                     <span className="material-symbols-outlined text-[16px]">menu_book</span>
                     Page Tour
                 </button>
-            </div>
-            
-            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-800 flex items-center gap-3">
-                <span className="material-symbols-outlined text-blue-500">info</span>
-                <p className="text-sm text-blue-700 dark:text-blue-300">
-                    <b>Tip:</b> Click on any auction in the calendar or list to view <b>Redemption Intelligence</b> and matched properties.
-                </p>
             </div>
 
             <div id="tour-auctions-filters">

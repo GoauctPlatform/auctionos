@@ -254,6 +254,7 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                     {groupedDateType && (
                         <AuctionList 
                             filters={{ 
+                                ...filters,
                                 startDate: groupedDateType.date, 
                                 endDate: groupedDateType.date, 
                                 tax_status: groupedDateType.type

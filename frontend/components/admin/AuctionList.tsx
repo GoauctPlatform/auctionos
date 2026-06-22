@@ -215,8 +215,17 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
             }
         },
         { field: 'time', headerName: 'Time', width: 100 },
-        { field: 'state', headerName: 'State', width: 80, type: 'singleSelect', valueOptions: ['AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY'] },
-        { field: 'county', headerName: 'County', width: 150 },
+        { 
+            field: 'state_county', 
+            headerName: 'State / County', 
+            width: 180, 
+            valueGetter: (params: any) => {
+                const s = params.row?.state || '';
+                const c = params.row?.county || '';
+                if (s && c) return `${s} - ${c}`;
+                return s || c || '';
+            }
+        },
         { field: 'location', headerName: 'Location', width: 150 },
         { field: 'tax_status', headerName: 'Tax Status', width: 150, type: 'singleSelect', valueOptions: ['Tax Sale', 'Over the Counter', 'Sealed Bid', 'Public Outcry', 'Tax Deed', 'Tax Lien', 'Foreclosure'] },
         { field: 'parcels_count', headerName: 'Parcels', type: 'number', width: 90 },
