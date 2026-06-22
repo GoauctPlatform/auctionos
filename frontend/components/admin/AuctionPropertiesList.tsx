@@ -130,7 +130,7 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
     ];
 
     return (
-        <Box sx={{ width: '100%', height: embedded ? 600 : 400, bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', borderRadius: embedded ? 2 : 0, overflow: 'hidden', border: embedded ? '1px solid #e2e8f0' : 'none' }}>
+        <Box sx={{ width: '100%', height: embedded ? '100%' : 400, bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', borderRadius: embedded ? 2 : 0, overflow: 'hidden', border: embedded ? 'none' : 'none' }}>
             {!embedded && (
                 <Box p={1} display="flex" justifyContent="space-between" alignItems="center" sx={{ borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
                     <Typography variant="subtitle1" className="text-slate-800 dark:text-white font-semibold">
@@ -169,7 +169,17 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
                     disableRowSelectionOnClick
                     density="compact"
                     onRowClick={(params) => {
-                        window.open(`${basePath}/${params.row.parcel_id}`, '_blank');
+                        if (isTeamMember) {
+                            window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
+                                detail: {
+                                    type: 'property_details',
+                                    title: `🔍 Property: ${params.row.parcel_id || params.row.id}`,
+                                    data: { propertyId: params.row.id, parcelId: params.row.parcel_id }
+                                }
+                            }));
+                        } else {
+                            window.open(`${basePath}/${params.row.parcel_id}`, '_blank');
+                        }
                     }}
                     sx={{
                         border: 'none',

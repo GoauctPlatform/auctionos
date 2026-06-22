@@ -17,10 +17,14 @@ import {
     Info as InfoIcon,
     OpenInNew as OpenInNewIcon,
     ListAlt as ListIcon,
-    Sync as SyncIcon
+    Sync as SyncIcon,
+    ArrowBack as ArrowBackIcon,
+    Star as StarIcon,
+    StarBorder as StarBorderIcon
 } from '@mui/icons-material';
 import AuctionPropertiesList from './AuctionPropertiesList';
 import { AdminService } from '../../services/admin.service';
+import { AuctionService } from '../../services/auction.service';
 import { PropertyRedemptionCard } from '../property/PropertyRedemptionCard';
 import { useAuth } from '../../context/AuthContext';
 
@@ -34,6 +38,7 @@ export const AuctionWorkspaceModal: React.FC<AuctionWorkspaceModalProps> = ({ ev
     const { user } = useAuth();
     const [reconciling, setReconciling] = useState(false);
     const [reconcileCount, setReconcileCount] = useState<number | null>(null);
+    const [isFav, setIsFav] = React.useState(false);
 
     if (!isOpen || !eventData) return null;
 
@@ -43,6 +48,43 @@ export const AuctionWorkspaceModal: React.FC<AuctionWorkspaceModalProps> = ({ ev
     const rawDate = eventData.startStr ? eventData.startStr.split('T')[0] : (eventData.start ? new Date(eventData.start).toISOString().split('T')[0] : undefined);
     const timeStr = eventData.start ? new Date(eventData.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
     const cleanAuctionName = (eventData.title || '').replace(/\(\d+\)$/, '').trim();
+
+    React.useEffect(() => {
+        if (!auctionId) return;
+
+        AuctionService.getFavorites().then(favIds => {
+            setIsFav(new Set(favIds).has(Number(auctionId)));
+        }).catch(() => {});
+
+        const handleSync = (e: any) => {
+            if (e.detail) {
+                setIsFav(new Set(e.detail).has(Number(auctionId)));
+            }
+        };
+
+        window.addEventListener('auction-favorites-updated', handleSync);
+        return () => window.removeEventListener('auction-favorites-updated', handleSync);
+    }, [auctionId]);
+
+    const handleToggleFavorite = async () => {
+        if (!auctionId) return;
+        const newFavStatus = !isFav;
+        setIsFav(newFavStatus);
+        
+        try {
+            if (newFavStatus) {
+                await AuctionService.addFavorite(Number(auctionId));
+            } else {
+                await AuctionService.removeFavorite(Number(auctionId));
+            }
+            AuctionService.getFavorites().then(favIds => {
+                window.dispatchEvent(new CustomEvent('auction-favorites-updated', { detail: favIds }));
+            });
+        } catch (err) {
+            setIsFav(!newFavStatus);
+            console.error('Failed to toggle favorite', err);
+        }
+    };
 
     const handleReconcile = async () => {
         if (!auctionId) {
@@ -71,12 +113,27 @@ export const AuctionWorkspaceModal: React.FC<AuctionWorkspaceModalProps> = ({ ev
             PaperProps={{ sx: { height: '90vh', maxHeight: '90vh', borderRadius: 4, overflow: 'hidden' } }}
         >
             <DialogTitle className="flex justify-between items-center bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 p-4 shrink-0">
-                <Typography variant="h6" className="font-bold text-slate-800 dark:text-white truncate">
-                    {cleanAuctionName}
-                </Typography>
-                <IconButton onClick={onClose} size="small" className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
-                    <CloseIcon />
-                </IconButton>
+                <div className="flex items-center gap-3">
+                    <IconButton onClick={onClose} size="small" title="Back to List" className="text-slate-500 hover:text-slate-800 bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 rounded-lg">
+                        <ArrowBackIcon fontSize="small" />
+                    </IconButton>
+                    <Typography variant="h6" className="font-bold text-slate-800 dark:text-white truncate">
+                        {cleanAuctionName}
+                    </Typography>
+                </div>
+                <div className="flex items-center gap-2">
+                    <IconButton 
+                        onClick={handleToggleFavorite} 
+                        size="small" 
+                        title={isFav ? "Remove from Favorites" : "Add to Favorites"}
+                        className={isFav ? "text-amber-500 hover:text-amber-600 bg-amber-50 dark:bg-amber-900/20" : "text-slate-400 hover:text-slate-600"}
+                    >
+                        {isFav ? <StarIcon /> : <StarBorderIcon />}
+                    </IconButton>
+                    <IconButton onClick={onClose} size="small" title="Close" className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+                        <CloseIcon />
+                    </IconButton>
+                </div>
             </DialogTitle>
             
             <DialogContent className="p-0 flex flex-col md:flex-row overflow-hidden bg-white dark:bg-slate-950">
