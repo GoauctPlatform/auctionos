@@ -408,7 +408,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                             position={[droppedPin.lat, droppedPin.lng]}
                             icon={customPinIcon}
                         >
-                            <Popup onClose={() => setDroppedPin(null)}>
+                            <Popup {...({ onClose: () => setDroppedPin(null) } as any)}>
                                 <div className="p-1.5 text-left min-w-[200px] select-none font-sans">
                                     <h4 className="font-black text-slate-900 dark:text-white text-xs mb-1.5 flex items-center gap-1">
                                         <span className="material-symbols-outlined text-[16px] text-rose-500">pin_drop</span>

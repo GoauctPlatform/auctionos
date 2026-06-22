@@ -1,12 +1,12 @@
 import React from 'react';
-import { PropertyDetails as Property } from '../../types';
+import { Property } from '../../types';
 
 interface PropertyContactInfoProps {
     property: Property;
 }
 
 export const PropertyContactInfo: React.FC<PropertyContactInfoProps> = ({ property }) => {
-    const detail = property.details || {};
+    const detail: any = property.details || {};
     
     const infoItems = [
         {

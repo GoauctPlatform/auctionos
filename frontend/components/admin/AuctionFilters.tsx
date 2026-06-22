@@ -98,7 +98,7 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
                     : currentVal === val;
 
                 if (!isMatch) {
-                    next[key] = val;
+                    (next as any)[key] = val;
                     changed = true;
                 }
             };

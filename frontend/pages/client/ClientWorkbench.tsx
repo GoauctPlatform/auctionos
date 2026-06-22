@@ -132,6 +132,7 @@ interface Widget {
   zIndex: number;
   isLocked?: boolean;
   refreshKey?: number;
+  isIcon?: boolean;
 }
 
 interface OverlayWindow {
@@ -1814,7 +1815,7 @@ export const ClientWorkbench: React.FC = () => {
     if (!selectedProperty) return;
     try {
       await InvestorTaskService.createTask({
-        property_id: selectedProperty.id,
+        property_id: Number(selectedProperty.id),
         title: `Field Inspection: ${selectedProperty.parcel_id || 'N/A'}`,
         description: `Inspect and photograph property at ${selectedProperty.address || 'Address N/A'}`,
         task_type: 'field_inspection',
@@ -1935,7 +1936,7 @@ export const ClientWorkbench: React.FC = () => {
     setTaskCreating(true);
     try {
       await InvestorTaskService.createTask({
-        property_id: newTaskPropId ? Number(newTaskPropId) : selectedProperty?.id || 1,
+        property_id: newTaskPropId ? Number(newTaskPropId) : Number(selectedProperty?.id || 1),
         title: newTaskTitle.trim(),
         description: newTaskDesc.trim(),
         task_type: newTaskType,

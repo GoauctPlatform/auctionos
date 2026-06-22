@@ -113,7 +113,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
                 {/* Status Badge */}
                 <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-sm">
-                    <span className={`w-2 h-2 rounded-full ${getStatusColor(property.status)}`} />
+                    <span className={`w-2 h-2 rounded-full ${getStatusColor(property.status as any)}`} />
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
                         {property.status}
                     </span>
@@ -224,7 +224,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                                 (property.occupancy || '').toLowerCase() === 'vacant' ? 'text-green-600 dark:text-green-400' :
                                 'text-slate-700 dark:text-slate-300'
                             }`}>
-                                {property.occupancy || (property.owner_occupied === 'true' || property.owner_occupied === true ? 'Occupied' : property.owner_occupied === 'false' || property.owner_occupied === false ? 'Vacant' : 'Unknown')}
+                                {property.occupancy || (String(property.owner_occupied).toLowerCase() === 'true' ? 'Occupied' : String(property.owner_occupied).toLowerCase() === 'false' ? 'Vacant' : 'Unknown')}
                             </span>
                         </div>
                     </div>

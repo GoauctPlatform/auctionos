@@ -318,7 +318,7 @@ const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, 
                     onFilterModelChange={setFilterModel}
                     sortingMode="server"
                     sortModel={sortModel}
-                    onSortModelChange={setSortModel}
+                    onSortModelChange={setSortModel as any}
                     pageSizeOptions={[20, 50, 100]}
                     disableRowSelectionOnClick
                     density="compact"

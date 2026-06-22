@@ -215,17 +215,8 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
             }
         },
         { field: 'time', headerName: 'Time', width: 100 },
-        { 
-            field: 'state_county', 
-            headerName: 'State / County', 
-            width: 180, 
-            valueGetter: (value: any, row: any) => {
-                const s = row?.state || '';
-                const c = row?.county || '';
-                if (s && c) return `${s} - ${c}`;
-                return s || c || '';
-            }
-        },
+        { field: 'state', headerName: 'State', width: 90 },
+        { field: 'county', headerName: 'County', width: 130 },
         { field: 'location', headerName: 'Location', width: 150 },
         { field: 'tax_status', headerName: 'Tax Status', width: 150, type: 'singleSelect', valueOptions: ['Tax Sale', 'Over the Counter', 'Sealed Bid', 'Public Outcry', 'Tax Deed', 'Tax Lien', 'Foreclosure'] },
         { field: 'parcels_count', headerName: 'Parcels', type: 'number', width: 90 },

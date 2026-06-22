@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Modal } from './Modal';
 import { useCompany } from '../context/CompanyContext';
-import { PropertyDetails as Property } from '../types';
-import { PropertyService } from '../services/property.service';
+import { Property } from '../types';
+import { PropertyService, ClientDataService } from '../services/property.service';
 import { getStreetViewUrl } from '../utils/maps';
 import api from '../services/api';
 import html2canvas from 'html2canvas';
@@ -69,7 +69,7 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
     const handleAddToStandardList = async () => {
         if (!property?.id) return;
         try {
-            await PropertyService.addPropertyToStandardList(property.id, activeCompany?.id);
+            await ClientDataService.addPropertyToStandardList(Number(property.property_id || property.id), activeCompany?.id);
         } catch (err: any) {
             alert(`Error: ${err.message}`);
         }
@@ -147,7 +147,7 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
 
     return (
         <>
-            <Modal isOpen={isOpen} onClose={onClose} title={`Property Details: ${property.parcel_id || 'Unknown'}`} size="3xl">
+            <Modal isOpen={isOpen} onClose={onClose} title={`Property Details: ${property.parcel_id || 'Unknown'}`} size="2xl">
                 <div id="property-export-container" className="bg-white dark:bg-slate-900 rounded-xl">
                 {/* Active refresh controls - preserved from original */}
                 <div className="flex justify-end gap-2 mb-4" data-html2canvas-ignore>
@@ -238,20 +238,20 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
                         />
 
                         <div className="grid grid-cols-1 gap-6">
-                            <PropertyPurchaseOptions property={property} />
-                            <PropertyEstimatesComps property={property} />
+                            <PropertyPurchaseOptions property={property as any} />
+                            <PropertyEstimatesComps property={property as any} />
                         </div>
 
                         <div className="bg-slate-100 dark:bg-slate-800 rounded-xl h-[300px] overflow-hidden border border-slate-200 dark:border-slate-700">
-                            <PropertyMap property={property} />
+                            <PropertyMap property={property as any} />
                         </div>
                     </div>
 
                     {/* Sidebar Column */}
                     <div className="space-y-6">
-                        <PropertyResearchLinks property={property} />
+                        <PropertyResearchLinks property={property as any} />
                         <PropertyUserActions 
-                            property={property} 
+                            property={property as any} 
                             onAddToList={handleAddToStandardList} 
                             onUploadAttachment={handleUploadAttachment}
                             onUpdateNotes={handleUpdateNotes}

@@ -135,8 +135,15 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
     const handleEventClick = (info: any) => {
         const props = info.event.extendedProps;
         if (props.isGrouped) {
-            setGroupedDateType({ date: props.date, type: props.type });
-            setGroupedDialogOpen(true);
+            if (onDateTypeSelect) {
+                onDateTypeSelect(props.date, props.type);
+                setTimeout(() => {
+                    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                }, 100);
+            } else {
+                setGroupedDateType({ date: props.date, type: props.type });
+                setGroupedDialogOpen(true);
+            }
         } else {
             // For single non-grouped events (though we group them all now)
             const normalizedEvent = {
@@ -154,8 +161,15 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
     };
 
     const handleDateClick = (arg: any) => {
-        setGroupedDateType({ date: arg.dateStr, type: '' });
-        setGroupedDialogOpen(true);
+        if (onDateTypeSelect) {
+            onDateTypeSelect(arg.dateStr, '');
+            setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 100);
+        } else {
+            setGroupedDateType({ date: arg.dateStr, type: '' });
+            setGroupedDialogOpen(true);
+        }
     };
 
     const handleCloseModal = () => {

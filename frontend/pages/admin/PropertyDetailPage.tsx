@@ -144,7 +144,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 // Use the stored backend score for display consistency
                 setLocalScore({
                     score: data.deal_score,
-                    rating: data.deal_rating,
+                    rating: data.deal_rating as any,
                     factors: data.score_factors || [],
                 });
             }
@@ -220,7 +220,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
     const handleToggleFavorite = async () => {
         try {
-            const res = await PropertyService.toggleFavorite(property.id, activeCompany?.id);
+            const res = await PropertyService.toggleFavorite(Number(property.id), activeCompany?.id);
             setIsFavorite(res.is_favorite);
         } catch (err: any) {
             alert(err.message);
@@ -240,7 +240,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         if (!property?.id) return;
         try {
             setActionLoading(true);
-            await ClientDataService.addPropertyToList(listId, property.id);
+            await ClientDataService.addPropertyToList(listId, Number(property.id));
             alert(`Property added to list safely!`);
             handleCloseListMenu();
         } catch (err: any) {
@@ -254,7 +254,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         if (!property?.id) return;
         try {
             setActionLoading(true);
-            await ClientDataService.addPropertyToStandardList(property.id, activeCompany?.id);
+            await ClientDataService.addPropertyToStandardList(Number(property.id), activeCompany?.id);
             loadLists(); // Refresh counts
             handleCloseListMenu();
         } catch (err: any) {
@@ -270,7 +270,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         try {
             setActionLoading(true);
             const newList = await ClientDataService.createList(name, undefined, activeCompany?.id);
-            await ClientDataService.addPropertyToList(newList.id, property.id);
+            await ClientDataService.addPropertyToList(newList.id, Number(property.id));
             alert(`List "${name}" created & property added!`);
             loadLists();
             handleCloseListMenu();
@@ -562,11 +562,11 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                     </div>
 
                     <div id="tour-property-financials" className="space-y-8">
-                        <PropertyEstimatesComps property={property} />
+                        <PropertyEstimatesComps property={property as any} />
 
                         <div className="grid grid-cols-1 gap-8">
                             <PropertyPurchaseOptions 
-                                property={property} 
+                                property={property as any} 
                                 readOnly={readOnly}
                                 actionLoading={actionLoading}
                                 onSimulatePurchase={handlePurchaseOnline}
@@ -574,13 +574,13 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         </div>
                     </div>
 
-                    <PropertyExtendedTabs property={property} onUpdate={(updated) => setProperty(updated)} />
+                    <PropertyExtendedTabs property={property as any} onUpdate={(updated) => setProperty(updated as any)} />
 
                     <PropertyRedemptionCard stateCode={property.state} auctionType={property.auction_type} />
 
                     <div id="tour-property-maps" className="space-y-4">
-                        <GISMap property={property} className="w-full h-[300px] sm:h-[450px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg" />
-                        <PropertyMap property={property} />
+                        <GISMap property={property as any} className="w-full h-[300px] sm:h-[450px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg" />
+                        <PropertyMap property={property as any} />
                     </div>
 
                     {/* Preserved Raw Data Block */}
@@ -603,31 +603,31 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
                 {/* Sidebar Column (Right) */}
                 <div className="space-y-8 mt-0">
-                    <PropertyOwnerCard property={property} />
+                    <PropertyOwnerCard property={property as any} />
                     <div id="tour-property-actions">
                         <PropertyUserActions 
-                            property={property} 
+                            property={property as any} 
                             isFavorite={isFavorite}
                             onToggleFavorite={handleToggleFavorite}
                             onAddToList={handleOpenListMenu}
                             onUpdateNotes={async (noteText) => {
                                 try {
-                                    await ClientDataService.createNote(property.id, noteText);
+                                    await ClientDataService.createNote(Number(property.id), noteText);
                                 } catch (err) {}
                             }}
                             onUploadAttachment={async (file) => {
                                 try {
-                                    await ClientDataService.uploadAttachment(property.id, file);
+                                    await ClientDataService.uploadAttachment(Number(property.id), file);
                                     loadProperty(property.parcel_id);
                                 } catch (err: any) { alert(err.message); }
                             }}
                         />
                     </div>
                     <div id="tour-property-research-links">
-                        <PropertyResearchLinks property={property} />
+                        <PropertyResearchLinks property={property as any} />
                     </div>
                     
-                    <PropertyNextSteps property={property} />
+                    <PropertyNextSteps property={property as any} />
 
                     {/* BPO Due Diligence Marketplace */}
                     <div className="glass-card rounded-xl p-6">
@@ -651,14 +651,14 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         </button>
                     </div>
 
-                    <PropertyContactInfo property={property} />
+                    <PropertyContactInfo property={property as any} />
 
                     <CountyContactCard 
                         contacts={countyContacts} 
                         countyName={property.details?.county || property.county} 
                     />
 
-                    <PropertyInventoryHistory property={property} />
+                    <PropertyInventoryHistory property={property as any} />
 
                     {/* Admin Actions - Preserved/Minimized */}
                     {!readOnly && (
@@ -706,7 +706,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
             {isBpoOpen && (
                 <CreateTaskForm 
-                    propertyId={property.id} 
+                    propertyId={Number(property.id)} 
                     propertyAddress={property.parcel_address || property.parcel_id} 
                     onClose={() => setIsBpoOpen(false)} 
                 />

@@ -62,7 +62,7 @@ const UserEditModal: React.FC<{
         setSaving(true);
         setError('');
         try {
-            await UserService.update(user.id, { role, is_active: isActive });
+            await UserService.update(user.id, { role: role as any, is_active: isActive });
             onSave();
             onClose();
         } catch (e: any) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PropertyDetails as Property } from '../../types';
+import { Property } from '../../types';
 
 interface PropertyInventoryHistoryProps {
     property: Property;
@@ -15,7 +15,7 @@ export const PropertyInventoryHistory: React.FC<PropertyInventoryHistoryProps> =
     
     const d = property.details || (property as any);
     const lastSaleDate = property.last_sale_date || d.last_sale_date;
-    const inventoryDate = property.state_inventory_entered_date || d.state_inventory_entered_date;
+    const inventoryDate = (property as any).state_inventory_entered_date || d.state_inventory_entered_date;
 
     const events = [
         {

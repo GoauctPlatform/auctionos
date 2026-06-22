@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PropertyDetails as Property } from '../../types';
+import { Property } from '../../types';
 import { Modal } from '../Modal';
 import { PropertyService } from '../../services/property.service';
 
@@ -29,10 +29,11 @@ export const PropertyPurchaseOptions: React.FC<Props> = ({
     const isPurchased = property.availability_status === 'purchased' || property.details?.availability_status === 'purchased' || property.availability_status === 'sold';
     
     // Check if there is an active/linked auction
-    const hasActiveAuction = !!(property.current_auction_name || (property.auction_history && property.auction_history.length > 0));
+    const pAny = property as any;
+    const hasActiveAuction = !!(pAny.current_auction_name || (property.auction_history && property.auction_history.length > 0));
 
     // Link Priority: auction_list_link -> auction_info_link -> fallback search
-    const details = property.details || {};
+    const details: any = property.details || {};
     const auctionInfoLink = property.auction_info_link || details.auction_info_link;
     const auctionListLink = property.auction_list_link || details.auction_list_link;
     
@@ -113,7 +114,7 @@ export const PropertyPurchaseOptions: React.FC<Props> = ({
                                         Go to Live Auction
                                     </h3>
                                     <p className="text-[10px] font-bold opacity-80 uppercase tracking-widest">
-                                        {property.current_auction_name || 'Auction Entry Detected'}
+                                        {(property as any).current_auction_name || 'Auction Entry Detected'}
                                     </p>
                                     <div className="mt-3 flex items-center justify-center gap-2 text-[10px] font-black bg-white/10 py-1 px-3 rounded-full group-hover:bg-white/20 transition-colors text-white">
                                         <span className="material-symbols-outlined text-[14px]">gavel</span>

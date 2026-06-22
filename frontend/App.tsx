@@ -152,7 +152,7 @@ function App() {
           {/* Protected Routes (Admin) */}
           <Route element={<ProtectedRoute allowedRoles={['admin', 'superuser']}><CompanyProvider><Layout /></CompanyProvider></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/auctions" element={<AuctionList filters={{}} />} />
+            <Route path="/auctions" element={<AuctionList />} />
             <Route path="/admin/auctions" element={<AdminAuctions />} />
             <Route path="/admin/properties" element={<AdminAuctions defaultTab="properties" />} />
             <Route path="/admin/properties/:id" element={<PropertyDetailPage />} />

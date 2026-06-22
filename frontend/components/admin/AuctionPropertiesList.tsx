@@ -110,17 +110,13 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
                     title="Open Details"
                     onClick={(e) => {
                         e.stopPropagation();
-                        if (isTeamMember) {
-                            window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
-                                detail: {
-                                    type: 'property_details',
-                                    title: `🔍 Property: ${params.row.parcel_id || params.row.id}`,
-                                    data: { propertyId: params.row.id, parcelId: params.row.parcel_id }
-                                }
-                            }));
-                        } else {
-                            window.open(`${basePath}/${params.row.parcel_id}`, '_blank');
-                        }
+                        window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
+                            detail: {
+                                type: 'property_details',
+                                title: `🔍 Property: ${params.row.parcel_id || params.row.id}`,
+                                data: { propertyId: params.row.id, parcelId: params.row.parcel_id }
+                            }
+                        }));
                     }}
                 >
                     <OpenInNewIcon fontSize="small" className="text-blue-500" />
@@ -153,7 +149,7 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
                 </Box>
             )}
 
-            <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
+            <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 <DataGrid
                     rows={rows}
                     columns={columns}
@@ -165,21 +161,17 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
                     onPaginationModelChange={setPaginationModel}
                     filterModel={filterModel}
                     onFilterModelChange={setFilterModel}
-                    pageSizeOptions={[10, 20]}
+                    pageSizeOptions={[10, 25, 50, 100]}
                     disableRowSelectionOnClick
                     density="compact"
                     onRowClick={(params) => {
-                        if (isTeamMember) {
-                            window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
-                                detail: {
-                                    type: 'property_details',
-                                    title: `🔍 Property: ${params.row.parcel_id || params.row.id}`,
-                                    data: { propertyId: params.row.id, parcelId: params.row.parcel_id }
-                                }
-                            }));
-                        } else {
-                            window.open(`${basePath}/${params.row.parcel_id}`, '_blank');
-                        }
+                        window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
+                            detail: {
+                                type: 'property_details',
+                                title: `🔍 Property: ${params.row.parcel_id || params.row.id}`,
+                                data: { propertyId: params.row.id, parcelId: params.row.parcel_id }
+                            }
+                        }));
                     }}
                     sx={{
                         border: 'none',
