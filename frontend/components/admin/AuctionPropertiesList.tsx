@@ -107,11 +107,21 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
             renderCell: (params) => (
                 <IconButton
                     size="small"
-                    component="a"
-                    href={`${basePath}/${params.row.parcel_id}`}
-                    target="_blank"
                     title="Open Details"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (isTeamMember) {
+                            window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
+                                detail: {
+                                    type: 'property_details',
+                                    title: `🔍 Property: ${params.row.parcel_id || params.row.id}`,
+                                    data: { propertyId: params.row.id, parcelId: params.row.parcel_id }
+                                }
+                            }));
+                        } else {
+                            window.open(`${basePath}/${params.row.parcel_id}`, '_blank');
+                        }
+                    }}
                 >
                     <OpenInNewIcon fontSize="small" className="text-blue-500" />
                 </IconButton>

@@ -154,23 +154,31 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
     };
 
     const handleDateClick = (arg: any) => {
-        if (onDateTypeSelect) {
-            onDateTypeSelect(arg.dateStr, ''); 
-        } else {
-            const params = new URLSearchParams(window.location.search);
-            params.set('startDate', arg.dateStr);
-            params.set('endDate', arg.dateStr);
-            params.delete('q');
-            window.location.search = '?' + params.toString();
-        }
+        setGroupedDateType({ date: arg.dateStr, type: '' });
+        setGroupedDialogOpen(true);
     };
 
     const handleCloseModal = () => {
         setSelectedEvent(null);
+        if (onSelectAuction) onSelectAuction(null);
     };
 
     return (
-        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm h-[600px] relative">
+        <Box sx={{ height: 600, bgcolor: 'background.paper', p: 2, borderRadius: 2 }}>
+            <style>
+                {`
+                    .fc-col-header-cell-cushion {
+                        color: #1e293b;
+                        text-decoration: none;
+                        font-weight: 700;
+                    }
+                    .fc-daygrid-day-number {
+                        color: #475569;
+                        text-decoration: none;
+                        font-weight: 600;
+                    }
+                `}
+            </style>
             <FullCalendar
                 plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
                 initialView="dayGridMonth"
@@ -231,6 +239,7 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 onClose={() => setGroupedDialogOpen(false)} 
                 maxWidth="lg" 
                 fullWidth
+                sx={{ zIndex: 9999998 }}
                 PaperProps={{ sx: { borderRadius: 3, minHeight: '600px' } }}
             >
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc' }}>
@@ -263,7 +272,7 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+        </Box>
     );
 };
 
