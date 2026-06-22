@@ -144,12 +144,48 @@ const MapClickHandler = ({ onMapClick, active }: { onMapClick: (e: any) => void,
     return null;
 };
 
+// Controller to handle flying to a selected property
+const MapFocusController = ({ selectedId, selectedProperty, properties, geocodedProps }: { selectedId: string | number | null, selectedProperty: any | null, properties: any[], geocodedProps: Record<string, {lat: number, lng: number}> }) => {
+    const map = useMap();
+    useEffect(() => {
+        if (!selectedId) return;
+        
+        let p = selectedProperty || properties.find((prop) => (prop.id || prop.parcel_id) === selectedId);
+        
+        if (p) {
+            let lat = parseFloat(p.latitude);
+            let lng = parseFloat(p.longitude);
+            if (isNaN(lat) || isNaN(lng)) {
+                const fallback = geocodedProps[selectedId];
+                if (fallback) {
+                    lat = fallback.lat;
+                    lng = fallback.lng;
+                }
+            }
+            if (!isNaN(lat) && !isNaN(lng)) {
+                map.flyTo([lat, lng], 18, { animate: true, duration: 1.5 });
+            }
+        }
+    }, [selectedId, selectedProperty, properties, geocodedProps, map]);
+    return null;
+};
+
 const customPinIcon = L.divIcon({
     html: `<div class="flex items-center justify-center w-8 h-8 rounded-full bg-rose-500 border-2 border-white shadow-lg text-white"><span class="material-symbols-outlined text-[18px]">pin_drop</span></div>`,
     className: 'custom-filter-pin',
     iconSize: [32, 32],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32]
+});
+
+const defaultMarkerIcon = new L.Icon.Default();
+
+const selectedMarkerIcon = L.divIcon({
+    html: `<div class="flex items-center justify-center w-10 h-10 rounded-full bg-indigo-600 border-4 border-white shadow-[0_0_15px_rgba(79,70,229,0.7)] text-white animate-bounce"><span class="material-symbols-outlined text-[20px]">home</span></div>`,
+    className: 'custom-selected-pin',
+    iconSize: [40, 40],
+    iconAnchor: [20, 40],
+    popupAnchor: [0, -40]
 });
 
 export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = ({ filters, hasActiveFilters, onOpenPropertyDetails, onFilterChange }) => {
@@ -196,6 +232,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
 
     const pageSize = 50;
     const [selectedPropertyId, setSelectedPropertyId] = useState<string | number | null>(null);
+    const [selectedPropertyDetail, setSelectedPropertyDetail] = useState<any | null>(null);
 
     // Scroll sidebar to selected property card when it changes
     useEffect(() => {
@@ -227,6 +264,9 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
             const customEvent = e as CustomEvent;
             if (customEvent.detail && customEvent.detail.id) {
                 setSelectedPropertyId(customEvent.detail.id);
+                if (customEvent.detail.property) {
+                    setSelectedPropertyDetail(customEvent.detail.property);
+                }
                 setIsSidebarOpen(true);
             }
         };
@@ -304,6 +344,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
             setIsSidebarOpen(false);
         }
         setSelectedPropertyId(null);
+        setSelectedPropertyDetail(null);
     }, [filters, hasActiveFilters]);
 
     // Asynchronous Geocoding Fallback for properties lacking lat/lng
@@ -440,13 +481,18 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                             }
                         }
 
+                        const isSelected = selectedPropertyId === (p.id || p.parcel_id);
+
                         return (
                             <Marker 
                                 key={p.id || p.parcel_id} 
                                 position={[lat, lng]}
+                                icon={isSelected ? selectedMarkerIcon : defaultMarkerIcon}
+                                zIndexOffset={isSelected ? 1000 : 0}
                                 eventHandlers={{
                                     click: () => {
                                         setSelectedPropertyId(p.id || p.parcel_id);
+                                        setSelectedPropertyDetail(p);
                                         setIsSidebarOpen(true);
                                     }
                                 }}
@@ -468,6 +514,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                     })}
                     
                     <MapBoundsController properties={properties} activeState={filters.state} activeCounty={filters.county} geocodedProps={geocodedProps} />
+                    <MapFocusController selectedId={selectedPropertyId} selectedProperty={selectedPropertyDetail} properties={properties} geocodedProps={geocodedProps} />
                 </MapContainer>
             </div>
 

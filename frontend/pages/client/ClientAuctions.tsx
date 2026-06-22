@@ -3,7 +3,7 @@ import AuctionList from '../../components/admin/AuctionList';
 import AuctionCalendar from '../../components/admin/AuctionCalendar';
 import AuctionFilters, { AuctionFilterParams } from '../../components/admin/AuctionFilters';
 import { Box, Typography } from '@mui/material';
-import { RedemptionIntelligenceBoard } from '../../components/property/RedemptionIntelligenceBoard';
+import AuctionDetailsSidebar from '../../components/admin/AuctionDetailsSidebar';
 
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -11,6 +11,7 @@ import { useTour } from '../../context/TourContext';
 
 const ClientAuctions: React.FC = () => {
     const [filters, setFilters] = useState<AuctionFilterParams>({});
+    const [selectedAuctionEvent, setSelectedAuctionEvent] = useState<any | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
 
     const { user } = useAuth();
@@ -104,19 +105,40 @@ const ClientAuctions: React.FC = () => {
                 <AuctionFilters onFilterChange={setFilters} />
             </div>
             
-            <RedemptionIntelligenceBoard />
-            
-            <Box id="tour-auctions-calendar" className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-                <AuctionCalendar filters={filters} onDateTypeSelect={handleDateTypeSelect} />
-            </Box>
+            <div className="flex flex-col lg:flex-row relative gap-6 items-start">
+                <div className={`flex-1 flex flex-col gap-6 w-full transition-all duration-300 ${selectedAuctionEvent ? 'lg:pr-4' : ''}`}>
+                    <Box id="tour-auctions-calendar" className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+                        <AuctionCalendar filters={filters} onDateTypeSelect={handleDateTypeSelect} onSelectAuction={setSelectedAuctionEvent} />
+                    </Box>
 
-            <div className="w-full animate-in fade-in duration-500">
-                <Typography variant="h6" className="font-bold text-slate-800 dark:text-white mb-4">
-                    {hasActiveFilters ? 'Search Results' : 'Upcoming Auctions'}
-                </Typography>
-                <Box className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl">
-                    <AuctionList filters={filters} readOnly={true} />
-                </Box>
+                    <div className="w-full animate-in fade-in duration-500">
+                        <Typography variant="h6" className="font-bold text-slate-800 dark:text-white mb-4">
+                            {hasActiveFilters ? 'Search Results' : 'Upcoming Auctions'}
+                        </Typography>
+                        <Box className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden">
+                            <AuctionList filters={filters} readOnly={true} onSelectAuction={setSelectedAuctionEvent} />
+                        </Box>
+                    </div>
+                </div>
+
+                {/* Sidebar - Desktop: Side-by-side, Mobile/Tablet: Overlay */}
+                {selectedAuctionEvent && (
+                    <>
+                        {/* Mobile backdrop */}
+                        <div 
+                            className="fixed inset-0 bg-slate-900/20 backdrop-blur-sm z-40 lg:hidden"
+                            onClick={() => setSelectedAuctionEvent(null)}
+                        />
+                        
+                        <div className="fixed inset-y-0 right-0 w-full sm:w-[450px] lg:static lg:w-[450px] lg:h-[calc(100vh-140px)] z-50 lg:z-10 shadow-2xl lg:shadow-none bg-white dark:bg-slate-900 lg:rounded-xl lg:border border-slate-200 dark:border-slate-700 overflow-hidden animate-in slide-in-from-right duration-300 lg:sticky lg:top-4">
+                            <AuctionDetailsSidebar 
+                                isOpen={!!selectedAuctionEvent} 
+                                eventData={selectedAuctionEvent} 
+                                onClose={() => setSelectedAuctionEvent(null)} 
+                            />
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );

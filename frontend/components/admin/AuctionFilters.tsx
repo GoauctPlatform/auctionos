@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { TextField, Select, MenuItem, Button, FormControl, InputLabel } from '@mui/material';
+import { TextField, Select, MenuItem, Button, FormControl, InputLabel, Autocomplete } from '@mui/material';
 import { useDebounce } from 'use-debounce';
+
+import { StatesService } from '../../services/states.service';
+import { countyService } from '../../services/county.service';
 
 export interface AuctionFilterParams {
     q?: string;
@@ -57,6 +60,29 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
 
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [debouncedFilters] = useDebounce(filters, 500);
+
+    // State and County options dropdown logic
+    const [stateOptions, setStateOptions] = useState<any[]>([]);
+    const [countyOptions, setCountyOptions] = useState<string[]>([]);
+
+    useEffect(() => {
+        StatesService.getContacts()
+            .then(res => setStateOptions(res || []))
+            .catch(err => console.error("AuctionFilters: Failed to load states", err));
+    }, []);
+
+    useEffect(() => {
+        if (filters.state) {
+            countyService.getCounties(filters.state)
+                .then(res => setCountyOptions(res || []))
+                .catch(err => {
+                    console.error("AuctionFilters: Failed to load counties", err);
+                    setCountyOptions([]);
+                });
+        } else {
+            setCountyOptions([]);
+        }
+    }, [filters.state]);
 
     // Sync from URL to State (External Updates from Calendar)
     useEffect(() => {
@@ -239,24 +265,55 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
                         placeholder="Exact name match"
                         className="bg-white dark:bg-slate-900"
                     />
-                    <TextField
-                        label="State"
-                        variant="outlined"
-                        size="small"
-                        value={filters.state || ''}
-                        onChange={(e) => handleChange('state', e.target.value)}
-                        placeholder="E.g. FL"
-                        className="bg-white dark:bg-slate-900"
-                        inputProps={{ maxLength: 2 }}
+                    <Autocomplete
+                        id="state-filter-autocomplete"
+                        options={stateOptions}
+                        getOptionLabel={(option) => typeof option === 'string' ? option : option.state}
+                        value={
+                            stateOptions.find(s => s.state?.toLowerCase() === filters.state?.toLowerCase()) || 
+                            (filters.state ? { state: filters.state, url: '' } : null)
+                        }
+                        onChange={(event, newValue) => {
+                            const stateVal = newValue ? (typeof newValue === 'string' ? newValue : newValue.state) : undefined;
+                            handleChange('state', stateVal);
+                            handleChange('county', undefined); // Clear county selection
+                        }}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="State"
+                                variant="outlined"
+                                size="small"
+                                placeholder="E.g. FL"
+                                className="bg-white dark:bg-slate-900"
+                            />
+                        )}
+                        disablePortal
                     />
-                    <TextField
-                        label="County"
-                        variant="outlined"
-                        size="small"
-                        value={filters.county || ''}
-                        onChange={(e) => handleChange('county', e.target.value)}
-                        placeholder="E.g. Miami-Dade"
-                        className="bg-white dark:bg-slate-900"
+                    <Autocomplete
+                        id="county-filter-autocomplete"
+                        options={countyOptions}
+                        disabled={!filters.state}
+                        getOptionLabel={(option) => option}
+                        value={
+                            countyOptions.find(c => c?.toLowerCase() === filters.county?.toLowerCase()) || 
+                            filters.county || 
+                            null
+                        }
+                        onChange={(event, newValue) => {
+                            handleChange('county', newValue || undefined);
+                        }}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="County"
+                                variant="outlined"
+                                size="small"
+                                placeholder={!filters.state ? "State first" : "All counties"}
+                                className="bg-white dark:bg-slate-900"
+                            />
+                        )}
+                        disablePortal
                     />
                     <TextField
                         label="Start Date"

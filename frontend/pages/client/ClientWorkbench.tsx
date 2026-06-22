@@ -2841,7 +2841,7 @@ export const ClientWorkbench: React.FC = () => {
       <div className="flex-1 flex w-full overflow-hidden relative">
 
         {/* ─── SIDEBAR 1: Primary VS Code Ribbon (64px desktop, 40px mobile) ─── */}
-        <div className="w-10 md:w-16 bg-white dark:bg-sol-base02 border-r border-slate-200/80 dark:border-sol-base01/20 flex flex-col justify-between py-4 items-center shrink-0 z-40 overflow-y-auto no-scrollbar scrollbar-none">
+        <div className="w-10 md:w-16 bg-white dark:bg-sol-base02 border-r border-slate-200/80 dark:border-sol-base01/20 flex flex-col justify-between py-4 items-center shrink-0 z-[99999] overflow-y-auto no-scrollbar scrollbar-none">
           <div className="flex flex-col gap-3 w-full items-center">
             {[
               { id: 'explorer', icon: Layers, label: 'Workspace Explorer' },
@@ -2987,7 +2987,7 @@ export const ClientWorkbench: React.FC = () => {
 
         {/* ─── SIDEBAR 2: Collapsible Secondary Drawer (240px) — hidden on mobile ─── */}
         <div
-          className={`flex absolute left-10 md:static z-50 h-[calc(100vh-120px)] md:h-auto bg-white/95 dark:bg-sol-base02/95 border-r border-slate-200/80 dark:border-sol-base01/20 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 overflow-y-auto ${
+          className={`flex absolute left-10 md:static z-[99998] h-[calc(100vh-120px)] md:h-auto bg-white/95 dark:bg-sol-base02/95 border-r border-slate-200/80 dark:border-sol-base01/20 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 overflow-y-auto ${
             sidebarOpen 
               ? 'w-60 opacity-100 shadow-2xl md:shadow-none' 
               : 'w-0 opacity-0 pointer-events-none border-r-0'

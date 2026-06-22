@@ -19,9 +19,10 @@ interface AuctionCalendarProps {
         [key: string]: any;
     };
     onDateTypeSelect?: (date: string, type: string) => void;
+    onSelectAuction?: (event: any) => void;
 }
 
-const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate: undefined }, onDateTypeSelect }) => {
+const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate: undefined }, onDateTypeSelect, onSelectAuction }) => {
     const [rawEvents, setRawEvents] = useState<any[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
     const [groupedDialogOpen, setGroupedDialogOpen] = useState(false);
@@ -144,7 +145,11 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 start: info.event.startStr || info.event.start,
                 extendedProps: props
             };
-            setSelectedEvent(normalizedEvent);
+            if (onSelectAuction) {
+                onSelectAuction(normalizedEvent);
+            } else {
+                setSelectedEvent(normalizedEvent);
+            }
         }
     };
 
@@ -246,6 +251,14 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                             }} 
                             readOnly={true} 
                             hideFilterSelector={true}
+                            onSelectAuction={(evt) => {
+                                setGroupedDialogOpen(false);
+                                if (onSelectAuction) {
+                                    onSelectAuction(evt);
+                                } else {
+                                    setSelectedEvent(evt);
+                                }
+                            }}
                         />
                     )}
                 </DialogContent>

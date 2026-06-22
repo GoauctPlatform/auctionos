@@ -12,9 +12,10 @@ interface AuctionListProps {
     filters: any;
     readOnly?: boolean;
     hideFilterSelector?: boolean;
+    onSelectAuction?: (event: any) => void;
 }
 
-const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hideFilterSelector = false }) => {
+const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hideFilterSelector = false, onSelectAuction }) => {
     const [rows, setRows] = useState<AuctionEvent[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -172,7 +173,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
     };
 
     const handleViewClick = (row: AuctionEvent) => {
-        setViewingEvent({
+        const eventData = {
             id: row.id,
             title: row.name,
             start: row.auction_date ? new Date(row.auction_date).toISOString() : '',
@@ -188,8 +189,14 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
                 tax_status: row.tax_status,
                 state: row.state
             }
-        });
-        setViewModalOpen(true);
+        };
+
+        if (onSelectAuction) {
+            onSelectAuction(eventData);
+        } else {
+            setViewingEvent(eventData);
+            setViewModalOpen(true);
+        }
     };
 
     const baseColumns: GridColDef[] = [

@@ -258,7 +258,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
 
                             // Dispatch custom event to select property in map/sidebar search view
                             const selectEvent = new CustomEvent('property-selected-from-search', { 
-                                detail: { id: newValue.id || newValue.parcel_id } 
+                                detail: { id: newValue.id || newValue.parcel_id, property: newValue } 
                             });
                             window.dispatchEvent(selectEvent);
                         }

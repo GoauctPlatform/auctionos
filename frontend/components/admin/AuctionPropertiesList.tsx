@@ -10,9 +10,10 @@ interface AuctionPropertiesListProps {
     auctionDate?: string;
     auctionId?: number;
     onClose?: () => void;
+    embedded?: boolean;
 }
 
-const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionName, auctionDate, auctionId, onClose }) => {
+const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionName, auctionDate, auctionId, onClose, embedded = false }) => {
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [rowCount, setRowCount] = useState(0);
@@ -119,26 +120,28 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
     ];
 
     return (
-        <Box sx={{ width: '100%', height: 400, bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
-            <Box p={1} display="flex" justifyContent="space-between" alignItems="center" sx={{ borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
-                <Typography variant="subtitle1" className="text-slate-800 dark:text-white font-semibold">
-                    Properties for: {auctionName}
-                </Typography>
-                <div className="flex gap-2">
-                    <Button
-                        size="small"
-                        onClick={fetchProperties}
-                        startIcon={<span className="material-symbols-outlined text-sm">refresh</span>}
-                    >
-                        Refresh
-                    </Button>
-                    {onClose && (
-                        <Button size="small" onClick={onClose} color="inherit">
-                            Back
+        <Box sx={{ width: '100%', height: embedded ? 600 : 400, bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', borderRadius: embedded ? 2 : 0, overflow: 'hidden', border: embedded ? '1px solid #e2e8f0' : 'none' }}>
+            {!embedded && (
+                <Box p={1} display="flex" justifyContent="space-between" alignItems="center" sx={{ borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
+                    <Typography variant="subtitle1" className="text-slate-800 dark:text-white font-semibold">
+                        Properties for: {auctionName}
+                    </Typography>
+                    <div className="flex gap-2">
+                        <Button
+                            size="small"
+                            onClick={fetchProperties}
+                            startIcon={<span className="material-symbols-outlined text-sm">refresh</span>}
+                        >
+                            Refresh
                         </Button>
-                    )}
-                </div>
-            </Box>
+                        {onClose && (
+                            <Button size="small" onClick={onClose} color="inherit">
+                                Back
+                            </Button>
+                        )}
+                    </div>
+                </Box>
+            )}
 
             <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
                 <DataGrid
