@@ -40,14 +40,12 @@ export const AuctionWorkspaceModal: React.FC<AuctionWorkspaceModalProps> = ({ ev
     const [reconcileCount, setReconcileCount] = useState<number | null>(null);
     const [isFav, setIsFav] = React.useState(false);
 
-    if (!isOpen || !eventData) return null;
-
-    const props = eventData.extendedProps || {};
-    const auctionId = eventData.id || props.id || props.auction_id;
-    const dateStr = eventData.start ? new Date(eventData.start).toLocaleDateString(undefined, { timeZone: 'UTC' }) : '';
-    const rawDate = eventData.startStr ? eventData.startStr.split('T')[0] : (eventData.start ? new Date(eventData.start).toISOString().split('T')[0] : undefined);
-    const timeStr = eventData.start ? new Date(eventData.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-    const cleanAuctionName = (eventData.title || '').replace(/\(\d+\)$/, '').trim();
+    const props = eventData?.extendedProps || {};
+    const auctionId = eventData?.id || props.id || props.auction_id;
+    const dateStr = eventData?.start ? new Date(eventData.start).toLocaleDateString(undefined, { timeZone: 'UTC' }) : '';
+    const rawDate = eventData?.startStr ? eventData.startStr.split('T')[0] : (eventData?.start ? new Date(eventData.start).toISOString().split('T')[0] : undefined);
+    const timeStr = eventData?.start ? new Date(eventData.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const cleanAuctionName = (eventData?.title || '').replace(/\(\d+\)$/, '').trim();
 
     React.useEffect(() => {
         if (!auctionId) return;
@@ -65,6 +63,8 @@ export const AuctionWorkspaceModal: React.FC<AuctionWorkspaceModalProps> = ({ ev
         window.addEventListener('auction-favorites-updated', handleSync);
         return () => window.removeEventListener('auction-favorites-updated', handleSync);
     }, [auctionId]);
+
+    if (!isOpen || !eventData) return null;
 
     const handleToggleFavorite = async () => {
         if (!auctionId) return;
