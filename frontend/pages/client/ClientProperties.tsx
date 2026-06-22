@@ -111,7 +111,7 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
     return (
         <>
             {viewMode === 'map' ? (
-                <div className="flex flex-col w-full h-screen overflow-hidden bg-slate-50 dark:bg-slate-900">
+                <div className="flex flex-col w-full h-full overflow-hidden bg-slate-50 dark:bg-slate-900">
                     {/* Modern Top Header */}
                     <div className="z-30 w-full bg-white/40 dark:bg-slate-950/35 backdrop-blur-xl border-b border-slate-200/30 dark:border-slate-800/50 px-4 py-2 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 sticky top-0">
                         {/* Filters Combined */}

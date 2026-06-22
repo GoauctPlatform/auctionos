@@ -230,6 +230,58 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
                     </Select>
                 </FormControl>
 
+                <Autocomplete
+                    id="state-filter-autocomplete"
+                    options={stateOptions}
+                    getOptionLabel={(option) => typeof option === 'string' ? option : option.state}
+                    value={
+                        stateOptions.find(s => s.state?.toLowerCase() === filters.state?.toLowerCase()) || 
+                        (filters.state ? { state: filters.state, url: '' } : null)
+                    }
+                    onChange={(event, newValue) => {
+                        const stateVal = newValue ? (typeof newValue === 'string' ? newValue : newValue.state) : undefined;
+                        handleChange('state', stateVal);
+                        handleChange('county', undefined); // Clear county selection
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="State"
+                            variant="outlined"
+                            size="small"
+                            placeholder="E.g. FL"
+                            className="bg-white dark:bg-slate-900 min-w-[120px]"
+                        />
+                    )}
+                    disablePortal
+                />
+                
+                <Autocomplete
+                    id="county-filter-autocomplete"
+                    options={countyOptions}
+                    disabled={!filters.state}
+                    getOptionLabel={(option) => option}
+                    value={
+                        countyOptions.find(c => c?.toLowerCase() === filters.county?.toLowerCase()) || 
+                        filters.county || 
+                        null
+                    }
+                    onChange={(event, newValue) => {
+                        handleChange('county', newValue || undefined);
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="County"
+                            variant="outlined"
+                            size="small"
+                            placeholder={!filters.state ? "State first" : "All counties"}
+                            className="bg-white dark:bg-slate-900 min-w-[160px]"
+                        />
+                    )}
+                    disablePortal
+                />
+
                 <Button
                     variant="text"
                     size="small"
@@ -265,56 +317,7 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
                         placeholder="Exact name match"
                         className="bg-white dark:bg-slate-900"
                     />
-                    <Autocomplete
-                        id="state-filter-autocomplete"
-                        options={stateOptions}
-                        getOptionLabel={(option) => typeof option === 'string' ? option : option.state}
-                        value={
-                            stateOptions.find(s => s.state?.toLowerCase() === filters.state?.toLowerCase()) || 
-                            (filters.state ? { state: filters.state, url: '' } : null)
-                        }
-                        onChange={(event, newValue) => {
-                            const stateVal = newValue ? (typeof newValue === 'string' ? newValue : newValue.state) : undefined;
-                            handleChange('state', stateVal);
-                            handleChange('county', undefined); // Clear county selection
-                        }}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="State"
-                                variant="outlined"
-                                size="small"
-                                placeholder="E.g. FL"
-                                className="bg-white dark:bg-slate-900"
-                            />
-                        )}
-                        disablePortal
-                    />
-                    <Autocomplete
-                        id="county-filter-autocomplete"
-                        options={countyOptions}
-                        disabled={!filters.state}
-                        getOptionLabel={(option) => option}
-                        value={
-                            countyOptions.find(c => c?.toLowerCase() === filters.county?.toLowerCase()) || 
-                            filters.county || 
-                            null
-                        }
-                        onChange={(event, newValue) => {
-                            handleChange('county', newValue || undefined);
-                        }}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="County"
-                                variant="outlined"
-                                size="small"
-                                placeholder={!filters.state ? "State first" : "All counties"}
-                                className="bg-white dark:bg-slate-900"
-                            />
-                        )}
-                        disablePortal
-                    />
+
                     <TextField
                         label="Start Date"
                         type="date"
