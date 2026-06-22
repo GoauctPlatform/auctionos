@@ -147,12 +147,13 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
     }, [debouncedFilters, onFilterChange, setSearchParams]);
 
     const handleChange = (key: keyof AuctionFilterParams, value: any) => {
-        const nextFilters = { ...filters, [key]: value || undefined };
-        setFilters(nextFilters);
-        // If it's a chip (tax_statuses), we update parent immediately for better responsiveness
-        if (key === 'tax_statuses') {
-            onFilterChange(nextFilters);
-        }
+        setFilters(prev => {
+            const nextFilters = { ...prev, [key]: value || undefined };
+            if (key === 'tax_statuses') {
+                onFilterChange(nextFilters);
+            }
+            return nextFilters;
+        });
     };
 
     const handleClear = () => {
@@ -240,8 +241,7 @@ const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
                     }
                     onChange={(event, newValue) => {
                         const stateVal = newValue ? (typeof newValue === 'string' ? newValue : newValue.state) : undefined;
-                        handleChange('state', stateVal);
-                        handleChange('county', undefined); // Clear county selection
+                        setFilters(prev => ({ ...prev, state: stateVal, county: undefined }));
                     }}
                     renderInput={(params) => (
                         <TextField

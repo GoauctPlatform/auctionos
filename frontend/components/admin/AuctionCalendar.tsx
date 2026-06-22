@@ -261,7 +261,6 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                             readOnly={true} 
                             hideFilterSelector={true}
                             onSelectAuction={(evt) => {
-                                setGroupedDialogOpen(false);
                                 if (onSelectAuction) {
                                     onSelectAuction(evt);
                                 } else {
