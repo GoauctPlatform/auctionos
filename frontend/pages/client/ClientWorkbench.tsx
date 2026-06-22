@@ -3838,11 +3838,11 @@ export const ClientWorkbench: React.FC = () => {
                 focusOverlayWindow(w.id);
               }}
               style={{
-                position: w.isMaximized ? 'fixed' : 'absolute',
+                position: 'absolute',
                 left: w.isMaximized ? 0 : w.x,
                 top: w.isMaximized ? 0 : w.y,
-                width: w.isMaximized ? '100vw' : w.w,
-                height: w.isMaximized ? '100vh' : w.h,
+                width: w.isMaximized ? '100%' : w.w,
+                height: w.isMaximized ? '100%' : w.h,
                 zIndex: w.isMaximized ? 999999 : w.zIndex + 100, // Float over background canvas and sidebars
               }}
               className={`glass-card shadow-2xl border flex flex-col overflow-hidden rounded-2xl transition-shadow backdrop-blur-xl ${isActive
