@@ -3844,7 +3844,7 @@ export const ClientWorkbench: React.FC = () => {
                 top: w.isMaximized ? 0 : w.y,
                 width: w.isMaximized ? '100%' : w.w,
                 height: w.isMaximized ? '100%' : w.h,
-                zIndex: w.isMaximized ? 999999 : w.zIndex + 100, // Float over background canvas and sidebars
+                zIndex: w.isMaximized ? 99990 : Math.min(w.zIndex + 100, 99980), // Keep below dock (99999)
               }}
               className={`glass-card shadow-2xl border flex flex-col overflow-hidden rounded-2xl transition-shadow backdrop-blur-xl ${isActive
                   ? 'border-indigo-500/80 dark:border-sol-blue/80 shadow-indigo-500/10 bg-white/95 dark:bg-sol-base02/95'
