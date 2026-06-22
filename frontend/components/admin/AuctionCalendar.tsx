@@ -7,7 +7,7 @@ import { AuctionService } from '../../services/auction.service';
 import type { AuctionEvent } from '../../types';
 import { AuctionWorkspaceModal } from './AuctionWorkspaceModal';
 import AuctionList from './AuctionList';
-import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from '@mui/material';
+import { Box, Dialog, DialogTitle, DialogContent, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 
