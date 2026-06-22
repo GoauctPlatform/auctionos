@@ -253,7 +253,7 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 onClose={() => setGroupedDialogOpen(false)} 
                 maxWidth="lg" 
                 fullWidth
-                sx={{ zIndex: 9999998 }}
+                sx={{ zIndex: 99990 }}
                 PaperProps={{ sx: { borderRadius: 3, minHeight: '600px' } }}
             >
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc' }}>

@@ -439,6 +439,16 @@
   animation: marquee-vertical 12s infinite ease-in-out;
 }
 
+@keyframes slide-up-bounce {
+  0% { transform: translateY(20px) scale(0.9); opacity: 0; }
+  60% { transform: translateY(-3px) scale(1.05); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.animate-slide-up-bounce {
+  animation: slide-up-bounce 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
 /* ==========================================================================
    SOLARIZED DARK — MUI & FullCalendar component overrides
    These are outside @layer to guarantee specificity over MUI inline styles.

@@ -4069,7 +4069,7 @@ export const ClientWorkbench: React.FC = () => {
                         focusOverlayWindow(w.id);
                       }
                     }}
-                    className={`relative shrink-0 h-10 px-2 rounded-xl flex items-center gap-1.5 transition-all text-left bg-slate-800/60 border border-slate-700/50 hover:bg-slate-700/60 ${w.isMinimized ? 'opacity-50' : ''}`}
+                    className={`relative shrink-0 h-10 px-2 rounded-xl flex items-center gap-1.5 transition-all text-left bg-slate-800/60 border border-slate-700/50 hover:bg-slate-700/60 animate-slide-up-bounce ${w.isMinimized ? 'opacity-50' : ''}`}
                     title={w.title}
                   >
                     <FileText size={14} className="text-indigo-400" />
