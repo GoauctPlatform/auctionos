@@ -4,7 +4,7 @@ import { AuctionService } from '../../services/auction.service';
 import { AuctionEvent } from '../../types';
 import { Box, Typography, Button } from '@mui/material';
 import { AuctionForm } from './AuctionForm';
-import { AuctionDetailsModal } from './AuctionDetailsModal';
+import { AuctionWorkspaceModal } from './AuctionWorkspaceModal';
 
 
 
@@ -407,8 +407,8 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
                 editingEvent={editingEvent}
             />
 
-            <AuctionDetailsModal
-                open={viewModalOpen}
+            <AuctionWorkspaceModal
+                isOpen={viewModalOpen}
                 onClose={() => setViewModalOpen(false)}
                 eventData={viewingEvent}
             />

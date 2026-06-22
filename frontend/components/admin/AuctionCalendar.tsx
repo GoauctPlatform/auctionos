@@ -5,7 +5,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import { AuctionService } from '../../services/auction.service';
 import type { AuctionEvent } from '../../types';
-import { AuctionDetailsModal } from './AuctionDetailsModal';
+import { AuctionWorkspaceModal } from './AuctionWorkspaceModal';
 import AuctionList from './AuctionList';
 import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
@@ -220,8 +220,8 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 }}
             />
 
-            <AuctionDetailsModal
-                open={!!selectedEvent}
+            <AuctionWorkspaceModal
+                isOpen={!!selectedEvent}
                 onClose={handleCloseModal}
                 eventData={selectedEvent}
             />
