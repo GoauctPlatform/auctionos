@@ -239,7 +239,13 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
         if (selectedPropertyId) {
             const element = document.getElementById(`property-card-${selectedPropertyId}`);
             if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                const container = element.closest('.overflow-y-auto');
+                if (container) {
+                    const topPos = element.offsetTop;
+                    container.scrollTo({ top: topPos - 20, behavior: 'smooth' });
+                } else {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                }
             }
         }
     }, [selectedPropertyId]);
@@ -498,8 +504,26 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                                 }}
                             >
                                 <Popup>
-                                    <div className="text-sm font-semibold">{p.address || p.parcel_id}</div>
-                                    <div className="text-xs text-slate-500">{p.county} County, {p.state}</div>
+                                    <div className="flex justify-between items-start gap-2">
+                                        <div>
+                                            <div className="text-sm font-semibold">{p.address || p.parcel_id}</div>
+                                            <div className="text-xs text-slate-500">{p.county} County, {p.state}</div>
+                                        </div>
+                                        {(() => {
+                                            if (isNaN(lat) || isNaN(lng)) return null;
+                                            return (
+                                                <a 
+                                                    href={`https://earth.google.com/web/search/${lat},${lng}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="p-1 hover:bg-slate-100 rounded text-emerald-600 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                                                    title="Open in Google Earth 3D"
+                                                >
+                                                    <span className="material-symbols-outlined text-[18px]">public</span>
+                                                </a>
+                                            );
+                                        })()}
+                                    </div>
                                     <Button 
                                         size="small" 
                                         variant="text" 
