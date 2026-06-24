@@ -185,38 +185,77 @@ export const AuctionWorkspaceModal: React.FC<AuctionWorkspaceModalProps> = ({ ev
                             </div>
                         )}
 
-                        {/* Official Links */}
-                        {(props.register_link || props.list_link) && (
-                            <div className="space-y-2">
-                                <Typography variant="subtitle2" color="textSecondary" className="text-xs uppercase tracking-wider font-bold">Official Links</Typography>
-                                <div className="flex flex-col gap-2">
-                                    {props.register_link && (
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            href={props.register_link}
-                                            target="_blank"
-                                            startIcon={<OpenInNewIcon />}
-                                            sx={{ justifyContent: 'flex-start', borderRadius: '8px', textTransform: 'none', fontWeight: 'bold' }}
-                                        >
-                                            Registration / Instructions
-                                        </Button>
-                                    )}
-                                    {props.list_link && (
-                                        <Button
-                                            variant="outlined"
-                                            size="small"
-                                            href={props.list_link}
-                                            target="_blank"
-                                            startIcon={<OpenInNewIcon />}
-                                            sx={{ justifyContent: 'flex-start', borderRadius: '8px', textTransform: 'none', fontWeight: 'bold' }}
-                                        >
-                                            Official Property List
-                                        </Button>
-                                    )}
-                                </div>
+                        {/* Official Links & Research */}
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+                            <Typography variant="subtitle2" className="flex items-center gap-1.5 mb-3 text-xs uppercase tracking-wider font-bold text-slate-800 dark:text-white">
+                                <span className="material-symbols-outlined text-blue-500 text-[18px]">gavel</span> 
+                                Official Links & Research
+                            </Typography>
+                            <div className="flex flex-col gap-2.5">
+                                {props.register_link && (
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        href={props.register_link}
+                                        target="_blank"
+                                        startIcon={<OpenInNewIcon />}
+                                        sx={{ 
+                                            justifyContent: 'flex-start', 
+                                            borderRadius: '8px', 
+                                            textTransform: 'none', 
+                                            fontWeight: 'bold',
+                                            bgcolor: 'primary.main',
+                                            boxShadow: '0 2px 4px rgba(59, 130, 246, 0.3)'
+                                        }}
+                                    >
+                                        Official Registration
+                                    </Button>
+                                )}
+                                {props.list_link && (
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        href={props.list_link}
+                                        target="_blank"
+                                        startIcon={<OpenInNewIcon />}
+                                        sx={{ 
+                                            justifyContent: 'flex-start', 
+                                            borderRadius: '8px', 
+                                            textTransform: 'none', 
+                                            fontWeight: 'bold',
+                                            bgcolor: 'secondary.main',
+                                            boxShadow: '0 2px 4px rgba(139, 92, 246, 0.3)'
+                                        }}
+                                    >
+                                        Official Property List
+                                    </Button>
+                                )}
+                                
+                                <Divider sx={{ my: 1 }} />
+                                <Typography variant="caption" className="text-slate-500 font-bold mb-1">County Discovery</Typography>
+                                
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    href={`https://www.google.com/search?q=${encodeURIComponent(`${props.county || ''} County ${props.state || ''} tax sale portal`)}`}
+                                    target="_blank"
+                                    startIcon={<span className="material-symbols-outlined text-[16px]">travel_explore</span>}
+                                    sx={{ justifyContent: 'flex-start', borderRadius: '8px', textTransform: 'none', fontWeight: 'bold' }}
+                                >
+                                    Search County Portal
+                                </Button>
+                                <Button
+                                    variant="outlined"
+                                    size="small"
+                                    href={`https://www.google.com/search?q=${encodeURIComponent(`${props.county || ''} County ${props.state || ''} property appraiser assessor`)}`}
+                                    target="_blank"
+                                    startIcon={<span className="material-symbols-outlined text-[16px]">map</span>}
+                                    sx={{ justifyContent: 'flex-start', borderRadius: '8px', textTransform: 'none', fontWeight: 'bold' }}
+                                >
+                                    County Assessor Site
+                                </Button>
                             </div>
-                        )}
+                        </div>
 
                         {/* Admin Sync Button */}
                         {user?.role === 'admin' && (

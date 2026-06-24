@@ -187,7 +187,8 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
                 register_link: row.register_link,
                 list_link: row.list_link,
                 tax_status: row.tax_status,
-                state: row.state
+                state: row.state,
+                county: row.county
             }
         };
 
