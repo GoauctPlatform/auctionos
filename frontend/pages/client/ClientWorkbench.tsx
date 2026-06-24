@@ -2597,6 +2597,7 @@ export const ClientWorkbench: React.FC = () => {
                 topProperties={topProperties}
                 loadingStats={loadingStats}
                 onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)}
+                onOpenPropertyDetails={handleOpenPropertyDetails}
               />
             )}
           </div>

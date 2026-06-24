@@ -105,7 +105,7 @@ const ClientAuctions: React.FC = () => {
                             {hasActiveFilters ? 'Search Results' : 'Upcoming Auctions'}
                         </Typography>
                         <Box className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden">
-                            <AuctionList filters={filters} readOnly={true} hideFilterSelector={true} onSelectAuction={setSelectedAuctionEvent} />
+                            <AuctionList filters={filters} readOnly={true} hideFilterSelector={false} onSelectAuction={setSelectedAuctionEvent} />
                         </Box>
                     </div>
                 </div>
