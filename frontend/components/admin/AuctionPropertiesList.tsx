@@ -117,7 +117,7 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
                                 data: { propertyId: params.row.id, parcelId: params.row.parcel_id }
                             }
                         }));
-                        if (onClose) onClose();
+                        // if (onClose) onClose();
                     }}
                 >
                     <OpenInNewIcon fontSize="small" className="text-blue-500" />
@@ -173,7 +173,7 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
                                 data: { propertyId: params.row.id, parcelId: params.row.parcel_id }
                             }
                         }));
-                        if (onClose) onClose();
+                        // if (onClose) onClose();
                     }}
                     sx={{
                         border: 'none',
