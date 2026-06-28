@@ -67,7 +67,11 @@ async def check_and_refund_overdue_tasks(db: Session) -> None:
                             refund_successful = True
                             logger.info(f"Stripe Refund issued for Charge/PaymentIntent {charge_id}")
                     except Exception as stripe_err:
-                        logger.error(f"Stripe Refund failed for Task ID {task.id}, charge {charge_id}: {stripe_err}")
+                        logger.error(
+                            f"Stripe Refund failed for Task ID {task.id}, charge {charge_id}: {stripe_err}",
+                            exc_info=True,
+                            extra={"task_id": task.id, "charge_id": charge_id}
+                        )
                 else:
                     # Mock flow success when Stripe secret key is not set
                     refund_successful = True
@@ -125,4 +129,8 @@ async def check_and_refund_overdue_tasks(db: Session) -> None:
 
         except Exception as task_err:
             db.rollback()
-            logger.error(f"Failed to process overdue task refund for Task ID {task.id}: {task_err}")
+            logger.error(
+                f"Failed to process overdue task refund for Task ID {task.id}: {task_err}",
+                exc_info=True,
+                extra={"task_id": task.id}
+            )

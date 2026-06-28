@@ -3,7 +3,7 @@ from app.api.api_v1.endpoints import (
     auth, users, properties, dashboard, auctions, admin, counties, announcements,
     client_data, states, scores, marketing, companies, realtors, user_properties,
     realtor_tasks, investor_tasks, realtor_economy, billing, agent_tasks, backup,
-    community
+    community, notifications
 )
 
 api_router = APIRouter()
@@ -29,3 +29,4 @@ api_router.include_router(billing.router, prefix="/billing", tags=["billing"])
 api_router.include_router(agent_tasks.router, prefix="/agent", tags=["agent"])
 api_router.include_router(backup.router, prefix="/backup", tags=["backup"])
 api_router.include_router(community.router, prefix="/community", tags=["community"])
+api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])

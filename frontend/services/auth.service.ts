@@ -16,10 +16,44 @@ export const AuthService = {
             const body = await response.json().catch(() => ({}));
             throw new Error(body.detail || 'Login failed');
         }
-        return response.json();
+
+        const data = await response.json();
+
+        // Store access token
+        if (data.access_token) {
+            localStorage.setItem('token', data.access_token);
+        }
+        // Store refresh token (longer-lived, 7 days)
+        if (data.refresh_token) {
+            localStorage.setItem('refresh_token', data.refresh_token);
+        }
+
+        return data;
     },
 
+    refreshToken: async (): Promise<string | null> => {
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (!refreshToken) return null;
 
+        try {
+            const response = await fetch(`${API_URL}/auth/refresh`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh_token: refreshToken }),
+            });
+
+            if (!response.ok) return null;
+
+            const data = await response.json();
+            if (data.access_token) {
+                localStorage.setItem('token', data.access_token);
+                return data.access_token;
+            }
+            return null;
+        } catch {
+            return null;
+        }
+    },
 
     getMe: async () => {
         const response = await fetch(`${API_URL}/users/me`, { headers: getHeaders() });
@@ -54,9 +88,9 @@ export const AuthService = {
 
     logout: () => {
         localStorage.removeItem('token');
+        localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
         localStorage.removeItem('trial_expired');
         window.location.href = '/#/';
     }
 };
-

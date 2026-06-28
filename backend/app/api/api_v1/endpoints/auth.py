@@ -9,6 +9,7 @@ from app.api import deps
 from app.core import security
 from app.core.config import settings
 from app.core.oauth import oauth
+from app.core.rate_limit import rate_limit
 from app.models.user import User
 from app.schemas.token import Token
 from app.schemas.user import UserCreate, User as UserSchema
@@ -30,7 +31,9 @@ class ResetPasswordPayload(BaseModel):
 
 
 @router.post("/login/access-token", response_model=Token)
+@rate_limit(max_requests=10, window_seconds=60, key_prefix="login")
 def login_access_token(
+    request: Request,
     db: Session = Depends(deps.get_db), form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     email = form_data.username.strip().lower()
@@ -51,12 +54,59 @@ def login_access_token(
         "access_token": security.create_access_token(
             user.id, expires_delta=access_token_expires, session_id=session_id
         ),
+        "refresh_token": security.create_refresh_token(
+            user.id, session_id=session_id
+        ),
+        "token_type": "bearer",
+    }
+
+
+class RefreshTokenPayload(BaseModel):
+    refresh_token: str
+
+
+@router.post("/refresh", response_model=Token)
+@rate_limit(max_requests=30, window_seconds=60, key_prefix="refresh")
+def refresh_access_token(
+    request: Request,
+    payload: RefreshTokenPayload,
+    db: Session = Depends(deps.get_db),
+) -> Any:
+    """Exchange a valid refresh token for a new access token.
+    Does NOT rotate the refresh token (stateless design).
+    """
+    from jose import jwt, JWTError
+    try:
+        data = jwt.decode(payload.refresh_token, settings.SECRET_KEY, algorithms=[security.ALGORITHM])
+        if data.get("type") != "refresh":
+            raise HTTPException(status_code=401, detail="Invalid token type")
+        user_id = int(data["sub"])
+        session_id = data.get("session_id")
+    except (JWTError, KeyError, ValueError):
+        raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+
+    # Validate session is still the active one
+    if session_id and user.active_session_id and session_id != user.active_session_id:
+        raise HTTPException(status_code=401, detail="Session invalidated. Please log in again.")
+
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    return {
+        "access_token": security.create_access_token(
+            user.id, expires_delta=access_token_expires, session_id=session_id
+        ),
+        "refresh_token": payload.refresh_token,  # Return same refresh token (not rotated)
         "token_type": "bearer",
     }
 
 @router.post("/register", response_model=UserSchema)
+@rate_limit(max_requests=5, window_seconds=60, key_prefix="register")
 async def register_user(
     *,
+    request: Request,
     user_in: UserCreate,
     background_tasks: BackgroundTasks,
     db: Session = Depends(deps.get_db),
@@ -176,7 +226,9 @@ def onboard_user(
     return {"status": "success", "role": role}
 
 @router.post("/forgot-password")
+@rate_limit(max_requests=5, window_seconds=600, key_prefix="forgot_pw")
 async def forgot_password(
+    request: Request,
     payload: ForgotPasswordPayload,
     db: Session = Depends(deps.get_db)
 ) -> Any:
@@ -263,7 +315,9 @@ async def forgot_password(
     return {"status": "success", "message": "If this email is registered, you will receive a reset link shortly."}
 
 @router.post("/reset-password")
+@rate_limit(max_requests=5, window_seconds=600, key_prefix="reset_pw")
 def reset_password(
+    request: Request,
     payload: ResetPasswordPayload,
     db: Session = Depends(deps.get_db)
 ) -> Any:
@@ -341,31 +395,9 @@ def dev_auto_verify(
     db.commit()
     return {"status": "success", "message": "Development auto-verification successful!"}
 
-@router.get("/reset-admin-prod")
-def reset_admin_production(secret: str, db: Session = Depends(deps.get_db)):
-    if secret != "ResetAdmin2026Secure!":
-        raise HTTPException(status_code=403, detail="Invalid secret")
-    
-    email = "admin@goauct.com"
-    temp_password = "AdminSecurePass123!"
-    
-    existing_user = db.query(User).filter(User.email == email).first()
-    if existing_user:
-        existing_user.hashed_password = security.get_password_hash(temp_password)
-        existing_user.is_superuser = True
-        msg = f"Existing user '{email}' updated with password: {temp_password}"
-    else:
-        new_user = User(
-            email=email,
-            hashed_password=security.get_password_hash(temp_password),
-            is_superuser=True,
-            is_active=True
-        )
-        db.add(new_user)
-        msg = f"New admin user '{email}' created with password: {temp_password}"
-    
-    db.commit()
-    return {"message": "Success", "details": msg}
+# NOTE: /reset-admin-prod was removed (hardcoded credentials in query params — CRITICAL security risk).
+# To reset the admin password, use the Django-style management script:
+#   docker exec -it <container> python scripts/reset_admin.py
 
 @router.get("/login/{provider}")
 async def login_oauth(request: Request, provider: str, role: str = "investor"):
