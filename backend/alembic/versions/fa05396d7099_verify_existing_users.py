@@ -27,7 +27,7 @@ def upgrade() -> None:
     # Use batch_alter_table for compatibility
     with op.batch_alter_table('users', schema=None) as batch_op:
         if 'is_verified' not in columns:
-            batch_op.add_column(sa.Column('is_verified', sa.Boolean(), nullable=True, server_default=sa.text('0')))
+            batch_op.add_column(sa.Column('is_verified', sa.Boolean(), nullable=True, server_default=sa.text('false')))
         if 'verification_token' not in columns:
             batch_op.add_column(sa.Column('verification_token', sa.String(length=255), nullable=True))
     
