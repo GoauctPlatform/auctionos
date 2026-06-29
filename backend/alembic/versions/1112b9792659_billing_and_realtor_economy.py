@@ -78,6 +78,24 @@ def upgrade() -> None:
     op.create_index(op.f('ix_withdrawal_requests_id'), 'withdrawal_requests', ['id'], unique=False)
     op.create_index(op.f('ix_withdrawal_requests_realtor_user_id'), 'withdrawal_requests', ['realtor_user_id'], unique=False)
 
+    # property_media_purchases
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    tables = inspector.get_table_names()
+    if 'property_media_purchases' not in tables:
+        op.create_table('property_media_purchases',
+            sa.Column('id', sa.Integer(), nullable=False),
+            sa.Column('property_id', sa.String(length=36), nullable=False),
+            sa.Column('user_id', sa.Integer(), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
+            sa.Column('amount_paid', sa.Float(), nullable=False),
+            sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+            sa.PrimaryKeyConstraint('id')
+        )
+        op.create_index(op.f('ix_property_media_purchases_id'), 'property_media_purchases', ['id'], unique=False)
+        op.create_index(op.f('ix_property_media_purchases_property_id'), 'property_media_purchases', ['property_id'], unique=False)
+        op.create_index(op.f('ix_property_media_purchases_user_id'), 'property_media_purchases', ['user_id'], unique=False)
+
+
 def downgrade() -> None:
     op.drop_table('property_media_purchases')
     op.drop_table('withdrawal_requests')
