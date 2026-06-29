@@ -272,7 +272,7 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                         <span className="text-[9px] font-black text-indigo-650 block leading-tight">GoAuct Platform</span>
                     </div>
                     <div className="p-1 bg-white rounded-lg border border-slate-200 shadow-xs">
-                        <QRCodeSVG value="https://www.goauct.com" size={48} bgColor="#ffffff" fgColor="#0b1329" />
+                        <QRCodeSVG value={typeof window !== 'undefined' ? window.location.origin : 'https://www.goauct.com'} size={48} bgColor="#ffffff" fgColor="#0b1329" />
                     </div>
                 </div>
             </div>

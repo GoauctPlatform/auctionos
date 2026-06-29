@@ -1,6 +1,15 @@
 const isProd = import.meta.env.PROD;
 const defaultProdApi = 'https://auctionos-production.up.railway.app/api/v1';
 
+if (isProd && !import.meta.env.VITE_API_URL) {
+    console.error(
+        "🚨 CRITICAL WARNING: VITE_API_URL environment variable is not defined in this production build!\n" +
+        "Falling back to default production endpoint: " + defaultProdApi + "\n" +
+        "If this is Staging, this will connect staging users to the production database. " +
+        "Please ensure VITE_API_URL is configured in Railway."
+    );
+}
+
 export const API_URL = isProd
     ? (import.meta.env.VITE_API_URL || defaultProdApi)
     : (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1');
