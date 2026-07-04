@@ -159,6 +159,52 @@ const PublicAboutView: React.FC = () => {
                     <TechnicalBlueprint />
                 </section>
 
+                {/* The Master Plan */}
+                <section className="max-w-5xl mx-auto px-4 sm:px-6 space-y-12">
+                    <div className="text-center">
+                        <span className="text-xs font-black uppercase text-indigo-500 tracking-widest block mb-2">Our Vision</span>
+                        <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">The GoAuct Master Plan</h2>
+                        <p className="mt-4 text-sm sm:text-base text-slate-600 dark:text-slate-400 font-medium max-w-2xl mx-auto">
+                            We are building the first fully decentralized, end-to-end operational network for property acquisition, management, and frictionless transfer.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {/* Phase 1 */}
+                        <div className="p-6 bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 rounded-3xl space-y-3">
+                            <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest block">Phase 1 (Current)</span>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Discovery & Intelligence</h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                Transforming chaotic county tax auction announcements into organized, queryable data. We aggregate property details, owner information, and A+ to F AI scoring to surface the best deals instantly for global investors and licensed US realtors.
+                            </p>
+                        </div>
+                        {/* Phase 2 */}
+                        <div className="p-6 bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 rounded-3xl space-y-3">
+                            <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Phase 2 (In Development)</span>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Acquisition & Asset Vault</h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                Execute property acquisitions directly. Once acquired, properties enter a private digital vault where investors can upload documentation, track ROI, and monitor ongoing renovations securely.
+                            </p>
+                        </div>
+                        {/* Phase 3 */}
+                        <div className="p-6 bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 rounded-3xl space-y-3">
+                            <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Phase 3 (Upcoming)</span>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">The Service Marketplace</h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                Connecting property owners with certified, licensed maintenance businesses. Hire plumbers, electricians, landscapers, or contractors, and manage repairs directly from the app.
+                            </p>
+                        </div>
+                        {/* Phase 4 */}
+                        <div className="p-6 bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 rounded-3xl space-y-3">
+                            <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest block">Phase 4 (Future Vision)</span>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Frictionless Transfer</h3>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                Verify proof of ownership and lock documentation into a secure vault. Aligned with Title & Insurance companies, trade properties held under an LLC/Corp instantly with less bureaucracy.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
                 {/* The Problem / Solution Pattern */}
                 <section className="max-w-5xl mx-auto px-4 sm:px-6">
                     <div className="grid md:grid-cols-2 gap-8">

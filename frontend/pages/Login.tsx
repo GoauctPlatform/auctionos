@@ -114,9 +114,9 @@ export const Login: React.FC = () => {
           {/* Header */}
           <div className={`px-8 pt-10 pb-6 bg-gradient-to-br ${accentClass} text-center`}>
             <div className="flex items-center justify-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-white text-[32px]">
-                login
-              </span>
+              <div className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-md p-1">
+                <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain" />
+              </div>
               <span className="text-white font-extrabold text-2xl tracking-tight">GoAuct</span>
             </div>
             <h1 className="text-white font-bold text-lg">

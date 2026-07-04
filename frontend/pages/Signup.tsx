@@ -104,9 +104,9 @@ export const Signup: React.FC = () => {
                     {/* Header Gradient */}
                     <div className={`px-8 pt-8 pb-5 bg-gradient-to-br ${gradientClass} text-center cursor-pointer`} onClick={() => navigate('/')}>
                         <div className="flex items-center justify-center gap-2 mb-2">
-                            <span className="material-symbols-outlined text-white text-[28px]">
-                                person_add
-                            </span>
+                            <div className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-md p-1">
+                                <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain" />
+                            </div>
                             <span className="text-white font-extrabold text-xl">GoAuct</span>
                         </div>
                         <h1 className="text-white font-bold text-lg">
@@ -128,7 +128,7 @@ export const Signup: React.FC = () => {
                             {/* Role Selection */}
                             <div className="flex flex-col gap-1.5 mb-2">
                                 <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">I want to join as a:</span>
-                                <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="grid grid-cols-2 gap-3">
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
                                             type="radio" 
@@ -149,7 +149,7 @@ export const Signup: React.FC = () => {
                                             onChange={() => setSelectedRole('realtor')}
                                             className="text-emerald-600 focus:ring-emerald-600"
                                         />
-                                        <span className="text-sm text-slate-700 dark:text-slate-300">Realtor Partner</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">Realtor</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
@@ -160,7 +160,18 @@ export const Signup: React.FC = () => {
                                             onChange={() => setSelectedRole('agent_due_diligence')}
                                             className="text-orange-600 focus:ring-orange-600"
                                         />
-                                        <span className="text-sm text-slate-700 dark:text-slate-300">Due Diligence Agent</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">Field Agent</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input 
+                                            type="radio" 
+                                            name="role" 
+                                            value="contractor" 
+                                            checked={selectedRole === 'contractor'} 
+                                            onChange={() => setSelectedRole('contractor')}
+                                            className="text-indigo-600 focus:ring-indigo-600"
+                                        />
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">Contractor</span>
                                     </label>
                                 </div>
                             </div>
@@ -228,7 +239,7 @@ export const Signup: React.FC = () => {
                                 <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 flex gap-2">
                                     <span className="material-symbols-outlined text-emerald-600 text-[18px] mt-0.5 shrink-0">info</span>
                                     <p className="text-xs text-emerald-800 dark:text-emerald-300">
-                                        Your account will be created with <strong>Realtor role</strong>. After registration, your profile will be reviewed and you'll be verified as a GoAuct Partner.
+                                        Your account will be created as a <strong>Realtor Partner</strong>. You must possess a valid US Real Estate License to negotiate properties. Your credentials will be reviewed by our team.
                                     </p>
                                 </div>
                             )}
@@ -237,7 +248,16 @@ export const Signup: React.FC = () => {
                                 <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3 flex gap-2">
                                     <span className="material-symbols-outlined text-orange-600 text-[18px] mt-0.5 shrink-0">info</span>
                                     <p className="text-xs text-orange-800 dark:text-orange-300">
-                                        Your account will be created with <strong>Due Diligence Agent role</strong>. You will be able to claim field tasks after completing your profile verification.
+                                        Your account will be created as a <strong>Field Agent</strong>. You must have a valid US Work Permit. You'll be asked to upload verifying documentation before claiming tasks.
+                                    </p>
+                                </div>
+                            )}
+
+                            {selectedRole === 'contractor' && (
+                                <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 flex gap-2">
+                                    <span className="material-symbols-outlined text-indigo-600 text-[18px] mt-0.5 shrink-0">info</span>
+                                    <p className="text-xs text-indigo-800 dark:text-indigo-300">
+                                        Your account will be created as a <strong>Maintenance Partner</strong>. You will be able to offer renovation and maintenance services to property owners once verified.
                                     </p>
                                 </div>
                             )}
