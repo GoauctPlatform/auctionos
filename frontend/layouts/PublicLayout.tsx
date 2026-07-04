@@ -41,7 +41,7 @@ const PublicLayout = () => {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-2 shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:bg-white/20 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all duration-300">
+            <div className="w-10 h-10 flex items-center justify-center">
               <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain brightness-0 invert" />
             </div>
             <span className="font-extrabold text-2xl tracking-tight text-white group-hover:text-blue-400 transition-colors duration-300">GoAuct</span>
@@ -132,11 +132,11 @@ const PublicLayout = () => {
       <footer className="bg-[#03060A] border-t border-white/5 pt-20 pb-10">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 md:col-span-1">
-            <Link to="/" className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center">
-                <span className="text-white font-bold text-lg leading-none">A</span>
+            <Link to="/" className="flex items-center gap-3 mb-6 group">
+              <div className="w-10 h-10 flex items-center justify-center">
+                <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain brightness-0 invert" />
               </div>
-              <span className="font-bold text-xl text-white">GoAuct</span>
+              <span className="font-extrabold text-2xl text-white group-hover:text-blue-400 transition-colors">GoAuct</span>
             </Link>
             <p className="text-slate-400 text-sm mb-6 leading-relaxed">
               Empowering real estate firms with efficient workflows, intelligent auctions, and seamless operations to scale their businesses globally.

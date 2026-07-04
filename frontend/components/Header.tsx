@@ -18,8 +18,8 @@ const Header: React.FC = () => {
             className="flex items-center gap-3 cursor-pointer group"
             onClick={() => navigate('/')}
           >
-            <div className="size-10 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-xl flex items-center justify-center p-2 shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-all duration-300">
-              <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain brightness-0 invert" />
+            <div className="size-10 flex items-center justify-center p-1">
+              <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain brightness-0 dark:invert" />
             </div>
             <span className="text-[#0d131b] dark:text-white text-2xl font-extrabold tracking-tight group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-300">
               GoAuct
