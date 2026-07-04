@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BarChart3, Clock, Scale, ShieldCheck, Zap, LineChart } from 'lucide-react';
+import { ArrowRight, BarChart3, Clock, Scale, ShieldCheck, Zap, LineChart, MapPin, Users } from 'lucide-react';
 
 const Home = () => {
   return (
@@ -46,7 +46,7 @@ const Home = () => {
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
             className="mt-6 text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-light"
           >
-            Resolve data friction and information asymmetry. GoAuct normalizes thousands of county datasets into a unified operational command center for institutional investors.
+            Resolve data friction and information asymmetry. GoAuct normalizes thousands of county datasets into a unified operational command center for institutional investors, realtors, and field agents.
           </motion.p>
 
           <motion.div
@@ -111,25 +111,44 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 3. Marquee (Social Proof) ── */}
-      <section className="py-12 border-y border-white/5 bg-[#03060A]/50 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 mb-8 text-center">
-          <p className="text-sm font-semibold tracking-wider text-slate-500 uppercase">
-            Trusted by top real estate firms worldwide
-          </p>
-        </div>
-        <div className="flex whitespace-nowrap animate-marquee">
-          {/* Using generic finance/real-estate placeholder names */}
-          {[...Array(2)].map((_, i) => (
-            <div key={i} className="flex items-center gap-16 px-8 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-              <span className="text-2xl font-bold text-white">Vanguard Capital</span>
-              <span className="text-2xl font-bold text-white tracking-tighter">Apex Institutional</span>
-              <span className="text-2xl font-bold text-white italic">Crest Holdings</span>
-              <span className="text-2xl font-bold text-white">NovaRealty Funds</span>
-              <span className="text-2xl font-bold text-white tracking-widest">BRIDGEWATER</span>
-              <span className="text-2xl font-bold text-white">Blackstone Group Partners</span>
-            </div>
-          ))}
+      {/* ── 3. Ecosystem Portals (Realtors & Agents) ── */}
+      <section className="py-12 max-w-7xl mx-auto px-6 mb-12">
+        <div className="grid md:grid-cols-2 gap-8 items-stretch">
+          
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="p-10 bg-gradient-to-br from-[#0D182A] to-[#050B14] border border-blue-500/20 rounded-3xl relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
+            <MapPin className="text-blue-400 mb-6" size={40} />
+            <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest block mb-2">For Field Operations</span>
+            <h3 className="text-3xl font-bold text-white mb-4">Agent Due Diligence Portal</h3>
+            <p className="text-slate-400 text-lg mb-6 leading-relaxed">
+              Investors can post micro-tasks (e.g., $5 rewards) to a marketplace of local field agents. Agents claim tasks, drive to the property, and capture photos of roof or structural conditions. 
+            </p>
+            <ul className="space-y-3 text-slate-300 text-sm">
+              <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-cyan-400" /> GPS 50-meter radius geo-validation ensures authenticity.</li>
+              <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-cyan-400" /> Admin Task Mediation guarantees data truth before payout.</li>
+            </ul>
+          </motion.div>
+
+          <motion.div 
+            whileHover={{ y: -5 }}
+            className="p-10 bg-gradient-to-br from-[#0D182A] to-[#050B14] border border-cyan-500/20 rounded-3xl relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
+            <Users className="text-cyan-400 mb-6" size={40} />
+            <span className="text-[10px] font-black uppercase text-cyan-500 tracking-widest block mb-2">For Real Estate Professionals</span>
+            <h3 className="text-3xl font-bold text-white mb-4">Realtor Portal Integration</h3>
+            <p className="text-slate-400 text-lg mb-6 leading-relaxed">
+              Bridge the gap between distressed acquisition and retail disposition. Realtors access exclusive pipelines, track post-auction properties, and coordinate listings directly with institutional buyers.
+            </p>
+            <ul className="space-y-3 text-slate-300 text-sm">
+              <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-cyan-400" /> Streamlined communication channels.</li>
+              <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-cyan-400" /> Instant access to Property Export Flyers and ARV data.</li>
+            </ul>
+          </motion.div>
+
         </div>
       </section>
 
@@ -137,7 +156,7 @@ const Home = () => {
       <section className="py-24 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-white mb-4">A unified ecosystem for your operations</h2>
-          <p className="text-slate-400 max-w-2xl mx-auto">From field agent due diligence tasks to automated PDF flyer exports. GoAuct handles the heavy lifting.</p>
+          <p className="text-slate-400 max-w-2xl mx-auto">From GPS-verified due diligence tasks to automated PDF flyer exports. GoAuct handles the heavy lifting.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[250px]">
@@ -176,7 +195,6 @@ const Home = () => {
 
       {/* ── 5. By the Numbers ── */}
       <section className="py-24 bg-[#03060A] border-y border-white/5 relative overflow-hidden">
-        {/* Removed the Agora Cloudinary background entirely for a cleaner, darker look */}
         <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/5 to-transparent z-0" />
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
           <h2 className="text-3xl font-bold text-white mb-16">Empowering institutional success</h2>
@@ -184,7 +202,7 @@ const Home = () => {
             {[
               { value: "50", label: "States Covered" },
               { value: "3,100+", label: "Counties Mapped" },
-              { value: "120k+", label: "Distressed Parcels" },
+              { value: "600k+", label: "Distressed Parcels" },
               { value: "$4B+", label: "Asset Value Monitored" },
             ].map((stat, idx) => (
               <motion.div 

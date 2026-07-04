@@ -164,9 +164,7 @@ const PublicLayout = () => {
           <div>
             <h4 className="text-white font-semibold mb-6">Contact</h4>
             <ul className="space-y-4 text-sm text-slate-400">
-              <li>contact@auctionos.com</li>
-              <li>1-800-AUCTION</li>
-              <li>New York, NY</li>
+              <li>support@goauct.com</li>
             </ul>
           </div>
         </div>
