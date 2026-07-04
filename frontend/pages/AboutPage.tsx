@@ -11,7 +11,7 @@ const StatsGrid: React.FC = () => (
         {[
             { value: "50", label: "States Covered" },
             { value: "3,100+", label: "Counties Mapped" },
-            { value: "120k+", label: "Active Distressed Parcels" },
+            { value: "600k+", label: "Active Distressed Parcels" },
             { value: "$4B+", label: "Asset Value Monitored" }
         ].map(stat => (
             <div key={stat.label} className="p-5 bg-white/40 dark:bg-slate-800/40 border border-slate-200/50 dark:border-slate-700/50 rounded-2xl shadow-sm backdrop-blur-md text-center hover:-translate-y-1 transition-transform">
@@ -87,8 +87,8 @@ const ClientAboutView: React.FC = () => {
                 
                 <div className="relative z-10 space-y-4">
                     <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg">
-                            <span className="material-symbols-outlined text-blue-600 text-[28px]">account_balance</span>
+                        <div className="w-12 h-12 flex items-center justify-center">
+                            <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain brightness-0 invert" />
                         </div>
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">GoAuct Intelligence OS</h1>

@@ -146,7 +146,54 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 3. The GoAuct Master Plan (Roadmap) ── */}
+      {/* ── 3. The GoAuct Engine (Platform Capabilities) ── */}
+      <section className="py-24 bg-[#03060A] border-y border-white/5 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-blue-900/5 to-transparent z-0" />
+        <div className="max-w-7xl mx-auto px-6 relative z-10">
+          <div className="text-center mb-16">
+            <span className="text-sm font-black uppercase tracking-widest text-blue-500 mb-2 block">Technical Defensibility</span>
+            <h2 className="text-4xl font-bold text-white mb-4">The GoAuct Engine</h2>
+            <p className="text-slate-400 max-w-3xl mx-auto">
+              Our architecture resolves data friction and information asymmetry, normalizing thousands of disparate county formats into a unified operational command center.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              {
+                title: "Smart AVM & AI Scoring",
+                desc: "Automated Valuation Models combined with A+ to F AI scoring to instantly surface the highest-yield deals.",
+                icon: <Activity className="text-blue-400" size={24} />
+              },
+              {
+                title: "GPS-Validated Field Tasks",
+                desc: "A secure gig-economy marketplace for photo verification and occupancy checks with strict 50m radius GPS validation.",
+                icon: <Map className="text-emerald-400" size={24} />
+              },
+              {
+                title: "Multi-Tenant Asset Silos",
+                desc: "Enterprise-grade PostgreSQL tenant isolation guaranteeing complete data protection for institutional funds and LLCs.",
+                icon: <ShieldCheck className="text-cyan-400" size={24} />
+              },
+              {
+                title: "Asynchronous Pipelines",
+                desc: "Millions of county records and tax liens normalized and synchronized instantly via distributed Celery/Redis architecture.",
+                icon: <Activity className="text-indigo-400" size={24} />
+              }
+            ].map((feature, idx) => (
+              <div key={idx} className="bg-white/5 border border-white/10 rounded-2xl p-6 hover:bg-white/10 transition-colors">
+                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center mb-4 border border-white/10">
+                  {feature.icon}
+                </div>
+                <h3 className="text-lg font-bold text-white mb-2">{feature.title}</h3>
+                <p className="text-sm text-slate-400 leading-relaxed">{feature.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 4. The GoAuct Master Plan (Roadmap) ── */}
       <section className="py-24 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <span className="text-sm font-black uppercase tracking-widest text-blue-500 mb-2 block">Our Vision</span>
