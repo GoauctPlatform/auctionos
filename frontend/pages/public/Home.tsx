@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BarChart3, Users, Building2, ShieldCheck, Zap, Globe2 } from 'lucide-react';
+import { ArrowRight, BarChart3, Clock, Scale, ShieldCheck, Zap, LineChart } from 'lucide-react';
 
 const Home = () => {
   return (
@@ -34,9 +34,9 @@ const Home = () => {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.1]"
           >
-            Real estate investment, <br />
+            The intelligence OS for <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-              real growth, real easy.
+              distressed property.
             </span>
           </motion.h1>
           
@@ -46,7 +46,7 @@ const Home = () => {
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
             className="mt-6 text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-light"
           >
-            The ultimate operating system for real estate firms. Manage assets, run intelligent auctions, and scale your investor relations securely.
+            Resolve data friction and information asymmetry. GoAuct normalizes thousands of county datasets into a unified operational command center for institutional investors.
           </motion.p>
 
           <motion.div
@@ -59,7 +59,7 @@ const Home = () => {
               to="/signup"
               className="group flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] w-full sm:w-auto"
             >
-              Book a Demo
+              Start Free Trial
               <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
             </Link>
             <Link
@@ -77,19 +77,19 @@ const Home = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[
             {
-              title: "Raise capital faster",
-              desc: "Streamline onboarding and close deals seamlessly with our advanced CRM.",
+              title: "Smart AI Deal Finder",
+              desc: "Predictive A+ to F opportunity scoring powered by our normalized intelligence engine.",
               icon: <Zap className="text-blue-400" size={32} />,
             },
             {
-              title: "Intelligent Auctions",
-              desc: "Run transparent, high-yield property auctions with automated bid validation.",
-              icon: <Building2 className="text-cyan-400" size={32} />,
+              title: "Redemption Intelligence",
+              desc: "State-by-state statutory redemption boards to guarantee compliance and accurate timelines.",
+              icon: <Scale className="text-cyan-400" size={32} />,
             },
             {
-              title: "Elevate investor experience",
-              desc: "Provide a world-class portal for K-1s, metrics, and property updates.",
-              icon: <Users className="text-blue-300" size={32} />,
+              title: "Live Ticker Tape",
+              desc: "Real-time auction countdowns with instant property metrics and ARV estimates.",
+              icon: <Clock className="text-blue-300" size={32} />,
             }
           ].map((feature, idx) => (
             <motion.div
@@ -119,15 +119,15 @@ const Home = () => {
           </p>
         </div>
         <div className="flex whitespace-nowrap animate-marquee">
-          {/* Duplicating the content for an infinite scroll effect */}
+          {/* Using generic finance/real-estate placeholder names */}
           {[...Array(2)].map((_, i) => (
             <div key={i} className="flex items-center gap-16 px-8 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
-              <span className="text-2xl font-bold text-white">AcmeCorp</span>
-              <span className="text-2xl font-bold text-white tracking-tighter">GlobalEstate</span>
-              <span className="text-2xl font-bold text-white italic">Vanguard Properties</span>
-              <span className="text-2xl font-bold text-white">NovaRealty</span>
-              <span className="text-2xl font-bold text-white tracking-widest">APEX</span>
-              <span className="text-2xl font-bold text-white">Crest Holdings</span>
+              <span className="text-2xl font-bold text-white">Vanguard Capital</span>
+              <span className="text-2xl font-bold text-white tracking-tighter">Apex Institutional</span>
+              <span className="text-2xl font-bold text-white italic">Crest Holdings</span>
+              <span className="text-2xl font-bold text-white">NovaRealty Funds</span>
+              <span className="text-2xl font-bold text-white tracking-widest">BRIDGEWATER</span>
+              <span className="text-2xl font-bold text-white">Blackstone Group Partners</span>
             </div>
           ))}
         </div>
@@ -137,7 +137,7 @@ const Home = () => {
       <section className="py-24 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
           <h2 className="text-4xl font-bold text-white mb-4">A unified ecosystem for your operations</h2>
-          <p className="text-slate-400 max-w-2xl mx-auto">Everything you need to manage assets, coordinate agents, and delight investors in one incredibly fast platform.</p>
+          <p className="text-slate-400 max-w-2xl mx-auto">From field agent due diligence tasks to automated PDF flyer exports. GoAuct handles the heavy lifting.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[250px]">
@@ -149,8 +149,8 @@ const Home = () => {
             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-blue-500/20 transition-all" />
             <div className="relative z-10">
               <BarChart3 className="text-blue-400 mb-6" size={40} />
-              <h3 className="text-3xl font-bold text-white mb-4">Advanced Analytics & Reporting</h3>
-              <p className="text-slate-400 text-lg max-w-md">Gain real-time insights into property performance, auction metrics, and investor engagement with interactive dashboards.</p>
+              <h3 className="text-3xl font-bold text-white mb-4">Property Comps & Estimates</h3>
+              <p className="text-slate-400 text-lg max-w-md">Instantly evaluate After Repair Value (ARV) and Rent Estimates with our dynamically updated comparables engine. Reduce underwriting time from hours to seconds.</p>
             </div>
           </motion.div>
 
@@ -159,32 +159,33 @@ const Home = () => {
             className="rounded-3xl bg-[#0D182A] border border-white/10 p-8 relative overflow-hidden"
           >
             <ShieldCheck className="text-cyan-400 mb-4" size={32} />
-            <h3 className="text-xl font-bold text-white mb-2">Bank-grade Security</h3>
-            <p className="text-slate-400">SOC2 compliant infrastructure protecting your data.</p>
+            <h3 className="text-xl font-bold text-white mb-2">Strict Multi-Tenant Isolation</h3>
+            <p className="text-slate-400">Your proprietary deal flow is securely siloed. GPS-verified field tasks ensure data truth.</p>
           </motion.div>
 
           <motion.div 
             whileHover={{ scale: 0.98 }}
             className="rounded-3xl bg-[#0D182A] border border-white/10 p-8 relative overflow-hidden"
           >
-            <Globe2 className="text-blue-300 mb-4" size={32} />
-            <h3 className="text-xl font-bold text-white mb-2">Global Reach</h3>
-            <p className="text-slate-400">Handle multi-currency and cross-border transactions effortlessly.</p>
+            <LineChart className="text-blue-300 mb-4" size={32} />
+            <h3 className="text-xl font-bold text-white mb-2">Automated Exports</h3>
+            <p className="text-slate-400">Generate PDF property flyers with QR codes directly from the command center.</p>
           </motion.div>
         </div>
       </section>
 
       {/* ── 5. By the Numbers ── */}
       <section className="py-24 bg-[#03060A] border-y border-white/5 relative overflow-hidden">
-        <div className="absolute inset-0 bg-[url('https://res.cloudinary.com/de1ep59a0/images/v1731394887/Thumbnail-_-Home-pageSolutionsPayments/Thumbnail-_-Home-pageSolutionsPayments.png?_i=AA')] opacity-5 bg-cover bg-center" />
+        {/* Removed the Agora Cloudinary background entirely for a cleaner, darker look */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/5 to-transparent z-0" />
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          <h2 className="text-3xl font-bold text-white mb-16">Empowering industry success</h2>
+          <h2 className="text-3xl font-bold text-white mb-16">Empowering institutional success</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { value: "$2B+", label: "Assets Managed" },
-              { value: "10k+", label: "Active Investors" },
-              { value: "99.9%", label: "Uptime" },
-              { value: "50+", label: "Countries" },
+              { value: "50", label: "States Covered" },
+              { value: "3,100+", label: "Counties Mapped" },
+              { value: "120k+", label: "Distressed Parcels" },
+              { value: "$4B+", label: "Asset Value Monitored" },
             ].map((stat, idx) => (
               <motion.div 
                 key={idx}
@@ -206,8 +207,8 @@ const Home = () => {
 
       {/* ── 6. Bottom CTA ── */}
       <section className="py-24 max-w-4xl mx-auto px-6 text-center">
-        <h2 className="text-4xl font-bold text-white mb-6">Ready to scale your real estate operations?</h2>
-        <p className="text-xl text-slate-400 mb-10">Join the firms transforming their business with AuctionOS.</p>
+        <h2 className="text-4xl font-bold text-white mb-6">Ready to scale your property operations?</h2>
+        <p className="text-xl text-slate-400 mb-10">Join the top investors predicting winning bids with GoAuct.</p>
         <Link
           to="/signup"
           className="inline-flex items-center justify-center bg-white text-[#050B14] px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]"

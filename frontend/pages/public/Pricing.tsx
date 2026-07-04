@@ -9,44 +9,53 @@ const Pricing = () => {
 
   const plans = [
     {
-      name: "Starter",
-      desc: "Perfect for boutique firms managing up to $10M in assets.",
-      price: annual ? 499 : 599,
+      name: "Advanced",
+      desc: "Ideal for individual investors and small operations.",
+      price: annual ? 60 : 70, // Just a small markup for monthly vs annual logic if needed, or flat $60. Let's stick to flat $60/mo based on docs.
+      displayPrice: "$60",
       features: [
-        "Up to 5 properties",
-        "Basic Investor Portal",
-        "Standard Analytics",
-        "Email Support",
+        "Up to 1000 property views/month",
+        "Unlimited saved lists",
+        "Create field tasks ($5 reward limit)",
+        "Opportunity Scoring Engine",
+        "1 Team Member",
+        "Data export (CSV)",
+        "Priority Support",
       ],
       cta: "Start Free Trial",
       highlighted: false,
     },
     {
-      name: "Professional",
-      desc: "For growing teams that need advanced automation and scale.",
-      price: annual ? 899 : 1099,
+      name: "Pro",
+      desc: "For active investors and small teams needing scale.",
+      price: annual ? 130 : 150,
+      displayPrice: "$130",
       features: [
-        "Unlimited properties",
-        "Advanced Investor Portal",
-        "Custom K-1 Generation",
-        "Intelligent Auctions",
-        "Priority 24/7 Support",
-        "White-label options",
+        "Up to 2000 property views/month",
+        "Unlimited lists + folders",
+        "Full task marketplace access",
+        "Market Intelligence Dashboard",
+        "Team collaboration (2 managers)",
+        "Advanced exports (SQL access)",
+        "Custom saved searches",
+        "API Access & 24/7 Phone Support",
       ],
       cta: "Get Started",
       highlighted: true,
     },
     {
       name: "Enterprise",
-      desc: "Custom solutions for institutional-grade firms.",
-      price: "Custom",
+      desc: "Institutional investors and hedge funds.",
+      displayPrice: "Custom",
+      priceLabel: "Starts at $500/mo",
       features: [
-        "Everything in Professional",
+        "Everything in Pro",
+        "Unlimited team members",
+        "Custom API integrations & higher quotas",
+        "Private deployment options",
         "Dedicated Account Manager",
-        "Custom API Integrations",
-        "On-premise deployment options",
-        "Advanced Security (SOC2)",
-        "SLA Guarantees",
+        "Custom reporting capabilities",
+        "99.9% SLA & Advanced Security",
       ],
       cta: "Contact Sales",
       highlighted: false,
@@ -55,20 +64,20 @@ const Pricing = () => {
 
   const faqs = [
     {
+      q: "Is there a free trial?",
+      a: "Yes, we offer a 7-day Free Trial. During the trial, you can view up to 20 properties, create 1 list, and test the core functionalities before deciding to upgrade."
+    },
+    {
       q: "Can I switch plans later?",
-      a: "Yes, you can upgrade or downgrade your plan at any time. Prorated charges will be applied automatically."
+      a: "Yes, you can upgrade or downgrade your plan at any time. Prorated charges will be applied automatically to your account."
     },
     {
       q: "What payment methods do you accept?",
-      a: "We accept all major credit cards, wire transfers, and ACH payments for annual plans."
+      a: "We process payments securely through Stripe, accepting all major credit cards."
     },
     {
-      q: "Is my data secure?",
-      a: "Absolutely. We employ bank-grade encryption and are fully SOC2 Type II compliant to ensure your data is always protected."
-    },
-    {
-      q: "Do you offer migration assistance?",
-      a: "Yes, our Professional and Enterprise plans include dedicated onboarding and data migration support from your legacy systems."
+      q: "Is my proprietary deal data secure?",
+      a: "Absolutely. We employ strict multi-tenant isolation at the database level using PostgreSQL. Your searches, lists, and task data are completely siloed and encrypted."
     }
   ];
 
@@ -89,7 +98,7 @@ const Pricing = () => {
           transition={{ delay: 0.1 }}
           className="text-lg text-slate-400"
         >
-          No hidden fees. No surprise charges. Choose the plan that best fits your firm's growth stage.
+          No hidden fees. Choose the plan that best fits your firm's growth stage. All plans start with a 7-day free trial.
         </motion.p>
       </div>
 
@@ -140,13 +149,16 @@ const Pricing = () => {
             <p className="text-slate-400 text-sm h-10 mb-6">{plan.desc}</p>
             
             <div className="mb-8">
-              {typeof plan.price === 'number' ? (
+              {plan.priceLabel ? (
+                <>
+                  <div className="text-4xl font-extrabold text-white">{plan.displayPrice}</div>
+                  <span className="text-slate-400 text-sm mt-1 block">{plan.priceLabel}</span>
+                </>
+              ) : (
                 <div className="flex items-end gap-1">
-                  <span className="text-4xl font-extrabold text-white">${plan.price}</span>
+                  <span className="text-4xl font-extrabold text-white">{plan.displayPrice}</span>
                   <span className="text-slate-400 text-sm mb-1">/mo</span>
                 </div>
-              ) : (
-                <div className="text-4xl font-extrabold text-white">{plan.price}</div>
               )}
             </div>
 

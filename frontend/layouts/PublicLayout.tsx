@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { CookieDisclaimer } from '../components/CookieDisclaimer';
 
 const PublicLayout = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -43,7 +44,7 @@ const PublicLayout = () => {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-shadow">
               <span className="text-white font-bold text-lg leading-none">A</span>
             </div>
-            <span className="font-bold text-xl tracking-tight text-white">AuctionOS</span>
+            <span className="font-bold text-xl tracking-tight text-white">GoAuct</span>
           </Link>
 
           {/* Desktop Nav */}
@@ -135,7 +136,7 @@ const PublicLayout = () => {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center">
                 <span className="text-white font-bold text-lg leading-none">A</span>
               </div>
-              <span className="font-bold text-xl text-white">AuctionOS</span>
+              <span className="font-bold text-xl text-white">GoAuct</span>
             </Link>
             <p className="text-slate-400 text-sm mb-6 leading-relaxed">
               Empowering real estate firms with efficient workflows, intelligent auctions, and seamless operations to scale their businesses globally.
@@ -178,6 +179,8 @@ const PublicLayout = () => {
           </div>
         </div>
       </footer>
+      {/* ── Cookie Disclaimer ── */}
+      <CookieDisclaimer />
     </div>
   );
 };

@@ -136,6 +136,12 @@ function App() {
           <Route element={<PublicLayout />}>
             <Route path="/" element={<RootRoute />} />
             <Route path="/pricing" element={<Pricing />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/contact" element={<SupportPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/disclaimer" element={<DisclaimerPage />} />
           </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
@@ -143,12 +149,6 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/contact" element={<SupportPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/terms" element={<TermsOfServicePage />} />
-          <Route path="/privacy" element={<PrivacyPolicyPage />} />
-          <Route path="/disclaimer" element={<DisclaimerPage />} />
           
           {/* Public Ecosystem Connect Pages */}
           <Route path="/connect/tax-systems" element={<TaxSystemsLandingPage />} />

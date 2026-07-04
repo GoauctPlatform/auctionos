@@ -1,7 +1,5 @@
 import React from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import Header from '../components/Header';
-import { Footer } from '../components/Footer';
 
 interface AboutPageProps {
   standalone?: boolean;
@@ -124,10 +122,9 @@ const PublicAboutView: React.FC = () => {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-[#070d1a] font-sans text-slate-900 dark:text-slate-50 overflow-hidden">
-            <Header />
+        <div className="min-h-screen flex flex-col font-sans text-slate-900 dark:text-slate-50 overflow-hidden pt-24 pb-12">
             
-            <main className="flex-1 pt-32 pb-16 space-y-24">
+            <main className="flex-1 space-y-24">
                 {/* Hero */}
                 <section className="relative px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 text-xs font-bold uppercase tracking-widest mb-6">
@@ -194,8 +191,6 @@ const PublicAboutView: React.FC = () => {
                     </button>
                 </section>
             </main>
-
-            <Footer />
         </div>
     );
 };

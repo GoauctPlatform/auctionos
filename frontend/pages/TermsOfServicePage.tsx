@@ -1,6 +1,4 @@
 import React from 'react';
-import Header from '../components/Header';
-import { Footer } from '../components/Footer';
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
   <div className="mb-8">
@@ -132,14 +130,10 @@ const TermsOfServicePage: React.FC<LegalPageProps> = ({ standalone = true }) => 
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-900">
-      <Header />
-
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen flex flex-col font-sans pt-24 pb-12">
+      <main className="flex-1 w-full max-w-4xl mx-auto px-4">
         {content}
       </main>
-
-      <Footer />
     </div>
   );
 };
