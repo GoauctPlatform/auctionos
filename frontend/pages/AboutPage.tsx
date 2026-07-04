@@ -88,7 +88,7 @@ const ClientAboutView: React.FC = () => {
                 <div className="relative z-10 space-y-4">
                     <div className="flex items-center gap-3">
                         <div className="w-12 h-12 flex items-center justify-center">
-                            <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain brightness-0 invert" />
+                            <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain" />
                         </div>
                         <div>
                             <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">GoAuct Intelligence OS</h1>

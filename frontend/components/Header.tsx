@@ -19,7 +19,7 @@ const Header: React.FC = () => {
             onClick={() => navigate('/')}
           >
             <div className="size-10 flex items-center justify-center p-1">
-              <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain brightness-0 dark:invert" />
+              <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain" />
             </div>
             <span className="text-[#0d131b] dark:text-white text-2xl font-extrabold tracking-tight group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors duration-300">
               GoAuct
