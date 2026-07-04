@@ -6,8 +6,10 @@ import { Login } from './pages/Login';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
 import { Dashboard } from './pages/Dashboard';
-import { Landing } from './pages/Landing';
 import { Signup } from './pages/Signup';
+import PublicLayout from './layouts/PublicLayout';
+import Home from './pages/public/Home';
+import Pricing from './pages/public/Pricing';
 import { Onboarding } from './pages/Onboarding';
 import { AuctionList } from './pages/AuctionList';
 import { AuthService } from './services/auth.service';
@@ -100,7 +102,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: strin
 
 const RootRoute: React.FC = () => {
   const user = AuthService.getCurrentUser();
-  if (!user) return <Landing />;
+  if (!user) return <Home />;
   if (['client', 'manager', 'agent'].includes(user.role)) return <Navigate to="/client" replace />;
   if (user.role === 'realtor') return <Navigate to="/realtor" replace />;
   if (user.role === 'agent_due_diligence') return <Navigate to="/agent" replace />;
@@ -131,7 +133,10 @@ function App() {
         <TourProvider>
           <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<RootRoute />} />
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<RootRoute />} />
+            <Route path="/pricing" element={<Pricing />} />
+          </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/onboarding" element={<Onboarding />} />
