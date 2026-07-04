@@ -42,7 +42,7 @@ const PublicLayout = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 flex items-center justify-center">
-              <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain" />
+              <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain rounded-md" />
             </div>
             <span className="font-extrabold text-2xl tracking-tight text-white group-hover:text-blue-400 transition-colors duration-300">GoAuct</span>
           </Link>
@@ -134,7 +134,7 @@ const PublicLayout = () => {
           <div className="col-span-1 md:col-span-1">
             <Link to="/" className="flex items-center gap-3 mb-6 group">
               <div className="w-10 h-10 flex items-center justify-center">
-                <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain" />
+                <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain rounded-md" />
               </div>
               <span className="font-extrabold text-2xl text-white group-hover:text-blue-400 transition-colors">GoAuct</span>
             </Link>
