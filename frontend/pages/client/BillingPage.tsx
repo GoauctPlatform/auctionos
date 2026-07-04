@@ -31,6 +31,7 @@ const BillingPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [annual, setAnnual] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -103,7 +104,7 @@ const BillingPage: React.FC = () => {
     setUpgradeLoading(plan);
     setError(null);
     try {
-      const res = await api.post('/billing/create-checkout-session', { plan });
+      const res = await api.post('/billing/create-checkout-session', { plan, billing_cycle: annual ? 'annual' : 'monthly' });
       const { checkout_url, session_id } = res.data;
 
       if (session_id) {
@@ -243,6 +244,20 @@ const BillingPage: React.FC = () => {
 
         {/* Upgrade Cards */}
         <div id="tour-billing-plans" className="space-y-5">
+          <div className="flex justify-center items-center gap-4 mb-6 mt-2">
+            <span className={`text-sm font-medium ${!annual ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>Monthly</span>
+            <button 
+              onClick={() => setAnnual(!annual)}
+              className="relative w-14 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center px-1 transition-colors"
+            >
+              <div 
+                className={`w-5 h-5 bg-blue-500 rounded-full shadow-md transform transition-transform duration-300 ${annual ? 'translate-x-7' : 'translate-x-0'}`}
+              />
+            </button>
+            <span className={`text-sm font-medium ${annual ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>
+              Annually <span className="text-blue-600 dark:text-cyan-400 text-xs ml-1 bg-blue-100 dark:bg-cyan-400/10 px-2 py-0.5 rounded-full">Save 20%</span>
+            </span>
+          </div>
 
           {/* Advanced Plan */}
           <div className={`relative p-6 rounded-2xl border-2 transition-all ${isAdvanced
@@ -263,8 +278,8 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">Individual Power Plan</p>
               </div>
               <div className="text-right">
-                <div className="text-xs text-slate-400 line-through">$90</div>
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$60</span>
+                <div className="text-xs text-slate-400 line-through">{annual ? "$90" : "$110"}</div>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$60" : "$72"}</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
@@ -303,7 +318,7 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For growing teams</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$130</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$130" : "$156"}</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
@@ -345,7 +360,7 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For large scale operations</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$350</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$350" : "$420"}</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>

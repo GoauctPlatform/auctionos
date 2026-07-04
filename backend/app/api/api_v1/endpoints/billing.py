@@ -40,10 +40,16 @@ def get_stripe():
 # When you create real prices in the Stripe dashboard, update STRIPE_PRO_PRICE_ID
 # and STRIPE_ENTERPRISE_PRICE_ID environment variables.
 # ─────────────────────────────────────────────────────────────────────────────
-PLAN_PRICES_USD_CENTS = {
-    "advanced": 6000,    # $60
-    "pro": 13000,        # $130
-    "enterprise": 35000, # $350
+PLAN_PRICES_USD_CENTS_ANNUAL = {
+    "advanced": 72000,    # $60/mo * 12 = $720
+    "pro": 156000,        # $130/mo * 12 = $1560
+    "enterprise": 420000, # $350/mo * 12 = $4200
+}
+
+PLAN_PRICES_USD_CENTS_MONTHLY = {
+    "advanced": 7200,     # $60 * 1.2 = $72/mo
+    "pro": 15600,         # $130 * 1.2 = $156/mo
+    "enterprise": 42000,  # $350 * 1.2 = $420/mo
 }
 
 PLAN_DISPLAY_PRICES = {
@@ -140,6 +146,7 @@ def get_current_usage(
 @router.post("/create-checkout-session")
 def create_checkout_session(
     plan: str = Body(..., embed=True),
+    billing_cycle: str = Body("annual", embed=True),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ) -> Any:
@@ -186,7 +193,7 @@ def create_checkout_session(
                 )
             else:
                 # Ad-hoc one-time payment (for testing or one-time plan purchase)
-                amount_cents = PLAN_PRICES_USD_CENTS[plan]
+                amount_cents = PLAN_PRICES_USD_CENTS_MONTHLY[plan] if billing_cycle == "monthly" else PLAN_PRICES_USD_CENTS_ANNUAL[plan]
                 session = stripe.checkout.Session.create(
                     payment_method_types=["card"],
                     mode="payment",
@@ -195,8 +202,8 @@ def create_checkout_session(
                             "currency": "usd",
                             "unit_amount": amount_cents,
                             "product_data": {
-                                "name": f"GoAuct {plan.capitalize()} Plan",
-                                "description": f"Upgrade to GoAuct {plan.capitalize()} (Test)",
+                                "name": f"GoAuct {plan.capitalize()} Plan ({billing_cycle.capitalize()})",
+                                "description": f"Upgrade to GoAuct {plan.capitalize()} ({billing_cycle})",
                             },
                         },
                         "quantity": 1,
@@ -207,6 +214,7 @@ def create_checkout_session(
                     metadata={
                         "user_id": str(current_user.id),
                         "plan": plan,
+                        "billing_cycle": billing_cycle,
                     },
                 )
 
@@ -221,11 +229,11 @@ def create_checkout_session(
             raise HTTPException(status_code=502, detail=f"Payment session creation failed: {str(e)}")
 
     # ── MOCK FALLBACK (Stripe not configured) ─────────────────────────────────
-    mock_url = f"https://mock-stripe.com/checkout?plan={plan}&user={current_user.id}"
+    mock_url = f"https://mock-stripe.com/checkout?plan={plan}&cycle={billing_cycle}&user={current_user.id}"
     return {
         "checkout_url": mock_url,
         "session_id": None,
-        "message": "⚠️ Mock Mode: Stripe not configured. Simulating payment flow.",
+        "message": f"⚠️ Mock Mode: Stripe not configured. Simulating payment flow for {plan} ({billing_cycle}).",
     }
 
 

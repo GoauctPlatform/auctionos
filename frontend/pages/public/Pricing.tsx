@@ -11,8 +11,8 @@ const Pricing = () => {
     {
       name: "Advanced",
       desc: "Ideal for individual investors and small operations.",
-      price: annual ? 60 : 70, // Just a small markup for monthly vs annual logic if needed, or flat $60. Let's stick to flat $60/mo based on docs.
-      displayPrice: "$60",
+      price: annual ? 60 : 72,
+      displayPrice: annual ? "$60" : "$72",
       features: [
         "Up to 1000 property views/month",
         "Unlimited saved lists",
@@ -28,8 +28,8 @@ const Pricing = () => {
     {
       name: "Pro",
       desc: "For active investors and small teams needing scale.",
-      price: annual ? 130 : 150,
-      displayPrice: "$130",
+      price: annual ? 130 : 156,
+      displayPrice: annual ? "$130" : "$156",
       features: [
         "Up to 2000 property views/month",
         "Unlimited lists + folders",
@@ -47,7 +47,7 @@ const Pricing = () => {
       name: "Enterprise",
       desc: "Institutional investors and hedge funds.",
       displayPrice: "Custom",
-      priceLabel: "Starts at $500/mo",
+      priceLabel: "Starts at $420/mo",
       features: [
         "Everything in Pro",
         "Unlimited team members",
@@ -157,7 +157,9 @@ const Pricing = () => {
               ) : (
                 <div className="flex items-end gap-1">
                   <span className="text-4xl font-extrabold text-white">{plan.displayPrice}</span>
-                  <span className="text-slate-400 text-sm mb-1">/mo</span>
+                  {plan.displayPrice !== "Custom" && (
+                    <span className="text-slate-400 text-sm mb-1">/mo</span>
+                  )}
                 </div>
               )}
             </div>
