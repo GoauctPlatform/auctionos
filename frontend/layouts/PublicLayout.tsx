@@ -40,11 +40,11 @@ const PublicLayout = () => {
       >
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-blue-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:shadow-blue-500/40 transition-shadow">
-              <span className="text-white font-bold text-lg leading-none">A</span>
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center p-2 shadow-[0_0_15px_rgba(255,255,255,0.1)] group-hover:bg-white/20 group-hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] transition-all duration-300">
+              <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain brightness-0 invert" />
             </div>
-            <span className="font-bold text-xl tracking-tight text-white">GoAuct</span>
+            <span className="font-extrabold text-2xl tracking-tight text-white group-hover:text-blue-400 transition-colors duration-300">GoAuct</span>
           </Link>
 
           {/* Desktop Nav */}
