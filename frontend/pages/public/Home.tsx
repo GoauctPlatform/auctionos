@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BarChart3, Clock, Scale, ShieldCheck, Zap, LineChart, MapPin, Users } from 'lucide-react';
+import { ArrowRight, Globe2, Briefcase, Camera, ShieldCheck, Map, Activity, Hammer, Lock, ArrowUpRight } from 'lucide-react';
 
 const Home = () => {
   return (
@@ -28,15 +28,25 @@ const Home = () => {
 
         {/* Hero Content */}
         <div className="relative z-20 max-w-5xl mx-auto px-6 text-center pt-20">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-8 backdrop-blur-sm"
+          >
+            <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+            End-to-End Tax Property Intelligence
+          </motion.div>
+          
           <motion.h1 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.1]"
           >
-            The intelligence OS for <br />
+            The Operating System for <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-              distressed property.
+              Distressed Real Estate.
             </span>
           </motion.h1>
           
@@ -46,7 +56,7 @@ const Home = () => {
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
             className="mt-6 text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-light"
           >
-            Resolve data friction and information asymmetry. GoAuct normalizes thousands of county datasets into a unified operational command center for institutional investors, realtors, and field agents.
+            GoAuct revolutionizes the county auction process. We bridge the gap between global investors, licensed US realtors, and local field agents into a single, secure, frictionless ecosystem.
           </motion.p>
 
           <motion.div
@@ -72,132 +82,170 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 2. Feature Cards (Overlapping Hero) ── */}
+      {/* ── 2. The Ecosystem Trifecta ── */}
       <section className="relative z-30 -mt-24 max-w-7xl mx-auto px-6 mb-24">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            {
-              title: "Smart AI Deal Finder",
-              desc: "Predictive A+ to F opportunity scoring powered by our normalized intelligence engine.",
-              icon: <Zap className="text-blue-400" size={32} />,
-            },
-            {
-              title: "Redemption Intelligence",
-              desc: "State-by-state statutory redemption boards to guarantee compliance and accurate timelines.",
-              icon: <Scale className="text-cyan-400" size={32} />,
-            },
-            {
-              title: "Live Ticker Tape",
-              desc: "Real-time auction countdowns with instant property metrics and ARV estimates.",
-              icon: <Clock className="text-blue-300" size={32} />,
-            }
-          ].map((feature, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.6, delay: idx * 0.2 }}
-              whileHover={{ y: -10 }}
-              className="bg-[#0A1322]/80 backdrop-blur-xl border border-white/10 rounded-2xl p-8 shadow-2xl group transition-all"
-            >
-              <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                {feature.icon}
-              </div>
-              <h3 className="text-xl font-bold text-white mb-3">{feature.title}</h3>
-              <p className="text-slate-400 leading-relaxed">{feature.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── 3. Ecosystem Portals (Realtors & Agents) ── */}
-      <section className="py-12 max-w-7xl mx-auto px-6 mb-12">
-        <div className="grid md:grid-cols-2 gap-8 items-stretch">
           
-          <motion.div 
-            whileHover={{ y: -5 }}
-            className="p-10 bg-gradient-to-br from-[#0D182A] to-[#050B14] border border-blue-500/20 rounded-3xl relative overflow-hidden"
+          {/* Investor Persona */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6 }}
+            whileHover={{ y: -10 }}
+            className="bg-[#0A1322]/80 backdrop-blur-xl border border-blue-500/30 rounded-2xl p-8 shadow-[0_10px_40px_-10px_rgba(37,99,235,0.2)] group transition-all"
           >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-            <MapPin className="text-blue-400 mb-6" size={40} />
-            <span className="text-[10px] font-black uppercase text-blue-500 tracking-widest block mb-2">For Field Operations</span>
-            <h3 className="text-3xl font-bold text-white mb-4">Agent Due Diligence Portal</h3>
-            <p className="text-slate-400 text-lg mb-6 leading-relaxed">
-              Investors can post micro-tasks (e.g., $5 rewards) to a marketplace of local field agents. Agents claim tasks, drive to the property, and capture photos of roof or structural conditions. 
+            <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Globe2 className="text-blue-400" size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Global Investors</h3>
+            <p className="text-sm font-semibold text-blue-400 mb-4 uppercase tracking-wider">No Experience Required</p>
+            <p className="text-slate-400 leading-relaxed">
+              Identify top-tier deals with our Smart AI Deal Finder. GoAuct organizes chaotic county announcements into clean, actionable intelligence. Acquire US tax properties from anywhere in the world.
             </p>
-            <ul className="space-y-3 text-slate-300 text-sm">
-              <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-cyan-400" /> GPS 50-meter radius geo-validation ensures authenticity.</li>
-              <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-cyan-400" /> Admin Task Mediation guarantees data truth before payout.</li>
-            </ul>
           </motion.div>
 
-          <motion.div 
-            whileHover={{ y: -5 }}
-            className="p-10 bg-gradient-to-br from-[#0D182A] to-[#050B14] border border-cyan-500/20 rounded-3xl relative overflow-hidden"
+          {/* Realtor Persona */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            whileHover={{ y: -10 }}
+            className="bg-[#0A1322]/80 backdrop-blur-xl border border-cyan-500/30 rounded-2xl p-8 shadow-[0_10px_40px_-10px_rgba(6,182,212,0.2)] group transition-all"
           >
-            <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
-            <Users className="text-cyan-400 mb-6" size={40} />
-            <span className="text-[10px] font-black uppercase text-cyan-500 tracking-widest block mb-2">For Real Estate Professionals</span>
-            <h3 className="text-3xl font-bold text-white mb-4">Realtor Portal Integration</h3>
-            <p className="text-slate-400 text-lg mb-6 leading-relaxed">
-              Bridge the gap between distressed acquisition and retail disposition. Realtors access exclusive pipelines, track post-auction properties, and coordinate listings directly with institutional buyers.
+            <div className="w-14 h-14 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Briefcase className="text-cyan-400" size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Licensed Realtors</h3>
+            <p className="text-sm font-semibold text-cyan-400 mb-4 uppercase tracking-wider">US License Required</p>
+            <p className="text-slate-400 leading-relaxed">
+              Act as premium consultants and brokers within our ecosystem. Offer your services directly to investors, coordinate post-auction property listings, and facilitate secure real estate transactions.
             </p>
-            <ul className="space-y-3 text-slate-300 text-sm">
-              <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-cyan-400" /> Streamlined communication channels.</li>
-              <li className="flex items-center gap-2"><ShieldCheck size={16} className="text-cyan-400" /> Instant access to Property Export Flyers and ARV data.</li>
-            </ul>
+          </motion.div>
+
+          {/* Field Agent Persona */}
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            whileHover={{ y: -10 }}
+            className="bg-[#0A1322]/80 backdrop-blur-xl border border-emerald-500/30 rounded-2xl p-8 shadow-[0_10px_40px_-10px_rgba(16,185,129,0.2)] group transition-all"
+          >
+            <div className="w-14 h-14 rounded-xl bg-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+              <Camera className="text-emerald-400" size={32} />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-2">Field Agents</h3>
+            <p className="text-sm font-semibold text-emerald-400 mb-4 uppercase tracking-wider">US Work Permit Required</p>
+            <p className="text-slate-400 leading-relaxed">
+              Earn extra income performing localized Due Diligence tasks. Accept micro-tasks to photograph properties and assess structural conditions. All data is securely mediated and GPS geo-validated.
+            </p>
           </motion.div>
 
         </div>
       </section>
 
-      {/* ── 4. Bento Grid (Solutions) ── */}
+      {/* ── 3. The GoAuct Master Plan (Roadmap) ── */}
       <section className="py-24 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold text-white mb-4">A unified ecosystem for your operations</h2>
-          <p className="text-slate-400 max-w-2xl mx-auto">From GPS-verified due diligence tasks to automated PDF flyer exports. GoAuct handles the heavy lifting.</p>
+          <span className="text-sm font-black uppercase tracking-widest text-blue-500 mb-2 block">Our Vision</span>
+          <h2 className="text-4xl font-bold text-white mb-4">The GoAuct Master Plan</h2>
+          <p className="text-slate-400 max-w-3xl mx-auto">
+            We are building the first fully decentralized, end-to-end operational network for distressed property acquisition, management, and frictionless transfer.
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[250px]">
-          {/* Big Item */}
-          <motion.div 
-            whileHover={{ scale: 0.98 }}
-            className="md:col-span-2 md:row-span-2 rounded-3xl bg-gradient-to-br from-[#0D182A] to-[#0A1322] border border-white/10 p-10 relative overflow-hidden group"
-          >
-            <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-blue-500/20 transition-all" />
-            <div className="relative z-10">
-              <BarChart3 className="text-blue-400 mb-6" size={40} />
-              <h3 className="text-3xl font-bold text-white mb-4">Property Comps & Estimates</h3>
-              <p className="text-slate-400 text-lg max-w-md">Instantly evaluate After Repair Value (ARV) and Rent Estimates with our dynamically updated comparables engine. Reduce underwriting time from hours to seconds.</p>
+        <div className="relative border-l-2 border-white/10 ml-4 md:ml-12 space-y-12 pb-12">
+          
+          {/* Phase 1: Data Intelligence (Current) */}
+          <div className="relative pl-8 md:pl-16">
+            <div className="absolute -left-[17px] top-1 w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center border-4 border-[#050B14]">
+              <span className="w-2 h-2 rounded-full bg-white"></span>
             </div>
-          </motion.div>
+            <div className="flex flex-col md:flex-row gap-6 items-start">
+              <div className="flex-1">
+                <span className="text-blue-400 font-bold text-sm uppercase tracking-wider">Phase 1 (Current)</span>
+                <h3 className="text-2xl font-bold text-white mt-1 mb-3">Discovery & Intelligence</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  Transforming chaotic county tax auction announcements into organized, queryable data. We aggregate property details, owner information, and A+ to F AI scoring to surface the best deals instantly.
+                </p>
+              </div>
+              <div className="md:w-1/3 w-full bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center gap-4">
+                <Map className="text-blue-400 shrink-0" size={28} />
+                <span className="text-sm text-slate-300">Live property maps, Tax Records, and GPS field verification.</span>
+              </div>
+            </div>
+          </div>
 
-          <motion.div 
-            whileHover={{ scale: 0.98 }}
-            className="rounded-3xl bg-[#0D182A] border border-white/10 p-8 relative overflow-hidden"
-          >
-            <ShieldCheck className="text-cyan-400 mb-4" size={32} />
-            <h3 className="text-xl font-bold text-white mb-2">Strict Multi-Tenant Isolation</h3>
-            <p className="text-slate-400">Your proprietary deal flow is securely siloed. GPS-verified field tasks ensure data truth.</p>
-          </motion.div>
+          {/* Phase 2: Acquisition & ROI Tracking */}
+          <div className="relative pl-8 md:pl-16">
+            <div className="absolute -left-[17px] top-1 w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center border-4 border-[#050B14]">
+              <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+            </div>
+            <div className="flex flex-col md:flex-row gap-6 items-start">
+              <div className="flex-1">
+                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">Phase 2 (In Development)</span>
+                <h3 className="text-2xl font-bold text-white mt-1 mb-3">Acquisition & Asset Management</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  Users can execute property acquisitions directly through the GoAuct team. Once acquired, properties enter a private digital vault where investors can manage them, track ROI, and monitor ongoing renovations.
+                </p>
+              </div>
+              <div className="md:w-1/3 w-full bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center gap-4 opacity-70 hover:opacity-100 transition-opacity">
+                <Activity className="text-slate-400 shrink-0" size={28} />
+                <span className="text-sm text-slate-300">Financial dashboards tracking costs, ROI, and property yield.</span>
+              </div>
+            </div>
+          </div>
 
-          <motion.div 
-            whileHover={{ scale: 0.98 }}
-            className="rounded-3xl bg-[#0D182A] border border-white/10 p-8 relative overflow-hidden"
-          >
-            <LineChart className="text-blue-300 mb-4" size={32} />
-            <h3 className="text-xl font-bold text-white mb-2">Automated Exports</h3>
-            <p className="text-slate-400">Generate PDF property flyers with QR codes directly from the command center.</p>
-          </motion.div>
+          {/* Phase 3: The Maintenance Marketplace */}
+          <div className="relative pl-8 md:pl-16">
+            <div className="absolute -left-[17px] top-1 w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center border-4 border-[#050B14]">
+              <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+            </div>
+            <div className="flex flex-col md:flex-row gap-6 items-start">
+              <div className="flex-1">
+                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">Phase 3 (Upcoming)</span>
+                <h3 className="text-2xl font-bold text-white mt-1 mb-3">The Service Marketplace</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  Connecting property owners with certified, licensed maintenance businesses. Need a plumber, electrician, earthmoving, or a general contractor for your new asset? Hire and pay verified professionals straight from the app.
+                </p>
+              </div>
+              <div className="md:w-1/3 w-full bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center gap-4 opacity-70 hover:opacity-100 transition-opacity">
+                <Hammer className="text-slate-400 shrink-0" size={28} />
+                <span className="text-sm text-slate-300">Licensed tradesmen network: Gardeners, Carpenters, Builders, and Funds.</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Phase 4: Tokenization & Frictionless Transfer */}
+          <div className="relative pl-8 md:pl-16">
+            <div className="absolute -left-[17px] top-1 w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center border-4 border-[#050B14]">
+              <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+            </div>
+            <div className="flex flex-col md:flex-row gap-6 items-start">
+              <div className="flex-1">
+                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">Phase 4 (Future Vision)</span>
+                <h3 className="text-2xl font-bold text-white mt-1 mb-3">Frictionless Property Transfer</h3>
+                <p className="text-slate-400 leading-relaxed">
+                  We verify proof of ownership (Title/Deed) and lock documentation into a secure vault, issuing a tokenized representation. Aligned with Title & Insurance companies, investors will trade properties held under an LLC/Corp instantly with zero bureaucracy.
+                </p>
+              </div>
+              <div className="md:w-1/3 w-full bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center gap-4 opacity-70 hover:opacity-100 transition-opacity">
+                <Lock className="text-slate-400 shrink-0" size={28} />
+                <span className="text-sm text-slate-300">Secure Vault documentation, Token Generation, and Title alignment.</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
-      {/* ── 5. By the Numbers ── */}
+      {/* ── 4. By the Numbers (Metrics) ── */}
       <section className="py-24 bg-[#03060A] border-y border-white/5 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/5 to-transparent z-0" />
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          <h2 className="text-3xl font-bold text-white mb-16">Empowering institutional success</h2>
+          <h2 className="text-3xl font-bold text-white mb-16">Scaling across the nation</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
               { value: "50", label: "States Covered" },
@@ -223,15 +271,15 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── 6. Bottom CTA ── */}
+      {/* ── 5. Bottom CTA ── */}
       <section className="py-24 max-w-4xl mx-auto px-6 text-center">
-        <h2 className="text-4xl font-bold text-white mb-6">Ready to scale your property operations?</h2>
-        <p className="text-xl text-slate-400 mb-10">Join the top investors predicting winning bids with GoAuct.</p>
+        <h2 className="text-4xl font-bold text-white mb-6">Join the real estate revolution.</h2>
+        <p className="text-xl text-slate-400 mb-10">Whether you're an investor, a licensed realtor, or looking to earn as a field agent, GoAuct is your command center.</p>
         <Link
           to="/signup"
-          className="inline-flex items-center justify-center bg-white text-[#050B14] px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]"
+          className="inline-flex items-center justify-center gap-2 bg-white text-[#050B14] px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]"
         >
-          Start Your Free Trial
+          Start Your Free Trial <ArrowUpRight size={20} />
         </Link>
       </section>
     </div>
