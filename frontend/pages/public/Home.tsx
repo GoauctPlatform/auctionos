@@ -44,9 +44,9 @@ const Home = () => {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.1]"
           >
-            The Operating System for <br />
+            Bridging Data with <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-              Distressed Real Estate.
+              Real-World Execution
             </span>
           </motion.h1>
           
@@ -56,7 +56,7 @@ const Home = () => {
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
             className="mt-6 text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-light"
           >
-            GoAuct revolutionizes the county auction process. We bridge the gap between global investors, licensed US realtors, and local field agents into a single, secure, frictionless ecosystem.
+            GoAuct is a vertical PropTech ecosystem designed to solve the critical gap between fragmented public auction records and actionable real-world investments.
           </motion.p>
 
           <motion.div
@@ -154,7 +154,7 @@ const Home = () => {
           <span className="text-sm font-black uppercase tracking-widest text-blue-500 mb-2 block">Our Vision</span>
           <h2 className="text-4xl font-bold text-white mb-4">The GoAuct Master Plan</h2>
           <p className="text-slate-400 max-w-3xl mx-auto">
-            We are building the first fully decentralized, end-to-end operational network for distressed property acquisition, management, and frictionless transfer.
+            We are building the first fully decentralized, end-to-end operational network for property acquisition, management, and frictionless transfer.
           </p>
         </div>
 
@@ -252,7 +252,7 @@ const Home = () => {
             {[
               { value: "50", label: "States Covered" },
               { value: "3,100+", label: "Counties Mapped" },
-              { value: "600k+", label: "Distressed Parcels" },
+              { value: "600k+", label: "Auction Parcels" },
               { value: "$4B+", label: "Asset Value Monitored" },
             ].map((stat, idx) => (
               <motion.div 

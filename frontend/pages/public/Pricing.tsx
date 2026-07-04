@@ -77,7 +77,7 @@ const Pricing = () => {
     },
     {
       q: "Is my proprietary deal data secure?",
-      a: "Absolutely. We employ strict multi-tenant isolation at the database level using PostgreSQL. Your searches, lists, and task data are completely siloed and encrypted."
+      a: "Absolutely. We employ enterprise-grade security and strict data isolation protocols. Your searches, proprietary lists, and task data are completely siloed, encrypted, and strictly confidential."
     }
   ];
 
