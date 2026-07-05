@@ -18,6 +18,8 @@ class AgentDueDiligenceProfile(Base):
     rejection_reason = Column(String(500), nullable=True)
 
     verification_status = Column(String(50), default="pending")
+    work_permit_document_url = Column(String(500), nullable=True)
+    document_verification_date = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", back_populates="agent_profile")

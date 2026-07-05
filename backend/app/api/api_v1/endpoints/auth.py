@@ -111,8 +111,8 @@ async def register_user(
     background_tasks: BackgroundTasks,
     db: Session = Depends(deps.get_db),
 ) -> Any:
-    # Allow public signup for client, realtor, agent_due_diligence roles
-    allowed_roles = {"client", "realtor", "agent_due_diligence", "pending"}
+    # Allow public signup for client, realtor, agent_due_diligence, contractor roles
+    allowed_roles = {"client", "realtor", "agent_due_diligence", "contractor", "pending"}
     requested_role = (user_in.role or "pending").strip().lower()
     if requested_role not in allowed_roles:
         requested_role = "pending"   # Silently default to pending for onboarding choice
@@ -184,7 +184,7 @@ def onboard_user(
     Saves onboarding details (role, SSN, MLS, etc) and updates user role.
     """
     role = payload.get("role")
-    if role not in ["client", "realtor", "agent_due_diligence"]:
+    if role not in ["client", "realtor", "agent_due_diligence", "contractor"]:
         raise HTTPException(status_code=400, detail="Invalid role selection.")
     
     # Update User Role (ONLY for non-partner roles or if it's client)
@@ -215,6 +215,17 @@ def onboard_user(
         profile.coverage_area = payload.get("coverage_area")
         profile.vehicle_type = payload.get("vehicle_type")
         profile.payment_account = payload.get("payment_account")
+        
+    # If Contractor, create/update Contractor Profile
+    elif role == "contractor":
+        from app.models.contractor import ContractorProfile
+        profile = db.query(ContractorProfile).filter(ContractorProfile.user_id == current_user.id).first()
+        if not profile:
+            profile = ContractorProfile(user_id=current_user.id)
+            db.add(profile)
+        profile.profession = payload.get("profession")
+        profile.service_area_zipcodes = payload.get("service_area_zipcodes")
+        profile.license_number = payload.get("license_number")
         
     # Mark onboarding as complete
     from app.models.user_onboarding import UserOnboarding

@@ -18,6 +18,7 @@ from app.models.company import Company
 from app.models.realtor import Realtor
 from app.models.user_property import UserProperty
 from app.models.agent_due_diligence import AgentDueDiligenceProfile
+from app.models.contractor import ContractorProfile
 from app.models.user_onboarding import UserOnboarding
 
 # Realtor Task Ecosystem
