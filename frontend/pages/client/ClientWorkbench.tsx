@@ -1223,7 +1223,7 @@ export const ClientWorkbench: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
   const [syncTime, setSyncTime] = useState<string>('');
-  const [highestZIndex, setHighestZIndex] = useState(35);
+  const [highestZIndex, setHighestZIndex] = useState(50000);
 
   // Drag & Resize mouse/touch interaction tracking
   const [interaction, setInteraction] = useState<{
