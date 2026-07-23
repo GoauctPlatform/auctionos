@@ -87,7 +87,7 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
         }
     }, [auctionId, auctionName, paginationModel, filterModel]);
 
-    const columns: GridColDef[] = [
+    const columns = React.useMemo<GridColDef[]>(() => [
         { field: 'parcel_id', headerName: 'Parcel Number', width: 140 },
         { field: 'address', headerName: 'Address', width: 200 },
         { field: 'county', headerName: 'County', width: 120 },
@@ -124,7 +124,7 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
                 </IconButton>
             )
         }
-    ];
+    ], []);
 
     return (
         <Box sx={{ width: '100%', height: embedded ? '100%' : 400, bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', borderRadius: embedded ? 2 : 0, overflow: 'hidden', border: embedded ? 'none' : 'none' }}>

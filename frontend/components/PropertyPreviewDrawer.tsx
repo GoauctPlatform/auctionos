@@ -44,6 +44,7 @@ export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ op
             anchor="right"
             open={open}
             onClose={onClose}
+            sx={{ zIndex: 9999 }}
             PaperProps={{
                 className: "w-full sm:w-[500px] md:w-[600px] dark:bg-slate-900 bg-white"
             }}

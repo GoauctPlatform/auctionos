@@ -317,10 +317,11 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
         }
     };
 
-    const displayColumns = [
+    const displayColumns = React.useMemo(() => [
         favoriteColumn,
         ...(readOnly ? [...baseColumns, ...clientActionColumn] : [...baseColumns, ...actionColumn])
-    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ], [favorites, readOnly]);
 
     return (
         <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 2, overflow: 'hidden' }}>

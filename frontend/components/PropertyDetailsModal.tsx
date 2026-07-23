@@ -147,7 +147,7 @@ export const PropertyDetailsModal: React.FC<Props> = ({ property: initialPropert
 
     return (
         <>
-            <Modal isOpen={isOpen} onClose={onClose} title={`Property Details: ${property.parcel_id || 'Unknown'}`} size="2xl">
+            <Modal isOpen={isOpen} onClose={onClose} title={`Property Details: ${property.parcel_id || 'Unknown'}`} size="2xl" zIndex="z-[9999]">
                 <div id="property-export-container" className="bg-white dark:bg-slate-900 rounded-xl">
                 {/* Active refresh controls - preserved from original */}
                 <div className="flex justify-end gap-2 mb-4" data-html2canvas-ignore>
