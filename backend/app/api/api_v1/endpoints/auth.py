@@ -147,6 +147,21 @@ async def register_user(
     db.add(onboarding)
     db.commit()
 
+    # Create a default Workspace/Company for the user
+    from app.models.company import Company
+    company = Company(
+        user_id=user.id,
+        name=f"{user.full_name}'s Workspace" if user.full_name else "My Workspace"
+    )
+    db.add(company)
+    db.commit()
+    db.refresh(company)
+
+    # Set the user's active company
+    user.active_company_id = company.id
+    db.commit()
+    db.refresh(user)
+
     # Trigger Verification Email in background
     verification_link = f"{settings.FRONTEND_URL}/#/verify-email?token={user.verification_token}"
     email_body = get_verification_email_template(user.full_name or "there", verification_link)
