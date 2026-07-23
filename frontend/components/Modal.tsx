@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 
 interface ModalProps {
     isOpen: boolean;
@@ -39,8 +40,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         full: 'max-w-full m-4 h-[calc(100vh-2rem)]'
     };
 
-    return (
-        <div className={`fixed inset-0 ${zIndex} flex items-center justify-center p-4 sm:p-6`}>
+    const modalContent = (
+        <div className="fixed inset-0 flex items-center justify-center p-4 sm:p-6" style={{ zIndex: 9999 }}>
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
@@ -72,4 +73,6 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
             </div>
         </div>
     );
+
+    return ReactDOM.createPortal(modalContent, document.body);
 };
