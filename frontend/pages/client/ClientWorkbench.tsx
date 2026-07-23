@@ -150,7 +150,6 @@ interface OverlayWindow {
   refreshKey?: number;
 }
 
-// Default layout: 2 widgets side-by-side, each occupying 6 of 12 columns
 const DEFAULT_WIDGETS: Widget[] = [
   { id: 'map',             type: 'map',            title: 'US Heatmap & Activity',  x: 0, y: 0, w: 6, h: 5, visible: true, zIndex: 10 },
   { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 6, y: 0, w: 6, h: 5, visible: true, zIndex: 5  },
