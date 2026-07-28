@@ -26,6 +26,7 @@ import { API_URL } from '../../services/httpClient';
 // Original rich page modules for IDE-style floating windows
 import ClientAuctions from './ClientAuctions';
 import ClientAuctionDetails from '../../components/admin/ClientAuctionDetails';
+import ClientAuctionGroupList from '../../components/admin/ClientAuctionGroupList';
 import ClientProperties from './ClientProperties';
 import ClientLists from './ClientLists';
 import { InvestorTasksDashboard } from './InvestorTasksDashboard';
@@ -138,7 +139,7 @@ interface Widget {
 
 interface OverlayWindow {
   id: string;
-  type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'auction_details' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy';
+  type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'auction_details' | 'auction_group' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy';
   title: string;
   x: number;
   y: number;
@@ -3876,6 +3877,16 @@ export const ClientWorkbench: React.FC = () => {
                 {w.type === 'auction_details' && (
                   <div className="size-full">
                     <ClientAuctionDetails eventData={w.data?.eventData} onClose={() => closeOverlayWindow(w.id)} />
+                  </div>
+                )}
+                {w.type === 'auction_group' && (
+                  <div className="size-full">
+                    <ClientAuctionGroupList 
+                      date={w.data?.date} 
+                      type={w.data?.type} 
+                      filters={w.data?.filters || {}} 
+                      onClose={() => closeOverlayWindow(w.id)} 
+                    />
                   </div>
                 )}
                 {w.type === 'property_details' && (

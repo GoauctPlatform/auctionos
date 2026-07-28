@@ -59,6 +59,16 @@ const ClientAuctions: React.FC = () => {
         }));
     };
 
+    const handleGroupSelect = (date: string, type: string) => {
+        window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
+            detail: {
+                type: 'auction_group',
+                title: `📅 ${type} Auctions`,
+                data: { date, type, filters }
+            }
+        }));
+    };
+
     const hasActiveFilters = Object.values(filters).some(val => val !== undefined && val !== '');
 
     if (user?.subscription_tier === 'trial') {
@@ -106,7 +116,7 @@ const ClientAuctions: React.FC = () => {
             <div className="flex flex-col relative gap-6 items-start">
                 <div className={`flex-1 flex flex-col gap-6 w-full transition-all duration-300`}>
                     <Box id="tour-auctions-calendar" className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-                        <AuctionCalendar filters={filters} onDateTypeSelect={handleDateTypeSelect} onSelectAuction={handleSelectAuction} />
+                        <AuctionCalendar filters={filters} onDateTypeSelect={handleDateTypeSelect} onGroupSelect={handleGroupSelect} onSelectAuction={handleSelectAuction} />
                     </Box>
 
                     <div className="w-full animate-in fade-in duration-500">

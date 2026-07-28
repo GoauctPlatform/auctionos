@@ -19,10 +19,11 @@ interface AuctionCalendarProps {
         [key: string]: any;
     };
     onDateTypeSelect?: (date: string, type: string) => void;
+    onGroupSelect?: (date: string, type: string) => void;
     onSelectAuction?: (event: any) => void;
 }
 
-const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate: undefined }, onDateTypeSelect, onSelectAuction }) => {
+const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate: undefined }, onDateTypeSelect, onGroupSelect, onSelectAuction }) => {
     const [rawEvents, setRawEvents] = useState<any[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
     const [groupedDialogOpen, setGroupedDialogOpen] = useState(false);
@@ -135,8 +136,12 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
     const handleEventClick = (info: any) => {
         const props = info.event.extendedProps;
         if (props.isGrouped) {
-            setGroupedDateType({ date: props.date, type: props.type });
-            setGroupedDialogOpen(true);
+            if (onGroupSelect) {
+                onGroupSelect(props.date, props.type);
+            } else {
+                setGroupedDateType({ date: props.date, type: props.type });
+                setGroupedDialogOpen(true);
+            }
         } else {
             // For single non-grouped events (though we group them all now)
             const normalizedEvent = {
