@@ -1363,8 +1363,7 @@ export const ClientWorkbench: React.FC = () => {
         const found = prev.find(w => w.id === targetWidgetId);
         if (!found) return prev;
 
-        const nextZ = highestZIndex + 1;
-        setHighestZIndex(nextZ);
+        const nextZ = getNextZIndex();
 
         return prev.map(w =>
           w.id === targetWidgetId
@@ -1398,7 +1397,7 @@ export const ClientWorkbench: React.FC = () => {
       window.removeEventListener('open-workbench-widget', handleOpenWidget as EventListener);
       window.removeEventListener('open-workbench-overlay', handleOpenOverlay as EventListener);
     };
-  }, [widgets, highestZIndex, logConsoleActivity]);
+  }, [widgets, logConsoleActivity]);
 
   // --- DEAL FLOW ENGINE STATES & HANDLERS ---
   interface NodeFlow {
@@ -1779,14 +1778,13 @@ export const ClientWorkbench: React.FC = () => {
   const focusWidget = useCallback((id: string) => {
     updateWidgetsAndSave(prev => {
       const match = prev.find(w => w.id === id);
-      if (match && match.zIndex < highestZIndex) {
-        const nextZ = highestZIndex + 1;
-        setHighestZIndex(nextZ);
+      if (match) {
+        const nextZ = getNextZIndex();
         return prev.map(w => w.id === id ? { ...w, zIndex: nextZ } : w);
       }
       return prev;
     });
-  }, [highestZIndex]);
+  }, []);
 
   // List management helpers
   const handleDeleteFolder = async (id: number) => {
@@ -2490,11 +2488,7 @@ export const ClientWorkbench: React.FC = () => {
     }
   };
   const applyPreset = (presetId: string) => {
-    let nextZ = highestZIndex;
-    const incrementZ = () => {
-      nextZ += 1;
-      return nextZ;
-    };
+    const incrementZ = () => getNextZIndex();
 
     setZoomScale(1.0);
     setPanX(0);
@@ -2511,7 +2505,6 @@ export const ClientWorkbench: React.FC = () => {
           }
           return { ...w, visible: false };
         });
-        setHighestZIndex(nextZ);
         return updated;
       });
       logConsoleActivity(`Applied custom preset: "${custom.label}"`);
@@ -2557,7 +2550,6 @@ export const ClientWorkbench: React.FC = () => {
         return { ...w, ...coords };
       });
 
-      setHighestZIndex(nextZ);
       return updated;
     });
   };
