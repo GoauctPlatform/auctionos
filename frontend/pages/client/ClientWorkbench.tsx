@@ -3972,14 +3972,14 @@ export const ClientWorkbench: React.FC = () => {
             </div>
 
             {/* Separator if we have open property detail windows */}
-            {overlayWindows.some(w => w.type === 'property_details' || w.type === 'auction_details') && (
+            {overlayWindows.some(w => w.type === 'property_details' || w.type === 'auction_details' || w.type === 'auction_group') && (
               <div className="w-[1px] h-8 bg-slate-700/50 shrink-0" />
             )}
 
             {/* Open Property Details Windows list (SCROLLABLE) */}
-            {(overlayWindows.filter(w => w.type === 'property_details' || w.type === 'auction_details').length > 0) && (
+            {(overlayWindows.filter(w => w.type === 'property_details' || w.type === 'auction_details' || w.type === 'auction_group').length > 0) && (
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-1 min-w-0 pr-2">
-                {overlayWindows.filter(w => w.type === 'property_details' || w.type === 'auction_details').map(w => {
+                {overlayWindows.filter(w => w.type === 'property_details' || w.type === 'auction_details' || w.type === 'auction_group').map(w => {
                   const isActive = activeOverlayWindowId === w.id;
                   return (
                     <button
@@ -3996,9 +3996,9 @@ export const ClientWorkbench: React.FC = () => {
                       className={`relative shrink-0 h-10 px-2 rounded-xl flex items-center gap-1.5 transition-all text-left bg-slate-800/60 border border-slate-700/50 hover:bg-slate-700/60 animate-slide-up-bounce ${w.isMinimized ? 'opacity-50' : ''}`}
                       title={w.title}
                     >
-                      <FileText size={14} className={w.type === 'auction_details' ? "text-amber-400" : "text-indigo-400"} />
+                      <FileText size={14} className={w.type === 'auction_details' ? "text-amber-400" : w.type === 'auction_group' ? "text-emerald-400" : "text-indigo-400"} />
                       <span className="text-[8px] font-black text-slate-200 max-w-[80px] truncate uppercase tracking-wider">
-                        {w.type === 'auction_details' ? 'Auction' : (w.data?.parcelId || 'Property')}
+                        {w.type === 'auction_details' ? 'Auction' : w.type === 'auction_group' ? 'Auctions' : (w.data?.parcelId || 'Property')}
                       </span>
                       {isActive && !w.isMinimized && (
                         <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 size-1 bg-indigo-500 rounded-full" />
@@ -4014,8 +4014,7 @@ export const ClientWorkbench: React.FC = () => {
         {/* Floating Dock Toggle Button (Chatbot style) */}
         <button
           onClick={() => setIsDockExpanded(!isDockExpanded)}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 z-[100000] size-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 shadow-xl shadow-indigo-500/20 border border-white/10 flex items-center justify-center transition-all transform hover:scale-110 active:scale-95"
-          style={{ transform: `translate(-50%, ${isDockExpanded ? '4.5rem' : '0'})` }}
+          className="absolute bottom-6 right-6 z-[100000] size-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 shadow-xl shadow-indigo-500/20 border border-white/10 flex items-center justify-center transition-all transform hover:scale-110 active:scale-95"
           title="Toggle Dock"
         >
           {isDockExpanded ? (
