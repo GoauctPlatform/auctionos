@@ -822,7 +822,10 @@ export const ClientWorkbench: React.FC = () => {
     title: string,
     data?: any
   ) => {
-    const id = type === 'property_details' ? `prop_details_${data?.propertyId}` : type;
+    let id = type;
+    if (type === 'property_details') id = `prop_details_${data?.propertyId}`;
+    if (type === 'auction_details') id = `auction_details_${data?.eventData?.id || data?.eventData?.auction_id || Date.now()}`;
+    if (type === 'auction_group') id = `auction_group_${data?.date}_${data?.type}`;
 
     setOverlayWindows(prev => {
       const existingIdx = prev.findIndex(w => w.id === id);
@@ -832,7 +835,7 @@ export const ClientWorkbench: React.FC = () => {
       if (existingIdx !== -1) {
         return prev.map((w, idx) =>
           idx === existingIdx
-            ? { ...w, isMinimized: false, zIndex: maxZ + 1 }
+            ? { ...w, title, data, isMinimized: false, zIndex: maxZ + 1 }
             : w
         );
       }
