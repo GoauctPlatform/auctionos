@@ -10,7 +10,11 @@ if not DATABASE_URL:
     sys.exit(1)
 
 engine = create_engine(DATABASE_URL)
-CSV_FILE = "backend/data/postgres_property_details.csv"
+
+if len(sys.argv) > 1:
+    CSV_FILE = sys.argv[1]
+else:
+    CSV_FILE = "backend/data/postgres_property_details.csv"
 
 # Accepted status values (strict — no 'sold' or others)
 VALID_STATUSES = {'available', 'unavailable'}
