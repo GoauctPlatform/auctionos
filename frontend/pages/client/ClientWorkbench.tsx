@@ -827,15 +827,15 @@ export const ClientWorkbench: React.FC = () => {
     if (type === 'auction_details') id = `auction_details_${data?.eventData?.id || data?.eventData?.auction_id || Date.now()}`;
     if (type === 'auction_group') id = `auction_group_${data?.date}_${data?.type}`;
 
+    const nextZ = getNextZIndex();
+
     setOverlayWindows(prev => {
       const existingIdx = prev.findIndex(w => w.id === id);
-      const safeZ = prev.map(w => typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0);
-      const maxZ = safeZ.length > 0 ? Math.max(...safeZ) : 0;
 
       if (existingIdx !== -1) {
         return prev.map((w, idx) =>
           idx === existingIdx
-            ? { ...w, title, data, isMinimized: false, isMaximized: true, zIndex: maxZ + 1 }
+            ? { ...w, title, data, isMinimized: false, isMaximized: true, zIndex: nextZ }
             : w
         );
       }
@@ -877,7 +877,7 @@ export const ClientWorkbench: React.FC = () => {
         y,
         w,
         h,
-        zIndex: maxZ + 1,
+        zIndex: nextZ,
         isMinimized: false,
         isMaximized: (type === 'auction_details' || type === 'auction_group' || type === 'property_details'),
         data,
@@ -895,12 +895,13 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const focusOverlayWindow = (id: string) => {
-    setActiveOverlayWindowId(id);
+    if (activeOverlayWindowId === id) return;
+    
+    const nextZ = getNextZIndex();
     setOverlayWindows(prev => {
-      const safeZ = prev.map(w => typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0);
-      const maxZ = safeZ.length > 0 ? Math.max(...safeZ) : 0;
-      return prev.map(w => (w.id === id ? { ...w, isMinimized: false, zIndex: maxZ + 1 } : w));
+      return prev.map(w => (w.id === id ? { ...w, zIndex: nextZ } : w));
     });
+    setActiveOverlayWindowId(id);
   };
 
   const closeOverlayWindow = (id: string) => {
@@ -1235,7 +1236,11 @@ export const ClientWorkbench: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
   const [syncTime, setSyncTime] = useState<string>('');
-  const [highestZIndex, setHighestZIndex] = useState(50000);
+  const zIndexCounter = React.useRef(100);
+  const getNextZIndex = React.useCallback(() => {
+    zIndexCounter.current += 1;
+    return zIndexCounter.current;
+  }, []);
 
   // Drag & Resize mouse/touch interaction tracking
   const [interaction, setInteraction] = useState<{
