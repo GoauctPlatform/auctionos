@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { DataGrid, GridColDef, GridFilterModel } from '@mui/x-data-grid';
 import { AdminService } from '../../services/admin.service';
+import { PropertyPreviewDrawer } from '../PropertyPreviewDrawer';
 import { AuthService } from '../../services/auth.service';
 import { Box, Typography, Button, IconButton } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
@@ -17,6 +18,7 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [rowCount, setRowCount] = useState(0);
+    const [previewPropertyId, setPreviewPropertyId] = useState<string | number | null>(null);
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
         pageSize: 10,
@@ -110,14 +112,7 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
                     title="Open Details"
                     onClick={(e) => {
                         e.stopPropagation();
-                        window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
-                            detail: {
-                                type: 'property_details',
-                                title: `🔍 Property: ${params.row.parcel_id || params.row.id}`,
-                                data: { propertyId: params.row.id, parcelId: params.row.parcel_id }
-                            }
-                        }));
-                        // if (onClose) onClose();
+                        setPreviewPropertyId(params.row.id || params.row.parcel_id);
                     }}
                 >
                     <OpenInNewIcon fontSize="small" className="text-blue-500" />
@@ -166,25 +161,34 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
                     disableRowSelectionOnClick
                     density="compact"
                     onRowClick={(params) => {
-                        window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
-                            detail: {
-                                type: 'property_details',
-                                title: `🔍 Property: ${params.row.parcel_id || params.row.id}`,
-                                data: { propertyId: params.row.id, parcelId: params.row.parcel_id }
-                            }
-                        }));
-                        // if (onClose) onClose();
+                        setPreviewPropertyId(params.row.id || params.row.parcel_id);
                     }}
                     sx={{
                         border: 'none',
                         '& .MuiDataGrid-columnHeaders': {
                             backgroundColor: '#f8fafc',
+                            borderBottom: '1px solid #e2e8f0',
                         },
                         '& .MuiDataGrid-row': { cursor: 'pointer' },
                         '& .MuiDataGrid-row:hover': { backgroundColor: 'rgba(59, 130, 246, 0.04)' }
                     }}
                 />
             </Box>
+
+            <PropertyPreviewDrawer 
+                open={!!previewPropertyId} 
+                propertyId={previewPropertyId} 
+                onClose={() => setPreviewPropertyId(null)}
+                onOpenPropertyDetails={(id, parcelId) => {
+                    window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
+                        detail: {
+                            type: 'property_details',
+                            title: `🔍 Property: ${parcelId || id}`,
+                            data: { propertyId: id, parcelId: parcelId }
+                        }
+                    }));
+                }}
+            />
         </Box>
     );
 };

@@ -3,7 +3,7 @@ import AuctionList from '../../components/admin/AuctionList';
 import AuctionCalendar from '../../components/admin/AuctionCalendar';
 import AuctionFilters, { AuctionFilterParams } from '../../components/admin/AuctionFilters';
 import { Box, Typography } from '@mui/material';
-import AuctionWorkspaceModal from '../../components/admin/AuctionWorkspaceModal';
+
 
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -11,7 +11,6 @@ import { useTour } from '../../context/TourContext';
 
 const ClientAuctions: React.FC = () => {
     const [filters, setFilters] = useState<AuctionFilterParams>({});
-    const [selectedAuctionEvent, setSelectedAuctionEvent] = useState<any | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
 
     const { user } = useAuth();
@@ -48,6 +47,16 @@ const ClientAuctions: React.FC = () => {
             }
             return params;
         });
+    };
+
+    const handleSelectAuction = (eventData: any) => {
+        window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
+            detail: {
+                type: 'auction_details',
+                title: `🔨 Auction: ${eventData.title || 'Workspace'}`,
+                data: { eventData }
+            }
+        }));
     };
 
     const hasActiveFilters = Object.values(filters).some(val => val !== undefined && val !== '');
@@ -97,7 +106,7 @@ const ClientAuctions: React.FC = () => {
             <div className="flex flex-col relative gap-6 items-start">
                 <div className={`flex-1 flex flex-col gap-6 w-full transition-all duration-300`}>
                     <Box id="tour-auctions-calendar" className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700">
-                        <AuctionCalendar filters={filters} onDateTypeSelect={handleDateTypeSelect} onSelectAuction={setSelectedAuctionEvent} />
+                        <AuctionCalendar filters={filters} onDateTypeSelect={handleDateTypeSelect} onSelectAuction={handleSelectAuction} />
                     </Box>
 
                     <div className="w-full animate-in fade-in duration-500">
@@ -105,17 +114,10 @@ const ClientAuctions: React.FC = () => {
                             {hasActiveFilters ? 'Search Results' : 'Upcoming Auctions'}
                         </Typography>
                         <Box className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl overflow-hidden">
-                            <AuctionList filters={filters} readOnly={true} hideFilterSelector={false} onSelectAuction={setSelectedAuctionEvent} />
+                            <AuctionList filters={filters} readOnly={true} hideFilterSelector={false} onSelectAuction={handleSelectAuction} />
                         </Box>
                     </div>
                 </div>
-
-                {/* Workspace Modal */}
-                <AuctionWorkspaceModal 
-                    isOpen={!!selectedAuctionEvent} 
-                    eventData={selectedAuctionEvent} 
-                    onClose={() => setSelectedAuctionEvent(null)} 
-                />
             </div>
         </div>
     );
