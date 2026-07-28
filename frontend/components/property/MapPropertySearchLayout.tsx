@@ -26,25 +26,26 @@ interface MapPropertySearchLayoutProps {
 }
 
 // Controller to handle automatic map bounds based on properties
-const MapBoundsController = ({ properties, activeState, activeCounty, geocodedProps }: { properties: any[], activeState: string | undefined, activeCounty: string | undefined, geocodedProps: Record<string, {lat: number, lng: number}> }) => {
+const MapBoundsController = ({ properties, activeState, activeCounty, geocodedProps, selectedId }: { properties: any[], activeState: string | undefined, activeCounty: string | undefined, geocodedProps: Record<string, {lat: number, lng: number}>, selectedId: string | number | null }) => {
     const map = useMap();
+    const boundsTimeout = useRef<any>(null);
 
     // 1. Zoom/Pan to active state and/or county immediately when they change in the filters
     useEffect(() => {
-        if (!activeState) return;
+        if (!activeState || selectedId) return;
         const zoomToRegion = async () => {
             const regionStr = activeCounty ? `${activeCounty} County, ${activeState}` : activeState;
             try {
                 const coords = await geocodeAddress(regionStr);
                 if (coords) {
-                    map.setView([coords.lat, coords.lng], activeCounty ? 10 : 6);
+                    map.flyTo([coords.lat, coords.lng], activeCounty ? 10 : 6, { animate: true, duration: 1.2 });
                 }
             } catch (err) {
                 console.error("Failed to zoom to region:", err);
             }
         };
         zoomToRegion();
-    }, [activeState, activeCounty, map]);
+    }, [activeState, activeCounty, map, selectedId]);
 
     useEffect(() => {
         if (typeof window === 'undefined' || typeof ResizeObserver === 'undefined') return;
@@ -53,31 +54,17 @@ const MapBoundsController = ({ properties, activeState, activeCounty, geocodedPr
         const resizeObserver = new ResizeObserver(() => {
             try {
                 requestAnimationFrame(() => map.invalidateSize());
-            } catch (err) {
-                console.error("Failed to invalidate map size:", err);
-            }
+            } catch (err) {}
         });
         
         const container = map.getContainer();
-        if (container) {
-            try {
-                resizeObserver.observe(container);
-            } catch (err) {
-                console.error("Failed to observe map container:", err);
-            }
-        }
+        if (container) resizeObserver.observe(container);
 
-        const t1 = setTimeout(() => {
-            try { map.invalidateSize(); } catch {}
-        }, 100);
-        const t2 = setTimeout(() => {
-            try { map.invalidateSize(); } catch {}
-        }, 500);
+        const t1 = setTimeout(() => { try { map.invalidateSize(); } catch {} }, 100);
+        const t2 = setTimeout(() => { try { map.invalidateSize(); } catch {} }, 500);
 
         return () => {
-            if (container && resizeObserver) {
-                try { resizeObserver.unobserve(container); } catch {}
-            }
+            if (container) try { resizeObserver.unobserve(container); } catch {}
             try { resizeObserver.disconnect(); } catch {}
             clearTimeout(t1);
             clearTimeout(t2);
@@ -85,50 +72,54 @@ const MapBoundsController = ({ properties, activeState, activeCounty, geocodedPr
     }, [map]);
 
     useEffect(() => {
+        if (selectedId) return; // Se o usuário selecionou um pin, não roube a câmera dele
+
         if (!properties || properties.length === 0) {
             try {
                 if (!activeState) {
-                    map.setView([39.8283, -98.5795], 4);
+                    map.flyTo([39.8283, -98.5795], 4, { animate: true, duration: 1.5 });
                 }
-            } catch (error) {
-                console.error("Failed to set default view:", error);
-            }
+            } catch (error) {}
             return;
         }
 
-        const lats: number[] = [];
-        const lngs: number[] = [];
+        clearTimeout(boundsTimeout.current);
+        boundsTimeout.current = setTimeout(() => {
+            const lats: number[] = [];
+            const lngs: number[] = [];
 
-        properties.forEach(p => {
-            if (!p) return;
-            let lat = parseFloat(p.latitude);
-            let lng = parseFloat(p.longitude);
-            if (isNaN(lat) || isNaN(lng)) {
-                const fallback = geocodedProps[p.id || p.parcel_id];
-                if (fallback) {
-                    lat = fallback.lat;
-                    lng = fallback.lng;
+            properties.forEach(p => {
+                if (!p) return;
+                let lat = parseFloat(p.latitude);
+                let lng = parseFloat(p.longitude);
+                if (isNaN(lat) || isNaN(lng)) {
+                    const fallback = geocodedProps[p.id || p.parcel_id];
+                    if (fallback) {
+                        lat = fallback.lat;
+                        lng = fallback.lng;
+                    }
                 }
-            }
-            if (!isNaN(lat) && !isNaN(lng)) {
-                lats.push(lat);
-                lngs.push(lng);
-            }
-        });
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    lats.push(lat);
+                    lngs.push(lng);
+                }
+            });
 
-        try {
-            if (lats.length > 0 && lngs.length > 0) {
-                const bounds = L.latLngBounds(
-                    L.latLng(Math.min(...lats), Math.min(...lngs)),
-                    L.latLng(Math.max(...lats), Math.max(...lngs))
-                );
-                // Pad bounds so markers aren't right on the edge
-                map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+            try {
+                if (lats.length > 0 && lngs.length > 0) {
+                    const bounds = L.latLngBounds(
+                        L.latLng(Math.min(...lats), Math.min(...lngs)),
+                        L.latLng(Math.max(...lats), Math.max(...lngs))
+                    );
+                    // Use flyToBounds instead of fitBounds for a professional animation
+                    map.flyToBounds(bounds, { padding: [50, 50], maxZoom: 14, duration: 1.2 });
+                }
+            } catch (error) {
+                console.error("Failed to fit bounds on map:", error);
             }
-        } catch (error) {
-            console.error("Failed to fit bounds on map:", error);
-        }
-    }, [properties, activeState, map, geocodedProps]);
+        }, 150); // Debounce curto para evitar saltos com geocodings parciais
+
+    }, [properties, activeState, map, geocodedProps, selectedId]);
 
     return null;
 };
@@ -147,8 +138,15 @@ const MapClickHandler = ({ onMapClick, active }: { onMapClick: (e: any) => void,
 // Controller to handle flying to a selected property
 const MapFocusController = ({ selectedId, selectedProperty, properties, geocodedProps }: { selectedId: string | number | null, selectedProperty: any | null, properties: any[], geocodedProps: Record<string, {lat: number, lng: number}> }) => {
     const map = useMap();
+    const [lastFlownId, setLastFlownId] = useState<string | number | null>(null);
+
     useEffect(() => {
-        if (!selectedId) return;
+        if (!selectedId) {
+            setLastFlownId(null);
+            return;
+        }
+        
+        if (selectedId === lastFlownId) return; // Evita loop de zoom infinito se as props atualizarem
         
         let p = selectedProperty || properties.find((prop) => (prop.id || prop.parcel_id) === selectedId);
         
@@ -163,10 +161,13 @@ const MapFocusController = ({ selectedId, selectedProperty, properties, geocoded
                 }
             }
             if (!isNaN(lat) && !isNaN(lng)) {
-                map.flyTo([lat, lng], 18, { animate: true, duration: 1.5 });
+                // Animação mais suave e profissional
+                map.flyTo([lat, lng], 17, { animate: true, duration: 1.2, easeLinearity: 0.25 });
+                setLastFlownId(selectedId);
             }
         }
-    }, [selectedId, selectedProperty, properties, geocodedProps, map]);
+    }, [selectedId, selectedProperty, properties, geocodedProps, map, lastFlownId]);
+    
     return null;
 };
 
