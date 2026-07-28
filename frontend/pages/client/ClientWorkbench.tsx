@@ -137,7 +137,7 @@ interface Widget {
 
 interface OverlayWindow {
   id: string;
-  type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy';
+  type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy';
   title: string;
   x: number;
   y: number;
@@ -814,7 +814,7 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const openOverlayWindow = (
-    type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy',
+    type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy',
     title: string,
     data?: any
   ) => {
@@ -840,6 +840,9 @@ export const ClientWorkbench: React.FC = () => {
       if (type === 'property_details') {
         w = 880;
         h = 620;
+      } else if (type === 'map' || type === 'smart_ai_finder') {
+        w = 1100;
+        h = 750;
       } else if (type === 'about' || type === 'disclaimer' || type === 'terms' || type === 'privacy') {
         w = 680;
         h = 500;
@@ -3669,162 +3672,56 @@ export const ClientWorkbench: React.FC = () => {
           </div>
         )}
 
-        {/* ─── SPLIT PANEL WORKBENCH (replaces infinite canvas) ─── */}
-        {layoutTemplate === 'canvas' && (() => {
-          const mapWidget     = widgets.find(w => w.id === 'map');
-          const aiWidget      = widgets.find(w => w.id === 'smart_ai_finder');
-          const mapVisible    = mapWidget?.visible ?? true;
-          const aiVisible     = aiWidget?.visible ?? true;
-
-          return (
-            <div className="flex-1 flex overflow-hidden min-h-0 relative bg-slate-100 dark:bg-[var(--bg-primary)]">
-
-              {/* ── LEFT PANEL: Smart AI Deal Finder (1/3) ── */}
-              {aiVisible && aiWidget && (
-                <div
-                  style={{ width: `${splitLeftWidthPct}%`, minWidth: '240px', maxWidth: '60%' }}
-                  className="flex flex-col h-full border-r border-slate-200 dark:border-slate-700/60 overflow-hidden shrink-0"
-                >
-                  {/* Panel Title Bar */}
-                  <div className="h-9 px-3 flex items-center justify-between shrink-0 bg-slate-50 dark:bg-sol-base03 border-b border-slate-200 dark:border-slate-700/60">
-                    <div className="flex items-center gap-2">
-                      <div className="grid grid-cols-2 gap-[2px] opacity-40">
-                        {[...Array(6)].map((_, i) => (
-                          <div key={i} className="size-[3px] rounded-full bg-slate-500" />
-                        ))}
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">
-                        {aiWidget.title}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => updateWidgetsAndSave(prev => prev.map(w => w.id === 'smart_ai_finder' ? { ...w, visible: false } : w))}
-                      className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
-                      title="Hide panel"
-                    >
-                      <Minimize2 size={11} />
-                    </button>
-                  </div>
-                  {/* Panel Content */}
-                  <div className="flex-1 min-h-0 overflow-auto">
-                    {renderWidgetContent(aiWidget)}
-                  </div>
-                </div>
-              )}
-
-              {/* ── RESIZABLE DIVIDER ── */}
-              {aiVisible && mapVisible && (
-                <div
-                  onMouseDown={handleSplitDividerMouseDown}
-                  className="w-1 shrink-0 cursor-col-resize bg-slate-200 dark:bg-slate-700/60 hover:bg-indigo-500/60 dark:hover:bg-indigo-500/60 transition-colors active:bg-indigo-600 relative group select-none z-10"
-                  title="Drag to resize panels"
-                >
-                  <div className="absolute inset-y-0 -left-1 -right-1" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-[3px] opacity-0 group-hover:opacity-100 transition-opacity">
-                    {[...Array(4)].map((_, i) => (
-                      <div key={i} className="w-[3px] h-[3px] rounded-full bg-indigo-600" />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── RIGHT PANEL: US Heatmap (2/3) ── */}
-              {mapVisible && mapWidget && (
-                <div
-                  className="flex-1 flex flex-col h-full overflow-hidden min-w-0"
-                >
-                  {/* Panel Title Bar */}
-                  <div className="h-9 px-3 flex items-center justify-between shrink-0 bg-slate-50 dark:bg-sol-base03 border-b border-slate-200 dark:border-slate-700/60">
-                    <div className="flex items-center gap-2">
-                      <div className="grid grid-cols-2 gap-[2px] opacity-40">
-                        {[...Array(6)].map((_, i) => (
-                          <div key={i} className="size-[3px] rounded-full bg-slate-500" />
-                        ))}
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">
-                        {mapWidget.title}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => updateWidgetsAndSave(prev => prev.map(w => w.id === 'map' ? { ...w, visible: false } : w))}
-                      className="p-1 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-700 dark:hover:text-white transition-colors"
-                      title="Hide panel"
-                    >
-                      <Minimize2 size={11} />
-                    </button>
-                  </div>
-                  {/* Panel Content */}
-                  <div id="tour-yield-heatmap" className="flex-1 min-h-0 overflow-hidden">
-                    {renderWidgetContent(mapWidget)}
-                  </div>
-                </div>
-              )}
-
-              {/* ── EMPTY STATE: all panels hidden ── */}
-              {!aiVisible && !mapVisible && (
-                <div className="flex-1 flex flex-col items-center justify-center gap-4 text-slate-400 dark:text-slate-600">
-                  <LayoutGrid size={40} strokeWidth={1} />
-                  <p className="text-sm font-semibold">All panels are hidden</p>
+        {/* ─── DESKTOP OS WORKBENCH (MDI Icons) ─── */}
+        {layoutTemplate === 'canvas' && (
+          <div className="flex-1 relative bg-slate-100 dark:bg-[var(--bg-primary)] overflow-hidden">
+            {/* Desktop Icons Grid */}
+            <div className="p-8 flex flex-wrap gap-8 items-start content-start size-full">
+              {[
+                { id: 'map', label: 'US Heatmap', icon: MapIcon, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+                { id: 'smart_ai_finder', label: 'Smart AI Finder', icon: Brain, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-500/10' },
+                { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+                { id: 'property_search', label: 'Property Search', icon: Search, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-500/10' },
+                { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10' },
+                { id: 'field_missions', label: 'Field Missions', icon: Gavel, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+                { id: 'settings', label: 'Settings', icon: Settings, color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-500/10' },
+              ].map(app => {
+                const Icon = app.icon;
+                const isOpen = overlayWindows.some(w => w.type === app.id);
+                return (
                   <button
-                    onClick={() => updateWidgetsAndSave(prev => prev.map(w => ({ ...w, visible: true })))}
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors"
+                    key={app.id}
+                    onDoubleClick={() => {
+                      if (!isOpen) {
+                        openOverlayWindow(app.id as any, app.label);
+                      } else {
+                        const win = overlayWindows.find(w => w.type === app.id);
+                        if (win) focusOverlayWindow(win.id);
+                      }
+                    }}
+                    onClick={() => {
+                      // Single click can also open/focus in this web environment to feel more responsive
+                      if (!isOpen) {
+                        openOverlayWindow(app.id as any, app.label);
+                      } else {
+                        const win = overlayWindows.find(w => w.type === app.id);
+                        if (win) focusOverlayWindow(win.id);
+                      }
+                    }}
+                    className="flex flex-col items-center gap-2 w-24 group"
                   >
-                    Show All Panels
+                    <div className={`size-16 rounded-2xl flex items-center justify-center shadow-sm border border-slate-200/50 dark:border-slate-700/50 transition-all transform group-hover:scale-105 group-active:scale-95 ${app.bg} ${isOpen ? 'ring-2 ring-offset-2 ring-indigo-500 dark:ring-offset-[var(--bg-primary)]' : ''}`}>
+                      <Icon size={32} className={`${app.color} opacity-90 group-hover:opacity-100`} strokeWidth={1.5} />
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 text-center leading-tight bg-white/50 dark:bg-slate-900/50 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                      {app.label}
+                    </span>
                   </button>
-                </div>
-              )}
-
-              {/* ── FLOATING CONTROL PILL (Bottom-Left) ── */}
-              <div className="absolute bottom-4 left-4 z-[100] flex items-center gap-1.5 px-2 py-1.5 bg-white/90 dark:bg-sol-base02/90 backdrop-blur-md border border-slate-200/80 dark:border-sol-base01/30 rounded-2xl shadow-2xl select-none">
-
-                {/* Reset layout button */}
-                <button
-                  onClick={() => {
-                    setSplitLeftWidthPct(33);
-                    localStorage.setItem('goauct_split_pct', '33');
-                    updateWidgetsAndSave(() => DEFAULT_WIDGETS.map(d => ({ ...d, visible: true })));
-                  }}
-                  className="size-7 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-all"
-                  title="Reset layout"
-                >
-                  <LayoutGrid size={12} />
-                </button>
-
-                <div className="w-[1px] h-4 bg-slate-200 dark:bg-sol-base01/30" />
-
-                {/* Toggle AI panel */}
-                <button
-                  onClick={() => updateWidgetsAndSave(prev => prev.map(w => w.id === 'smart_ai_finder' ? { ...w, visible: !w.visible } : w))}
-                  className={`size-7 rounded-lg flex items-center justify-center transition-all text-xs font-black ${aiVisible ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-sol-base03 text-slate-400'}`}
-                  title={aiVisible ? 'Hide AI panel' : 'Show AI panel'}
-                >
-                  AI
-                </button>
-
-                {/* Toggle Map panel */}
-                <button
-                  onClick={() => updateWidgetsAndSave(prev => prev.map(w => w.id === 'map' ? { ...w, visible: !w.visible } : w))}
-                  className={`size-7 rounded-lg flex items-center justify-center transition-all ${mapVisible ? 'bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400' : 'bg-slate-100 dark:bg-sol-base03 text-slate-400'}`}
-                  title={mapVisible ? 'Hide Map panel' : 'Show Map panel'}
-                >
-                  <MapIcon size={12} />
-                </button>
-
-                <div className="w-[1px] h-4 bg-slate-200 dark:bg-sol-base01/30" />
-
-                {/* Lock drag divider */}
-                <button
-                  onClick={() => setIsCanvasLocked(prev => !prev)}
-                  className={`size-7 rounded-lg flex items-center justify-center transition-all ${isCanvasLocked ? 'bg-red-100 dark:bg-red-900/30 text-red-500' : 'bg-slate-100 dark:bg-sol-base03 text-slate-400 hover:text-slate-700'}`}
-                  title={isCanvasLocked ? 'Unlock divider' : 'Lock divider'}
-                >
-                  {isCanvasLocked ? <Lock size={12} /> : <Unlock size={12} />}
-                </button>
-              </div>
-
+                );
+              })}
             </div>
-          );
-        })()}
+          </div>
+        )}
 
         {/* ─── HYBRID VIRTUAL DESKTOP WINDOW OVERLAYS ─── */}
         {overlayWindows.filter(w => !w.isMinimized).map(w => {
@@ -3914,6 +3811,8 @@ export const ClientWorkbench: React.FC = () => {
 
               {/* Window Content Container */}
               <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-sol-base03 relative custom-scrollbar">
+                {w.type === 'map' && renderWidgetContent({ type: 'map' } as any)}
+                {w.type === 'smart_ai_finder' && renderWidgetContent({ type: 'smart_ai_finder' } as any)}
                 {w.type === 'my_lists' && <ClientLists key={`${w.id}_${w.refreshKey || 0}`} onOpenPropertyDetails={handleOpenPropertyDetails} />}
                 {w.type === 'live_auctions' && <ClientAuctions key={`${w.id}_${w.refreshKey || 0}`} />}
                 {w.type === 'property_search' && <ClientProperties key={`${w.id}_${w.refreshKey || 0}`} onOpenPropertyDetails={handleOpenPropertyDetails} />}
@@ -4003,9 +3902,11 @@ export const ClientWorkbench: React.FC = () => {
           <div className="flex items-center gap-3 shrink-0">
             {[
               { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
+              { id: 'map', label: 'US Heatmap', icon: MapIcon, color: 'hover:text-indigo-400 text-indigo-500' },
+              { id: 'smart_ai_finder', label: 'Smart AI Finder', icon: Brain, color: 'hover:text-purple-400 text-purple-500' },
               { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
               { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
-              { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'hover:text-purple-400 text-purple-500' },
+              { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-purple-400 text-purple-500' },
               { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
             ].map(item => {
               const Icon = item.icon;
