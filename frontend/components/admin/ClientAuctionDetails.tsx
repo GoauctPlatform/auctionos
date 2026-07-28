@@ -129,7 +129,7 @@ export const ClientAuctionDetails: React.FC<ClientAuctionDetailsProps> = ({ even
             {/* Main Content Area */}
             <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden bg-white dark:bg-slate-950">
                 {/* Left Sidebar */}
-                <Box className="w-full md:w-[350px] shrink-0 border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex flex-col overflow-y-auto no-scrollbar scrollbar-none">
+                <Box className="w-full max-h-[35vh] md:max-h-none md:w-[350px] shrink-0 border-b md:border-b-0 border-r-0 md:border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/50 flex flex-col overflow-y-auto custom-scrollbar">
                     <div className="p-5 space-y-6">
                         {/* Meta Tags */}
                         <div className="flex flex-wrap gap-2">

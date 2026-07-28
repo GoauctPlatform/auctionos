@@ -23,13 +23,13 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
         const fetchEvents = async () => {
             setLoading(true);
             try {
-                const response = await AuctionService.getEvents({
+                const response = await AuctionService.getAuctionEvents({
                     ...filters,
                     startDate: date,
                     endDate: date,
                     tax_status: type
                 });
-                setAuctions(response.data || []);
+                setAuctions(response.items || []);
             } catch (err) {
                 console.error('Failed to load group auctions', err);
             } finally {

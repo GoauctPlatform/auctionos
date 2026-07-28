@@ -835,7 +835,7 @@ export const ClientWorkbench: React.FC = () => {
       if (existingIdx !== -1) {
         return prev.map((w, idx) =>
           idx === existingIdx
-            ? { ...w, title, data, isMinimized: false, zIndex: maxZ + 1 }
+            ? { ...w, title, data, isMinimized: false, isMaximized: true, zIndex: maxZ + 1 }
             : w
         );
       }
@@ -879,7 +879,7 @@ export const ClientWorkbench: React.FC = () => {
         h,
         zIndex: maxZ + 1,
         isMinimized: false,
-        isMaximized: false,
+        isMaximized: (type === 'auction_details' || type === 'auction_group' || type === 'property_details'),
         data,
       };
       return [...prev, newWin];
