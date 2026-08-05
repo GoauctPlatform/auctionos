@@ -541,6 +541,9 @@ const ClientLayout: React.FC = () => {
                 </div>
               ))}
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div className="mb-3 flex justify-center">
+                  <LanguageSwitcher />
+                </div>
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-rose-50 text-rose-600 font-bold hover:bg-rose-100 transition-colors text-xs uppercase tracking-wider"

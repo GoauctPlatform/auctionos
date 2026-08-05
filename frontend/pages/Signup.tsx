@@ -16,6 +16,7 @@ export const Signup: React.FC = () => {
         email: '',
         password: '',
         confirmPassword: '',
+        referralCode: searchParams.get('ref') || '',
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +52,7 @@ export const Signup: React.FC = () => {
                     full_name: formData.fullName,
                     role: selectedRole,
                     newsletter: newsletter,
+                    referral_code: formData.referralCode || undefined,
                 }),
             });
 
@@ -231,6 +233,19 @@ export const Signup: React.FC = () => {
                                     placeholder="••••••••"
                                     required
                                     minLength={8}
+                                />
+                            </label>
+
+                            {/* Referral Code */}
+                            <label className="flex flex-col gap-1.5">
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Referral Code (Optional)</span>
+                                <input
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow uppercase"
+                                    type="text"
+                                    name="referralCode"
+                                    value={formData.referralCode}
+                                    onChange={handleChange}
+                                    placeholder="e.g. GUS-1A2B"
                                 />
                             </label>
 

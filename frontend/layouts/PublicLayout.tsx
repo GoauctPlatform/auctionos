@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { CookieDisclaimer } from '../components/CookieDisclaimer';
 
 const PublicLayout = () => {
@@ -62,6 +63,7 @@ const PublicLayout = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
+            <LanguageSwitcher />
             <Link
               to="/login"
               className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
@@ -106,6 +108,9 @@ const PublicLayout = () => {
                 </Link>
               ))}
               <div className="h-px bg-white/10 w-full my-4" />
+              <div className="flex justify-center mb-4">
+                <LanguageSwitcher />
+              </div>
               <Link
                 to="/login"
                 className="text-xl font-medium text-slate-300 hover:text-white"
