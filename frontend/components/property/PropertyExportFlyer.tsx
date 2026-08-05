@@ -36,7 +36,6 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                         src="/goauct-logo.png" 
                         alt="GoAuct Logo" 
                         className="w-9 h-9 rounded-lg object-cover shadow-md border border-slate-200"
-                        crossOrigin="anonymous"
                     />
                     <div>
                         <h2 className="text-lg font-black tracking-tight uppercase leading-none text-slate-900">
@@ -57,7 +56,6 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                         src={svUrl || property.imageUrl || ""} 
                         alt="Property Street View" 
                         className="w-full h-full object-cover" 
-                        crossOrigin="anonymous"
                     />
                 ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 bg-slate-100">

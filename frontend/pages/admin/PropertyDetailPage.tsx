@@ -353,7 +353,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 setTimeout(() => {
                     iframe.contentWindow?.focus();
                     iframe.contentWindow?.print();
-                }, 500);
+                }, 1500);
             }
             return;
         }
@@ -370,12 +370,18 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 
                 // Try Web Share API (native share on mobile browsers)
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: `GoAuct Property Report - ${property.parcel_id || 'Property'}`,
-                        text: `Check out this investment property report from GoAuct: ${property.address || property.parcel_id}`
-                    });
-                    return; // Successfully shared natively!
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: `GoAuct Property Report - ${property.parcel_id || 'Property'}`,
+                            text: `Check out this investment property report from GoAuct: ${property.address || property.parcel_id}`
+                        });
+                        return; // Successfully shared natively!
+                    } catch (shareError: any) {
+                        // If user cancelled, don't fall back to download or show error
+                        if (shareError.name === 'AbortError') return;
+                        console.error('Share failed natively', shareError);
+                    }
                 }
             }
 
@@ -384,9 +390,11 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
             link.download = `GoAuct-Property-${property.parcel_id || 'Export'}.jpeg`;
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
-        } catch (e) {
+        } catch (e: any) {
             console.error('Export failed', e);
-            alert('Export failed');
+            if (e.name !== 'AbortError') {
+                alert('Export failed. Make sure images are fully loaded before exporting.');
+            }
         } finally {
             setExporting(false);
         }
