@@ -48,10 +48,11 @@ window.fetch = async (...args) => {
         const isLoginRequest = url.includes('/auth/login');
 
         if (isApiRequest && !isLoginRequest && (response.status === 401 || response.status === 403)) {
-            const publicPages = ['/forgot-password', '/reset-password', '/login', '/signup', '/#/', '/'];
-            const isPublicPage = publicPages.some(page => window.location.pathname.includes(page) || window.location.hash.includes(page));
+            const publicPages = ['/forgot-password', '/reset-password', '/login', '/signup'];
+            const isPublicPage = publicPages.some(page => window.location.hash.includes(page));
+            const isLandingPage = window.location.hash === '' || window.location.hash === '#/' || window.location.hash === '#';
             
-            if (!isPublicPage) {
+            if (!isPublicPage && !isLandingPage) {
                 let isSessionConflict = false;
                 try {
                     const clone = response.clone();

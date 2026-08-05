@@ -150,7 +150,26 @@ const BillingPage: React.FC = () => {
     </div>
   );
 
-  if (!data) return null;
+  if (!data) {
+    if (error) {
+      return (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4 p-8 max-w-md text-center bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-700 dark:text-red-300">
+            <AlertTriangle size={48} className="text-red-500" />
+            <h2 className="text-xl font-bold">Failed to Load Billing</h2>
+            <p className="text-sm">{error}</p>
+            <button 
+              onClick={fetchUsage} 
+              className="mt-2 px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
 
   const isTrial = data.plan_type === 'trial';
   const isAdvanced = data.plan_type === 'advanced';
