@@ -226,8 +226,10 @@ export const ClientWorkbench: React.FC = () => {
     const saved = localStorage.getItem('goauct_workbench_sidebarOpen');
     return saved === null ? true : saved === 'true';
   });
-  const [activePane, setActivePane] = useState<'explorer' | 'presets' | 'info' | 'notifications' | 'connect'>(() => {
-    return (localStorage.getItem('goauct_workbench_activePane') as any) || 'explorer';
+  const [activePane, setActivePane] = useState<'notifications' | 'connect'>(() => {
+    const saved = localStorage.getItem('goauct_workbench_activePane') as any;
+    // Guard against old saved values that no longer exist
+    return ['notifications', 'connect'].includes(saved) ? saved : 'notifications';
   });
   const [upcomingAuctionsCount, setUpcomingAuctionsCount] = useState<number>(0);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -2861,37 +2863,6 @@ export const ClientWorkbench: React.FC = () => {
         {/* ─── SIDEBAR 1: Primary VS Code Ribbon (64px desktop, 40px mobile) ─── */}
         <div className="w-10 md:w-16 bg-white dark:bg-sol-base02 border-r border-slate-200/80 dark:border-sol-base01/20 flex flex-col justify-between py-4 items-center shrink-0 z-50 overflow-y-auto no-scrollbar scrollbar-none">
           <div className="flex flex-col gap-3 w-full items-center">
-            {[
-              { id: 'explorer', icon: Layers, label: 'Workspace Explorer' },
-              { id: 'presets', icon: LayoutGrid, label: 'Layout Presets' },
-              { id: 'info', icon: HelpCircle, label: 'Workbench Info' }
-            ].map(tab => {
-              const Icon = tab.icon;
-              const active = activePane === tab.id && sidebarOpen;
-              return (
-                <button
-                  key={tab.id}
-                  title={tab.label}
-                  onClick={() => {
-                    if (activePane === tab.id) {
-                      setSidebarOpen(!sidebarOpen);
-                    } else {
-                      setActivePane(tab.id as any);
-                      setSidebarOpen(true);
-                    }
-                  }}
-                  className={`relative p-2.5 rounded-xl transition-all ${active
-                      ? 'bg-blue-50 dark:bg-blue-955/20 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/10 shadow-sm'
-                      : 'text-slate-400 dark:text-slate-650 hover:text-slate-700 dark:hover:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900/40'
-                    }`}
-                >
-                  {active && (
-                    <div className="absolute left-0 top-1/4 bottom-1/4 w-0.75 bg-blue-500 rounded-r" />
-                  )}
-                  <Icon size={18} />
-                </button>
-              );
-            })}
 
             {/* Separator line for direct window shortcuts */}
             <div className="w-8 h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
@@ -3014,217 +2985,6 @@ export const ClientWorkbench: React.FC = () => {
           {sidebarOpen && (
             <div className="p-4 flex flex-col space-y-5 select-none w-60">
 
-              {activePane === 'explorer' && (
-                <>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Workspace Explorer</h3>
-                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Toggle widgets on canvas</p>
-                    <p className="text-[8.5px] text-slate-500 dark:text-slate-400 mt-2 bg-blue-500/5 dark:bg-blue-955/10 border border-blue-500/10 p-2 rounded-lg font-bold leading-normal">
-                      Click on the icons to open internal floating windows within GoAuct. Organize your workspace however you prefer.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col space-y-1.5">
-                    {widgets.map(w => {
-                      const Icon = w.type === 'map' ? MapIcon :
-                                   w.type === 'smart_ai_finder' ? Brain :
-                                   w.type === 'my_lists' ? Folder :
-                                   w.type === 'live_auctions' ? Calendar :
-                                   w.type === 'property_search' ? Search :
-                                   w.type === 'field_missions' ? Gavel :
-                                   w.type === 'settings' ? Settings :
-                                   Activity;
-                      return (
-                        <button
-                          key={w.id}
-                          onClick={() => toggleVisibility(w.id)}
-                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${w.visible
-                              ? 'bg-blue-50/50 dark:bg-blue-955/10 border-blue-500/20 text-blue-700 dark:text-blue-400 font-bold'
-                              : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-650 font-semibold'
-                            }`}
-                        >
-                          <div className="flex items-center gap-2 text-xs">
-                            <Icon size={13} />
-                            <span className="truncate max-w-[130px]">{w.title.replace(/^[^\w\s]*/, '').trim()}</span>
-                          </div>
-                          {w.visible ? <Eye size={12} /> : <EyeOff size={12} />}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex flex-col space-y-1.5 pt-3 border-t border-slate-200/50 dark:border-slate-800/50">
-                    <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Global Widgets</span>
-                    <button
-                      onClick={toggleTickerTape}
-                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${tickerTapeVisible
-                          ? 'bg-amber-50/50 dark:bg-amber-955/10 border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
-                          : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
-                        }`}
-                    >
-                      <div className="flex items-center gap-2 text-xs">
-                        <Calendar size={13} className="text-amber-500" />
-                        <span className="truncate max-w-[130px]">Favorites Ticker</span>
-                      </div>
-                      {tickerTapeVisible ? <Eye size={12} /> : <EyeOff size={12} />}
-                    </button>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-200/50 dark:border-slate-800/50">
-                    <p className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Workspace stats</p>
-                    <div className="grid grid-cols-2 gap-2 text-[10px] font-bold">
-                      <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/60">
-                        <span className="text-slate-400 block text-[8px] uppercase">Active</span>
-                        <span className="text-slate-900 dark:text-white text-xs font-black">
-                          {widgets.filter(w => w.visible).length + (tickerTapeVisible ? 1 : 0)} / {widgets.length + 1}
-                        </span>
-                      </div>
-                      <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/60">
-                        <span className="text-slate-400 block text-[8px] uppercase">Focus State</span>
-                        <span className="text-blue-500 dark:text-blue-400 text-xs font-black">
-                          {selectedState || 'None'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {activePane === 'presets' && (
-                <>
-                  {isCreatingPreset ? (
-                    <div className="flex flex-col space-y-4 select-none">
-                      <div>
-                        <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Create Layout Preset</h3>
-                        <p className="text-[8px] font-bold text-slate-455 uppercase tracking-widest mt-0.5">Customize your empty blueprint</p>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Preset Name</label>
-                        <input
-                          type="text"
-                          value={newPresetName}
-                          onChange={(e) => setNewPresetName(e.target.value)}
-                          placeholder="e.g. My Yield Room"
-                          className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-bold"
-                        />
-                      </div>
-
-                      <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
-
-                      <div className="flex flex-col space-y-1.5">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Add Workspace Tools</span>
-                        {widgets.map(w => (
-                          <button
-                            key={w.id}
-                            onClick={() => toggleWidgetInPreset(w.id)}
-                            className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${w.visible
-                                ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold'
-                                : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
-                              }`}
-                          >
-                            <span className="text-xs truncate">{w.title.replace(/^[^\w\s]*/, '').trim()}</span>
-                            {w.visible ? (
-                              <span className="size-2 rounded-full bg-indigo-500" />
-                            ) : (
-                              <span className="size-2 rounded-full border border-slate-400" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-2">
-                        <button
-                          onClick={saveCustomPreset}
-                          className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={cancelCustomPresetCreation}
-                          className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-
-
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Layout Presets</h3>
-                          <p className="text-[8px] font-bold text-slate-455 uppercase tracking-widest mt-0.5">Quick window arrangements</p>
-                        </div>
-                        <button
-                          onClick={startCustomPresetCreation}
-                          className="px-2.5 py-1 text-[8.5px] font-black bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg uppercase tracking-wider shadow-sm transition-all"
-                        >
-                          + Create
-                        </button>
-                      </div>
-
-                      <div className="flex flex-col space-y-2 max-h-[360px] overflow-y-auto pr-1">
-                        {/* Standard Presets */}
-                        {[
-                          // Empty standard presets to allow starting from scratch
-                        ].map(p => {
-                          const Icon = p.icon;
-                          return (
-                            <button
-                              key={p.id}
-                              onClick={() => applyPreset(p.id)}
-                              className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-left transition-colors group"
-                            >
-                              <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
-                                <Icon size={14} />
-                                <span>{p.label}</span>
-                              </div>
-                              <p className="text-[9px] text-slate-455 dark:text-slate-500 mt-1 leading-normal font-semibold">{p.desc}</p>
-                            </button>
-                          );
-                        })}
-
-                        {/* Custom Presets list */}
-                        {customPresets.map(p => (
-                          <div
-                            key={p.id}
-                            className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-left flex flex-col space-y-1 relative group"
-                          >
-                            <div className="flex items-center justify-between">
-                              <button
-                                onClick={() => applyPreset(p.id)}
-                                className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
-                              >
-                                <Layout size={14} className="text-indigo-400" />
-                                <span>{p.label}</span>
-                              </button>
-                              <div className="flex items-center gap-1.5">
-                                <button
-                                  onClick={() => toggleFavoriteCustomPreset(p.id)}
-                                  className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${p.favorite ? 'text-amber-500' : 'text-slate-400'}`}
-                                  title="Favorite preset"
-                                >
-                                  ★
-                                </button>
-                                <button
-                                  onClick={() => deleteCustomPreset(p.id)}
-                                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-red-500 transition-colors"
-                                  title="Delete preset"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
-                              </div>
-                            </div>
-                            <p className="text-[9px] text-slate-455 dark:text-slate-500 leading-normal font-semibold font-bold">Custom widget layout</p>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
 
 
               {activePane === 'notifications' && (
@@ -3308,37 +3068,6 @@ export const ClientWorkbench: React.FC = () => {
                 </>
               )}
 
-              {activePane === 'info' && (
-                <>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Workbench Info</h3>
-                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Learn interactive shortcuts</p>
-                  </div>
-
-                  <div className="text-[10px] text-slate-500 dark:text-slate-450 font-semibold space-y-3 leading-relaxed">
-                    <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/10 border border-blue-500/20 text-slate-800 dark:text-slate-350">
-                      <p className="font-bold flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                        <Move size={12} /> Dotted Background:
-                      </p>
-                      <p className="mt-1">Click and drag any blank area of the grid to **pan** across the workspace. Use mouse-wheel to **zoom** (0.3x - 2.0x).</p>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-950/10 border border-purple-500/20 text-slate-800 dark:text-slate-350">
-                      <p className="font-bold flex items-center gap-1 text-purple-600 dark:text-purple-400">
-                        <Move size={12} /> Draggable Windows:
-                      </p>
-                      <p className="mt-1">Click and hold any window's title header bar to drag and reposition it freely inside the canvas.</p>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/10 border border-amber-500/20 text-slate-800 dark:text-slate-350">
-                      <p className="font-bold flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                        <Maximize2 size={12} /> Resizable Borders:
-                      </p>
-                      <p className="mt-1">Drag the small diagonal handle at the bottom-right corner of any window to adjust width and height.</p>
-                    </div>
-                  </div>
-                </>
-              )}
 
             </div>
           )}
