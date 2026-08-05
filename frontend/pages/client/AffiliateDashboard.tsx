@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { useAuth } from '../../context/AuthContext';
-import { httpClient } from '../../services/httpClient';
+import { API_URL, getHeaders } from '../../services/httpClient';
 
 export const AffiliateDashboard: React.FC = () => {
   const { t } = useLanguage();
-  const { user } = useAuth();
   
   const [profile, setProfile] = useState<any>(null);
   const [referrals, setReferrals] = useState<any[]>([]);
@@ -14,6 +12,8 @@ export const AffiliateDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
   const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState('pix');
+  const [paymentDetails, setPaymentDetails] = useState('');
   
   useEffect(() => {
     fetchProfile();

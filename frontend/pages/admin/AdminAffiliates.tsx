@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { httpClient } from '../../services/httpClient';
+import { API_URL, getHeaders } from '../../services/httpClient';
 
 export const AdminAffiliates: React.FC = () => {
   const { t } = useLanguage();
@@ -20,8 +20,8 @@ export const AdminAffiliates: React.FC = () => {
   const fetchAffiliates = async () => {
     try {
       setLoading(true);
-      const res = await httpClient.get('/api/v1/affiliate/admin/all');
-      setAffiliates(res.data);
+      const res = await fetch(`${API_URL}/affiliate/admin/all`, { headers: getHeaders() });
+      if (res.ok) setAffiliates(await res.json());
     } catch (err) {
       console.error(err);
     } finally {
@@ -32,9 +32,8 @@ export const AdminAffiliates: React.FC = () => {
   const fetchWithdrawals = async () => {
     try {
       setLoading(true);
-      // Need an endpoint for this in affiliate.py
-      const res = await httpClient.get('/api/v1/affiliate/admin/withdrawals');
-      setWithdrawals(res.data);
+      const res = await fetch(`${API_URL}/affiliate/admin/withdrawals`, { headers: getHeaders() });
+      if (res.ok) setWithdrawals(await res.json());
     } catch (err) {
       console.error(err);
     } finally {
@@ -44,8 +43,11 @@ export const AdminAffiliates: React.FC = () => {
 
   const handleApprove = async (id: number) => {
     try {
-      await httpClient.post(`/api/v1/affiliate/admin/${id}/approve`);
-      fetchAffiliates();
+      const res = await fetch(`${API_URL}/affiliate/admin/${id}/approve`, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+      if (res.ok) fetchAffiliates();
     } catch (err) {
       console.error(err);
       alert('Failed to approve');
@@ -54,8 +56,11 @@ export const AdminAffiliates: React.FC = () => {
 
   const handleApproveWithdrawal = async (id: number) => {
     try {
-      await httpClient.post(`/api/v1/affiliate/admin/withdrawals/${id}/approve`);
-      fetchWithdrawals();
+      const res = await fetch(`${API_URL}/affiliate/admin/withdrawals/${id}/approve`, {
+        method: 'POST',
+        headers: getHeaders()
+      });
+      if (res.ok) fetchWithdrawals();
     } catch (err) {
       console.error(err);
       alert('Failed to approve withdrawal');
