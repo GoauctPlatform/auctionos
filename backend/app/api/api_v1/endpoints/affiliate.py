@@ -26,7 +26,7 @@ class AffiliateProfileResponse(BaseModel):
     status: str
     total_earnings: float
     available_balance: float
-    terms_accepted: bool = False
+    terms_accepted: Optional[bool] = False
     terms_accepted_at: Optional[datetime] = None
     created_at: datetime
     user: Optional[UserSchema] = None
