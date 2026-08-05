@@ -57,7 +57,7 @@ import {
   Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
   Gavel, Calendar, ShieldAlert, Search, Plus, Filter, ArrowRight,
   Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare, LogOut,
-  MousePointer, TrendingUp, Lock, Unlock, LayoutDashboard, ExternalLink, Database, Brain
+  MousePointer, TrendingUp, Lock, Unlock, LayoutDashboard, ExternalLink, Database, Brain, Handshake
 } from 'lucide-react';
 
 const CHART_COLORS = {
@@ -2858,6 +2858,7 @@ export const ClientWorkbench: React.FC = () => {
               { id: 'connect', icon: Compass, label: 'Connect Hub' },
               { id: 'team_and_logs', icon: Users, label: 'Team & Activity Logs' },
               { id: 'billings_and_plans', icon: CreditCard, label: 'Billing & Plans' },
+              { id: 'affiliate_dashboard', icon: Handshake, label: 'Partners & Affiliates' },
               { id: 'settings', icon: Settings, label: 'Workbench Settings' }
             ].map(shortcut => {
               const Icon = shortcut.icon;
@@ -2877,7 +2878,8 @@ export const ClientWorkbench: React.FC = () => {
                           shortcut.id === 'property_search' ? 'tour-nav-property-search' :
                             shortcut.id === 'my_lists' ? 'tour-nav-my-lists' :
                               shortcut.id === 'billings_and_plans' ? 'tour-upgrade-button' :
-                                undefined
+                                shortcut.id === 'affiliate_dashboard' ? 'tour-nav-affiliate' :
+                                  undefined
                   }
                   title={shortcut.label}
                   onClick={() => {
@@ -3654,8 +3656,7 @@ export const ClientWorkbench: React.FC = () => {
                 { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
                 { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
                 { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-purple-400 text-purple-500' },
-                { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' },
-                { id: 'affiliate_dashboard', label: 'Partners & Affiliates', icon: Users, color: 'hover:text-pink-400 text-pink-500' }
+                { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
               ].map(item => {
                 const Icon = item.icon;
                 const isOpen = item.id === 'workbench_home' ? false : overlayWindows.some(w => w.type === item.id || (w.type === 'auction_details' && item.id === 'live_auctions'));
@@ -3681,7 +3682,7 @@ export const ClientWorkbench: React.FC = () => {
                           focusOverlayWindow(match.id);
                         }
                       } else {
-                        openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : item.id === 'affiliate_dashboard' ? '🤝 Affiliate Dashboard' : '⚔️ Field Task Missions');
+                        openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : '⚔️ Field Task Missions');
                       }
                     }}
                     className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 ${item.color} ${isOpen ? 'bg-slate-800 border border-slate-700' : 'bg-transparent'} ${isMin ? 'opacity-50' : ''}`}
