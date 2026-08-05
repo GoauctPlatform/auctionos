@@ -3,12 +3,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import { API_URL } from '../services/httpClient';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
 
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export const Signup: React.FC = () => {
     const navigate = useNavigate();
     const { login: authLogin } = useAuth();
+    const { t } = useLanguage();
     const [searchParams] = useSearchParams();
     const defaultRole = (searchParams.get('role') === 'realtor' ? 'realtor' : searchParams.get('role') === 'agent' ? 'agent_due_diligence' : 'client');
 
@@ -117,10 +119,10 @@ export const Signup: React.FC = () => {
                             <span className="text-white font-extrabold text-xl">GoAuct</span>
                         </div>
                         <h1 className="text-white font-bold text-lg">
-                            Create Your Account
+                            {t('auth.signup')}
                         </h1>
                         <p className="text-white/70 text-xs mt-1">
-                            Join the GoAuct ecosystem as an investor or realtor
+                            {t('auth.signupSubtitle')}
                         </p>
                     </div>
 
@@ -185,7 +187,7 @@ export const Signup: React.FC = () => {
 
                             {/* Full Name */}
                             <label className="flex flex-col gap-1.5">
-                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Full Name</span>
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.fullName')}</span>
                                 <input
                                     className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
                                     type="text"
@@ -199,7 +201,7 @@ export const Signup: React.FC = () => {
 
                             {/* Email */}
                             <label className="flex flex-col gap-1.5">
-                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Email Address</span>
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.email')}</span>
                                 <input
                                     className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
                                     type="email"
@@ -213,7 +215,7 @@ export const Signup: React.FC = () => {
 
                             {/* Password */}
                             <label className="flex flex-col gap-1.5">
-                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Password</span>
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.password')}</span>
                                 <input
                                     className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
                                     type="password"
@@ -228,7 +230,7 @@ export const Signup: React.FC = () => {
 
                             {/* Confirm Password */}
                             <label className="flex flex-col gap-1.5">
-                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Confirm Password</span>
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.confirmPassword')}</span>
                                 <input
                                     className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
                                     type="password"
@@ -243,7 +245,7 @@ export const Signup: React.FC = () => {
 
                             {/* Referral Code */}
                             <label className="flex flex-col gap-1.5">
-                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Referral Code (Optional)</span>
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.referralCode')}</span>
                                 <input
                                     className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow uppercase"
                                     type="text"

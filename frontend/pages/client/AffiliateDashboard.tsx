@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../context/LanguageContext';
-import { API_URL, getHeaders } from '../../services/httpClient';
+import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 
 export const AffiliateDashboard: React.FC = () => {
   const { t } = useLanguage();
+  const { user } = useAuth();
   
   const [profile, setProfile] = useState<any>(null);
   const [referrals, setReferrals] = useState<any[]>([]);
@@ -22,7 +24,7 @@ export const AffiliateDashboard: React.FC = () => {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      const res = await httpClient.get('/api/v1/affiliate/me');
+      const res = await api.get('/api/v1/affiliate/me');
       setProfile(res.data);
       if (res.data.status === 'approved') {
         fetchReferrals();
@@ -39,7 +41,7 @@ export const AffiliateDashboard: React.FC = () => {
   
   const fetchReferrals = async () => {
     try {
-      const res = await httpClient.get('/api/v1/affiliate/me/referrals');
+      const res = await api.get('/api/v1/affiliate/me/referrals');
       setReferrals(res.data);
     } catch (err) {
       console.error(err);
@@ -48,7 +50,7 @@ export const AffiliateDashboard: React.FC = () => {
 
   const fetchWithdrawals = async () => {
     try {
-      const res = await httpClient.get('/api/v1/affiliate/me/withdrawals');
+      const res = await api.get('/api/v1/affiliate/me/withdrawals');
       setWithdrawals(res.data);
     } catch (err) {
       console.error(err);
@@ -58,7 +60,7 @@ export const AffiliateDashboard: React.FC = () => {
   const handleApply = async () => {
     try {
       setApplying(true);
-      const res = await httpClient.post('/api/v1/affiliate/apply');
+      const res = await api.post('/api/v1/affiliate/apply');
       setProfile(res.data);
     } catch (err) {
       console.error(err);
@@ -74,7 +76,7 @@ export const AffiliateDashboard: React.FC = () => {
       return alert(t('affiliate.minWithdraw50') || 'Minimum withdrawal is $50.');
     }
     try {
-      await httpClient.post('/api/v1/affiliate/withdraw', {
+      await api.post('/api/v1/affiliate/withdraw', {
         amount,
         payment_method: 'Pix',
         payment_details: user?.email // simplistic for now
