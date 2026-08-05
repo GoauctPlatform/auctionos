@@ -41,7 +41,8 @@
     "verifyEmail": "Verifique seu e-mail",
     "verifyEmailDesc": "Enviamos um link de verificação para",
     "resendEmail": "Reenviar e-mail",
-    "iVerified": "Já Verifiquei Meu E-mail"
+    "iVerified": "Já Verifiquei Meu E-mail",
+    "continueWithGoogle": "Continuar com Google"
   },
   "common": {
     "loading": "Carregando...",
@@ -128,6 +129,7 @@
     "registered": "Registrado",
     "churn": "Cancelado",
     "clearanceDate": "Data de Liberação",
-    "shareLink": "Compartilhar Seu Link"
+    "shareLink": "Compartilhar Seu Link",
+    "minWithdraw50": "O valor mínimo para saque é de $50."
   }
 }

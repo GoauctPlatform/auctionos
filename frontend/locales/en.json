@@ -41,7 +41,8 @@
     "verifyEmail": "Verify your email",
     "verifyEmailDesc": "We sent a verification link to",
     "resendEmail": "Resend email",
-    "iVerified": "I've Verified My Email"
+    "iVerified": "I've Verified My Email",
+    "continueWithGoogle": "Continue with Google"
   },
   "common": {
     "loading": "Loading...",
@@ -128,6 +129,7 @@
     "registered": "Registered",
     "churn": "Churned",
     "clearanceDate": "Clearance Date",
-    "shareLink": "Share Your Link"
+    "shareLink": "Share Your Link",
+    "minWithdraw50": "Minimum withdrawal amount is $50."
   }
 }

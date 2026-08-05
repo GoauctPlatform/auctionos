@@ -41,7 +41,8 @@
     "verifyEmail": "Verifica tu correo",
     "verifyEmailDesc": "Enviamos un enlace de verificación a",
     "resendEmail": "Reenviar correo",
-    "iVerified": "He Verificado Mi Correo"
+    "iVerified": "He Verificado Mi Correo",
+    "continueWithGoogle": "Continuar con Google"
   },
   "common": {
     "loading": "Cargando...",
@@ -128,6 +129,7 @@
     "registered": "Registrado",
     "churn": "Cancelado",
     "clearanceDate": "Fecha de Autorización",
-    "shareLink": "Compartir Tu Enlace"
+    "shareLink": "Compartir Tu Enlace",
+    "minWithdraw50": "El monto mínimo de retiro es $50."
   }
 }
