@@ -5,11 +5,13 @@ import { useAuth } from '../context/AuthContext';
 import { useCompany } from '../context/CompanyContext';
 import { UserManagement } from './Settings/UserManagement';
 import { API_URL, getHeaders } from '../services/httpClient';
+import { useLanguage, Language } from '../context/LanguageContext';
 
 type Tab = 'profile' | 'general' | 'users' | 'companies';
 
 export const Settings: React.FC = () => {
     const { user } = useAuth();
+    const { language, setLanguage } = useLanguage();
     const [activeTab, setActiveTab] = useState<Tab>('profile');
     const [theme, setTheme] = useState(() => localStorage.getItem('goauct_theme') || 'system');
     // displayName: prefer backend value, fallback to locally persisted value
@@ -399,6 +401,49 @@ export const Settings: React.FC = () => {
                                 })}
                             </div>
                         </div>
+                        {/* Language Selector */}
+                        <div className="pb-6 border-b border-slate-200 dark:border-slate-700 space-y-4">
+                            <div>
+                                <h4 className="text-md font-semibold text-slate-900 dark:text-white">Language / Idioma / Idioma</h4>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Choose the display language for the entire platform. This setting is saved and persists across sessions.</p>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                {([
+                                    { code: 'en' as Language, label: 'English', flag: '🇺🇸', desc: 'American English — Default platform language.' },
+                                    { code: 'es' as Language, label: 'Español', flag: '🇲🇽', desc: 'Español — Idioma para mercados hispanohablantes.' },
+                                    { code: 'pt' as Language, label: 'Português', flag: '🇧🇷', desc: 'Português — Idioma para o mercado brasileiro.' },
+                                ]).map((lang) => {
+                                    const isSelected = language === lang.code;
+                                    return (
+                                        <button
+                                            key={lang.code}
+                                            type="button"
+                                            onClick={() => setLanguage(lang.code)}
+                                            className={`flex flex-col text-left p-4 rounded-xl border transition-all duration-300 relative overflow-hidden ${
+                                                isSelected
+                                                    ? 'border-blue-500 bg-blue-50/40 dark:bg-blue-900/10 shadow-md shadow-blue-500/5 ring-1 ring-blue-500/20'
+                                                    : 'border-slate-200 dark:border-slate-700 bg-slate-50/20 dark:bg-slate-800/10 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50/60 dark:hover:bg-slate-800/30'
+                                            }`}
+                                        >
+                                            {isSelected && (
+                                                <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500" />
+                                            )}
+                                            <div className="flex items-center justify-between w-full mb-2">
+                                                <span className="text-2xl">{lang.flag}</span>
+                                                {isSelected && (
+                                                    <span className="material-symbols-outlined text-blue-500 dark:text-blue-400 text-[18px]">check_circle</span>
+                                                )}
+                                            </div>
+                                            <span className={`text-sm font-bold ${
+                                                isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
+                                            }`}>{lang.label}</span>
+                                            <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-normal mt-0.5">{lang.desc}</p>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                         <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                             <div className="flex items-center justify-between">
                                 <div>
