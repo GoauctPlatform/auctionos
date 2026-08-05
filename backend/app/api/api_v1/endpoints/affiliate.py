@@ -30,7 +30,7 @@ class AffiliateProfileResponse(BaseModel):
     user: Optional[UserSchema] = None
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ReferralResponse(BaseModel):
     id: int
@@ -42,7 +42,7 @@ class ReferralResponse(BaseModel):
     converted_at: Optional[datetime]
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class WithdrawalRequestCreate(BaseModel):
     amount: float
@@ -58,7 +58,7 @@ class WithdrawalResponse(BaseModel):
     processed_at: Optional[datetime]
     
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 def generate_affiliate_code(db: Session, prefix: str = "AFF") -> str:
     """Generate a unique affiliate code."""
