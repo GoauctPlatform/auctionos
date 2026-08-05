@@ -2696,7 +2696,7 @@ export const ClientWorkbench: React.FC = () => {
     <div className="w-full flex-1 flex flex-col h-full min-h-0 overflow-hidden select-none bg-slate-50 dark:bg-sol-base03 font-display">
 
       {/* ─── WORKBENCH SYSTEM TOP BAR (Mission Control Header) ─── */}
-      <div className="w-full h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex justify-between items-center shrink-0 z-[9999] select-none">
+      <div className="w-full h-12 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-4 flex justify-between items-center shrink-0 z-[9999] select-none shadow-sm">
         <div id="tour-welcome-header" className="flex items-center gap-2.5">
           <img
             src="/goauct-logo.png"
@@ -2754,18 +2754,6 @@ export const ClientWorkbench: React.FC = () => {
           {/* Company Context Selector inside the Header */}
           <CompanySelector compact />
 
-          <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
-
-          <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-slate-400 dark:text-slate-550 uppercase">
-            <span>Grid Zoom:</span>
-            <button
-              onClick={() => setZoomScale(1.0)}
-              className="text-slate-655 dark:text-slate-300 hover:text-indigo-500 transition-colors bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-black active:scale-95"
-              title="Reset Zoom"
-            >
-              {Math.round(zoomScale * 100)}%
-            </button>
-          </div>
           <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
           
           <div className="flex items-center">
