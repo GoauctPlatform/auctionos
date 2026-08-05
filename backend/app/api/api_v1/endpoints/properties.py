@@ -1633,7 +1633,7 @@ async def validate_property_gsi(
 
 
 @router.get("/{parcel_id}/streetview")
-def get_property_streetview(
+async def get_property_streetview(
     parcel_id: str,
 ):
     """
@@ -1643,6 +1643,7 @@ def get_property_streetview(
     - Caches responses locally to avoid redundant billing from Google.
     """
     import httpx
+    from fastapi.concurrency import run_in_threadpool
     
     # 1. Resolve uploads directory
     uploads_dir = os.getenv("UPLOADS_DIR", os.path.join(os.getcwd(), "uploads"))
@@ -1667,10 +1668,14 @@ def get_property_streetview(
         query = text("""
             SELECT id, address, county, state, latitude, longitude
             FROM property_details
-            WHERE parcel_id = :pid OR id::text = :pid OR property_id = :pid
+            WHERE parcel_id = :pid OR id::text = :pid OR property_id::text = :pid
             LIMIT 1
         """)
-        row = db.execute(query, {"pid": parcel_id}).fetchone()
+        
+        def fetch_row():
+            return db.execute(query, {"pid": parcel_id}).fetchone()
+            
+        row = await run_in_threadpool(fetch_row)
         if not row:
             raise HTTPException(status_code=404, detail=f"Property not found: {parcel_id}")
             
@@ -1688,7 +1693,7 @@ def get_property_streetview(
             if not location_str or location_str == ", ,":
                 location_str = parcel_id
     finally:
-        db.close()
+        await run_in_threadpool(db.close)
             
     if not location_str:
         raise HTTPException(status_code=400, detail="Insufficient location details to look up Street View.")
@@ -1707,7 +1712,8 @@ def get_property_streetview(
             "location": location_str,
             "key": api_key
         }
-        m_res = httpx.get(metadata_url, params=m_params, timeout=10.0)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            m_res = await client.get(metadata_url, params=m_params)
         if m_res.status_code == 200:
             m_data = m_res.json()
             status = m_data.get("status")
@@ -1733,7 +1739,8 @@ def get_property_streetview(
             "pitch": "10",
             "key": api_key
         }
-        s_res = httpx.get(streetview_url, params=s_params, timeout=15.0)
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            s_res = await client.get(streetview_url, params=s_params)
         if s_res.status_code == 200:
             with open(cached_path, "wb") as f:
                 f.write(s_res.content)
