@@ -95,15 +95,16 @@ export const AdminAffiliates: React.FC = () => {
               <th className="p-4">Partner / User</th>
               <th className="p-4">Code</th>
               <th className="p-4">Status</th>
+              <th className="p-4">Terms</th>
               <th className="p-4">Earnings / Bal</th>
               <th className="p-4">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
             {loading ? (
-              <tr><td colSpan={5} className="p-8 text-center">Loading...</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center">Loading...</td></tr>
             ) : affiliates.length === 0 ? (
-              <tr><td colSpan={5} className="p-8 text-center text-slate-500">No affiliates found.</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-slate-500">No affiliates found.</td></tr>
             ) : (
               affiliates.map(aff => (
                 <tr key={aff.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
@@ -126,6 +127,11 @@ export const AdminAffiliates: React.FC = () => {
                       aff.status === 'approved' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'
                     }`}>
                       {aff.status}
+                    </span>
+                  </td>
+                  <td className="p-4">
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${aff.terms_accepted ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400' : 'bg-rose-50 text-rose-600 dark:bg-rose-955/10 dark:text-rose-400'}`}>
+                      {aff.terms_accepted ? 'Accepted' : 'No'}
                     </span>
                   </td>
                   <td className="p-4">
