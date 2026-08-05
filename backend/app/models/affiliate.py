@@ -33,6 +33,8 @@ class AffiliateProfile(Base):
     affiliate_code = Column(String(50), unique=True, index=True, nullable=False)
     status = Column(String(50), default=AffiliateStatus.PENDING)
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+    terms_accepted = Column(Boolean, default=False)
+    terms_accepted_at = Column(DateTime, nullable=True)
     
     # Financials
     total_earnings = Column(Float, default=0.0)
