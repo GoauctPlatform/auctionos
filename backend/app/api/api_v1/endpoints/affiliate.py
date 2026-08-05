@@ -67,15 +67,22 @@ def generate_affiliate_code(db: Session, prefix: str = "AFF") -> str:
         if not db.query(AffiliateProfile).filter(AffiliateProfile.affiliate_code == code).first():
             return code
 
+class AffiliateApplyRequest(BaseModel):
+    terms_accepted: bool
+
 @router.post("/apply", response_model=AffiliateProfileResponse)
 def apply_for_affiliate(
     *,
     db: Session = Depends(deps.get_db),
+    apply_in: AffiliateApplyRequest,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Apply to become an affiliate.
     """
+    if not apply_in.terms_accepted:
+        raise HTTPException(status_code=400, detail="You must accept the Affiliate Terms of Service.")
+
     existing_profile = db.query(AffiliateProfile).filter(AffiliateProfile.user_id == current_user.id).first()
     if existing_profile:
         raise HTTPException(status_code=400, detail="You already have an affiliate profile.")
@@ -87,7 +94,9 @@ def apply_for_affiliate(
     profile = AffiliateProfile(
         user_id=current_user.id,
         affiliate_code=affiliate_code,
-        status=AffiliateStatus.PENDING # Needs admin approval
+        status=AffiliateStatus.PENDING, # Needs admin approval
+        terms_accepted=True,
+        terms_accepted_at=datetime.utcnow()
     )
     db.add(profile)
     db.commit()

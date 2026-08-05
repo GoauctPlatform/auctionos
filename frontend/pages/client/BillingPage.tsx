@@ -32,6 +32,7 @@ const BillingPage: React.FC = () => {
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [annual, setAnnual] = useState(true);
+  const [affiliateCode, setAffiliateCode] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -104,7 +105,11 @@ const BillingPage: React.FC = () => {
     setUpgradeLoading(plan);
     setError(null);
     try {
-      const res = await api.post('/billing/create-checkout-session', { plan, billing_cycle: annual ? 'annual' : 'monthly' });
+      const payload: any = { plan, billing_cycle: annual ? 'annual' : 'monthly' };
+      if (affiliateCode.trim()) {
+        payload.affiliate_code = affiliateCode.trim();
+      }
+      const res = await api.post('/billing/create-checkout-session', payload);
       const { checkout_url, session_id } = res.data;
 
       if (session_id) {
@@ -112,7 +117,7 @@ const BillingPage: React.FC = () => {
         window.location.href = checkout_url;
       } else {
         // Mock fallback – no real Stripe configured, simulate locally
-        await api.post('/billing/mock-webhook', { plan });
+        await api.post('/billing/mock-webhook', payload);
         setSuccessMessage(`✅ Mock Mode: Your plan has been upgraded to ${plan.toUpperCase()}!`);
         await fetchUsage();
         setUpgradeLoading(null);
@@ -276,6 +281,23 @@ const BillingPage: React.FC = () => {
             <span className={`text-sm font-medium ${annual ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>
               Annually <span className="text-blue-600 dark:text-cyan-400 text-xs ml-1 bg-blue-100 dark:bg-cyan-400/10 px-2 py-0.5 rounded-full">Save 20%</span>
             </span>
+          </div>
+
+          {/* Affiliate Code Input */}
+          <div className="mb-6 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col sm:flex-row items-center gap-3">
+            <div className="flex-1 w-full relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">group_add</span>
+              <input 
+                type="text" 
+                value={affiliateCode}
+                onChange={e => setAffiliateCode(e.target.value)}
+                placeholder="Got an Affiliate Code?"
+                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all uppercase"
+              />
+            </div>
+            <p className="text-xs text-slate-500 w-full sm:w-auto text-center sm:text-left">
+              If a partner referred you, enter their code here.
+            </p>
           </div>
 
           {/* Advanced Plan */}

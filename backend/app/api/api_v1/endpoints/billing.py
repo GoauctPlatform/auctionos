@@ -117,9 +117,15 @@ def _activate_subscription(
             referral.status = ReferralStatus.CONVERTED
             referral.converted_at = datetime.now(timezone.utc)
             
-            # Simple commission logic: $50 flat fee or a % of the plan
-            # Here we assign $50 for simplicity
-            commission = 50.0
+            # Simple commission logic: 20% of the plan
+            plan_prices = {
+                "advanced": 60.0,
+                "pro": 130.0,
+                "enterprise": 350.0
+            }
+            base_price = plan_prices.get(plan, 0.0)
+            commission = base_price * 0.20 # 20% commission
+
             referral.commission_amount = commission
             
             # Update Affiliate Profile Earnings
@@ -178,6 +184,7 @@ def get_current_usage(
 def create_checkout_session(
     plan: str = Body(..., embed=True),
     billing_cycle: str = Body("annual", embed=True),
+    affiliate_code: Optional[str] = Body(None, embed=True),
     db: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user)
 ) -> Any:
@@ -191,6 +198,24 @@ def create_checkout_session(
 
     if current_user.role != "client":
         raise HTTPException(status_code=403, detail="Only account owners can manage subscriptions.")
+
+    if affiliate_code:
+        from app.models.affiliate import AffiliateProfile, AffiliateReferral, AffiliateStatus, ReferralStatus
+        affiliate = db.query(AffiliateProfile).filter(
+            AffiliateProfile.affiliate_code == affiliate_code,
+            AffiliateProfile.status == AffiliateStatus.APPROVED
+        ).first()
+        if affiliate and affiliate.user_id != current_user.id:
+            # Check if referral already exists
+            existing_ref = db.query(AffiliateReferral).filter(AffiliateReferral.referred_user_id == current_user.id).first()
+            if not existing_ref:
+                new_ref = AffiliateReferral(
+                    affiliate_id=affiliate.id,
+                    referred_user_id=current_user.id,
+                    status=ReferralStatus.REGISTERED
+                )
+                db.add(new_ref)
+                db.commit()
 
     # ── REAL STRIPE FLOW ──────────────────────────────────────────────────────
     if settings.STRIPE_SECRET_KEY:
