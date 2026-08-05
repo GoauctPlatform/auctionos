@@ -104,6 +104,37 @@ def _activate_subscription(
             body=email_body
         )
 
+    # Affiliate Commission Check
+    try:
+        from app.models.affiliate import AffiliateReferral, AffiliateProfile, ReferralStatus
+        referral = db.query(AffiliateReferral).filter(
+            AffiliateReferral.referred_user_id == user.id,
+            AffiliateReferral.status == ReferralStatus.REGISTERED
+        ).first()
+
+        if referral:
+            # First time converting
+            referral.status = ReferralStatus.CONVERTED
+            referral.converted_at = datetime.now(timezone.utc)
+            
+            # Simple commission logic: $50 flat fee or a % of the plan
+            # Here we assign $50 for simplicity
+            commission = 50.0
+            referral.commission_amount = commission
+            
+            # Update Affiliate Profile Earnings
+            affiliate = db.query(AffiliateProfile).filter(AffiliateProfile.id == referral.affiliate_id).first()
+            if affiliate:
+                affiliate.total_earnings = (affiliate.total_earnings or 0.0) + commission
+                affiliate.available_balance = (affiliate.available_balance or 0.0) + commission
+                db.add(affiliate)
+
+            db.add(referral)
+            db.commit()
+    except Exception as e:
+        # Ignore affiliate errors so it doesn't break subscription
+        print(f"Error handling affiliate commission: {e}")
+
     return sub
 
 

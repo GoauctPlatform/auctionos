@@ -3,10 +3,13 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import { API_BASE_URL } from '../services/httpClient';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -108,6 +111,9 @@ export const Login: React.FC = () => {
       </div>
 
       <div className="relative z-10 w-full max-w-md">
+        <div className="absolute top-0 right-0 -mt-12">
+          <LanguageSwitcher />
+        </div>
         {/* Card */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
 
@@ -120,10 +126,10 @@ export const Login: React.FC = () => {
               <span className="text-white font-extrabold text-2xl tracking-tight">GoAuct</span>
             </div>
             <h1 className="text-white font-bold text-lg">
-              Sign In to Your Account
+              {t('auth.loginTitle')}
             </h1>
             <p className="text-white/70 text-sm mt-1">
-              Welcome back — access your dashboard
+              {t('auth.loginSubtitle')}
             </p>
           </div>
 
@@ -136,7 +142,7 @@ export const Login: React.FC = () => {
               )}
 
               <label className="flex flex-col gap-1.5">
-                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Email Address</span>
+                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.email')}</span>
                 <input
                   className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-12 px-4 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-primary transition-shadow"
                   type="email"
@@ -148,7 +154,7 @@ export const Login: React.FC = () => {
               </label>
 
               <label className="flex flex-col gap-1.5">
-                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Password</span>
+                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.password')}</span>
                 <input
                   className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-12 px-4 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-primary transition-shadow"
                   type="password"
@@ -162,7 +168,7 @@ export const Login: React.FC = () => {
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" className="rounded border-slate-300 text-primary" />
-                  <span className="text-slate-600 dark:text-slate-400 text-sm">Remember me</span>
+                  <span className="text-slate-600 dark:text-slate-400 text-sm">{t('auth.rememberMe')}</span>
                 </label>
                 <Link to="/forgot-password" className="text-primary text-sm font-bold hover:underline">
                   Forgot Password?

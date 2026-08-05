@@ -162,6 +162,33 @@ async def register_user(
     db.commit()
     db.refresh(user)
 
+    # Handle Referral Logic
+    if getattr(user_in, 'referral_code', None):
+        from app.models.affiliate import AffiliateProfile, AffiliateReferral, ReferralStatus
+        affiliate_profile = db.query(AffiliateProfile).filter(AffiliateProfile.affiliate_code == user_in.referral_code).first()
+        if affiliate_profile:
+            # Create the referral link
+            referral = AffiliateReferral(
+                affiliate_id=affiliate_profile.id,
+                referred_user_id=user.id,
+                status=ReferralStatus.REGISTERED
+            )
+            db.add(referral)
+            
+            # The referrer gets a free month per registration
+            # Find the referrer user and extend their subscription end_date or give a free month
+            # For this simplified model, we could just log it or handle it in a separate job
+            # but as requested, let's auto-extend if they have a subscription
+            from app.models.monetization import UserSubscription
+            referrer_sub = db.query(UserSubscription).filter(UserSubscription.user_id == affiliate_profile.user_id).first()
+            if referrer_sub and referrer_sub.end_date:
+                from datetime import timedelta
+                # Grant 1 free month (30 days)
+                referrer_sub.end_date = referrer_sub.end_date + timedelta(days=30)
+                db.add(referrer_sub)
+                
+            db.commit()
+
     # Trigger Verification Email in background
     verification_link = f"{settings.FRONTEND_URL}/#/verify-email?token={user.verification_token}"
     email_body = get_verification_email_template(user.full_name or "there", verification_link)

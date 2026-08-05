@@ -1,5 +1,6 @@
 import React from 'react';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
@@ -35,6 +36,7 @@ import AdminImportProperties from './pages/admin/AdminImportProperties';
 import AdminImportAuctions from './pages/admin/AdminImportAuctions';
 import AdminBroadcasts from './pages/admin/AdminBroadcasts';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
+import AdminAffiliates from './pages/admin/AdminAffiliates';
 import { AdminTaskMediation } from './pages/admin/AdminTaskMediation';
 
 // Client Portal Pages
@@ -54,6 +56,7 @@ import VerifyEmail from './pages/auth/VerifyEmail';
 import TrialLimitPage from './pages/client/TrialLimitPage';
 import TrialExpiredPage from './pages/client/TrialExpiredPage';
 import { InvestorTasksDashboard } from './pages/client/InvestorTasksDashboard';
+import { AffiliateDashboard } from './pages/client/AffiliateDashboard';
 import { CompanyProvider } from './context/CompanyContext';
 import RealtorLayout from './pages/realtor/RealtorLayout';
 import RealtorDashboard from './pages/realtor/RealtorDashboard';
@@ -128,6 +131,7 @@ function App() {
   }, []);
 
   return (
+    <LanguageProvider>
     <AuthProvider>
       <HashRouter>
         <TourProvider>
@@ -167,6 +171,7 @@ function App() {
             <Route path="/admin/import/auctions" element={<AdminImportAuctions />} />
             <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/affiliates" element={<AdminAffiliates />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
             <Route path="/admin/mediation" element={<AdminTaskMediation />} />
             <Route path="/settings" element={<Settings />} />
@@ -201,8 +206,10 @@ function App() {
             <Route path="contact-support" element={<ClientSupportPage />} />
             <Route path="about" element={<AboutPage standalone={false} />} />
             <Route path="support" element={<SupportPage standalone={false} />} />
-            <Route path="team" element={<ActivityLogsPage />} />
+            <Route path="properties/manual" element={<PropertyManualEntry />} />
+            <Route path="activity-logs" element={<ActivityLogsPage />} />
             <Route path="billing" element={<BillingPage />} />
+            <Route path="affiliate" element={<AffiliateDashboard />} />
             <Route path="trial-limit" element={<TrialLimitPage />} />
             <Route path="expired" element={<TrialExpiredPage />} />
             <Route path="settings" element={<Settings />} />
@@ -246,6 +253,7 @@ function App() {
         </TourProvider>
       </HashRouter>
     </AuthProvider>
+    </LanguageProvider>
   );
 };
 

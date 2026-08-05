@@ -34,3 +34,6 @@ from app.models.realtor_economy import RealtorWallet, WithdrawalRequest, Propert
 from app.models.monetization import UserSubscription, StorageUsage
 from app.models.property_user_override import PropertyUserOverride  # noqa — JSONB Override/Merge pattern
 from app.models.backup_job import BackupJob
+
+# Affiliate System
+from app.models.affiliate import AffiliateProfile, AffiliateReferral, AffiliateWithdrawal

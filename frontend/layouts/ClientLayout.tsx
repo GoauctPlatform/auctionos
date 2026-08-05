@@ -11,9 +11,11 @@ import api from '../services/api';
 import { useTour } from '../context/TourContext';
 import { TourOverlay } from '../components/TourOverlay';
 import { useNotifications } from '../utils/useNotifications';
-
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useLanguage } from '../context/LanguageContext';
 const ClientLayout: React.FC = () => {
   const { user, logout: authLogout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const { startTour, tourActive } = useTour();
@@ -244,6 +246,11 @@ const ClientLayout: React.FC = () => {
   if ((role === 'manager' || role === 'client') && user?.subscription_tier !== 'trial') {
     navItems.push(
       {
+        icon: 'handshake',
+        label: t('nav.affiliate') || 'Affiliates',
+        path: '/client/affiliate'
+      },
+      {
         icon: 'hub',
         label: 'Connect',
         dropdown: [
@@ -370,6 +377,7 @@ const ClientLayout: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-4">
+                <LanguageSwitcher />
                 {/* Company Switcher inside the Header */}
                 <CompanySelector compact />
 
