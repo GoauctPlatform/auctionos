@@ -284,20 +284,29 @@ const BillingPage: React.FC = () => {
           </div>
 
           {/* Affiliate Code Input */}
-          <div className="mb-6 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col sm:flex-row items-center gap-3">
-            <div className="flex-1 w-full relative">
-              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">group_add</span>
-              <input 
-                type="text" 
-                value={affiliateCode}
-                onChange={e => setAffiliateCode(e.target.value)}
-                placeholder="Got an Affiliate Code?"
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all uppercase"
-              />
+          <div className="mb-8 p-[1px] bg-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-500/20 dark:to-purple-500/20 rounded-2xl shadow-sm">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl flex flex-col sm:flex-row items-center gap-4 justify-between">
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="size-10 shrink-0 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <span className="material-symbols-outlined text-[20px]">handshake</span>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">Have a Partner Code?</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Support the partner who referred you.</p>
+                </div>
+              </div>
+              
+              <div className="w-full sm:w-72 relative group mt-2 sm:mt-0">
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors text-[18px]">sell</span>
+                <input 
+                  type="text" 
+                  value={affiliateCode}
+                  onChange={e => setAffiliateCode(e.target.value)}
+                  placeholder="Enter code"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-900 focus:border-transparent outline-none transition-all uppercase tracking-wide placeholder:font-normal placeholder:tracking-normal"
+                />
+              </div>
             </div>
-            <p className="text-xs text-slate-500 w-full sm:w-auto text-center sm:text-left">
-              If a partner referred you, enter their code here.
-            </p>
           </div>
 
           {/* Advanced Plan */}
