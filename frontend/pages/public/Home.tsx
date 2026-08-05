@@ -2,8 +2,10 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Globe2, Briefcase, Camera, ShieldCheck, Map, Activity, Hammer, Lock, ArrowUpRight } from 'lucide-react';
+import { useLanguage } from '../../context/LanguageContext';
 
 const Home = () => {
+  const { t } = useLanguage();
   return (
     <div className="w-full bg-[#050B14]">
       {/* ── 1. Hero Section (Video Background) ── */}
@@ -69,7 +71,7 @@ const Home = () => {
               to="/signup"
               className="group flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] w-full sm:w-auto"
             >
-              Start Free Trial
+              {t('auth.signupTitle')}
               <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
             </Link>
             <Link
@@ -281,7 +283,7 @@ const Home = () => {
           to="/signup"
           className="inline-flex items-center justify-center gap-2 bg-white text-[#050B14] px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]"
         >
-          Start Your Free Trial <ArrowUpRight size={20} />
+          {t('auth.signupTitle')} <ArrowUpRight size={20} />
         </Link>
       </section>
     </div>

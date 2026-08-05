@@ -4,11 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { CookieDisclaimer } from '../components/CookieDisclaimer';
+import { useLanguage } from '../context/LanguageContext';
 
 const PublicLayout = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -68,13 +70,13 @@ const PublicLayout = () => {
               to="/login"
               className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
             >
-              Sign In
+              {t('auth.login')}
             </Link>
             <Link
               to="/signup"
               className="text-sm font-medium bg-white text-[#050B14] px-5 py-2.5 rounded-full hover:bg-slate-200 transition-colors shadow-lg shadow-white/10"
             >
-              Book a Demo
+              {t('auth.signupTitle')}
             </Link>
           </div>
 
@@ -115,13 +117,13 @@ const PublicLayout = () => {
                 to="/login"
                 className="text-xl font-medium text-slate-300 hover:text-white"
               >
-                Sign In
+                {t('auth.login')}
               </Link>
               <Link
                 to="/signup"
                 className="text-xl font-medium bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-500 transition-colors mx-auto mt-4"
               >
-                Book a Demo
+                {t('auth.signupTitle')}
               </Link>
             </nav>
           </motion.div>
