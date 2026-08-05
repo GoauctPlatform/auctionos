@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { AuthService } from '../../services/auth.service';
 import { Shield, Zap, CheckCircle, AlertTriangle, HardDrive, Star, Lock } from 'lucide-react';

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Box, IconButton, Typography, CircularProgress, Chip } from '@mui/material';
+import { Box, IconButton, Typography, CircularProgress, Chip, ToggleButtonGroup, ToggleButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import ViewListIcon from '@mui/icons-material/ViewList';
+import ViewModuleIcon from '@mui/icons-material/ViewModule';
 import { AuctionService } from '../../services/auction.service';
 import { AuctionEvent } from '../../types';
 import GavelIcon from '@mui/icons-material/Gavel';
@@ -37,6 +39,7 @@ interface ClientAuctionGroupListProps {
 export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ date, type, filters, onClose }) => {
     const [auctions, setAuctions] = useState<AuctionEvent[]>([]);
     const [loading, setLoading] = useState(true);
+    const [viewMode, setViewMode] = useState<'list' | 'cards'>('list');
 
     useEffect(() => {
         const fetchEvents = async () => {
@@ -89,7 +92,21 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                         </div>
                     </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-4">
+                    <ToggleButtonGroup
+                        value={viewMode}
+                        exclusive
+                        onChange={(e, newMode) => newMode && setViewMode(newMode)}
+                        size="small"
+                        className="bg-slate-100 dark:bg-slate-800"
+                    >
+                        <ToggleButton value="list" aria-label="list view" className="dark:text-slate-300">
+                            <ViewListIcon fontSize="small" />
+                        </ToggleButton>
+                        <ToggleButton value="cards" aria-label="cards view" className="dark:text-slate-300">
+                            <ViewModuleIcon fontSize="small" />
+                        </ToggleButton>
+                    </ToggleButtonGroup>
                     <IconButton onClick={onClose} size="small" title="Close" className="text-slate-500 hover:text-red-500 transition-colors">
                         <CloseIcon />
                     </IconButton>
@@ -109,59 +126,112 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                         <Typography variant="body2">Try adjusting your filters</Typography>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
-                        {auctions.map(auction => (
-                            <div 
-                                key={auction.id || auction.auction_id}
-                                onClick={() => handleSelect(auction)}
-                                className="group relative bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500/50 cursor-pointer transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
-                            >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                
-                                <div className="absolute -bottom-4 -right-4 opacity-[0.03] dark:opacity-[0.05] pointer-events-none group-hover:scale-110 transition-transform duration-500">
-                                    <img 
-                                        src={`https://raw.githubusercontent.com/ahuseyn/state-icons/master/icons/${getStateCode(auction.state || '')}.svg`} 
-                                        alt={auction.state || 'State'} 
-                                        className="w-48 h-48 object-contain filter grayscale dark:invert"
-                                    />
-                                </div>
-                                
-                                <div className="relative z-10 flex justify-between items-start mb-4">
-                                    <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 shrink-0">
-                                        <GavelIcon fontSize="small" />
+                    <>
+                        {viewMode === 'cards' ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
+                                {auctions.map(auction => (
+                                    <div 
+                                        key={auction.id || auction.auction_id}
+                                        onClick={() => handleSelect(auction)}
+                                        className="group relative bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500/50 cursor-pointer transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
+                                    >
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        
+                                        <div className="absolute -bottom-4 -right-4 opacity-[0.03] dark:opacity-[0.05] pointer-events-none group-hover:scale-110 transition-transform duration-500">
+                                            <img 
+                                                src={`https://raw.githubusercontent.com/ahuseyn/state-icons/master/icons/${getStateCode(auction.state || '')}.svg`} 
+                                                alt={auction.state || 'State'} 
+                                                className="w-48 h-48 object-contain filter grayscale dark:invert"
+                                            />
+                                        </div>
+                                        
+                                        <div className="relative z-10 flex justify-between items-start mb-4">
+                                            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 shrink-0">
+                                                <GavelIcon fontSize="small" />
+                                            </div>
+                                            {auction.property_count ? (
+                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                                                    <MapsHomeWorkIcon className="text-[14px] text-slate-500 dark:text-slate-400" />
+                                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                        {auction.property_count} Prop{auction.property_count !== 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                        
+                                        <Typography variant="subtitle1" className="relative z-10 font-bold text-slate-800 dark:text-white leading-tight mb-2 line-clamp-2">
+                                            {auction.title || `Auction #${auction.id || auction.auction_id}`}
+                                        </Typography>
+                                        
+                                        <Typography variant="body2" className="relative z-10 text-slate-500 dark:text-slate-400 mb-2 line-clamp-1">
+                                            {auction.county ? `${auction.county} County` : ''} 
+                                            {auction.state ? `, ${getStateCode(auction.state)}` : ''}
+                                        </Typography>
+                                        
+                                        <Typography variant="caption" className="relative z-10 text-slate-400 dark:text-slate-500 mb-4 block">
+                                            {new Date(auction.auction_date || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {auction.tax_status || 'Live Auction'}
+                                        </Typography>
+                                        
+                                        <div className="relative z-10 mt-auto pt-4 border-t border-slate-100 dark:border-slate-800/50 flex justify-between items-center">
+                                            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline">
+                                                View Workspace &rarr;
+                                            </span>
+                                            <Chip 
+                                                label={auction.status || 'Scheduled'} 
+                                                size="small" 
+                                                className="h-6 text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                            />
+                                        </div>
                                     </div>
-                                    {auction.property_count ? (
-                                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                                            <MapsHomeWorkIcon className="text-[14px] text-slate-500 dark:text-slate-400" />
-                                            <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                {auction.property_count} Prop{auction.property_count !== 1 ? 's' : ''}
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="flex flex-col gap-3 pb-20">
+                                {auctions.map(auction => (
+                                    <div 
+                                        key={auction.id || auction.auction_id}
+                                        onClick={() => handleSelect(auction)}
+                                        className="group bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500/50 cursor-pointer transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                                    >
+                                        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center flex-1 min-w-0">
+                                            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 shrink-0">
+                                                <GavelIcon fontSize="small" />
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <Typography variant="subtitle2" className="font-bold text-slate-800 dark:text-white leading-tight truncate">
+                                                    {auction.title || `Auction #${auction.id || auction.auction_id}`}
+                                                </Typography>
+                                                <Typography variant="caption" className="text-slate-500 dark:text-slate-400 truncate block mt-1">
+                                                    {auction.county ? `${auction.county} County, ` : ''} {getStateCode(auction.state || '')}
+                                                    <span className="mx-2">•</span>
+                                                    {new Date(auction.auction_date || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                </Typography>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-4 shrink-0 mt-3 md:mt-0">
+                                            {auction.property_count ? (
+                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                                                    <MapsHomeWorkIcon className="text-[14px] text-slate-500 dark:text-slate-400" />
+                                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                        {auction.property_count} Prop{auction.property_count !== 1 ? 's' : ''}
+                                                    </span>
+                                                </div>
+                                            ) : null}
+                                            <Chip 
+                                                label={auction.status || 'Scheduled'} 
+                                                size="small" 
+                                                className="h-6 text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
+                                            />
+                                            <span className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline hidden md:inline-block ml-2">
+                                                View &rarr;
                                             </span>
                                         </div>
-                                    ) : null}
-                                </div>
-                                
-                                <Typography variant="subtitle1" className="relative z-10 font-bold text-slate-800 dark:text-white leading-tight mb-2 line-clamp-2">
-                                    {auction.title || `Auction #${auction.id || auction.auction_id}`}
-                                </Typography>
-                                
-                                <Typography variant="body2" className="relative z-10 text-slate-500 dark:text-slate-400 mb-4 line-clamp-1">
-                                    {auction.county ? `${auction.county} County` : ''} 
-                                    {auction.state ? `, ${getStateCode(auction.state)}` : ''}
-                                </Typography>
-                                
-                                <div className="relative z-10 mt-auto pt-4 border-t border-slate-100 dark:border-slate-800/50 flex justify-between items-center">
-                                    <span className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline">
-                                        View Workspace &rarr;
-                                    </span>
-                                    <Chip 
-                                        label={auction.status || 'Scheduled'} 
-                                        size="small" 
-                                        className="h-6 text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
-                                    />
-                                </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>

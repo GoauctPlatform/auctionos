@@ -25,6 +25,7 @@
     "loginSubtitle": "Sign in to your GoAuct account",
     "email": "Email address",
     "password": "Password",
+    "rememberMe": "Remember me",
     "forgotPassword": "Forgot password?",
     "noAccount": "Don't have an account?",
     "signUp": "Sign up",

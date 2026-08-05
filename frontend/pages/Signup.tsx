@@ -4,6 +4,8 @@ import { AuthService } from '../services/auth.service';
 import { API_URL } from '../services/httpClient';
 import { useAuth } from '../context/AuthContext';
 
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+
 export const Signup: React.FC = () => {
     const navigate = useNavigate();
     const { login: authLogin } = useAuth();
@@ -101,6 +103,9 @@ export const Signup: React.FC = () => {
             </div>
 
             <div className="relative z-10 w-full max-w-md">
+                <div className="absolute top-0 right-0 -mt-12">
+                    <LanguageSwitcher />
+                </div>
                 <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
 
                     {/* Header Gradient */}

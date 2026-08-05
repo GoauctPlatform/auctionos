@@ -11,6 +11,7 @@ import { RealtorTaskService, InvestorTaskService, Task } from '../../services/re
 import { AuthService } from '../../services/auth.service';
 import { AuctionEvent, Property } from '../../types';
 import { useCompany } from '../../context/CompanyContext';
+import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
 import { MapDashboard } from '../../components/widgets/MapDashboard';
 import { StatCounterWidget } from '../../components/widgets/StatCounterWidget';
@@ -879,7 +880,7 @@ export const ClientWorkbench: React.FC = () => {
         h,
         zIndex: nextZ,
         isMinimized: false,
-        isMaximized: (type === 'auction_details' || type === 'auction_group' || type === 'property_details'),
+        isMaximized: viewportW < 768 || (type === 'auction_details' || type === 'auction_group' || type === 'property_details'),
         data,
       };
       return [...prev, newWin];
@@ -2763,6 +2764,12 @@ export const ClientWorkbench: React.FC = () => {
               {Math.round(zoomScale * 100)}%
             </button>
           </div>
+          <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
+          
+          <div className="flex items-center">
+            <LanguageSwitcher />
+          </div>
+
           <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
 
           {/* Notification Bell */}
