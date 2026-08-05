@@ -42,6 +42,7 @@ import TermsOfServicePage from '../TermsOfServicePage';
 import { useTour } from '../../context/TourContext';
 import { CompanySelector } from '../../components/CompanySelector';
 import { TrainingPage, CommunityPage, GroupsPage } from './EcosystemPages';
+import { AffiliateDashboard } from './AffiliateDashboard';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, PieChart, Pie, Cell
@@ -140,7 +141,7 @@ interface Widget {
 
 interface OverlayWindow {
   id: string;
-  type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'auction_details' | 'auction_group' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy';
+  type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'auction_details' | 'auction_group' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy' | 'affiliate_dashboard';
   title: string;
   x: number;
   y: number;
@@ -3552,6 +3553,11 @@ export const ClientWorkbench: React.FC = () => {
                     <ActivityLogsPage />
                   </div>
                 )}
+                {w.type === 'affiliate_dashboard' && (
+                  <div className="size-full overflow-y-auto no-scrollbar scrollbar-none bg-white dark:bg-sol-base03">
+                    <AffiliateDashboard />
+                  </div>
+                )}
                 {w.type === 'billings_and_plans' && (
                   <div className="p-6 dark:bg-sol-base03 min-h-full">
                     <BillingPage />
@@ -3648,7 +3654,8 @@ export const ClientWorkbench: React.FC = () => {
                 { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
                 { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
                 { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-purple-400 text-purple-500' },
-                { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
+                { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' },
+                { id: 'affiliate_dashboard', label: 'Partners & Affiliates', icon: Users, color: 'hover:text-pink-400 text-pink-500' }
               ].map(item => {
                 const Icon = item.icon;
                 const isOpen = item.id === 'workbench_home' ? false : overlayWindows.some(w => w.type === item.id || (w.type === 'auction_details' && item.id === 'live_auctions'));
@@ -3674,7 +3681,7 @@ export const ClientWorkbench: React.FC = () => {
                           focusOverlayWindow(match.id);
                         }
                       } else {
-                        openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : '⚔️ Field Task Missions');
+                        openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : item.id === 'affiliate_dashboard' ? '🤝 Affiliate Dashboard' : '⚔️ Field Task Missions');
                       }
                     }}
                     className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 ${item.color} ${isOpen ? 'bg-slate-800 border border-slate-700' : 'bg-transparent'} ${isMin ? 'opacity-50' : ''}`}
