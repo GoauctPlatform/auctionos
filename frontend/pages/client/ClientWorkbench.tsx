@@ -822,7 +822,7 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const openOverlayWindow = (
-    type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'auction_details' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy',
+    type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'auction_details' | 'auction_group' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy' | 'affiliate_dashboard',
     title: string,
     data?: any
   ) => {

@@ -23,10 +23,11 @@ interface MapPropertySearchLayoutProps {
     hasActiveFilters: boolean;
     onOpenPropertyDetails?: (propertyId: string | number, parcelId: string) => void;
     onFilterChange?: (filters: PropertyFilterParams) => void;
+    selectedId?: string | number | null;
 }
 
 // Controller to handle automatic map bounds based on properties
-const MapBoundsController = ({ properties, activeState, activeCounty, geocodedProps, selectedId }: { properties: any[], activeState: string | undefined, activeCounty: string | undefined, geocodedProps: Record<string, {lat: number, lng: number}>, selectedId: string | number | null }) => {
+const MapBoundsController = ({ properties, activeState, activeCounty, geocodedProps, selectedId }: { properties: any[], activeState: string | undefined, activeCounty: string | undefined, geocodedProps: Record<string, {lat: number, lng: number}>, selectedId?: string | number | null }) => {
     const map = useMap();
     const boundsTimeout = useRef<any>(null);
 

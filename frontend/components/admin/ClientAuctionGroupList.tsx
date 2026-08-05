@@ -149,11 +149,11 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 shrink-0">
                                                 <GavelIcon fontSize="small" />
                                             </div>
-                                            {auction.property_count ? (
+                                            {auction.properties_count ? (
                                                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                                                     <MapsHomeWorkIcon className="text-[14px] text-slate-500 dark:text-slate-400" />
                                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                        {auction.property_count} Prop{auction.property_count !== 1 ? 's' : ''}
+                                                        {auction.properties_count} Prop{auction.properties_count !== 1 ? 's' : ''}
                                                     </span>
                                                 </div>
                                             ) : null}
@@ -210,11 +210,11 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                         </div>
                                         
                                         <div className="flex items-center gap-4 shrink-0 mt-3 md:mt-0">
-                                            {auction.property_count ? (
-                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                                                    <MapsHomeWorkIcon className="text-[14px] text-slate-500 dark:text-slate-400" />
-                                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                        {auction.property_count} Prop{auction.property_count !== 1 ? 's' : ''}
+                                            {auction.properties_count ? (
+                                                <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                                                    <MapsHomeWorkIcon className="text-[12px] text-slate-400" />
+                                                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                                                        {auction.properties_count} Prop{auction.properties_count !== 1 ? 's' : ''}
                                                     </span>
                                                 </div>
                                             ) : null}
