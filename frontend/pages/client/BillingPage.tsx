@@ -410,20 +410,13 @@ const BillingPage: React.FC = () => {
         </div>
         
         <div className="shrink-0 w-full md:w-auto">
-          {data?.plan_type === 'trial' ? (
-            <div className="bg-white/60 dark:bg-slate-800/60 p-4 rounded-xl border border-blue-200 dark:border-blue-800 text-center text-sm font-semibold text-blue-900 dark:text-blue-200">
-              <span className="material-symbols-outlined block text-3xl mb-1 text-blue-400">lock</span>
-              Upgrade to a paid plan<br/>to unlock Affiliate Dashboard
-            </div>
-          ) : (
-            <Link
-              to="/client/affiliate"
-              className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95"
-            >
-              <span className="material-symbols-outlined">dashboard</span>
-              Go to Affiliate Dashboard
-            </Link>
-          )}
+          <Link
+            to="/client/affiliate"
+            className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+          >
+            <span className="material-symbols-outlined">dashboard</span>
+            Go to Affiliate Dashboard
+          </Link>
         </div>
       </div>
 

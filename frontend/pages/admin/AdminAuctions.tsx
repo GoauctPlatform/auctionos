@@ -14,11 +14,11 @@ import { PropertyService } from '../../services/property.service';
 import { RedemptionIntelligenceBoard } from '../../components/property/RedemptionIntelligenceBoard';
 
 interface AdminAuctionsProps {
-    defaultTab?: 'auctions' | 'properties' | 'broadcasts' | 'users';
+    defaultTab?: 'auctions' | 'properties';
 }
 
 export const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auctions' }) => {
-    const [activeTab, setActiveTab] = useState<'auctions' | 'properties' | 'broadcasts' | 'users'>(defaultTab as any);
+    const [activeTab, setActiveTab] = useState<'auctions' | 'properties'>(defaultTab as any);
     const [filters, setFilters] = useState<AuctionFilterParams>({});
     const [propertyFilters, setPropertyFilters] = useState<PropertyFilterParams>(() => {
         try {
@@ -82,8 +82,6 @@ export const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auct
             <div className="flex flex-wrap gap-2 mb-6 border-b border-slate-200 dark:border-slate-700 overflow-x-auto">
                 <TabButton active={activeTab === 'auctions'} onClick={() => setActiveTab('auctions')} label="Auctions Dashboard" />
                 <TabButton active={activeTab === 'properties'} onClick={() => setActiveTab('properties')} label="Property Manager" />
-                <TabButton active={activeTab === 'broadcasts'} onClick={() => setActiveTab('broadcasts')} label="System Broadcasts" />
-                <TabButton active={activeTab === 'users'} onClick={() => setActiveTab('users')} label="User Management" />
             </div>
 
             {activeTab === 'auctions' && (
@@ -118,15 +116,7 @@ export const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auct
                 </div>
             )}
 
-            {activeTab === 'broadcasts' && (
-                <div className="max-w-3xl mx-auto">
-                    <SystemAnnouncementForm />
-                </div>
-            )}
 
-            {activeTab === 'users' && (
-                <UserList />
-            )}
         </div>
     );
 };

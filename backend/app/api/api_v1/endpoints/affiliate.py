@@ -11,6 +11,7 @@ from app.models.affiliate import (
     AffiliateProfile, AffiliateReferral, AffiliateWithdrawal,
     AffiliateStatus, ReferralStatus, WithdrawalStatus, ClearanceStatus
 )
+from app.schemas.user import User as UserSchema
 from pydantic import BaseModel
 
 router = APIRouter()
@@ -26,6 +27,7 @@ class AffiliateProfileResponse(BaseModel):
     total_earnings: float
     available_balance: float
     created_at: datetime
+    user: Optional[UserSchema] = None
     
     class Config:
         orm_mode = True
@@ -229,7 +231,7 @@ def approve_withdrawal(
     if not withdrawal:
         raise HTTPException(status_code=404, detail="Withdrawal not found")
         
-    withdrawal.status = WithdrawalStatus.PROCESSED
+    withdrawal.status = WithdrawalStatus.PAID
     from datetime import timezone
     withdrawal.processed_at = datetime.now(timezone.utc)
     db.add(withdrawal)

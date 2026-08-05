@@ -146,12 +146,12 @@ export const CompanySelector: React.FC<CompanySelectorProps> = ({ compact = fals
                     onClick={() => setOpen(!open)}
                     className={`
                         group flex items-center gap-2 px-2.5 py-1.5 rounded-xl border transition-all duration-200
-                        bg-slate-50 dark:bg-slate-800/60 
+                        bg-white/70 dark:bg-slate-900/40 backdrop-blur-md shadow-sm
                         border-slate-200/80 dark:border-slate-700/60
-                        hover:bg-white dark:hover:bg-slate-800 
+                        hover:bg-white dark:hover:bg-slate-800/80 
                         hover:border-blue-300 dark:hover:border-blue-700/60
-                        hover:shadow-sm
-                        ${open ? 'bg-white dark:bg-slate-800 border-blue-400/60 dark:border-blue-600/60 shadow-sm' : ''}
+                        hover:shadow-md
+                        ${open ? 'bg-white dark:bg-slate-800/80 border-blue-400/60 dark:border-blue-600/60 shadow-md ring-2 ring-blue-500/20' : ''}
                     `}
                 >
                     {/* Avatar */}

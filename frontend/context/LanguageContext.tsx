@@ -14,13 +14,6 @@ const dicts: Record<Language, Record<string, any>> = {
 };
 
 function getInitialLanguage(): Language {
-  try {
-    const saved = localStorage.getItem(STORAGE_KEY) as Language | null;
-    if (saved && ['en', 'es', 'pt'].includes(saved)) return saved;
-  } catch {}
-  const browserLang = (navigator.language || '').toLowerCase();
-  if (browserLang.startsWith('pt')) return 'pt';
-  if (browserLang.startsWith('es')) return 'es';
   return 'en';
 }
 

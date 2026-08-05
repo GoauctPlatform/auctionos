@@ -92,7 +92,7 @@ export const AdminAffiliates: React.FC = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-900/50 text-[10px] uppercase tracking-widest text-slate-500 font-bold border-b border-slate-100 dark:border-slate-800">
-              <th className="p-4">User ID</th>
+              <th className="p-4">Partner / User</th>
               <th className="p-4">Code</th>
               <th className="p-4">Status</th>
               <th className="p-4">Earnings / Bal</th>
@@ -107,7 +107,19 @@ export const AdminAffiliates: React.FC = () => {
             ) : (
               affiliates.map(aff => (
                 <tr key={aff.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                  <td className="p-4 font-bold">{aff.user_id}</td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="size-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-black text-xs shrink-0">
+                        {aff.user ? (aff.user.full_name || aff.user.email).charAt(0).toUpperCase() : aff.user_id}
+                      </div>
+                      <div>
+                        <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                          {aff.user ? aff.user.full_name || <span className="text-slate-400 italic">No name</span> : `User ID: ${aff.user_id}`}
+                        </div>
+                        {aff.user && <div className="text-xs text-slate-500 dark:text-slate-400">{aff.user.email}</div>}
+                      </div>
+                    </div>
+                  </td>
                   <td className="p-4 font-mono text-blue-600">{aff.affiliate_code}</td>
                   <td className="p-4">
                     <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${
@@ -165,7 +177,7 @@ export const AdminAffiliates: React.FC = () => {
                   </td>
                   <td className="p-4">
                     <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${
-                      w.status === 'processed' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'
+                      w.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'
                     }`}>
                       {w.status}
                     </span>

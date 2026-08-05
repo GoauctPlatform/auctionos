@@ -2754,13 +2754,7 @@ export const ClientWorkbench: React.FC = () => {
           {/* Company Context Selector inside the Header */}
           <CompanySelector compact />
 
-          <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
-          
-          <div className="flex items-center">
-            <LanguageSwitcher />
-          </div>
 
-          <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
 
           {/* Notification Bell */}
           <div
