@@ -825,7 +825,7 @@ export const ClientWorkbench: React.FC = () => {
     title: string,
     data?: any
   ) => {
-    let id = type;
+    let id: string = type;
     if (type === 'property_details') id = `prop_details_${data?.propertyId}`;
     if (type === 'auction_details') id = `auction_details_${data?.eventData?.id || data?.eventData?.auction_id || Date.now()}`;
     if (type === 'auction_group') id = `auction_group_${data?.date}_${data?.type}`;

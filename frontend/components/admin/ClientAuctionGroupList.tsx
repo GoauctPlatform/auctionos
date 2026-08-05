@@ -65,7 +65,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
         window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
             detail: {
                 type: 'auction_details',
-                title: `🔨 Auction: ${evt.title || 'Workspace'}`,
+                title: `🔨 Auction: ${evt.name || 'Workspace'}`,
                 data: { eventData: evt }
             }
         }));
@@ -131,7 +131,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
                                 {auctions.map(auction => (
                                     <div 
-                                        key={auction.id || auction.auction_id}
+                                        key={auction.id || (auction as any).auction_id}
                                         onClick={() => handleSelect(auction)}
                                         className="group relative bg-white dark:bg-slate-900 rounded-2xl p-5 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-lg hover:border-blue-400 dark:hover:border-blue-500/50 cursor-pointer transition-all duration-300 transform hover:-translate-y-1 overflow-hidden"
                                     >
@@ -160,7 +160,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                         </div>
                                         
                                         <Typography variant="subtitle1" className="relative z-10 font-bold text-slate-800 dark:text-white leading-tight mb-2 line-clamp-2">
-                                            {auction.title || `Auction #${auction.id || auction.auction_id}`}
+                                            {auction.name || `Auction #${auction.id || (auction as any).auction_id}`}
                                         </Typography>
                                         
                                         <Typography variant="body2" className="relative z-10 text-slate-500 dark:text-slate-400 mb-2 line-clamp-1">
@@ -177,7 +177,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                                 View Workspace &rarr;
                                             </span>
                                             <Chip 
-                                                label={auction.status || 'Scheduled'} 
+                                                label={(auction as any).status || 'Scheduled'} 
                                                 size="small" 
                                                 className="h-6 text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
                                             />
@@ -189,7 +189,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                             <div className="flex flex-col gap-3 pb-20">
                                 {auctions.map(auction => (
                                     <div 
-                                        key={auction.id || auction.auction_id}
+                                        key={auction.id || (auction as any).auction_id}
                                         onClick={() => handleSelect(auction)}
                                         className="group bg-white dark:bg-slate-900 rounded-xl p-4 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md hover:border-blue-400 dark:hover:border-blue-500/50 cursor-pointer transition-all duration-200 flex flex-col md:flex-row md:items-center justify-between gap-4"
                                     >
@@ -199,7 +199,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                             </div>
                                             <div className="min-w-0 flex-1">
                                                 <Typography variant="subtitle2" className="font-bold text-slate-800 dark:text-white leading-tight truncate">
-                                                    {auction.title || `Auction #${auction.id || auction.auction_id}`}
+                                                    {auction.name || `Auction #${auction.id || (auction as any).auction_id}`}
                                                 </Typography>
                                                 <Typography variant="caption" className="text-slate-500 dark:text-slate-400 truncate block mt-1">
                                                     {auction.county ? `${auction.county} County, ` : ''} {getStateCode(auction.state || '')}
@@ -219,7 +219,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                                 </div>
                                             ) : null}
                                             <Chip 
-                                                label={auction.status || 'Scheduled'} 
+                                                label={(auction as any).status || 'Scheduled'} 
                                                 size="small" 
                                                 className="h-6 text-[10px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300"
                                             />
