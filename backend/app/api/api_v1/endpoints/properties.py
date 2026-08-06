@@ -1654,8 +1654,9 @@ async def get_property_streetview(
     no_image_path = os.path.join(streetview_dir, f"{parcel_id}_no_image.txt")
     
     # 2. Check cache
+    cors_headers = {"Access-Control-Allow-Origin": "*"}
     if os.path.exists(cached_path):
-        return FileResponse(cached_path, media_type="image/jpeg")
+        return FileResponse(cached_path, media_type="image/jpeg", headers=cors_headers)
         
     if os.path.exists(no_image_path):
         raise HTTPException(status_code=404, detail="Street View imagery not available at this location.")
@@ -1744,7 +1745,7 @@ async def get_property_streetview(
         if s_res.status_code == 200:
             with open(cached_path, "wb") as f:
                 f.write(s_res.content)
-            return FileResponse(cached_path, media_type="image/jpeg")
+            return FileResponse(cached_path, media_type="image/jpeg", headers=cors_headers)
         else:
             raise HTTPException(status_code=500, detail=f"Google Static API returned status {s_res.status_code}")
     except Exception as e:

@@ -55,6 +55,7 @@ export const PropertyExportFlyer: React.FC<Props> = ({ property }) => {
                     <img 
                         src={svUrl || property.imageUrl || ""} 
                         alt="Property Street View" 
+                        crossOrigin="anonymous"
                         className="w-full h-full object-cover" 
                     />
                 ) : (
