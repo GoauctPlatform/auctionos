@@ -3359,6 +3359,7 @@ export const ClientWorkbench: React.FC = () => {
                         { label: 'Property Search', id: 'property_search', icon: Search },
                         { label: 'My Lists', id: 'my_lists', icon: Folder },
                         { label: 'Node Canvas', id: 'node_canvas', icon: Layers },
+                        { label: 'Field Missions', id: 'field_missions', icon: Gavel },
                       ].map(action => {
                         const Icon = action.icon;
                         return (
@@ -3405,9 +3406,12 @@ export const ClientWorkbench: React.FC = () => {
             {/* Desktop Icons Grid */}
             <div className="p-8 flex flex-wrap gap-8 items-start content-start size-full">
               {[
+                { id: 'map', label: 'US Heatmap', icon: MapIcon, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+                { id: 'smart_ai_finder', label: 'Smart AI Finder', icon: Brain, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-500/10' },
                 { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
                 { id: 'property_search', label: 'Property Search', icon: Search, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-500/10' },
                 { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10' },
+                { id: 'field_missions', label: 'Field Missions', icon: Gavel, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
                 { id: 'settings', label: 'Settings', icon: Settings, color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-500/10' },
               ].map(app => {
                 const Icon = app.icon;
