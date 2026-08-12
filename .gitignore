@@ -45,4 +45,6 @@ tmp/
 # Documentation isolation
 DOCUMENTATION/
 DOCUMENTATION_COMPLETE.md
-
+# Database Backups
+*.dump
+backend/backups/

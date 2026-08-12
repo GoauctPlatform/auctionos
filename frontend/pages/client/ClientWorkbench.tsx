@@ -3359,7 +3359,6 @@ export const ClientWorkbench: React.FC = () => {
                         { label: 'Property Search', id: 'property_search', icon: Search },
                         { label: 'My Lists', id: 'my_lists', icon: Folder },
                         { label: 'Node Canvas', id: 'node_canvas', icon: Layers },
-                        { label: 'Field Missions', id: 'field_missions', icon: Gavel },
                       ].map(action => {
                         const Icon = action.icon;
                         return (
@@ -3406,12 +3405,9 @@ export const ClientWorkbench: React.FC = () => {
             {/* Desktop Icons Grid */}
             <div className="p-8 flex flex-wrap gap-8 items-start content-start size-full">
               {[
-                { id: 'map', label: 'US Heatmap', icon: MapIcon, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
-                { id: 'smart_ai_finder', label: 'Smart AI Finder', icon: Brain, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-500/10' },
                 { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
                 { id: 'property_search', label: 'Property Search', icon: Search, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-500/10' },
                 { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10' },
-                { id: 'field_missions', label: 'Field Missions', icon: Gavel, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
                 { id: 'settings', label: 'Settings', icon: Settings, color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-500/10' },
               ].map(app => {
                 const Icon = app.icon;
@@ -3651,12 +3647,9 @@ export const ClientWorkbench: React.FC = () => {
             <div className="flex items-center gap-3 shrink-0">
               {[
                 { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
-                { id: 'map', label: 'US Heatmap', icon: MapIcon, color: 'hover:text-indigo-400 text-indigo-500' },
-                { id: 'smart_ai_finder', label: 'Smart AI Finder', icon: Brain, color: 'hover:text-purple-400 text-purple-500' },
                 { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
                 { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
-                { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-purple-400 text-purple-500' },
-                { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
+                { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-purple-400 text-purple-500' }
               ].map(item => {
                 const Icon = item.icon;
                 const isOpen = item.id === 'workbench_home' ? false : overlayWindows.some(w => w.type === item.id || (w.type === 'auction_details' && item.id === 'live_auctions'));
