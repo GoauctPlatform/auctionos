@@ -314,7 +314,10 @@ class ImportService:
             # TRIGGER EVENT: Link imported properties to their auctions automatically
             try:
                 from app.tasks import resolve_property_auction_links_task
-                resolve_property_auction_links_task.delay(job_id)
+                if redis:
+                    resolve_property_auction_links_task.delay(job_id)
+                else:
+                    resolve_property_auction_links_task(job_id)
             except Exception as te:
                 logger.warning(f"Could not trigger auction resolution task: {te}")
             
