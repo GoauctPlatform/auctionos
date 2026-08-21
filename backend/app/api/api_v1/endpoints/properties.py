@@ -713,7 +713,7 @@ def get_redemption_info(
     if auction_type:
         # Check if either one contains the other (e.g. "Tax Deed" vs "Deed")
         at_lower = auction_type.lower()
-        matches = [d for d in matches if d['type'].lower() in at_lower or at_lower in d['type'].lower()]
+        matches = [d for d in matches if d.get('type') and (d['type'].lower() in at_lower or at_lower in d['type'].lower())]
         
     return {
         "state": state,
