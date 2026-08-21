@@ -57,6 +57,8 @@ export interface AuctionEvent {
   list_link?: string;
   purchase_info_link?: string;
   properties_count?: number;
+  avg_deal_score?: number;
+  deal_rating?: string;
   created_at?: string;
   updated_at?: string;
 }

@@ -9,6 +9,8 @@ import { AuctionEvent } from '../../types';
 import GavelIcon from '@mui/icons-material/Gavel';
 import MapsHomeWorkIcon from '@mui/icons-material/MapsHomeWork';
 import TodayIcon from '@mui/icons-material/Today';
+import PlaceIcon from '@mui/icons-material/Place';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const STATE_CODE_MAP: Record<string, string> = {
     'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
@@ -149,14 +151,26 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 shrink-0">
                                                 <GavelIcon fontSize="small" />
                                             </div>
-                                            {auction.properties_count ? (
+                                            {(auction.properties_count || auction.parcels_count) ? (
                                                 <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                                                     <MapsHomeWorkIcon className="text-[14px] text-slate-500 dark:text-slate-400" />
                                                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                        {auction.properties_count} Prop{auction.properties_count !== 1 ? 's' : ''}
+                                                        {auction.live_available_count !== undefined ? `${auction.live_available_count} / ` : ''}{(auction.properties_count || auction.parcels_count)} Prop{(auction.properties_count || auction.parcels_count) !== 1 ? 's' : ''}
                                                     </span>
                                                 </div>
                                             ) : null}
+                                            {auction.deal_rating && (
+                                                <Chip 
+                                                    label={`Score: ${auction.deal_rating}`} 
+                                                    size="small" 
+                                                    className={`ml-2 h-7 font-black tracking-wider ${
+                                                        auction.deal_rating.startsWith('A') ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' :
+                                                        auction.deal_rating.startsWith('B') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 border-blue-200 dark:border-blue-800' :
+                                                        auction.deal_rating.startsWith('C') ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border-amber-200 dark:border-amber-800' :
+                                                        'bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-400 border-slate-200 dark:border-slate-800'
+                                                    }`}
+                                                />
+                                            )}
                                         </div>
                                         
                                         <Typography variant="subtitle1" className="relative z-10 font-bold text-slate-800 dark:text-white leading-tight mb-2 line-clamp-2">
@@ -168,9 +182,26 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                             {auction.state ? `, ${getStateCode(auction.state)}` : ''}
                                         </Typography>
                                         
-                                        <Typography variant="caption" className="relative z-10 text-slate-400 dark:text-slate-500 mb-4 block">
+                                        <Typography variant="caption" className="relative z-10 text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1">
+                                            <TodayIcon fontSize="inherit" />
                                             {new Date(auction.auction_date || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {auction.tax_status || 'Live Auction'}
                                         </Typography>
+
+                                        {auction.location && (
+                                            <Typography variant="caption" className="relative z-10 text-slate-500 dark:text-slate-400 mb-2 flex items-start gap-1 line-clamp-2">
+                                                <PlaceIcon fontSize="inherit" className="mt-0.5" />
+                                                {auction.location}
+                                            </Typography>
+                                        )}
+
+                                        {auction.notes && (
+                                            <Typography variant="caption" className="relative z-10 text-slate-500 dark:text-slate-400 mb-4 flex items-start gap-1 line-clamp-2 italic">
+                                                <InfoOutlinedIcon fontSize="inherit" className="mt-0.5" />
+                                                {auction.notes}
+                                            </Typography>
+                                        )}
+                                        
+                                        {!auction.notes && !auction.location && <div className="mb-4"></div>}
                                         
                                         <div className="relative z-10 mt-auto pt-4 border-t border-slate-100 dark:border-slate-800/50 flex justify-between items-center">
                                             <span className="text-xs font-bold text-blue-600 dark:text-blue-400 group-hover:underline">
@@ -201,20 +232,48 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                                 <Typography variant="subtitle2" className="font-bold text-slate-800 dark:text-white leading-tight truncate">
                                                     {auction.name || `Auction #${auction.id || (auction as any).auction_id}`}
                                                 </Typography>
-                                                <Typography variant="caption" className="text-slate-500 dark:text-slate-400 truncate block mt-1">
+                                                <Typography variant="caption" className="text-slate-500 dark:text-slate-400 truncate flex items-center gap-1 mt-1">
                                                     {auction.county ? `${auction.county} County, ` : ''} {getStateCode(auction.state || '')}
-                                                    <span className="mx-2">•</span>
+                                                    <span className="mx-1">•</span>
+                                                    <TodayIcon fontSize="inherit" />
                                                     {new Date(auction.auction_date || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {auction.tax_status && <><span className="mx-1">•</span>{auction.tax_status}</>}
                                                 </Typography>
+                                                {(auction.location || auction.notes) && (
+                                                    <div className="flex flex-col gap-0.5 mt-1">
+                                                        {auction.location && (
+                                                            <Typography variant="caption" className="text-slate-400 dark:text-slate-500 truncate flex items-center gap-1">
+                                                                <PlaceIcon fontSize="inherit" /> {auction.location}
+                                                            </Typography>
+                                                        )}
+                                                        {auction.notes && (
+                                                            <Typography variant="caption" className="text-slate-400 dark:text-slate-500 truncate flex items-center gap-1 italic">
+                                                                <InfoOutlinedIcon fontSize="inherit" /> {auction.notes}
+                                                            </Typography>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                         
                                         <div className="flex items-center gap-4 shrink-0 mt-3 md:mt-0">
-                                            {auction.properties_count ? (
+                                            {auction.deal_rating && (
+                                                <Chip 
+                                                    label={`Score: ${auction.deal_rating}`} 
+                                                    size="small" 
+                                                    className={`h-6 text-[10px] font-black uppercase tracking-wider ${
+                                                        auction.deal_rating.startsWith('A') ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' :
+                                                        auction.deal_rating.startsWith('B') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400' :
+                                                        auction.deal_rating.startsWith('C') ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400' :
+                                                        'bg-slate-100 text-slate-700 dark:bg-slate-900/40 dark:text-slate-400'
+                                                    }`}
+                                                />
+                                            )}
+                                            {(auction.properties_count || auction.parcels_count) ? (
                                                 <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                                                     <MapsHomeWorkIcon className="text-[12px] text-slate-400" />
                                                     <span className="text-[10px] font-bold text-slate-600 dark:text-slate-400">
-                                                        {auction.properties_count} Prop{auction.properties_count !== 1 ? 's' : ''}
+                                                        {auction.live_available_count !== undefined ? `${auction.live_available_count} / ` : ''}{(auction.properties_count || auction.parcels_count)} Prop{(auction.properties_count || auction.parcels_count) !== 1 ? 's' : ''}
                                                     </span>
                                                 </div>
                                             ) : null}
