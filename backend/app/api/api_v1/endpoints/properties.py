@@ -77,7 +77,7 @@ def read_properties(
         where_clauses.append("p.state ILIKE :state")
         params["state"] = f"%{state}%"
     if auction_id:
-        where_clauses.append("pah.auction_id = :auction_id")
+        where_clauses.append("(pah.auction_id = :auction_id OR ae_lookup.id = :auction_id)")
         params["auction_id"] = auction_id
     if auction_name:
         where_clauses.append("pah.auction_name ILIKE :auction_name")

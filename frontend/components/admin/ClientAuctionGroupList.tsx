@@ -50,17 +50,20 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
         const fetchEvents = async () => {
             setLoading(true);
             try {
-                const [response, favIds] = await Promise.all([
-                    AuctionService.getAuctionEvents({
-                        ...filters,
-                        startDate: date,
-                        endDate: date,
-                        tax_status: type
-                    }),
-                    AuctionService.getFavorites()
-                ]);
+                const response = await AuctionService.getAuctionEvents({
+                    ...filters,
+                    startDate: date,
+                    endDate: date,
+                    tax_status: type
+                });
                 setAuctions(response.items || []);
-                setFavorites(new Set(favIds || []));
+                
+                try {
+                    const favIds = await AuctionService.getFavorites();
+                    setFavorites(new Set(favIds || []));
+                } catch (favErr) {
+                    console.error('Failed to load favorites', favErr);
+                }
             } catch (err) {
                 console.error('Failed to load group auctions', err);
             } finally {
