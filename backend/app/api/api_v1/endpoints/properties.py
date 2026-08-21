@@ -1140,7 +1140,13 @@ def get_property(
                 """)
                 att_rows = db.execute(att_query, {"prop_id": prop_id_int, "user_id": current_user.id}).fetchall()
             
-            data["attachments"] = [dict(a._mapping) for a in att_rows]
+            from app.services.storage_service import storage_service
+            atts = []
+            for a in att_rows:
+                adict = dict(a._mapping)
+                adict["file_path"] = storage_service.get_presigned_url(adict["file_path"])
+                atts.append(adict)
+            data["attachments"] = atts
 
             # Check Media Monetization (Paywall)
             has_access = False
@@ -1184,6 +1190,7 @@ def get_property(
                 """)
                 realtor_media_rows = db.execute(realtor_media_query, {"prop_id": prop_id_int}).fetchall()
                 
+                from app.services.storage_service import storage_service
                 media_files = []
                 for row in realtor_media_rows:
                     paths = row[0].split(',') if row[0] else []
@@ -1191,7 +1198,7 @@ def get_property(
                         if p:
                             media_files.append({
                                 "name": os.path.basename(p),
-                                "url": p
+                                "url": storage_service.get_presigned_url(p)
                             })
                 data["media_files"] = media_files
                 data["media_unlocked"] = True
@@ -1301,6 +1308,16 @@ def get_property(
         pid = data.get("parcel_id") or data.get("id")
         if pid:
             data["gsi_url"] = f"{settings.API_V1_STR}/properties/{pid}/streetview"
+
+    # ── Presign public photos if they exist ──
+    public_photos = data.get("public_photos")
+    if public_photos:
+        from app.services.storage_service import storage_service
+        presigned = []
+        for p in public_photos.split(","):
+            if p:
+                presigned.append(storage_service.get_presigned_url(p.strip()))
+        data["public_photos"] = ",".join(presigned)
 
     return data
 

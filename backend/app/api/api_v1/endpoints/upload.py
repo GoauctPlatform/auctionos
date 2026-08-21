@@ -13,20 +13,7 @@ router = APIRouter()
 UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../../../../uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
-AWS_BUCKET_NAME = os.getenv("AWS_BUCKET_NAME")
-
-def get_s3_client():
-    if not all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_BUCKET_NAME]):
-        return None
-    return boto3.client(
-        's3',
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        region_name=AWS_REGION
-    )
+from app.services.storage_service import storage_service
 
 @router.post("/local")
 async def upload_local(
@@ -47,18 +34,15 @@ async def upload_local(
     unique_filename = f"{current_user.id}_{uuid4()}{file_ext}"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
     
-    size = 0
-    with open(file_path, "wb") as buffer:
-        while chunk := await file.read(1024 * 1024):
-            size += len(chunk)
-            if size > MAX_SIZE:
-                os.remove(file_path)
-                raise HTTPException(status_code=400, detail="File too large. Maximum size is 15MB.")
-            buffer.write(chunk)
+    s3_path = f"local-uploads/{unique_filename}"
+    try:
+        storage_service.upload_file(file, s3_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
             
-    # In a real setup, you might serve this statically or return a URL to a GET endpoint
-    file_url = f"/uploads/{unique_filename}"
-    return {"url": file_url, "filename": unique_filename, "status": "success"}
+    # Serve via presigned URL or direct path based on configuration
+    file_url = storage_service.get_presigned_url(s3_path)
+    return {"url": file_url, "filename": unique_filename, "s3_key": s3_path, "status": "success"}
 
 @router.get("/presigned-url")
 def get_presigned_url(
@@ -70,31 +54,19 @@ def get_presigned_url(
     Generate a presigned S3 URL for secure direct upload from the frontend.
     Requires AWS credentials to be configured in the backend environment.
     """
-    s3_client = get_s3_client()
-    if not s3_client:
-        raise HTTPException(status_code=501, detail="S3 is not configured on the server. Use /local upload instead.")
-        
     unique_filename = f"verifications/{current_user.id}_{uuid4()}_{filename}"
     
-    try:
-        presigned_url = s3_client.generate_presigned_url(
-            'put_object',
-            Params={
-                'Bucket': AWS_BUCKET_NAME,
-                'Key': unique_filename,
-                'ContentType': file_type,
-            },
-            ExpiresIn=3600  # 1 hour
-        )
-    except NoCredentialsError:
-        raise HTTPException(status_code=500, detail="Invalid AWS credentials.")
+    presigned_url = storage_service.get_presigned_upload_url(unique_filename, file_type)
+    if not presigned_url:
+        raise HTTPException(status_code=501, detail="S3 is not configured on the server.")
         
     # The final URL of the object once uploaded
-    file_url = f"https://{AWS_BUCKET_NAME}.s3.{AWS_REGION}.amazonaws.com/{unique_filename}"
+    file_url = storage_service.get_presigned_url(unique_filename)
     
     return {
         "presigned_url": presigned_url,
         "file_url": file_url,
         "filename": unique_filename,
+        "s3_key": unique_filename,
         "status": "success"
     }

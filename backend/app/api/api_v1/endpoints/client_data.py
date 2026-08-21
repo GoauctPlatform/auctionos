@@ -1191,7 +1191,8 @@ async def upload_attachment(
     file: UploadFile = File(...),
     current_user = Depends(deps.get_current_active_user)
 ) -> Any:
-    """Upload a file attachment for a property, stored locally."""
+    """Upload a file attachment for a property, stored in S3."""
+    from app.services.storage_service import storage_service
     # Validations
     MAX_SIZE = 10 * 1024 * 1024  # 10MB
     ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".doc", ".docx", ".txt", ".csv"}
@@ -1200,20 +1201,13 @@ async def upload_attachment(
     if file_ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=400, detail=f"File extension {file_ext} not allowed")
 
-    # Read a chunk to check size if possible or use file.size (FastAPI 0.100+)
-    # For compatibility, we'll check after upload or via content-length if available
-    
     unique_filename = f"{uuid4()}{file_ext}"
-    file_path = os.path.join(UPLOAD_DIR, unique_filename)
+    s3_path = f"attachments/{property_id}/{unique_filename}"
     
-    size = 0
-    with open(file_path, "wb") as buffer:
-        while content := file.file.read(1024 * 1024): # 1MB chunks
-            size += len(content)
-            if size > MAX_SIZE:
-                os.remove(file_path)
-                raise HTTPException(status_code=400, detail="File too large (Max 10MB)")
-            buffer.write(content)
+    try:
+        storage_service.upload_file(file, s3_path)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
         
     target_company = getattr(current_user, 'active_company_id', None) or getattr(current_user, 'company_id', None)
     
@@ -1222,7 +1216,8 @@ async def upload_attachment(
         company_id=target_company,
         property_id=property_id,
         filename=file.filename,
-        file_path=f"/uploads/{unique_filename}"
+        file_path=s3_path,
+        file_type=file.content_type or 'application/octet-stream'
     )
     db.add(attachment)
     db.commit()

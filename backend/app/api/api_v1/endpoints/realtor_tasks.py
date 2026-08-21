@@ -191,7 +191,8 @@ async def submit_task_evidence(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """Realtor submits photo evidence + GPS for a claimed task."""
-    import os, uuid, shutil
+    import os, uuid
+    from app.services.storage_service import storage_service
 
     task = db.execute(text("SELECT * FROM realtor_tasks WHERE id = :id"), {"id": task_id}).fetchone()
     if not task:
@@ -214,18 +215,17 @@ async def submit_task_evidence(
         distance = haversine_meters(submission_lat, submission_lng, task.latitude, task.longitude)
         geo_validated = distance <= (task.geo_radius_meters or 50)
 
-    # Save files using dynamically resolved local path
-    base_upload_dir = os.getenv("UPLOADS_DIR", os.path.join(os.getcwd(), "uploads"))
-    upload_dir = os.path.join(base_upload_dir, "tasks", str(task_id))
-    os.makedirs(upload_dir, exist_ok=True)
     saved_paths = []
     for f in files:
         ext = f.filename.split(".")[-1] if "." in f.filename else "jpg"
         fname = f"{uuid.uuid4()}.{ext}"
-        dest = os.path.join(upload_dir, fname)
-        with open(dest, "wb") as out:
-            shutil.copyfileobj(f.file, out)
-        saved_paths.append(f"/uploads/tasks/{task_id}/{fname}")
+        s3_path = f"tasks/{task_id}/{fname}"
+        
+        try:
+            storage_service.upload_file(f, s3_path)
+            saved_paths.append(s3_path)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Failed to upload {fname}: {str(e)}")
 
     # Insert submission record
     db.execute(text("""
