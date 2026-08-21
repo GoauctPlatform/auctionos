@@ -11,6 +11,8 @@ import MapsHomeWorkIcon from '@mui/icons-material/MapsHomeWork';
 import TodayIcon from '@mui/icons-material/Today';
 import PlaceIcon from '@mui/icons-material/Place';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import StarIcon from '@mui/icons-material/Star';
+import StarBorderIcon from '@mui/icons-material/StarBorder';
 
 const STATE_CODE_MAP: Record<string, string> = {
     'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
@@ -42,18 +44,23 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
     const [auctions, setAuctions] = useState<AuctionEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'list' | 'cards'>('list');
+    const [favorites, setFavorites] = useState<Set<number>>(new Set());
 
     useEffect(() => {
         const fetchEvents = async () => {
             setLoading(true);
             try {
-                const response = await AuctionService.getAuctionEvents({
-                    ...filters,
-                    startDate: date,
-                    endDate: date,
-                    tax_status: type
-                });
+                const [response, favIds] = await Promise.all([
+                    AuctionService.getAuctionEvents({
+                        ...filters,
+                        startDate: date,
+                        endDate: date,
+                        tax_status: type
+                    }),
+                    AuctionService.getFavorites()
+                ]);
                 setAuctions(response.items || []);
+                setFavorites(new Set(favIds || []));
             } catch (err) {
                 console.error('Failed to load group auctions', err);
             } finally {
@@ -71,6 +78,29 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                 data: { eventData: evt }
             }
         }));
+    };
+
+    const toggleFavorite = async (e: React.MouseEvent, auctionId: number) => {
+        e.stopPropagation();
+        try {
+            if (favorites.has(auctionId)) {
+                await AuctionService.removeFavorite(auctionId);
+                setFavorites(prev => {
+                    const next = new Set(prev);
+                    next.delete(auctionId);
+                    return next;
+                });
+            } else {
+                await AuctionService.addFavorite(auctionId);
+                setFavorites(prev => {
+                    const next = new Set(prev);
+                    next.add(auctionId);
+                    return next;
+                });
+            }
+        } catch (err) {
+            console.error('Failed to toggle favorite', err);
+        }
     };
 
     return (
@@ -151,19 +181,38 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 shrink-0">
                                                 <GavelIcon fontSize="small" />
                                             </div>
-                                            {(auction.properties_count || auction.parcels_count) ? (
-                                                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                                                    <MapsHomeWorkIcon className="text-[14px] text-slate-500 dark:text-slate-400" />
-                                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                                                        {auction.live_available_count !== undefined ? `${auction.live_available_count} / ` : ''}{(auction.properties_count || auction.parcels_count)} Prop{(auction.properties_count || auction.parcels_count) !== 1 ? 's' : ''}
-                                                    </span>
-                                                </div>
-                                            ) : null}
+                                            <div className="flex items-center gap-2">
+                                                {(auction.properties_count || auction.parcels_count) ? (
+                                                    <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                                                        <MapsHomeWorkIcon className="text-[14px] text-slate-500 dark:text-slate-400" />
+                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                                                            {auction.live_available_count !== undefined ? `${auction.live_available_count} / ` : ''}{(auction.properties_count || auction.parcels_count)} Prop{(auction.properties_count || auction.parcels_count) !== 1 ? 's' : ''}
+                                                        </span>
+                                                    </div>
+                                                ) : null}
+                                                <IconButton 
+                                                    size="small" 
+                                                    onClick={(e) => toggleFavorite(e, auction.id || (auction as any).auction_id)}
+                                                    className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700"
+                                                >
+                                                    {favorites.has(auction.id || (auction as any).auction_id) ? (
+                                                        <StarIcon fontSize="small" className="text-amber-400" />
+                                                    ) : (
+                                                        <StarBorderIcon fontSize="small" className="text-slate-400 dark:text-slate-500 hover:text-amber-400 transition-colors" />
+                                                    )}
+                                                </IconButton>
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="flex items-center mb-2">
+                                            <Typography variant="subtitle1" className="relative z-10 font-bold text-slate-800 dark:text-white leading-tight line-clamp-2">
+                                                {auction.name || `Auction #${auction.id || (auction as any).auction_id}`}
+                                            </Typography>
                                             {auction.deal_rating && (
                                                 <Chip 
                                                     label={`Score: ${auction.deal_rating}`} 
                                                     size="small" 
-                                                    className={`ml-2 h-7 font-black tracking-wider ${
+                                                    className={`ml-2 h-5 text-[9px] font-black tracking-wider ${
                                                         auction.deal_rating.startsWith('A') ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800' :
                                                         auction.deal_rating.startsWith('B') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 border-blue-200 dark:border-blue-800' :
                                                         auction.deal_rating.startsWith('C') ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 border-amber-200 dark:border-amber-800' :
@@ -172,10 +221,6 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                                 />
                                             )}
                                         </div>
-                                        
-                                        <Typography variant="subtitle1" className="relative z-10 font-bold text-slate-800 dark:text-white leading-tight mb-2 line-clamp-2">
-                                            {auction.name || `Auction #${auction.id || (auction as any).auction_id}`}
-                                        </Typography>
                                         
                                         <Typography variant="body2" className="relative z-10 text-slate-500 dark:text-slate-400 mb-2 line-clamp-1">
                                             {auction.county ? `${auction.county} County` : ''} 
@@ -228,10 +273,23 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                             <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-500 shrink-0">
                                                 <GavelIcon fontSize="small" />
                                             </div>
+                                            <IconButton 
+                                                size="small" 
+                                                onClick={(e) => toggleFavorite(e, auction.id || (auction as any).auction_id)}
+                                                className="shrink-0 -ml-2"
+                                            >
+                                                {favorites.has(auction.id || (auction as any).auction_id) ? (
+                                                    <StarIcon fontSize="small" className="text-amber-400" />
+                                                ) : (
+                                                    <StarBorderIcon fontSize="small" className="text-slate-400 dark:text-slate-500 hover:text-amber-400 transition-colors" />
+                                                )}
+                                            </IconButton>
                                             <div className="min-w-0 flex-1">
-                                                <Typography variant="subtitle2" className="font-bold text-slate-800 dark:text-white leading-tight truncate">
-                                                    {auction.name || `Auction #${auction.id || (auction as any).auction_id}`}
-                                                </Typography>
+                                                <div className="flex items-center">
+                                                    <Typography variant="subtitle2" className="font-bold text-slate-800 dark:text-white leading-tight truncate">
+                                                        {auction.name || `Auction #${auction.id || (auction as any).auction_id}`}
+                                                    </Typography>
+                                                </div>
                                                 <Typography variant="caption" className="text-slate-500 dark:text-slate-400 truncate flex items-center gap-1 mt-1">
                                                     {auction.county ? `${auction.county} County, ` : ''} {getStateCode(auction.state || '')}
                                                     <span className="mx-1">•</span>
