@@ -71,6 +71,15 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
             }
         };
         fetchEvents();
+        
+        const handleSync = (e: any) => {
+            if (e.detail) setFavorites(new Set(e.detail));
+        };
+        window.addEventListener('auction-favorites-updated', handleSync);
+        
+        return () => {
+            window.removeEventListener('auction-favorites-updated', handleSync);
+        };
     }, [date, type, filters]);
 
     const handleSelect = (evt: AuctionEvent) => {
@@ -91,6 +100,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                 setFavorites(prev => {
                     const next = new Set(prev);
                     next.delete(auctionId);
+                    window.dispatchEvent(new CustomEvent('auction-favorites-updated', { detail: Array.from(next) }));
                     return next;
                 });
             } else {
@@ -98,6 +108,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                 setFavorites(prev => {
                     const next = new Set(prev);
                     next.add(auctionId);
+                    window.dispatchEvent(new CustomEvent('auction-favorites-updated', { detail: Array.from(next) }));
                     return next;
                 });
             }

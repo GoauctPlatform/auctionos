@@ -36,12 +36,25 @@ export const ClientAuctionDetails: React.FC<ClientAuctionDetailsProps> = ({ even
     const [reconcileCount, setReconcileCount] = useState<number | null>(null);
     const [isFav, setIsFav] = React.useState(false);
 
-    const props = eventData?.extendedProps || {};
+    const isCalendarEvent = !!eventData?.extendedProps;
+    const props = isCalendarEvent ? eventData.extendedProps : (eventData || {});
     const auctionId = eventData?.id || props.id || props.auction_id;
-    const dateStr = eventData?.start ? new Date(eventData.start).toLocaleDateString(undefined, { timeZone: 'UTC' }) : '';
-    const rawDate = eventData?.startStr ? eventData.startStr.split('T')[0] : (eventData?.start ? new Date(eventData.start).toISOString().split('T')[0] : undefined);
-    const timeStr = eventData?.start ? new Date(eventData.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-    const cleanAuctionName = (eventData?.title || '').replace(/\(\d+\)$/, '').trim();
+    
+    let dateStr = '';
+    let rawDate = '';
+    let timeStr = '';
+    
+    if (isCalendarEvent) {
+        dateStr = eventData?.start ? new Date(eventData.start).toLocaleDateString(undefined, { timeZone: 'UTC' }) : '';
+        rawDate = eventData?.startStr ? eventData.startStr.split('T')[0] : (eventData?.start ? new Date(eventData.start).toISOString().split('T')[0] : undefined);
+        timeStr = eventData?.start ? new Date(eventData.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    } else {
+        rawDate = props.auction_date || '';
+        dateStr = rawDate ? new Date(rawDate + 'T00:00:00Z').toLocaleDateString(undefined, { timeZone: 'UTC' }) : '';
+        timeStr = props.time || '';
+    }
+    
+    const cleanAuctionName = (eventData?.title || props.name || '').replace(/\(\d+\)$/, '').trim();
 
     React.useEffect(() => {
         if (!auctionId) return;
