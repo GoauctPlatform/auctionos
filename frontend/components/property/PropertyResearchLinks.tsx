@@ -1,5 +1,5 @@
 import React from 'react';
-import { PropertyDetails as Property } from '../../types';
+import { Property } from '../../types';
 
 interface Props {
     property: Property;

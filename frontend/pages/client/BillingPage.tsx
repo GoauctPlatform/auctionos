@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { AuthService } from '../../services/auth.service';
 import { Shield, Zap, CheckCircle, AlertTriangle, HardDrive, Star, Lock } from 'lucide-react';
@@ -31,6 +31,8 @@ const BillingPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [annual, setAnnual] = useState(true);
+  const [affiliateCode, setAffiliateCode] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -103,7 +105,11 @@ const BillingPage: React.FC = () => {
     setUpgradeLoading(plan);
     setError(null);
     try {
-      const res = await api.post('/billing/create-checkout-session', { plan });
+      const payload: any = { plan, billing_cycle: annual ? 'annual' : 'monthly' };
+      if (affiliateCode.trim()) {
+        payload.affiliate_code = affiliateCode.trim();
+      }
+      const res = await api.post('/billing/create-checkout-session', payload);
       const { checkout_url, session_id } = res.data;
 
       if (session_id) {
@@ -111,7 +117,7 @@ const BillingPage: React.FC = () => {
         window.location.href = checkout_url;
       } else {
         // Mock fallback – no real Stripe configured, simulate locally
-        await api.post('/billing/mock-webhook', { plan });
+        await api.post('/billing/mock-webhook', payload);
         setSuccessMessage(`✅ Mock Mode: Your plan has been upgraded to ${plan.toUpperCase()}!`);
         await fetchUsage();
         setUpgradeLoading(null);
@@ -149,7 +155,26 @@ const BillingPage: React.FC = () => {
     </div>
   );
 
-  if (!data) return null;
+  if (!data) {
+    if (error) {
+      return (
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="flex flex-col items-center gap-4 p-8 max-w-md text-center bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-700 dark:text-red-300">
+            <AlertTriangle size={48} className="text-red-500" />
+            <h2 className="text-xl font-bold">Failed to Load Billing</h2>
+            <p className="text-sm">{error}</p>
+            <button 
+              onClick={fetchUsage} 
+              className="mt-2 px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return null;
+  }
 
   const isTrial = data.plan_type === 'trial';
   const isAdvanced = data.plan_type === 'advanced';
@@ -243,6 +268,46 @@ const BillingPage: React.FC = () => {
 
         {/* Upgrade Cards */}
         <div id="tour-billing-plans" className="space-y-5">
+          <div className="flex justify-center items-center gap-4 mb-6 mt-2">
+            <span className={`text-sm font-medium ${!annual ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>Monthly</span>
+            <button 
+              onClick={() => setAnnual(!annual)}
+              className="relative w-14 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center px-1 transition-colors"
+            >
+              <div 
+                className={`w-5 h-5 bg-blue-500 rounded-full shadow-md transform transition-transform duration-300 ${annual ? 'translate-x-7' : 'translate-x-0'}`}
+              />
+            </button>
+            <span className={`text-sm font-medium ${annual ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>
+              Annually <span className="text-blue-600 dark:text-cyan-400 text-xs ml-1 bg-blue-100 dark:bg-cyan-400/10 px-2 py-0.5 rounded-full">Save 20%</span>
+            </span>
+          </div>
+
+          {/* Affiliate Code Input */}
+          <div className="mb-8 p-[1px] bg-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-500/20 dark:to-purple-500/20 rounded-2xl shadow-sm">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl flex flex-col sm:flex-row items-center gap-4 justify-between">
+              <div className="flex items-center gap-4 w-full sm:w-auto">
+                <div className="size-10 shrink-0 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <span className="material-symbols-outlined text-[20px]">handshake</span>
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">Have a Partner Code?</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Support the partner who referred you.</p>
+                </div>
+              </div>
+              
+              <div className="w-full sm:w-72 relative group mt-2 sm:mt-0">
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors text-[18px]">sell</span>
+                <input 
+                  type="text" 
+                  value={affiliateCode}
+                  onChange={e => setAffiliateCode(e.target.value)}
+                  placeholder="Enter code"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-900 focus:border-transparent outline-none transition-all uppercase tracking-wide placeholder:font-normal placeholder:tracking-normal"
+                />
+              </div>
+            </div>
+          </div>
 
           {/* Advanced Plan */}
           <div className={`relative p-6 rounded-2xl border-2 transition-all ${isAdvanced
@@ -263,8 +328,8 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">Individual Power Plan</p>
               </div>
               <div className="text-right">
-                <div className="text-xs text-slate-400 line-through">$90</div>
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$60</span>
+                <div className="text-xs text-slate-400 line-through">{annual ? "$90" : "$110"}</div>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$60" : "$72"}</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
@@ -303,7 +368,7 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For growing teams</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$130</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$130" : "$156"}</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
@@ -345,7 +410,7 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">For large scale operations</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">$350</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$350" : "$420"}</span>
                 <span className="text-sm text-slate-400">/mo</span>
               </div>
             </div>
@@ -373,6 +438,39 @@ const BillingPage: React.FC = () => {
             <Lock size={10} />
             Secure payment by <span className="font-bold text-slate-500">Stripe</span>
           </div>
+        </div>
+      </div>
+
+      {/* Affiliate Program Section */}
+      <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl border border-blue-200 dark:border-blue-800/50 p-6 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div>
+          <h2 className="text-xl font-bold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+            <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">handshake</span>
+            Become an Affiliate Partner
+          </h2>
+          <p className="text-sm text-blue-800/80 dark:text-blue-200/80 mb-2 max-w-2xl">
+            Did you know you can earn recurring commissions by referring other investors to GoAuct? 
+            Once you have an active paid subscription, you unlock full access to our Affiliate Dashboard!
+          </p>
+          <ul className="text-xs text-blue-800/70 dark:text-blue-200/70 list-disc pl-4 space-y-1">
+            <li>Generate custom referral codes to share with your network</li>
+            <li>Earn commissions for every paid subscriber you bring</li>
+            <li>Track leads, conversions, and request fast withdrawals directly to your account</li>
+          </ul>
+        </div>
+        
+        <div className="shrink-0 w-full md:w-auto">
+          <button
+            onClick={() => {
+              window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
+                detail: { type: 'affiliate_dashboard', title: '🤝 Affiliate Dashboard' }
+              }));
+            }}
+            className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95"
+          >
+            <span className="material-symbols-outlined">dashboard</span>
+            Go to Affiliate Dashboard
+          </button>
         </div>
       </div>
 

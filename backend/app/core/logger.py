@@ -1,7 +1,7 @@
 import logging
 import json
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 import contextvars
 
 request_id_var = contextvars.ContextVar("request_id", default=None)
@@ -12,7 +12,7 @@ class JSONFormatter(logging.Formatter):
     """
     def format(self, record):
         log_record = {
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "level": record.levelname,
             "logger": record.name,
             "message": record.getMessage(),

@@ -15,6 +15,10 @@ class AuctionEventBase(BaseModel):
     parcels_count: Optional[int] = 0
     available_count: Optional[int] = 0
     notes: Optional[str] = None
+    
+    avg_deal_score: Optional[float] = None
+    deal_rating: Optional[str] = None
+    
     search_link: Optional[str] = None
     register_date: Optional[date] = None
     register_link: Optional[str] = None

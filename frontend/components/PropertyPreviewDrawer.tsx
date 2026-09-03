@@ -11,9 +11,10 @@ interface PropertyPreviewDrawerProps {
     propertyId: string | number | null;
     onClose: () => void;
     basePath?: string;
+    onOpenPropertyDetails?: (propertyId: string, propertyId2: string) => void;
 }
 
-export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ open, propertyId, onClose, basePath = '/client' }) => {
+export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ open, propertyId, onClose, basePath = '/client', onOpenPropertyDetails }) => {
     const [property, setProperty] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -43,6 +44,7 @@ export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ op
             anchor="right"
             open={open}
             onClose={onClose}
+            sx={{ zIndex: 9999 }}
             PaperProps={{
                 className: "w-full sm:w-[500px] md:w-[600px] dark:bg-slate-900 bg-white"
             }}
@@ -63,7 +65,12 @@ export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ op
                         <IconButton
                             onClick={() => {
                                 if (property?.parcel_id || property?.id) {
-                                    navigate(`${basePath}/properties/${property.parcel_id || property.id}`);
+                                    if (onOpenPropertyDetails) {
+                                        onOpenPropertyDetails(property.parcel_id || property.id, property.parcel_id || property.id);
+                                        onClose();
+                                    } else {
+                                        navigate(`${basePath}/properties/${property.parcel_id || property.id}`);
+                                    }
                                 }
                             }}
                             className="bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-slate-800 dark:hover:bg-slate-700"
@@ -89,10 +96,12 @@ export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ op
                         const assessedVal = property.assessed_value ? Number(property.assessed_value) : 0;
                         const details = property.details;
                         
-                        const arv = details?.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
+                        const arv = details?.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.0 : 0);
                         const maxBid = details?.max_bid || (arv * 0.7);
                         const equity = arv - maxBid;
                         const rent = details?.rental_value || arv * 0.008;
+
+                        const isTaxLien = (property.property_category || property.purchase_option_type || property.property_type || property.auction_type || '').toLowerCase().includes('lien');
 
                         return (
                             <div className="space-y-6">
@@ -142,6 +151,21 @@ export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ op
                                                     >
                                                         <span className="material-symbols-outlined text-[10px]">map</span> View Map
                                                     </a>
+                                                    {(() => {
+                                                        const lat = property.latitude || property.details?.latitude;
+                                                        const lng = property.longitude || property.details?.longitude;
+                                                        if (!lat || !lng) return null;
+                                                        return (
+                                                            <a 
+                                                                href={`https://earth.google.com/web/search/${lat},${lng}`}
+                                                                target="_blank"
+                                                                rel="noreferrer"
+                                                                className="bg-emerald-600/90 hover:bg-emerald-600 text-white text-[8px] font-black uppercase px-2 py-0.5 rounded shadow-lg flex items-center gap-1 transition-all"
+                                                            >
+                                                                <span className="material-symbols-outlined text-[10px]">public</span> Earth 3D
+                                                            </a>
+                                                        );
+                                                    })()}
                                                 </div>
 
                                                 {/* Deal Score Widget floated on bottom right */}
@@ -187,42 +211,76 @@ export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ op
                                             Financial Intelligence
                                         </h3>
                                         <div className="grid grid-cols-2 gap-3.5">
-                                            <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Opening Bid / Price</span>
-                                                <span className="text-base font-black text-slate-800 dark:text-white block">
-                                                    {price ? `$${price.toLocaleString()}` : 'N/A'}
-                                                </span>
-                                            </div>
-                                            <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Estimated ARV</span>
-                                                <span className="text-base font-black text-emerald-600 dark:text-emerald-400 block">
-                                                    {arv ? `$${Math.round(arv).toLocaleString()}` : 'N/A'}
-                                                </span>
-                                            </div>
-                                            <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Recommended Max Bid</span>
-                                                <span className="text-base font-black text-amber-600 dark:text-amber-400 block">
-                                                    {maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'N/A'}
-                                                </span>
-                                            </div>
-                                            <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Estimated Rent / Mo</span>
-                                                <span className="text-base font-black text-slate-800 dark:text-white block">
-                                                    {rent ? `$${Math.round(rent).toLocaleString()}` : 'N/A'}
-                                                </span>
-                                            </div>
+                                            {isTaxLien ? (
+                                                <>
+                                                    <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Est. Debt Value</span>
+                                                        <span className="text-base font-black text-rose-600 dark:text-rose-400 block">
+                                                            {price ? `$${price.toLocaleString()}` : 'N/A'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Target Interest Rate</span>
+                                                        <span className="text-base font-black text-amber-600 dark:text-amber-400 block">
+                                                            &gt; 16%
+                                                        </span>
+                                                    </div>
+                                                    <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Assessed Value</span>
+                                                        <span className="text-base font-black text-slate-800 dark:text-white block">
+                                                            {assessedVal ? `$${Math.round(assessedVal).toLocaleString()}` : 'N/A'}
+                                                        </span>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Opening Bid / Price</span>
+                                                        <span className="text-base font-black text-slate-800 dark:text-white block">
+                                                            {price ? `$${price.toLocaleString()}` : 'N/A'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Estimated ARV</span>
+                                                        <span className="text-base font-black text-emerald-600 dark:text-emerald-400 block">
+                                                            {arv ? `$${Math.round(arv).toLocaleString()}` : 'N/A'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Recommended Max Bid</span>
+                                                        <span className="text-base font-black text-amber-600 dark:text-amber-400 block">
+                                                            {maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'N/A'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="bg-white dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-wider block mb-0.5">Estimated Rent / Mo</span>
+                                                        <span className="text-base font-black text-slate-800 dark:text-white block">
+                                                            {rent ? `$${Math.round(rent).toLocaleString()}` : 'N/A'}
+                                                        </span>
+                                                    </div>
+                                                </>
+                                            )}
                                         </div>
 
                                         {/* Spread Highlight Bar */}
-                                        <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 p-3 rounded-xl flex items-center justify-between shadow-3xs">
-                                            <div className="space-y-0.5 text-left">
-                                                <span className="text-[8px] font-black text-indigo-700 dark:text-indigo-400 uppercase tracking-widest block">Potential Equity Spread</span>
-                                                <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400">Spread over Recommended Max Bid</span>
+                                        {isTaxLien ? (
+                                            <div className="bg-rose-50 dark:bg-rose-950/30 border border-rose-100 dark:border-rose-900/40 p-3 rounded-xl flex items-center justify-between shadow-3xs">
+                                                <div className="space-y-0.5 text-left">
+                                                    <span className="text-[8px] font-black text-rose-700 dark:text-rose-400 uppercase tracking-widest block">Tax Lien Investment</span>
+                                                    <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400">Subject to redemption period</span>
+                                                </div>
                                             </div>
-                                            <span className="text-base font-black text-indigo-650 dark:text-indigo-455">
-                                                {equity ? `$${Math.round(equity).toLocaleString()}` : 'N/A'}
-                                            </span>
-                                        </div>
+                                        ) : (
+                                            <div className="bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 p-3 rounded-xl flex items-center justify-between shadow-3xs">
+                                                <div className="space-y-0.5 text-left">
+                                                    <span className="text-[8px] font-black text-indigo-700 dark:text-indigo-400 uppercase tracking-widest block">Potential Equity Spread</span>
+                                                    <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400">Spread over Recommended Max Bid</span>
+                                                </div>
+                                                <span className="text-base font-black text-indigo-650 dark:text-indigo-455">
+                                                    {equity ? `$${Math.round(equity).toLocaleString()}` : 'N/A'}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <Divider className="dark:border-slate-800" />

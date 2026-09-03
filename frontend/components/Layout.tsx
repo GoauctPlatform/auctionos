@@ -2,10 +2,13 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import { Footer } from './Footer';
+import { LanguageSwitcher } from './LanguageSwitcher';
+import { useLanguage } from '../context/LanguageContext';
 
 export const Layout: React.FC = () => {
   const navigate = useNavigate();
   const user = AuthService.getCurrentUser();
+  const { t } = useLanguage();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
@@ -26,11 +29,12 @@ export const Layout: React.FC = () => {
       label: 'Admin & CRM',
       dropdown: [
         { label: 'User Management', path: '/admin/users' },
+        { label: 'Affiliate Management', path: '/admin/affiliates' },
         { label: 'Realtor Withdrawals', path: '/admin/withdrawals' },
         { label: 'Conflict Mediation', path: '/admin/mediation' },
       ],
     },
-    { icon: 'settings', label: 'Settings', path: '/settings' },
+    { icon: 'settings', label: t('nav.settings'), path: '/settings' },
   ];
 
   const handleLogout = () => {
@@ -106,6 +110,9 @@ export const Layout: React.FC = () => {
         </div>
 
         <div className="p-3 border-t border-slate-200 dark:border-slate-800">
+          <div className="mb-3 flex justify-center">
+            <LanguageSwitcher />
+          </div>
           <div className="hidden md:flex items-center gap-3 px-3 py-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 mb-3 border border-slate-200 dark:border-slate-700">
             <div className="size-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold shrink-0">
               {(user?.full_name || user?.email || 'A').charAt(0).toUpperCase()}

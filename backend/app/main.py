@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.core.config import settings
-# Railway deployment trigger
 from app.api.api_v1.api import api_router
 # Import base to register all models (including new property_scores)
 from app.db import base  # noqa
@@ -20,6 +19,24 @@ from contextlib import asynccontextmanager
 
 import asyncio
 from app.services.status_updater import transition_past_auctions
+
+# Initialize Sentry for error tracking (only if SENTRY_DSN is configured)
+if settings.SENTRY_DSN:
+    try:
+        import sentry_sdk
+        from sentry_sdk.integrations.fastapi import FastApiIntegration
+        from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+        sentry_sdk.init(
+            dsn=settings.SENTRY_DSN,
+            integrations=[FastApiIntegration(), SqlalchemyIntegration()],
+            traces_sample_rate=0.1,   # 10% of transactions for performance
+            profiles_sample_rate=0.1,
+            environment="production",
+            send_default_pii=False,   # Never send PII to Sentry
+        )
+        print("✅ Sentry initialized for error tracking")
+    except ImportError:
+        print("⚠️  Sentry SDK not installed. Run: pip install sentry-sdk[fastapi]")
 
 async def run_daily_task():
     from app.db.session import SessionLocal
@@ -263,12 +280,24 @@ async def log_requests(request: Request, call_next):
     if not request.url.path.startswith("/static"):
         logger.info(f"Request completed", extra={"status_code": response.status_code})
     
-    # Add Security Headers for Cloudflare/DDoS best practices
+    # Security Headers — defense in depth
     response.headers["X-Content-Type-Options"] = "nosniff"
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' cdn.tailwindcss.com fonts.googleapis.com esm.sh; "
+        "style-src 'self' 'unsafe-inline' fonts.googleapis.com fonts.gstatic.com cdn.tailwindcss.com; "
+        "font-src 'self' fonts.gstatic.com fonts.googleapis.com data:; "
+        "img-src 'self' data: blob: https: maps.googleapis.com maps.gstatic.com raw.githubusercontent.com; "
+        "connect-src 'self' https: wss:; "
+        "frame-src 'none'; "
+        "object-src 'none'; "
+        "base-uri 'self';"
+    )
     
     request_id_var.reset(token)
     return response
@@ -286,3 +315,77 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 @app.get("/")
 def root():
     return {"message": "GoAuct API is running", "environment": "production"}
+
+
+# ── WebSocket: Real-time Notification Push ───────────────────────────────────
+from fastapi import WebSocket, WebSocketDisconnect, Query as WsQuery
+from jose import jwt as jose_jwt, JWTError
+import asyncio as _asyncio
+import json as _json
+
+@app.websocket("/ws/{user_id}")
+async def websocket_notifications(
+    websocket: WebSocket,
+    user_id: int,
+    token: str = WsQuery(default=None, description="JWT access token for auth"),
+):
+    """
+    WebSocket endpoint for real-time notification badge updates.
+    Client connects to wss://<host>/ws/<user_id>?token=<access_token>
+    Server pushes {"unread": N} every 30 seconds and on connection.
+    """
+    # 1. Authenticate via JWT token in query param
+    if not token:
+        await websocket.close(code=4001, reason="Missing token")
+        return
+
+    try:
+        from app.core import security as _security
+        payload = jose_jwt.decode(token, settings.SECRET_KEY, algorithms=[_security.ALGORITHM])
+        token_user_id = int(payload.get("sub", -1))
+        token_type = payload.get("type", "")
+    except (JWTError, ValueError, Exception):
+        await websocket.close(code=4001, reason="Invalid token")
+        return
+
+    # Enforce: user can only subscribe to their own channel
+    if token_user_id != user_id or token_type != "access":
+        await websocket.close(code=4003, reason="Forbidden")
+        return
+
+    await websocket.accept()
+    logger.info(f"[WS] User {user_id} connected to notification stream")
+
+    from app.db.session import SessionLocal as _SessionLocal
+    from sqlalchemy import text as _text
+
+    async def get_unread_count() -> int:
+        try:
+            db = _SessionLocal()
+            try:
+                row = db.execute(
+                    _text("SELECT COUNT(*) FROM notifications WHERE user_id = :uid AND is_read = false"),
+                    {"uid": user_id},
+                ).fetchone()
+                return row[0] if row else 0
+            finally:
+                db.close()
+        except Exception:
+            return 0
+
+    try:
+        while True:
+            unread = await get_unread_count()
+            await websocket.send_text(_json.dumps({"unread": unread}))
+            # Wait 30s — but check for incoming client messages (ping/pong) every 5s
+            for _ in range(6):
+                try:
+                    msg = await _asyncio.wait_for(websocket.receive_text(), timeout=5.0)
+                    if msg == "ping":
+                        await websocket.send_text(_json.dumps({"pong": True}))
+                except _asyncio.TimeoutError:
+                    pass  # Normal — no message from client, continue
+    except WebSocketDisconnect:
+        logger.info(f"[WS] User {user_id} disconnected from notification stream")
+    except Exception as e:
+        logger.error(f"[WS] Unexpected error for user {user_id}: {e}", exc_info=True)

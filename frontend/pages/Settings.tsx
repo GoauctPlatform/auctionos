@@ -5,11 +5,13 @@ import { useAuth } from '../context/AuthContext';
 import { useCompany } from '../context/CompanyContext';
 import { UserManagement } from './Settings/UserManagement';
 import { API_URL, getHeaders } from '../services/httpClient';
+import { useLanguage, Language } from '../context/LanguageContext';
 
 type Tab = 'profile' | 'general' | 'users' | 'companies';
 
 export const Settings: React.FC = () => {
     const { user } = useAuth();
+    const { language, setLanguage } = useLanguage();
     const [activeTab, setActiveTab] = useState<Tab>('profile');
     const [theme, setTheme] = useState(() => localStorage.getItem('goauct_theme') || 'system');
     // displayName: prefer backend value, fallback to locally persisted value
@@ -399,6 +401,8 @@ export const Settings: React.FC = () => {
                                 })}
                             </div>
                         </div>
+
+
                         <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                             <div className="flex items-center justify-between">
                                 <div>

@@ -49,94 +49,138 @@ const AIDealCard: React.FC<AIDealCardProps> = ({
     renderAuctionTypeBadge,
 }) => {
     const [streetViewError, setStreetViewError] = useState(false);
-    const streetViewUrl = getStreetViewUrl(prop);
+    const streetViewUrl = getStreetViewUrl(prop, undefined, undefined, undefined, '240x180');
+    
+    // Financial logic (same as PropertyPreviewDrawer)
+    const price = prop.amount_due || 0;
+    const assessedVal = prop.assessed_value ? Number(prop.assessed_value) : 0;
+    const arv = prop.estimated_value || (assessedVal ? assessedVal * 1.0 : 0);
+    const maxBid = prop.max_bid || (arv * 0.7);
+
+    const isTaxLien = (prop.property_category || prop.purchase_option_type || prop.property_type || '').toLowerCase().includes('lien');
 
     return (
         <div
             onClick={() => onPreviewProperty(prop.parcel_id)}
-            className="w-[300px] shrink-0 h-[92%] max-h-[380px] self-center flex flex-col justify-between bg-[#073642]/10 hover:bg-[#073642]/20 backdrop-blur-md border border-[#1a4554]/25 hover:border-cyan-500/35 rounded-2xl p-4 transition-all duration-300 shadow-lg hover:shadow-cyan-500/5 cursor-pointer group"
-            title="Click to show Quick View"
+            className="group relative border rounded-xl p-3 sm:p-4 shadow-sm transition-all duration-200 cursor-pointer flex items-center gap-3 sm:gap-4 bg-[#073642]/10 hover:bg-[#073642]/30 border-[#1a4554]/40 hover:border-cyan-500/50 hover:shadow-[0_0_15px_rgba(34,211,238,0.15)]"
         >
-            {/* Image / Cover Container */}
-            <div className="relative h-[120px] min-h-[120px] flex-1 max-h-[180px] w-full rounded-xl overflow-hidden mb-3 bg-[#072b35] flex items-center justify-center">
+            {/* Thumbnail */}
+            <div className="relative shrink-0 z-10 transition-all duration-300 group-hover:scale-[1.1] rounded-lg w-32 h-24 sm:w-40 sm:h-28 overflow-hidden bg-[#072b35] flex items-center justify-center shadow-md border border-[#1a4554]/50">
                 {streetViewUrl && !streetViewError ? (
                     <img 
                         src={streetViewUrl} 
                         alt={prop.address || ''}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="absolute inset-0 w-full h-full object-cover"
                         onError={() => setStreetViewError(true)}
                     />
                 ) : (
                     <div className="flex flex-col items-center justify-center gap-1.5 text-[#586e75]">
-                        <Image size={24} className="opacity-40" />
-                        <span className="text-[7.5px] uppercase tracking-wider font-black opacity-60">No Street View</span>
+                        <Image size={20} className="opacity-40" />
+                        <span className="text-[7px] uppercase tracking-wider font-black opacity-60">No Street View</span>
                     </div>
                 )}
                 
-                {/* Floating overlay gradients */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#070d1a]/80 via-transparent to-transparent pointer-events-none" />
                 
-                {/* Float Badges inside Image Container */}
-                <div className="absolute top-2 left-2 z-10">
-                    {renderAuctionTypeBadge(prop.property_category || prop.purchase_option_type || prop.property_type)}
-                </div>
-                
-                <div className={`absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-0.5 rounded-lg shadow-lg text-[9px] font-black ${getRatingStyle(prop.rating || 'B')}`}>
-                    <span>🏆</span>
+                {/* Floating deal score inside thumb */}
+                <div className={`absolute top-1.5 right-1.5 z-10 flex items-center gap-1 px-1.5 py-0.5 rounded shadow text-[8px] font-black ${getRatingStyle(prop.rating || 'B')}`}>
                     <span>{prop.rating || 'B'}</span>
-                    <span className="text-[7px] opacity-75">({prop.deal_score || 70}%)</span>
+                    <span className="text-[6px] opacity-80">({prop.deal_score || 70})</span>
                 </div>
-
-                <div className="absolute bottom-2 left-2 z-10">
-                    <span className="font-mono text-[8px] font-bold text-slate-200 tracking-wider bg-black/45 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                
+                <div className="absolute bottom-1.5 left-1.5 z-10">
+                    <span className="font-mono text-[7px] font-bold text-slate-200 tracking-wider bg-black/50 px-1 rounded backdrop-blur-sm">
                         #{prop.parcel_id}
                     </span>
                 </div>
             </div>
 
-            {/* Address Details */}
-            <div className="mb-2.5 flex-1 min-h-0 flex flex-col justify-center">
-                <h4 className="text-[11px] font-bold text-white truncate group-hover:text-cyan-400 transition-colors flex items-start gap-1">
-                    <MapPin size={11} className="text-cyan-400 shrink-0 mt-0.5" />
-                    {prop.address || 'Address Restricted'}
-                </h4>
-                <p className="text-[8.5px] text-[#93a1a1] uppercase font-bold tracking-wider mt-1 ml-4 truncate flex items-center gap-1">
-                    <span>{prop.county || 'UNKNOWN'} COUNTY, {prop.state}</span>
-                    <span className="opacity-0 group-hover:opacity-100 transition-opacity ml-auto text-cyan-400 flex items-center gap-0.5 font-black text-[7px] uppercase tracking-widest">
-                        <Eye size={9} />
-                        Preview
-                    </span>
-                </p>
-            </div>
-
-            {/* Financial Info */}
-            <div className="grid grid-cols-2 gap-3 border-t border-b border-[#1a4554]/15 py-2.5 mb-2.5">
-                <div>
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 block">Opening Bid</span>
-                    <span className="text-xs font-black text-emerald-400 flex items-center gap-1 mt-0.5">
-                        <Coins size={11} className="text-emerald-400" />
-                        ${(prop.amount_due ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                    </span>
+            {/* Content Body */}
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2 mb-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                        <h4 className="font-bold text-white truncate text-sm">
+                            {prop.owner_address ? prop.owner_address.split('\n')[0] : (prop.address || `Parcel ${prop.parcel_id}`)}
+                        </h4>
+                        {renderAuctionTypeBadge(prop.property_category || prop.purchase_option_type || prop.property_type)}
+                    </div>
+                    <button
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenPropertyDetails(prop.parcel_id, prop.parcel_id);
+                        }}
+                        className="shrink-0 bg-cyan-600/20 text-cyan-400 hover:bg-cyan-500 hover:text-[#070d1a] border border-cyan-500/30 font-bold text-[9px] uppercase tracking-wider px-3 py-1 rounded transition-all shadow-sm flex items-center gap-1"
+                    >
+                        <span>Dossier</span>
+                        <ArrowRight size={10} />
+                    </button>
                 </div>
-                <div>
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-slate-400 block">Assessed Value</span>
-                    <span className="text-xs font-black text-indigo-300 block mt-0.5">
-                        ${(prop.assessed_value ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0 })}
-                    </span>
+                
+                <div className="flex items-center gap-3 text-[10px] text-slate-400">
+                    <span className="font-mono font-bold text-cyan-500">{prop.parcel_id}</span>
+                    <span className="opacity-30">|</span>
+                    <div className="flex items-center gap-1 min-w-0">
+                        <MapPin size={10} className="text-red-400 shrink-0" />
+                        <span className="truncate">{prop.address || 'No Address Listed'}</span>
+                    </div>
+                    <span className="opacity-30">|</span>
+                    <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-emerald-400 font-bold uppercase">{prop.county || 'Unknown'} COUNTY, {prop.state}</span>
+                    </div>
+                </div>
+
+                {prop.description && (
+                    <p className="mt-1.5 text-[10px] text-[#93a1a1] line-clamp-1 italic leading-relaxed">
+                        {prop.description}
+                    </p>
+                )}
+
+                <div className="mt-2.5 flex flex-wrap items-center gap-3 sm:gap-5 border-t border-[#1a4554]/30 pt-2.5">
+                    <div className="flex flex-col">
+                        <span className="text-[8px] text-[#586e75] uppercase font-black tracking-widest">Opening Bid</span>
+                        <span className="text-[11px] font-black text-emerald-400">${price.toLocaleString(undefined, { minimumFractionDigits: 0 })}</span>
+                    </div>
+                    
+                    {isTaxLien ? (
+                        <>
+                            <div className="flex flex-col bg-[#002b36]/40 px-2 py-0.5 rounded border border-amber-500/20">
+                                <span className="text-[8px] text-amber-500/80 uppercase font-black tracking-widest">Target Interest Rate</span>
+                                <span className="text-[11px] font-black text-amber-400">&gt; 16%</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[8px] text-[#586e75] uppercase font-black tracking-widest">Est. Debt Value</span>
+                                <span className="text-[11px] font-black text-indigo-300">${Math.round(price).toLocaleString()}</span>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="flex flex-col">
+                                <span className="text-[8px] text-[#586e75] uppercase font-black tracking-widest">Est. ARV</span>
+                                <span className="text-[11px] font-black text-indigo-300">${Math.round(arv).toLocaleString()}</span>
+                            </div>
+
+                            <div className="flex flex-col bg-[#002b36]/40 px-2 py-0.5 rounded border border-amber-500/20">
+                                <span className="text-[8px] text-amber-500/80 uppercase font-black tracking-widest">Recommended Max Bid</span>
+                                <span className="text-[11px] font-black text-amber-400">${Math.round(maxBid).toLocaleString()}</span>
+                            </div>
+                        </>
+                    )}
+
+                    {prop.legal_description && (
+                        <div className="relative group/legal flex flex-col cursor-default">
+                            <span className="text-[8px] text-[#586e75] uppercase font-black tracking-widest">Legal Desc.</span>
+                            <span className="text-[10px] font-black text-cyan-500 underline decoration-dotted">View ℹ</span>
+                            <div className="absolute bottom-full left-0 mb-2 z-50 w-80 invisible opacity-0 group-hover/legal:visible group-hover/legal:opacity-100 transition-all duration-200 pointer-events-none">
+                                <div className="bg-[#002b36] text-[#93a1a1] text-[10px] leading-relaxed rounded-xl shadow-2xl p-3 border border-[#1a4554] shadow-[0_10px_30px_rgba(34,211,238,0.15)]">
+                                    <p className="font-black uppercase tracking-wider text-cyan-500 text-[8px] mb-1">Legal Description</p>
+                                    <p className="font-mono break-words">{prop.legal_description}</p>
+                                </div>
+                                <div className="w-3 h-3 bg-[#002b36] rotate-45 ml-4 -mt-1.5 border-r border-b border-[#1a4554]" />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
-
-            {/* Quick Details Button */}
-            <button
-                onClick={(e) => {
-                    e.stopPropagation(); // Avoid triggering card-level preview
-                    onOpenPropertyDetails(prop.parcel_id, prop.parcel_id);
-                }}
-                className="w-full py-2 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold text-[9px] uppercase tracking-wider rounded-xl transition-all shadow-md hover:shadow-indigo-500/25 active:scale-[0.98] flex items-center justify-center gap-1.5"
-            >
-                <span>Dossier details</span>
-                <ArrowRight size={10} className="group-hover:translate-x-0.5 transition-transform" />
-            </button>
         </div>
     );
 };
@@ -226,9 +270,10 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                 
                 // Busca as propriedades gerais do banco de dados (que não exigem score pré-calculado no DB)
                 const rawProps = await PropertyService.getProperties(rawFilters);
+                const propsList = Array.isArray(rawProps) ? rawProps : (rawProps?.items || []);
                 const scoredProps: TopScoredProperty[] = [];
                 
-                for (const prop of rawProps) {
+                for (const prop of propsList) {
                     if (!prop.parcel_id) continue;
                     
                     // Calcula o score e a nota usando o motor oficial do sistema
@@ -363,9 +408,9 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                 </div>
 
                 {/* Filters and Controls */}
-                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                <div className="flex items-center gap-3 max-w-full overflow-x-auto no-scrollbar pb-1 shrink-0">
                     {/* State Selector */}
-                    <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1">
+                    <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1 shrink-0">
                         <Filter size={11} className="text-[#93a1a1]" />
                         <span className="text-[9px] font-black uppercase text-[#93a1a1]/60 tracking-wider mr-1">State:</span>
                         <select
@@ -382,7 +427,7 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
 
                     {/* County Selector */}
                     {selectedState !== 'ALL' && availableCounties.length > 0 && (
-                        <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1">
+                        <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1 shrink-0">
                             <Filter size={11} className="text-[#93a1a1]" />
                             <span className="text-[9px] font-black uppercase text-[#93a1a1]/60 tracking-wider mr-1">County:</span>
                             <select
@@ -399,7 +444,7 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                     )}
 
                     {/* Auction Type Selector */}
-                    <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1">
+                    <div className="flex items-center gap-1.5 bg-[#002b36]/60 border border-[#1a4554]/30 rounded-xl px-2.5 py-1 shrink-0">
                         <Filter size={11} className="text-[#93a1a1]" />
                         <span className="text-[9px] font-black uppercase text-[#93a1a1]/60 tracking-wider mr-1">Type:</span>
                         <select
@@ -418,7 +463,7 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                     <button
                         onClick={() => fetchFreshDeals(selectedState)}
                         disabled={loading}
-                        className="p-2 hover:bg-[#073642]/50 border border-[#1a4554]/20 hover:border-cyan-500/35 rounded-xl transition-all text-slate-400 hover:text-white"
+                        className="p-2 hover:bg-[#073642]/50 border border-[#1a4554]/20 hover:border-cyan-500/35 rounded-xl transition-all text-slate-400 hover:text-white shrink-0"
                         title="Refresh deals"
                     >
                         <RefreshCw size={12} className={loading ? 'animate-spin' : ''} />
@@ -440,7 +485,7 @@ export const SmartAIDealFinder: React.FC<SmartAIDealFinderProps> = ({
                         <p className="text-[10px] text-slate-600 mt-1">Try changing location or refreshing the index.</p>
                     </div>
                 ) : (
-                    <div className="w-full h-full flex items-center overflow-x-auto gap-4 py-2 px-1 scroll-smooth select-text no-scrollbar scrollbar-none">
+                    <div className="w-full h-full flex flex-col overflow-y-auto gap-3 py-3 px-3 scroll-smooth select-text no-scrollbar scrollbar-none">
                         {filteredDeals.map((prop) => (
                             <AIDealCard
                                 key={prop.parcel_id}

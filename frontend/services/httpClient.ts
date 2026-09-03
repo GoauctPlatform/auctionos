@@ -1,6 +1,15 @@
 const isProd = import.meta.env.PROD;
 const defaultProdApi = 'https://auctionos-production.up.railway.app/api/v1';
 
+if (isProd && !import.meta.env.VITE_API_URL) {
+    console.error(
+        "🚨 CRITICAL WARNING: VITE_API_URL environment variable is not defined in this production build!\n" +
+        "Falling back to default production endpoint: " + defaultProdApi + "\n" +
+        "If this is Staging, this will connect staging users to the production database. " +
+        "Please ensure VITE_API_URL is configured in Railway."
+    );
+}
+
 export const API_URL = isProd
     ? (import.meta.env.VITE_API_URL || defaultProdApi)
     : (import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1');
@@ -38,11 +47,12 @@ window.fetch = async (...args) => {
         const isApiRequest = url.includes(API_URL) || url.includes('/api/v1');
         const isLoginRequest = url.includes('/auth/login');
 
-        if (isApiRequest && !isLoginRequest && (response.status === 401 || response.status === 403)) {
-            const publicPages = ['/forgot-password', '/reset-password', '/login', '/signup', '/#/', '/'];
-            const isPublicPage = publicPages.some(page => window.location.pathname.includes(page) || window.location.hash.includes(page));
+        if (isApiRequest && !isLoginRequest && response.status === 401) {
+            const publicPages = ['/forgot-password', '/reset-password', '/login', '/signup'];
+            const isPublicPage = publicPages.some(page => window.location.hash.includes(page));
+            const isLandingPage = window.location.hash === '' || window.location.hash === '#/' || window.location.hash === '#';
             
-            if (!isPublicPage) {
+            if (!isPublicPage && !isLandingPage) {
                 let isSessionConflict = false;
                 try {
                     const clone = response.clone();

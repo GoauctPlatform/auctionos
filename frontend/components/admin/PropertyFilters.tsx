@@ -4,12 +4,15 @@ import { useDebounce } from 'use-debounce';
 import SearchIcon from '@mui/icons-material/Search';
 import { PropertyService } from '../../services/property.service';
 import { useNavigate } from 'react-router-dom';
+import { StatesService } from '../../services/states.service';
+import { countyService } from '../../services/county.service';
 
 export interface PropertyFilterParams {
     county?: string;
     state?: string;
     keyword?: string;
     min_score?: number;
+    is_custom?: boolean;
 
     // Optional Filters
     auction_name?: string;
@@ -41,9 +44,10 @@ interface PropertyFiltersProps {
     readOnly?: boolean;
     initialFilters?: PropertyFilterParams;
     onOpenPropertyDetails?: (propertyId: string | number, parcelId: string) => void;
+    variant?: 'standard' | 'header';
 }
 
-const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readOnly = false, initialFilters, onOpenPropertyDetails }) => {
+const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readOnly = false, initialFilters, onOpenPropertyDetails, variant = 'standard' }) => {
     const navigate = useNavigate();
     const [filters, setFilters] = useState<PropertyFilterParams>(initialFilters || {});
     const [showFilters, setShowFilters] = useState(false);
@@ -97,6 +101,86 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
         };
     }, [inputValue]);
 
+    // State and County options dropdown logic
+    const [stateOptions, setStateOptions] = useState<any[]>([]);
+    const [countyOptions, setCountyOptions] = useState<string[]>([]);
+
+    useEffect(() => {
+        StatesService.getContacts()
+            .then(res => setStateOptions(res || []))
+            .catch(err => console.error("PropertyFilters: Failed to load states", err));
+    }, []);
+
+    useEffect(() => {
+        if (filters.state) {
+            countyService.getCounties(filters.state)
+                .then(res => setCountyOptions(res || []))
+                .catch(err => {
+                    console.error("PropertyFilters: Failed to load counties", err);
+                    setCountyOptions([]);
+                });
+        } else {
+            setCountyOptions([]);
+        }
+    }, [filters.state]);
+
+    const CATEGORY_CHIPS = [
+        { label: 'All Categories', value: 'all' },
+        { label: 'Tax Deed', value: 'Tax Deed' },
+        { label: 'Tax Lien', value: 'Tax Lien' },
+        { label: 'Foreclosure', value: 'Foreclosure' },
+        { label: 'Custom Properties', value: 'custom' },
+    ];
+
+    const getActiveChipValue = () => {
+        if (filters.is_custom) return 'custom';
+        if (filters.property_category) return filters.property_category;
+        return 'all';
+    };
+
+    const handleChipClick = (value: string) => {
+        isInternalUpdate.current = false;
+        if (value === 'all') {
+            setFilters(prev => ({ ...prev, property_category: undefined, is_custom: undefined }));
+        } else if (value === 'custom') {
+            setFilters(prev => ({ ...prev, property_category: undefined, is_custom: true }));
+        } else {
+            setFilters(prev => ({ ...prev, property_category: value, is_custom: undefined }));
+        }
+    };
+
+    const inputSx = {
+        '& .MuiOutlinedInput-root': {
+            borderRadius: '12px',
+            height: '38px',
+            fontSize: '0.85rem',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)',
+            '.dark &': {
+                backgroundColor: 'rgba(15, 23, 42, 0.6)',
+            },
+            '& fieldset': {
+                borderColor: 'rgba(226, 232, 240, 0.8)',
+                '.dark &': {
+                    borderColor: 'rgba(51, 65, 85, 0.6)',
+                }
+            },
+            '&:hover fieldset': {
+                borderColor: '#6366f1',
+            },
+            '&.Mui-focused fieldset': {
+                borderColor: '#4f46e5',
+                borderWidth: '1.5px',
+            }
+        },
+        '& .MuiInputLabel-root': {
+            fontSize: '0.85rem',
+            top: '-2px',
+            '&.MuiInputLabel-shrink': {
+                top: '0px',
+            }
+        }
+    };
+
     useEffect(() => {
         if (isInternalUpdate.current) {
             isInternalUpdate.current = false;
@@ -117,20 +201,50 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
     };
 
     return (
-        <div className="flex flex-col gap-4 mb-6 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 w-full transition-all dark:[&_input]:text-white dark:[&_label]:text-slate-400 dark:[&_.MuiSelect-select]:text-white dark:[&_fieldset]:border-slate-600">
+        <div className={`flex flex-col w-full transition-all dark:[&_input]:text-white dark:[&_label]:text-slate-400 dark:[&_.MuiSelect-select]:text-white dark:[&_fieldset]:border-slate-600 ${
+            variant === 'header' 
+            ? 'bg-transparent p-0 gap-3 shadow-none border-none' 
+            : 'gap-4 mb-6 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700'
+        }`}>
+            {/* Category/Source Filter Chips Row */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none shrink-0 select-none">
+                {CATEGORY_CHIPS.map(chip => {
+                    const activeVal = getActiveChipValue();
+                    const isSelected = activeVal === chip.value;
+                    return (
+                        <button
+                            key={chip.value}
+                            type="button"
+                            onClick={() => handleChipClick(chip.value)}
+                            className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-205 border cursor-pointer ${
+                                isSelected
+                                    ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                                    : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 dark:bg-slate-900/40 dark:text-slate-400 dark:border-slate-800 dark:hover:bg-slate-900/80'
+                            }`}
+                        >
+                            {chip.label}
+                        </button>
+                    );
+                })}
+            </div>
+
             {/* Primary Search Row */}
-            <div className="flex flex-wrap gap-4 items-center w-full">
+            <div className={`flex flex-wrap gap-2.5 items-center w-full ${variant === 'header' ? 'flex-nowrap' : ''}`}>
                 <Autocomplete
                     freeSolo
                     id="keyword-search-autocomplete"
-                    sx={{ minWidth: 250, flexGrow: 1 }}
+                    sx={{ minWidth: 220, flexGrow: 1 }}
                     open={open}
                     onOpen={() => setOpen(true)}
                     onClose={() => setOpen(false)}
                     inputValue={inputValue}
-                    onInputChange={(event, newInputValue) => {
+                    onInputChange={(event, newInputValue, reason) => {
                         setInputValue(newInputValue);
-                        handleChange('keyword', newInputValue);
+                        if (reason === 'input') {
+                            handleChange('keyword', newInputValue);
+                        } else if (reason === 'clear') {
+                            handleChange('keyword', '');
+                        }
                     }}
                     onChange={(event, newValue: any) => {
                         if (typeof newValue === 'string') {
@@ -141,10 +255,16 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                             } else {
                                 navigate(readOnly ? `/client/properties/${newValue.parcel_id}` : `/admin/properties/${newValue.parcel_id}`);
                             }
+
+                            // Dispatch custom event to select property in map/sidebar search view
+                            const selectEvent = new CustomEvent('property-selected-from-search', { 
+                                detail: { id: newValue.id || newValue.parcel_id, property: newValue } 
+                            });
+                            window.dispatchEvent(selectEvent);
                         }
                     }}
                     options={options}
-                    getOptionLabel={(option: any) => typeof option === 'string' ? option : `${option.parcel_id || 'Unknown'} - ${option.address || option.county || ''}`}
+                    getOptionLabel={(option: any) => typeof option === 'string' ? option : (option.parcel_id || '')}
                     renderOption={(props, option: any) => (
                         <li {...props} key={option.parcel_id}>
                             <div className="flex flex-col">
@@ -161,18 +281,18 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                             variant="outlined"
                             size="small"
                             placeholder="Parcel ID, Zip, Address..."
-                            className="bg-white dark:bg-slate-900"
+                            sx={inputSx}
                             InputProps={{
                                 ...params.InputProps,
                                 startAdornment: (
                                     <React.Fragment>
-                                        <SearchIcon className="text-slate-400 ml-2" fontSize="small" />
+                                        <SearchIcon className="text-slate-400 ml-1 mr-0.5" fontSize="small" />
                                         {params.InputProps.startAdornment}
                                     </React.Fragment>
                                 ),
                                 endAdornment: (
                                     <React.Fragment>
-                                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                        {loading ? <CircularProgress color="inherit" size={16} /> : null}
                                         {params.InputProps.endAdornment}
                                     </React.Fragment>
                                 ),
@@ -180,30 +300,70 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                         />
                     )}
                 />
-                <TextField
-                    label="County"
-                    variant="outlined"
-                    size="small"
-                    value={filters.county || ''}
-                    onChange={(e) => handleChange('county', e.target.value)}
-                    className="bg-white dark:bg-slate-900 w-[150px]"
+                
+                {/* State Autocomplete */}
+                <Autocomplete
+                    id="state-filter-autocomplete"
+                    options={stateOptions}
+                    getOptionLabel={(option) => typeof option === 'string' ? option : option.state}
+                    value={
+                        stateOptions.find(s => s.state?.toLowerCase() === filters.state?.toLowerCase()) || 
+                        (filters.state ? { state: filters.state, url: '' } : null)
+                    }
+                    onChange={(event, newValue) => {
+                        const stateVal = newValue ? (typeof newValue === 'string' ? newValue : newValue.state) : undefined;
+                        handleChange('state', stateVal);
+                        handleChange('county', undefined); // Clear county selection
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="State"
+                            variant="outlined"
+                            size="small"
+                            sx={inputSx}
+                        />
+                    )}
+                    sx={{ width: variant === 'header' ? 120 : 160 }}
+                    disablePortal
                 />
-                <TextField
-                    label="State"
-                    variant="outlined"
-                    size="small"
-                    value={filters.state || ''}
-                    onChange={(e) => handleChange('state', e.target.value)}
-                    className="bg-white dark:bg-slate-900 w-[150px]"
+
+                {/* County Autocomplete */}
+                <Autocomplete
+                    id="county-filter-autocomplete"
+                    options={countyOptions}
+                    disabled={!filters.state}
+                    getOptionLabel={(option) => option}
+                    value={
+                        countyOptions.find(c => c?.toLowerCase() === filters.county?.toLowerCase()) || 
+                        filters.county || 
+                        null
+                    }
+                    onChange={(event, newValue) => {
+                        handleChange('county', newValue || undefined);
+                    }}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="County"
+                            variant="outlined"
+                            size="small"
+                            sx={inputSx}
+                            placeholder={!filters.state ? "State first" : "All counties"}
+                        />
+                    )}
+                    sx={{ width: variant === 'header' ? 150 : 200 }}
+                    disablePortal
                 />
 
                 <Button
-                    variant={showFilters ? "contained" : "outlined"}
+                    variant={showFilters ? "contained" : (variant === 'header' ? "text" : "outlined")}
                     size="small"
                     onClick={() => setShowFilters(!showFilters)}
-                    className="ml-auto"
+                    className={`whitespace-nowrap ${variant === 'header' ? 'ml-0' : 'ml-auto'}`}
+                    sx={variant === 'header' ? { height: '38px', borderRadius: '12px', fontWeight: 'bold' } : {}}
                 >
-                    {showFilters ? 'Hide Filters' : 'Refine Filters'}
+                    {showFilters ? 'Hide Filters' : 'More Filters'}
                 </Button>
 
                 <Button
@@ -211,15 +371,17 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                     size="small"
                     onClick={handleClear}
                     color="secondary"
+                    className="whitespace-nowrap"
+                    sx={variant === 'header' ? { height: '38px', borderRadius: '12px', fontWeight: 'bold' } : {}}
                 >
-                    Clear All
+                    Clear
                 </Button>
             </div>
 
             {/* Expanded Filters Section */}
             {showFilters && (
-                <div className="animate-in fade-in slide-in-from-top-4 duration-300">
-                    <Divider className="my-6" />
+                <div className={`animate-in fade-in slide-in-from-top-4 duration-300 ${variant === 'header' ? 'mt-4 pt-4 border-t border-slate-100 dark:border-slate-800' : ''}`}>
+                    {variant !== 'header' && <Divider className="my-6" />}
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Optional Filters */}
@@ -339,17 +501,7 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                                     label="Show Unavailable Properties Only"
                                 />
 
-                                <FormControl size="small" fullWidth>
-                                    <InputLabel>Category</InputLabel>
-                                    <Select label="Category" value={filters.property_category || ''} onChange={(e) => handleChange('property_category', e.target.value)}>
-                                        <MenuItem value=""><em>Any</em></MenuItem>
-                                        <MenuItem value="Tax Lien">Tax Lien</MenuItem>
-                                        <MenuItem value="Tax Deed">Tax Deed</MenuItem>
-                                        <MenuItem value="Foreclosure">Foreclosure</MenuItem>
-                                        <MenuItem value="Cert">Certificate</MenuItem>
-                                        <MenuItem value="Quit Claim">Quit Claim</MenuItem>
-                                    </Select>
-                                </FormControl>
+                                {/* Category is now managed directly by quick selector chips */}
 
                                 <TextField label="Tax Year" type="number" size="small" fullWidth value={filters.tax_year || ''} onChange={(e) => handleChange('tax_year', e.target.value)} />
 

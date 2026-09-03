@@ -2,13 +2,14 @@ import React from 'react';
 import { Property, PropertyStatus } from '../types';
 import { ExternalLink, MapPin, BadgeDollarSign, Scan, Info, Edit, Eye, Share2 } from 'lucide-react';
 import { getStreetViewUrl } from '../utils/maps';
+import { calculateDealScore } from '../intelligence/scoringEngine';
 
 interface PropertyCardProps {
     property: Property;
     onView: (property: Property) => void;
-    onEdit: (property: Property) => void;
-    onExport: (property: Property) => void;
-    onDelete: (property: Property) => void;
+    onFavorite?: (property: Property) => void;
+    onFlyer?: (property: Property) => void;
+    isFavorite?: boolean;
     isSelected?: boolean;
     onSelect?: (id: string, checked: boolean) => void;
 }
@@ -16,14 +17,39 @@ interface PropertyCardProps {
 export const PropertyCard: React.FC<PropertyCardProps> = ({
     property,
     onView,
-    onEdit,
-    onExport,
-    onDelete,
+    onFavorite,
+    onFlyer,
+    isFavorite,
     isSelected,
     onSelect
 }) => {
     const [streetViewError, setStreetViewError] = React.useState(false);
     const streetViewUrl = getStreetViewUrl(property);
+
+    // Calculate or retrieve Deal Score & Grade
+    const scoreResult = calculateDealScore(property);
+    const grade = property.deal_rating || scoreResult.rating;
+    const score = property.deal_score !== null && property.deal_score !== undefined 
+        ? Math.round(property.deal_score) 
+        : scoreResult.score;
+
+    const isTaxLien = (property.property_category || property.purchase_option_type || property.property_type || property.auction_type || '').toLowerCase().includes('lien');
+
+    // Financial Metrics Calculation
+    const assessedVal = property.assessed_value ? Number(property.assessed_value) : 0;
+    const arv = (property.estimated_value !== undefined && property.estimated_value !== null)
+        ? Number(property.estimated_value) 
+        : (property.details?.estimated_value !== undefined && property.details?.estimated_value !== null)
+            ? Number(property.details.estimated_value)
+            : (assessedVal ? assessedVal * 1.0 : 0);
+
+    const maxBid = (property.max_bid !== undefined && property.max_bid !== null)
+        ? Number(property.max_bid) 
+        : (property.details?.max_bid !== undefined && property.details?.max_bid !== null)
+            ? Number(property.details.max_bid)
+            : (arv * 0.7);
+
+    const spread = (arv > 0 && maxBid > 0) ? (arv - maxBid) : 0;
 
     const getStatusColor = (status: PropertyStatus) => {
         switch (status) {
@@ -43,7 +69,7 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                         type="checkbox"
                         className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-primary cursor-pointer transition-transform hover:scale-110"
                         checked={isSelected}
-                        onChange={(e) => onSelect(property.id, e.target.checked)}
+                        onChange={(e) => onSelect(String(property.id), e.target.checked)}
                     />
                 </div>
             )}
@@ -65,19 +91,67 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
 
+                {/* Grade Badge */}
+                {grade && (
+                    <div className="absolute top-3 left-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm shadow-md z-10 border border-slate-200/50 dark:border-slate-800/50">
+                        <span className={`px-2 py-0.5 rounded font-black text-[10px] ${
+                            grade === 'A+' ? 'bg-emerald-600 text-white' :
+                            grade === 'A' ? 'bg-emerald-500 text-white' :
+                            grade === 'B' ? 'bg-blue-500 text-white' :
+                            grade === 'C' ? 'bg-amber-500 text-white' :
+                            grade === 'D' ? 'bg-orange-500 text-white' :
+                            grade === 'F' ? 'bg-red-500 text-white' :
+                            'bg-slate-500 text-white'
+                        }`}>
+                            {grade}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-700 dark:text-slate-200">
+                            {score}%
+                        </span>
+                    </div>
+                )}
+
                 {/* Status Badge */}
                 <div className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm shadow-sm">
-                    <span className={`w-2 h-2 rounded-full ${getStatusColor(property.status)}`} />
+                    <span className={`w-2 h-2 rounded-full ${getStatusColor(property.status as any)}`} />
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
                         {property.status}
                     </span>
                 </div>
 
-                {/* Price Tag */}
-                <div className="absolute bottom-3 left-3">
-                    <div className="text-white font-bold text-xl drop-shadow-md">
-                        {property.price ? `$${property.price.toLocaleString()}` : 'Price TBD'}
-                    </div>
+                {/* Max Bid & Spread Overlay */}
+                <div className="absolute bottom-3 left-3 right-3 flex justify-between items-end select-none">
+                    {isTaxLien ? (
+                        <>
+                            <div className="flex flex-col text-left">
+                                <span className="text-[9px] font-black text-slate-350 dark:text-slate-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Est. Debt</span>
+                                <div className="text-white font-black text-sm drop-shadow-md leading-none">
+                                    {property.amount_due ? `$${Math.round(property.amount_due).toLocaleString()}` : 'TBD'}
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end text-right">
+                                <span className="text-[9px] font-black text-indigo-300 dark:text-indigo-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Interest</span>
+                                <div className="text-emerald-400 font-black text-sm drop-shadow-md leading-none">
+                                    &gt; 16%
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="flex flex-col text-left">
+                                <span className="text-[9px] font-black text-slate-350 dark:text-slate-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Max Bid</span>
+                                <div className="text-white font-black text-sm drop-shadow-md leading-none">
+                                    {maxBid > 0 ? `$${Math.round(maxBid).toLocaleString()}` : 'TBD'}
+                                </div>
+                            </div>
+                            <div className="flex flex-col items-end text-right">
+                                <span className="text-[9px] font-black text-indigo-300 dark:text-indigo-400 uppercase tracking-widest leading-none mb-1 drop-shadow-md">Est. Spread</span>
+                                <div className="text-emerald-400 font-black text-sm drop-shadow-md leading-none">
+                                    {spread && spread > 0 ? `$${Math.round(spread).toLocaleString()}` : 'TBD'}
+                                </div>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -96,39 +170,94 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
 
                 {/* Metadata Grid */}
                 <div className="grid grid-cols-2 gap-3 pt-2">
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                    {/* Parcel ID */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
                         <Scan size={14} className="text-slate-400" />
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Parcel ID</span>
-                            <span className="text-xs font-mono text-slate-700 dark:text-slate-300 truncate w-20">
-                                {property.smart_tag || '-'}
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Parcel ID</span>
+                            <span className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 truncate" title={property.parcel_id || property.smart_tag}>
+                                {property.parcel_id || property.smart_tag || '-'}
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <BadgeDollarSign size={14} className="text-slate-400" />
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Opening Bid</span>
-                            <span className="text-xs font-medium text-red-600 dark:text-red-400">
+
+                    {/* Opening Bid */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <BadgeDollarSign size={14} className="text-red-500" />
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Opening Bid</span>
+                            <span className="text-xs font-bold text-red-600 dark:text-red-400 truncate">
                                 {property.amount_due ? `$${property.amount_due.toLocaleString()}` : '-'}
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <div className="text-slate-400 material-symbols-outlined text-[14px]">calendar_month</div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Auction</span>
-                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                                {property.next_auction_date || '-'}
+
+                    {/* Assessed Value */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">payments</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Assessed Value</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
+                                {property.assessed_value || property.details?.assessed_value ? `$${(property.assessed_value || property.details?.assessed_value)?.toLocaleString()}` : '-'}
                             </span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
-                        <div className="text-slate-400 material-symbols-outlined text-[14px]">person</div>
-                        <div className="flex flex-col">
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold">Occupancy</span>
-                            <span className="text-xs font-medium text-slate-700 dark:text-slate-300">
-                                {property.occupancy || '-'}
+
+                    {/* Category */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">tag</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Category</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
+                                {property.property_category || property.details?.property_category || property.auction_type || '-'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Occupancy */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">sensor_door</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Occupancy</span>
+                            <span className={`text-xs font-semibold truncate ${
+                                (property.occupancy || '').toLowerCase() === 'occupied' ? 'text-orange-600 dark:text-orange-400' :
+                                (property.occupancy || '').toLowerCase() === 'vacant' ? 'text-green-600 dark:text-green-400' :
+                                'text-slate-700 dark:text-slate-300'
+                            }`}>
+                                {property.occupancy || (String(property.owner_occupied).toLowerCase() === 'true' ? 'Occupied' : String(property.owner_occupied).toLowerCase() === 'false' ? 'Vacant' : 'Unknown')}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Acreage */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">landscape</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Acreage</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate">
+                                {property.lot_acres || property.details?.lot_acres ? `${property.lot_acres || property.details?.lot_acres} Acres` : '-'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Property Type */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">home</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Parcel Type</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate" title={property.property_type || property.details?.property_type}>
+                                {property.property_type || property.details?.property_type || '-'}
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Auction Date */}
+                    <div className="flex items-center gap-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-slate-100 dark:border-slate-800/30">
+                        <div className="text-slate-400 material-symbols-outlined text-[16px]">calendar_month</div>
+                        <div className="flex flex-col min-w-0">
+                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-wider">Auction Date</span>
+                            <span className="text-xs font-semibold text-slate-700 dark:text-slate-300 truncate" title={property.next_auction_date || property.auction_name}>
+                                {property.next_auction_date || property.auction_name || '-'}
                             </span>
                         </div>
                     </div>
@@ -151,40 +280,57 @@ export const PropertyCard: React.FC<PropertyCardProps> = ({
                             <Info size={16} />
                         </a>
                     )}
+                    {(() => {
+                        const lat = property.latitude || property.details?.latitude;
+                        const lng = property.longitude || property.details?.longitude;
+                        if (!lat || !lng) return null;
+                        return (
+                            <a 
+                                href={`https://earth.google.com/web/search/${lat},${lng}`} 
+                                target="_blank" 
+                                rel="noreferrer" 
+                                className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-md transition-colors flex items-center gap-1 text-[10px] font-black uppercase tracking-wider ml-auto" 
+                                title="Open in Google Earth 3D"
+                            >
+                                <span className="material-symbols-outlined text-[15px]">public</span>
+                                Earth 3D
+                            </a>
+                        );
+                    })()}
                 </div>
 
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 w-full justify-between">
                         <button
                             onClick={() => onView(property)}
-                            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
+                            className="flex-1 flex justify-center items-center gap-2 p-2 text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
                             title="View Details"
                         >
                             <Eye size={18} />
+                            <span className="text-xs font-semibold">Preview</span>
                         </button>
-                        <button
-                            onClick={() => onEdit(property)}
-                            className="p-2 text-slate-400 hover:text-blue-500 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
-                            title="Edit"
-                        >
-                            <Edit size={18} />
-                        </button>
-                        <button
-                            onClick={() => onExport(property)}
-                            className="p-2 text-slate-400 hover:text-green-500 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
-                            title="Export"
-                        >
-                            <Share2 size={18} />
-                        </button>
+                        {onFavorite && (
+                            <button
+                                onClick={() => onFavorite(property)}
+                                className={`flex-1 flex justify-center items-center gap-2 p-2 rounded-lg transition-all ${isFavorite ? 'text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20' : 'text-slate-500 hover:text-yellow-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                                title={isFavorite ? "Remove from Favorites" : "Add to Favorites"}
+                            >
+                                <span className="material-symbols-outlined text-[18px]" style={{ fontVariationSettings: isFavorite ? "'FILL' 1" : "'FILL' 0" }}>star</span>
+                                <span className="text-xs font-semibold">Favorite</span>
+                            </button>
+                        )}
+                        {onFlyer && (
+                            <button
+                                onClick={() => onFlyer(property)}
+                                className="flex-1 flex justify-center items-center gap-2 p-2 text-slate-500 hover:text-purple-500 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg transition-all"
+                                title="Generate Flyer"
+                            >
+                                <span className="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                                <span className="text-xs font-semibold">Flyer</span>
+                            </button>
+                        )}
                     </div>
-                    <button
-                        onClick={() => onDelete(property)}
-                        className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
-                        title="Delete"
-                    >
-                        <span className="material-symbols-outlined text-[20px]">delete</span>
-                    </button>
                 </div>
             </div>
         </div>

@@ -5,9 +5,9 @@ import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import { AuctionService } from '../../services/auction.service';
 import type { AuctionEvent } from '../../types';
-import { AuctionDetailsModal } from './AuctionDetailsModal';
+import { AuctionWorkspaceModal } from './AuctionWorkspaceModal';
 import AuctionList from './AuctionList';
-import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from '@mui/material';
+import { Box, Dialog, DialogTitle, DialogContent, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 
@@ -19,9 +19,11 @@ interface AuctionCalendarProps {
         [key: string]: any;
     };
     onDateTypeSelect?: (date: string, type: string) => void;
+    onGroupSelect?: (date: string, type: string) => void;
+    onSelectAuction?: (event: any) => void;
 }
 
-const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate: undefined }, onDateTypeSelect }) => {
+const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate: undefined }, onDateTypeSelect, onGroupSelect, onSelectAuction }) => {
     const [rawEvents, setRawEvents] = useState<any[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
     const [groupedDialogOpen, setGroupedDialogOpen] = useState(false);
@@ -134,8 +136,12 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
     const handleEventClick = (info: any) => {
         const props = info.event.extendedProps;
         if (props.isGrouped) {
-            setGroupedDateType({ date: props.date, type: props.type });
-            setGroupedDialogOpen(true);
+            if (onGroupSelect) {
+                onGroupSelect(props.date, props.type);
+            } else {
+                setGroupedDateType({ date: props.date, type: props.type });
+                setGroupedDialogOpen(true);
+            }
         } else {
             // For single non-grouped events (though we group them all now)
             const normalizedEvent = {
@@ -144,28 +150,47 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 start: info.event.startStr || info.event.start,
                 extendedProps: props
             };
-            setSelectedEvent(normalizedEvent);
+            if (onSelectAuction) {
+                onSelectAuction(normalizedEvent);
+            } else {
+                setSelectedEvent(normalizedEvent);
+            }
         }
     };
 
     const handleDateClick = (arg: any) => {
         if (onDateTypeSelect) {
-            onDateTypeSelect(arg.dateStr, ''); 
+            onDateTypeSelect(arg.dateStr, '');
+            setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+            }, 100);
         } else {
-            const params = new URLSearchParams(window.location.search);
-            params.set('startDate', arg.dateStr);
-            params.set('endDate', arg.dateStr);
-            params.delete('q');
-            window.location.search = '?' + params.toString();
+            setGroupedDateType({ date: arg.dateStr, type: '' });
+            setGroupedDialogOpen(true);
         }
     };
 
     const handleCloseModal = () => {
         setSelectedEvent(null);
+        if (onSelectAuction) onSelectAuction(null);
     };
 
     return (
-        <div className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm h-[600px] relative">
+        <Box sx={{ height: 600, bgcolor: 'background.paper', p: 2, borderRadius: 2 }}>
+            <style>
+                {`
+                    .fc-col-header-cell-cushion {
+                        color: #1e293b;
+                        text-decoration: none;
+                        font-weight: 700;
+                    }
+                    .fc-daygrid-day-number {
+                        color: #475569;
+                        text-decoration: none;
+                        font-weight: 600;
+                    }
+                `}
+            </style>
             <FullCalendar
                 plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
                 initialView="dayGridMonth"
@@ -215,8 +240,8 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 }}
             />
 
-            <AuctionDetailsModal
-                open={!!selectedEvent}
+            <AuctionWorkspaceModal
+                isOpen={!!selectedEvent}
                 onClose={handleCloseModal}
                 eventData={selectedEvent}
             />
@@ -226,6 +251,7 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                 onClose={() => setGroupedDialogOpen(false)} 
                 maxWidth="lg" 
                 fullWidth
+                sx={{ zIndex: 99990 }}
                 PaperProps={{ sx: { borderRadius: 3, minHeight: '600px' } }}
             >
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc' }}>
@@ -240,17 +266,24 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                     {groupedDateType && (
                         <AuctionList 
                             filters={{ 
+                                ...filters,
                                 startDate: groupedDateType.date, 
                                 endDate: groupedDateType.date, 
                                 tax_status: groupedDateType.type
                             }} 
                             readOnly={true} 
-                            hideFilterSelector={true}
+                            onSelectAuction={(evt) => {
+                                if (onSelectAuction) {
+                                    onSelectAuction(evt);
+                                } else {
+                                    setSelectedEvent(evt);
+                                }
+                            }}
                         />
                     )}
                 </DialogContent>
             </Dialog>
-        </div>
+        </Box>
     );
 };
 

@@ -37,6 +37,8 @@ interface Task {
   state?: string;
   county?: string;
   investor_name?: string;
+  min_photos?: number;
+  max_photos?: number;
 }
 
 interface Commission {
@@ -525,7 +527,7 @@ const ConsultantDashboard: React.FC = () => {
         {/* Submit Task Modal */}
         {submitTask && (
           <ExecuteTaskMission 
-            task={submitTask}
+            task={submitTask as any}
             onClose={() => setSubmitTask(null)}
             onSuccess={() => {
               setSubmitTask(null);

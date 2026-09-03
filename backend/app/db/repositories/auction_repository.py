@@ -6,6 +6,7 @@ from fastapi.encoders import jsonable_encoder
 from app.models.auction_event import AuctionEvent
 from app.models.property import PropertyDetails, PropertyAuctionHistory
 from app.schemas.auction_event import AuctionEventCreate, AuctionEventUpdate
+from app.core.state_mappings import get_state_aliases
 
 class AuctionRepository:
     def get(self, db: Session, id: Any) -> Optional[AuctionEvent]:
@@ -48,7 +49,9 @@ class AuctionRepository:
             ))
         # ... (rest of filtering logic remains same)
         if state:
-            query = query.filter(AuctionEvent.state.ilike(f"%{state}%"))
+            aliases = get_state_aliases(state)
+            state_conditions = [AuctionEvent.state.ilike(f"%{alias}%") for alias in aliases]
+            query = query.filter(or_(*state_conditions))
         if county:
             query = query.filter(AuctionEvent.county.ilike(f"%{county}%"))
         # ...
@@ -131,8 +134,12 @@ class AuctionRepository:
             where_clauses.append("(name ILIKE :name OR short_name ILIKE :name)")
             params['name'] = f"%{name}%"
         if state:
-            where_clauses.append("state ILIKE :state")
-            params['state'] = f"%{state}%"
+            aliases = get_state_aliases(state)
+            state_conds = []
+            for idx, alias in enumerate(aliases):
+                state_conds.append(f"state ILIKE :state_alias_{idx}")
+                params[f'state_alias_{idx}'] = f"%{alias}%"
+            where_clauses.append("(" + " OR ".join(state_conds) + ")")
         if county:
             where_clauses.append("county ILIKE :county")
             params['county'] = f"%{county}%"
@@ -179,6 +186,9 @@ class AuctionRepository:
                 notes as event_notes,
                 tax_status,
                 parcels_count as property_count,
+                available_count as live_available_count,
+                avg_deal_score,
+                deal_rating,
                 '' as linked_properties,
                 '' as statuses,
                 register_link,

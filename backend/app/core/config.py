@@ -5,10 +5,16 @@ from typing import Optional, Union, List
 class Settings(BaseSettings):
     PROJECT_NAME: str = "GoAuct"
     API_V1_STR: str = "/api/v1"
-    SECRET_KEY: str = "changethiskeyinproduction"  # Should be overridden by env var
+    # No default value: server will refuse to start if SECRET_KEY is not set in env.
+    # In production, generate with: python -c "import secrets; print(secrets.token_hex(32))"
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60          # 1 hour (was 24h — reduced for security)
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7             # Refresh token lifespan
     FRONTEND_URL: str = "https://www.goauct.com"
+    
+    # Optional Sentry DSN for error tracking
+    SENTRY_DSN: Optional[str] = None
     
     # OAuth Configurations
     GOOGLE_CLIENT_ID: Optional[str] = None

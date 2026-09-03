@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import debounce from 'lodash/debounce';
 import { getStateStats, StateStat, getMonthlyStats, MonthlyAuctionStat, getTopScoredProperties, TopScoredProperty } from '../../services/scores.service';
 import { ClientDataService, PropertyService } from '../../services/property.service';
 import { AuctionService } from '../../services/auction.service';
@@ -10,6 +11,7 @@ import { RealtorTaskService, InvestorTaskService, Task } from '../../services/re
 import { AuthService } from '../../services/auth.service';
 import { AuctionEvent, Property } from '../../types';
 import { useCompany } from '../../context/CompanyContext';
+import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
 import { MapDashboard } from '../../components/widgets/MapDashboard';
 import { StatCounterWidget } from '../../components/widgets/StatCounterWidget';
@@ -24,6 +26,8 @@ import { API_URL } from '../../services/httpClient';
 
 // Original rich page modules for IDE-style floating windows
 import ClientAuctions from './ClientAuctions';
+import ClientAuctionDetails from '../../components/admin/ClientAuctionDetails';
+import ClientAuctionGroupList from '../../components/admin/ClientAuctionGroupList';
 import ClientProperties from './ClientProperties';
 import ClientLists from './ClientLists';
 import { InvestorTasksDashboard } from './InvestorTasksDashboard';
@@ -38,18 +42,22 @@ import TermsOfServicePage from '../TermsOfServicePage';
 import { useTour } from '../../context/TourContext';
 import { CompanySelector } from '../../components/CompanySelector';
 import { TrainingPage, CommunityPage, GroupsPage } from './EcosystemPages';
+import { AffiliateDashboard } from './AffiliateDashboard';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
   ResponsiveContainer, PieChart, Pie, Cell
 } from 'recharts';
+import { ResponsiveGridLayout } from 'react-grid-layout';
+import 'react-grid-layout/css/styles.css';
+import 'react-resizable/css/styles.css';
 import {
-  Compass, Map, BarChart2, Folder, Terminal, Award,
+  Compass, Map as MapIcon, BarChart2, Folder, Terminal, Award,
   HelpCircle, ShieldCheck, RefreshCw, FileText, CheckCircle,
   Smartphone, Settings, Layout, Layers, X, Maximize2, Minimize2, Minus,
   Move, LayoutGrid, Eye, EyeOff, Sparkles, ChevronLeft, ChevronRight, ChevronUp, ChevronDown,
   Gavel, Calendar, ShieldAlert, Search, Plus, Filter, ArrowRight,
   Maximize, Activity, Info, Users, CreditCard, Bell, Briefcase, Trash2, Edit2, Play, Check, Shield, CheckSquare, LogOut,
-  MousePointer, TrendingUp, Lock, Unlock, LayoutDashboard, ExternalLink, Database, Brain
+  MousePointer, TrendingUp, Lock, Unlock, LayoutDashboard, ExternalLink, Database, Brain, Handshake
 } from 'lucide-react';
 
 const CHART_COLORS = {
@@ -120,20 +128,20 @@ interface Widget {
   id: string;
   type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'settings' | 'activity_logs';
   title: string;
-  x: number; // left offset in pixels
-  y: number; // top offset in pixels
-  w: number; // width in pixels
-  h: number; // height in pixels
+  x: number; // grid column index
+  y: number; // grid row index
+  w: number; // width in grid columns
+  h: number; // height in grid rows
   visible: boolean;
   zIndex: number;
   isLocked?: boolean;
-  isIcon?: boolean;
   refreshKey?: number;
+  isIcon?: boolean;
 }
 
 interface OverlayWindow {
   id: string;
-  type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy';
+  type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'auction_details' | 'auction_group' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy' | 'affiliate_dashboard';
   title: string;
   x: number;
   y: number;
@@ -147,9 +155,12 @@ interface OverlayWindow {
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: 'map', type: 'map', title: 'US Heatmap & Activity', x: 40, y: 40, w: 900, h: 750, visible: true, zIndex: 10, isIcon: false },
-  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 960, y: 40, w: 900, h: 750, visible: true, zIndex: 5, isIcon: false }
+  { id: 'map',             type: 'map',            title: 'US Heatmap & Activity',  x: 0, y: 0, w: 6, h: 5, visible: true, zIndex: 10 },
+  { id: 'smart_ai_finder', type: 'smart_ai_finder', title: '🧠 Smart AI Deal Finder', x: 6, y: 0, w: 6, h: 5, visible: true, zIndex: 5  },
 ];
+
+// localStorage key — bump version to clear stale icon state
+const LAYOUT_KEY = 'goauct_workbench_v65';
 
 
 export const ClientWorkbench: React.FC = () => {
@@ -170,62 +181,56 @@ export const ClientWorkbench: React.FC = () => {
     setTerminalLogs(prev => [...prev, `[activity] ${msg}`].slice(-40));
   }, []);
 
+  const [isDockExpanded, setIsDockExpanded] = useState(true);
+
   // States
+  // Widgets state — initialized from localStorage (sync), then overwritten from backend (async)
   const [widgets, setWidgets] = useState<Widget[]>(() => {
     try {
-      const saved = localStorage.getItem('goauct_workbench_widgets_v63');
+      const saved = localStorage.getItem(LAYOUT_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Use the saved array as the authoritative source.
-          // Validate and sanitize each saved widget, falling back to defaults for any corrupt fields.
-          const knownDefaultsMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
+          const knownMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
           const sanitized: Widget[] = parsed
-            .filter((w: any) => typeof w.id === 'string' && w.id.length > 0 && knownDefaultsMap.has(w.id))
+            .filter((w: any) => typeof w.id === 'string' && knownMap.has(w.id))
             .map((w: any) => {
-              const def = knownDefaultsMap.get(w.id);
+              const def = knownMap.get(w.id)!;
               return {
-                // Start from the known default (for type/title safety) if available, else reconstruct
-                ...(def ?? {}),
-                // Override with all saved values
+                ...def,
                 ...w,
-                // Guarantee numeric/boolean types to guard against JSON corruption
-                x: typeof w.x === 'number' && isFinite(w.x) ? w.x : (def?.x ?? 20),
-                y: typeof w.y === 'number' && isFinite(w.y) ? w.y : (def?.y ?? 20),
-                w: typeof w.w === 'number' && isFinite(w.w) && w.w > 0 ? w.w : (def?.w ?? 400),
-                h: typeof w.h === 'number' && isFinite(w.h) && w.h > 0 ? w.h : (def?.h ?? 300),
-                visible: typeof w.visible === 'boolean' ? w.visible : (def?.visible ?? false),
-                zIndex: typeof w.zIndex === 'number' && isFinite(w.zIndex) ? w.zIndex : (def?.zIndex ?? 10),
-                isLocked: typeof w.isLocked === 'boolean' ? w.isLocked : (def?.isLocked ?? false),
-                isIcon: typeof w.isIcon === 'boolean' ? w.isIcon : (isMobileView() ? true : false),
+                x: Number.isFinite(w.x) ? w.x : def.x,
+                y: Number.isFinite(w.y) ? w.y : def.y,
+                w: Number.isFinite(w.w) && w.w > 0 ? w.w : def.w,
+                h: Number.isFinite(w.h) && w.h > 0 ? w.h : def.h,
+                visible: typeof w.visible === 'boolean' ? w.visible : def.visible,
+                zIndex: Number.isFinite(w.zIndex) ? w.zIndex : def.zIndex,
               } as Widget;
             });
-
-          // Append any brand-new DEFAULT_WIDGETS not yet present in the saved data
+          // Add any new widgets not in saved state
           const savedIds = new Set(sanitized.map(w => w.id));
-          const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id))
-            .map(d => ({
-              ...d,
-              isIcon: isMobileView() ? true : false
-            }));
-
-          return [...sanitized, ...newDefaults];
+          const missing = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id));
+          return [...sanitized, ...missing];
         }
       }
     } catch (e) {
-      console.error('Failed to parse goauct_workbench_widgets_v63 from localStorage, falling back to default:', e);
+      console.error('Failed to parse workbench layout from localStorage:', e);
     }
-    return DEFAULT_WIDGETS.map(d => ({
-      ...d,
-      isIcon: isMobileView() ? true : false
-    }));
+    return DEFAULT_WIDGETS;
   });
+
+  // Guard: only allow onLayoutChange to save AFTER the user has actually dragged/resized.
+  // This prevents the grid's automatic mount-time layout recalculation from overwriting the user's saved state.
+  const userInteractedRef = useRef(false);
+
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() => {
     const saved = localStorage.getItem('goauct_workbench_sidebarOpen');
     return saved === null ? true : saved === 'true';
   });
-  const [activePane, setActivePane] = useState<'explorer' | 'presets' | 'info' | 'notifications' | 'connect'>(() => {
-    return (localStorage.getItem('goauct_workbench_activePane') as any) || 'explorer';
+  const [activePane, setActivePane] = useState<'notifications' | 'connect'>(() => {
+    const saved = localStorage.getItem('goauct_workbench_activePane') as any;
+    // Guard against old saved values that no longer exist
+    return ['notifications', 'connect'].includes(saved) ? saved : 'notifications';
   });
   const [upcomingAuctionsCount, setUpcomingAuctionsCount] = useState<number>(0);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -236,66 +241,65 @@ export const ClientWorkbench: React.FC = () => {
 
   const [previewPropertyId, setPreviewPropertyId] = useState<string | number | null>(null);
 
-  // Load layout from backend database/Redis cache on mount
+  // Load layout from backend database/Redis cache on mount.
+  // IMPORTANT: we only enable saves via onLayoutChange AFTER this completes,
+  // to prevent the grid's mount-time auto-recalculation from overwriting user preferences.
   useEffect(() => {
     const fetchLayout = async () => {
       try {
         const layout = await UserService.getWorkbenchLayout();
         if (layout && Array.isArray(layout) && layout.length > 0) {
-          const knownDefaultsMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
+          const knownMap = new Map(DEFAULT_WIDGETS.map(d => [d.id, d]));
           const sanitized: Widget[] = layout
-            .filter((w: any) => typeof w.id === 'string' && w.id.length > 0 && knownDefaultsMap.has(w.id))
+            .filter((w: any) => typeof w.id === 'string' && knownMap.has(w.id))
             .map((w: any) => {
-              const def = knownDefaultsMap.get(w.id);
+              const def = knownMap.get(w.id)!;
               return {
-                ...(def ?? {}),
+                ...def,
                 ...w,
-                x: typeof w.x === 'number' && isFinite(w.x) ? w.x : (def?.x ?? 20),
-                y: typeof w.y === 'number' && isFinite(w.y) ? w.y : (def?.y ?? 20),
-                w: typeof w.w === 'number' && isFinite(w.w) && w.w > 0 ? w.w : (def?.w ?? 400),
-                h: typeof w.h === 'number' && isFinite(w.h) && w.h > 0 ? w.h : (def?.h ?? 300),
-                visible: typeof w.visible === 'boolean' ? w.visible : (def?.visible ?? false),
-                zIndex: typeof w.zIndex === 'number' && isFinite(w.zIndex) ? w.zIndex : (def?.zIndex ?? 10),
-                isLocked: typeof w.isLocked === 'boolean' ? w.isLocked : (def?.isLocked ?? false),
-                isIcon: typeof w.isIcon === 'boolean' ? w.isIcon : (isMobileView() ? true : false),
+                x: Number.isFinite(w.x) ? w.x : def.x,
+                y: Number.isFinite(w.y) ? w.y : def.y,
+                w: Number.isFinite(w.w) && w.w > 0 ? w.w : def.w,
+                h: Number.isFinite(w.h) && w.h > 0 ? w.h : def.h,
+                visible: typeof w.visible === 'boolean' ? w.visible : def.visible,
+                zIndex: Number.isFinite(w.zIndex) ? w.zIndex : def.zIndex,
               } as Widget;
             });
-
           const savedIds = new Set(sanitized.map(w => w.id));
-          const newDefaults = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id))
-            .map(d => ({
-              ...d,
-              isIcon: isMobileView() ? true : false
-            }));
-          
-          setWidgets([...sanitized, ...newDefaults]);
-          logConsoleActivity('Loaded custom workbench layout from database and Redis.');
+          const missing = DEFAULT_WIDGETS.filter(d => !savedIds.has(d.id));
+          const merged = [...sanitized, ...missing];
+          setWidgets(merged);
+          localStorage.setItem(LAYOUT_KEY, JSON.stringify(merged));
+          logConsoleActivity('Loaded workbench layout from database & Redis.');
         } else {
-          // If backend has no layout, try to synchronize current local state
-          const localLayout = localStorage.getItem('goauct_workbench_widgets_v62');
+          // Backend has no layout yet — push our current local state up
+          const localLayout = localStorage.getItem(LAYOUT_KEY);
           if (localLayout) {
             try {
               const parsed = JSON.parse(localLayout);
               if (Array.isArray(parsed) && parsed.length > 0) {
                 await UserService.saveWorkbenchLayout(parsed);
-                logConsoleActivity('Synchronized local layout to database and Redis.');
+                logConsoleActivity('Synchronized local layout to database & Redis.');
               }
             } catch (err) {
               console.error('Failed to sync local layout to backend:', err);
             }
           } else {
             await UserService.saveWorkbenchLayout(DEFAULT_WIDGETS);
-            logConsoleActivity('Synchronized default layout to database and Redis.');
+            logConsoleActivity('Initialized default layout in database & Redis.');
           }
         }
       } catch (err) {
         console.error('Failed to fetch workbench layout from backend:', err);
       } finally {
         hasLoadedLayoutRef.current = true;
+        // CRITICAL: only allow drag/resize saves after this point
+        setTimeout(() => { userInteractedRef.current = true; }, 300);
       }
     };
     fetchLayout();
   }, [logConsoleActivity]);
+
 
   useEffect(() => {
     const syncLocalFavorites = async () => {
@@ -317,7 +321,7 @@ export const ClientWorkbench: React.FC = () => {
     syncLocalFavorites();
   }, []);
 
-  const [activeMode, setActiveMode] = useState<'preferences' | 'volume' | 'scoring'>(() => {
+  const [activeMode, setActiveMode] = useState<'preferences' | 'volume' | 'scoring' | 'analytics'>(() => {
     try {
       const saved = localStorage.getItem('goauct_map_active_mode');
       return (saved as any) || 'preferences';
@@ -649,8 +653,10 @@ export const ClientWorkbench: React.FC = () => {
     return localStorage.getItem('goauct_workbench_splitIdeTabId');
   });
   const [splitLeftWidthPct, setSplitLeftWidthPct] = useState<number>(() => {
-    const saved = localStorage.getItem('goauct_workbench_splitLeftWidthPct');
-    return saved ? Number(saved) : 50;
+    // Priority: canvas split key > legacy key > default 33%
+    const saved = localStorage.getItem('goauct_split_pct') ||
+                  localStorage.getItem('goauct_workbench_splitLeftWidthPct');
+    return saved ? Number(saved) : 33;
   });
   const splitDraggingRef = useRef(false);
 
@@ -816,21 +822,24 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const openOverlayWindow = (
-    type: 'my_lists' | 'live_auctions' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy',
+    type: 'map' | 'smart_ai_finder' | 'my_lists' | 'live_auctions' | 'auction_details' | 'auction_group' | 'property_search' | 'field_missions' | 'property_details' | 'settings' | 'team_and_logs' | 'billings_and_plans' | 'about' | 'training' | 'community' | 'groups' | 'disclaimer' | 'terms' | 'privacy' | 'affiliate_dashboard',
     title: string,
     data?: any
   ) => {
-    const id = type === 'property_details' ? `prop_details_${data?.propertyId}` : type;
+    let id: string = type;
+    if (type === 'property_details') id = `prop_details_${data?.propertyId}`;
+    if (type === 'auction_details') id = `auction_details_${data?.eventData?.id || data?.eventData?.auction_id || Date.now()}`;
+    if (type === 'auction_group') id = `auction_group_${data?.date}_${data?.type}`;
+
+    const nextZ = getNextZIndex();
 
     setOverlayWindows(prev => {
       const existingIdx = prev.findIndex(w => w.id === id);
-      const safeZ = prev.map(w => typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0);
-      const maxZ = safeZ.length > 0 ? Math.max(...safeZ) : 0;
 
       if (existingIdx !== -1) {
         return prev.map((w, idx) =>
           idx === existingIdx
-            ? { ...w, isMinimized: false, zIndex: maxZ + 1 }
+            ? { ...w, title, data, isMinimized: false, isMaximized: true, zIndex: nextZ }
             : w
         );
       }
@@ -842,6 +851,12 @@ export const ClientWorkbench: React.FC = () => {
       if (type === 'property_details') {
         w = 880;
         h = 620;
+      } else if (type === 'auction_details') {
+        w = 1150;
+        h = 750;
+      } else if (type === 'map' || type === 'smart_ai_finder') {
+        w = 1100;
+        h = 750;
       } else if (type === 'about' || type === 'disclaimer' || type === 'terms' || type === 'privacy') {
         w = 680;
         h = 500;
@@ -866,9 +881,9 @@ export const ClientWorkbench: React.FC = () => {
         y,
         w,
         h,
-        zIndex: maxZ + 1,
+        zIndex: nextZ,
         isMinimized: false,
-        isMaximized: false,
+        isMaximized: viewportW < 768 || (type === 'auction_details' || type === 'auction_group' || type === 'property_details'),
         data,
       };
       return [...prev, newWin];
@@ -884,12 +899,13 @@ export const ClientWorkbench: React.FC = () => {
   };
 
   const focusOverlayWindow = (id: string) => {
-    setActiveOverlayWindowId(id);
+    if (activeOverlayWindowId === id) return;
+    
+    const nextZ = getNextZIndex();
     setOverlayWindows(prev => {
-      const safeZ = prev.map(w => typeof w.zIndex === 'number' && !isNaN(w.zIndex) ? w.zIndex : 0);
-      const maxZ = safeZ.length > 0 ? Math.max(...safeZ) : 0;
-      return prev.map(w => (w.id === id ? { ...w, isMinimized: false, zIndex: maxZ + 1 } : w));
+      return prev.map(w => (w.id === id ? { ...w, zIndex: nextZ } : w));
     });
+    setActiveOverlayWindowId(id);
   };
 
   const closeOverlayWindow = (id: string) => {
@@ -1224,7 +1240,11 @@ export const ClientWorkbench: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [monthlyLoading, setMonthlyLoading] = useState(false);
   const [syncTime, setSyncTime] = useState<string>('');
-  const [highestZIndex, setHighestZIndex] = useState(35);
+  const zIndexCounter = React.useRef(100);
+  const getNextZIndex = React.useCallback(() => {
+    zIndexCounter.current += 1;
+    return zIndexCounter.current;
+  }, []);
 
   // Drag & Resize mouse/touch interaction tracking
   const [interaction, setInteraction] = useState<{
@@ -1347,8 +1367,7 @@ export const ClientWorkbench: React.FC = () => {
         const found = prev.find(w => w.id === targetWidgetId);
         if (!found) return prev;
 
-        const nextZ = highestZIndex + 1;
-        setHighestZIndex(nextZ);
+        const nextZ = getNextZIndex();
 
         return prev.map(w =>
           w.id === targetWidgetId
@@ -1382,7 +1401,7 @@ export const ClientWorkbench: React.FC = () => {
       window.removeEventListener('open-workbench-widget', handleOpenWidget as EventListener);
       window.removeEventListener('open-workbench-overlay', handleOpenOverlay as EventListener);
     };
-  }, [widgets, highestZIndex, logConsoleActivity]);
+  }, [widgets, logConsoleActivity]);
 
   // --- DEAL FLOW ENGINE STATES & HANDLERS ---
   interface NodeFlow {
@@ -1761,16 +1780,15 @@ export const ClientWorkbench: React.FC = () => {
 
   // Bring window to focus
   const focusWidget = useCallback((id: string) => {
-    setWidgets(prev => {
+    updateWidgetsAndSave(prev => {
       const match = prev.find(w => w.id === id);
-      if (match && match.zIndex < highestZIndex) {
-        const nextZ = highestZIndex + 1;
-        setHighestZIndex(nextZ);
+      if (match) {
+        const nextZ = getNextZIndex();
         return prev.map(w => w.id === id ? { ...w, zIndex: nextZ } : w);
       }
       return prev;
     });
-  }, [highestZIndex]);
+  }, []);
 
   // List management helpers
   const handleDeleteFolder = async (id: number) => {
@@ -1816,7 +1834,7 @@ export const ClientWorkbench: React.FC = () => {
     if (!selectedProperty) return;
     try {
       await InvestorTaskService.createTask({
-        property_id: selectedProperty.id,
+        property_id: Number(selectedProperty.id),
         title: `Field Inspection: ${selectedProperty.parcel_id || 'N/A'}`,
         description: `Inspect and photograph property at ${selectedProperty.address || 'Address N/A'}`,
         task_type: 'field_inspection',
@@ -1937,7 +1955,7 @@ export const ClientWorkbench: React.FC = () => {
     setTaskCreating(true);
     try {
       await InvestorTaskService.createTask({
-        property_id: newTaskPropId ? Number(newTaskPropId) : selectedProperty?.id || 1,
+        property_id: newTaskPropId ? Number(newTaskPropId) : Number(selectedProperty?.id || 1),
         title: newTaskTitle.trim(),
         description: newTaskDesc.trim(),
         task_type: newTaskType,
@@ -2050,6 +2068,7 @@ export const ClientWorkbench: React.FC = () => {
 
   // Split panel divider drag handler
   const handleSplitDividerMouseDown = (e: React.MouseEvent) => {
+    if (isCanvasLocked) return;
     e.preventDefault();
     splitDraggingRef.current = true;
     const startX = e.clientX;
@@ -2061,17 +2080,64 @@ export const ClientWorkbench: React.FC = () => {
     const onMove = (moveE: MouseEvent) => {
       if (!splitDraggingRef.current) return;
       const delta = moveE.clientX - startX;
-      const newPct = Math.min(80, Math.max(20, startPct + (delta / containerW) * 100));
+      const newPct = Math.min(60, Math.max(20, startPct + (delta / containerW) * 100));
       setSplitLeftWidthPct(Math.round(newPct));
     };
     const onUp = () => {
       splitDraggingRef.current = false;
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
+      // Persist the split position to localStorage on release
+      setSplitLeftWidthPct(prev => {
+        localStorage.setItem('goauct_split_pct', String(prev));
+        return prev;
+      });
     };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
   };
+
+  // Debounced API call to save layout to backend
+  const debouncedSaveLayout = useMemo(() => debounce(async (layoutToSave: any[]) => {
+    try {
+      await UserService.saveWorkbenchLayout(layoutToSave);
+      console.log('[Workbench] Layout saved to database & Redis');
+    } catch (err) {
+      console.error('[Workbench] Failed to save layout:', err);
+    }
+  }, 1500), []);
+
+  // Central save helper — always writes to both localStorage and backend
+  const saveWidgets = useCallback((widgets: Widget[]) => {
+    localStorage.setItem(LAYOUT_KEY, JSON.stringify(widgets));
+    debouncedSaveLayout(widgets);
+  }, [debouncedSaveLayout]);
+
+  const updateWidgetsAndSave = useCallback((updater: (prev: Widget[]) => Widget[]) => {
+    setWidgets(prev => {
+      const next = updater(prev);
+      saveWidgets(next);
+      return next;
+    });
+  }, [saveWidgets]);
+
+  // Called by react-grid-layout ONLY when user finishes dragging or resizing a widget.
+  // Using onDragStop + onResizeStop (not onLayoutChange) avoids the mount-time fire.
+  const onItemInteractionEnd = useCallback((layout: any[]) => {
+    if (!userInteractedRef.current) return;
+    setWidgets(prev => {
+      const next = prev.map(w => {
+        const updated = layout.find((l: any) => l.i === w.id);
+        if (updated) {
+          return { ...w, x: updated.x, y: updated.y, w: updated.w, h: updated.h };
+        }
+        return w;
+      });
+      saveWidgets(next);
+      return next;
+    });
+  }, [saveWidgets]);
+
 
   // Window Drag & Resize Mouse Handlers
   const handleMouseDown = (
@@ -2392,7 +2458,7 @@ export const ClientWorkbench: React.FC = () => {
 
   const toggleVisibility = (id: string) => {
     let wasVisible = false;
-    setWidgets(prev => {
+    updateWidgetsAndSave(prev => {
       wasVisible = prev.find(w => w.id === id)?.visible || false;
       const targetNextVisible = !wasVisible;
 
@@ -2410,7 +2476,7 @@ export const ClientWorkbench: React.FC = () => {
       } else if (activeIdeTabId === id) {
         // If we closed the active tab, pick another visible one if any
         setTimeout(() => {
-          setWidgets(currentWidgets => {
+          updateWidgetsAndSave(currentWidgets => {
             const open = currentWidgets.filter(w => w.visible);
             if (open.length > 0) {
               setActiveIdeTabId(open[0].id);
@@ -2426,11 +2492,7 @@ export const ClientWorkbench: React.FC = () => {
     }
   };
   const applyPreset = (presetId: string) => {
-    let nextZ = highestZIndex;
-    const incrementZ = () => {
-      nextZ += 1;
-      return nextZ;
-    };
+    const incrementZ = () => getNextZIndex();
 
     setZoomScale(1.0);
     setPanX(0);
@@ -2447,7 +2509,6 @@ export const ClientWorkbench: React.FC = () => {
           }
           return { ...w, visible: false };
         });
-        setHighestZIndex(nextZ);
         return updated;
       });
       logConsoleActivity(`Applied custom preset: "${custom.label}"`);
@@ -2493,7 +2554,6 @@ export const ClientWorkbench: React.FC = () => {
         return { ...w, ...coords };
       });
 
-      setHighestZIndex(nextZ);
       return updated;
     });
   };
@@ -2550,6 +2610,7 @@ export const ClientWorkbench: React.FC = () => {
                 topProperties={topProperties}
                 loadingStats={loadingStats}
                 onPreviewProperty={(parcelId) => setPreviewPropertyId(parcelId)}
+                onOpenPropertyDetails={handleOpenPropertyDetails}
               />
             )}
           </div>
@@ -2636,7 +2697,7 @@ export const ClientWorkbench: React.FC = () => {
     <div className="w-full flex-1 flex flex-col h-full min-h-0 overflow-hidden select-none bg-slate-50 dark:bg-sol-base03 font-display">
 
       {/* ─── WORKBENCH SYSTEM TOP BAR (Mission Control Header) ─── */}
-      <div className="w-full h-11 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex justify-between items-center shrink-0 z-[9999] select-none">
+      <div className="w-full h-12 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-4 flex justify-between items-center shrink-0 z-[9999] select-none shadow-sm">
         <div id="tour-welcome-header" className="flex items-center gap-2.5">
           <img
             src="/goauct-logo.png"
@@ -2694,19 +2755,7 @@ export const ClientWorkbench: React.FC = () => {
           {/* Company Context Selector inside the Header */}
           <CompanySelector compact />
 
-          <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
 
-          <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-slate-400 dark:text-slate-550 uppercase">
-            <span>Grid Zoom:</span>
-            <button
-              onClick={() => setZoomScale(1.0)}
-              className="text-slate-655 dark:text-slate-300 hover:text-indigo-500 transition-colors bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded font-black active:scale-95"
-              title="Reset Zoom"
-            >
-              {Math.round(zoomScale * 100)}%
-            </button>
-          </div>
-          <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
 
           {/* Notification Bell */}
           <div
@@ -2795,39 +2844,8 @@ export const ClientWorkbench: React.FC = () => {
       <div className="flex-1 flex w-full overflow-hidden relative">
 
         {/* ─── SIDEBAR 1: Primary VS Code Ribbon (64px desktop, 40px mobile) ─── */}
-        <div className="w-10 md:w-16 bg-white dark:bg-sol-base02 border-r border-slate-200/80 dark:border-sol-base01/20 flex flex-col justify-between py-4 items-center shrink-0 z-40 overflow-y-auto no-scrollbar scrollbar-none">
+        <div className="w-10 md:w-16 bg-white dark:bg-sol-base02 border-r border-slate-200/80 dark:border-sol-base01/20 flex flex-col justify-between py-4 items-center shrink-0 z-50 overflow-y-auto no-scrollbar scrollbar-none">
           <div className="flex flex-col gap-3 w-full items-center">
-            {[
-              { id: 'explorer', icon: Layers, label: 'Workspace Explorer' },
-              { id: 'presets', icon: LayoutGrid, label: 'Layout Presets' },
-              { id: 'info', icon: HelpCircle, label: 'Workbench Info' }
-            ].map(tab => {
-              const Icon = tab.icon;
-              const active = activePane === tab.id && sidebarOpen;
-              return (
-                <button
-                  key={tab.id}
-                  title={tab.label}
-                  onClick={() => {
-                    if (activePane === tab.id) {
-                      setSidebarOpen(!sidebarOpen);
-                    } else {
-                      setActivePane(tab.id as any);
-                      setSidebarOpen(true);
-                    }
-                  }}
-                  className={`relative p-2.5 rounded-xl transition-all ${active
-                      ? 'bg-blue-50 dark:bg-blue-955/20 text-blue-600 dark:text-blue-400 font-bold border border-blue-500/10 shadow-sm'
-                      : 'text-slate-400 dark:text-slate-650 hover:text-slate-700 dark:hover:text-slate-350 hover:bg-slate-50 dark:hover:bg-slate-900/40'
-                    }`}
-                >
-                  {active && (
-                    <div className="absolute left-0 top-1/4 bottom-1/4 w-0.75 bg-blue-500 rounded-r" />
-                  )}
-                  <Icon size={18} />
-                </button>
-              );
-            })}
 
             {/* Separator line for direct window shortcuts */}
             <div className="w-8 h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
@@ -2840,6 +2858,7 @@ export const ClientWorkbench: React.FC = () => {
               { id: 'connect', icon: Compass, label: 'Connect Hub' },
               { id: 'team_and_logs', icon: Users, label: 'Team & Activity Logs' },
               { id: 'billings_and_plans', icon: CreditCard, label: 'Billing & Plans' },
+              { id: 'affiliate_dashboard', icon: Handshake, label: 'Partners & Affiliates' },
               { id: 'settings', icon: Settings, label: 'Workbench Settings' }
             ].map(shortcut => {
               const Icon = shortcut.icon;
@@ -2859,7 +2878,8 @@ export const ClientWorkbench: React.FC = () => {
                           shortcut.id === 'property_search' ? 'tour-nav-property-search' :
                             shortcut.id === 'my_lists' ? 'tour-nav-my-lists' :
                               shortcut.id === 'billings_and_plans' ? 'tour-upgrade-button' :
-                                undefined
+                                shortcut.id === 'affiliate_dashboard' ? 'tour-nav-affiliate' :
+                                  undefined
                   }
                   title={shortcut.label}
                   onClick={() => {
@@ -2941,7 +2961,7 @@ export const ClientWorkbench: React.FC = () => {
 
         {/* ─── SIDEBAR 2: Collapsible Secondary Drawer (240px) — hidden on mobile ─── */}
         <div
-          className={`flex absolute left-10 md:static z-50 h-[calc(100vh-120px)] md:h-auto bg-white/95 dark:bg-sol-base02/95 border-r border-slate-200/80 dark:border-sol-base01/20 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 overflow-y-auto ${
+          className={`flex absolute left-10 md:static z-40 h-[calc(100vh-120px)] md:h-auto bg-white/95 dark:bg-sol-base02/95 border-r border-slate-200/80 dark:border-sol-base01/20 flex-col transition-all duration-300 backdrop-blur-sm shrink-0 overflow-y-auto ${
             sidebarOpen 
               ? 'w-60 opacity-100 shadow-2xl md:shadow-none' 
               : 'w-0 opacity-0 pointer-events-none border-r-0'
@@ -2950,217 +2970,6 @@ export const ClientWorkbench: React.FC = () => {
           {sidebarOpen && (
             <div className="p-4 flex flex-col space-y-5 select-none w-60">
 
-              {activePane === 'explorer' && (
-                <>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Workspace Explorer</h3>
-                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Toggle widgets on canvas</p>
-                    <p className="text-[8.5px] text-slate-500 dark:text-slate-400 mt-2 bg-blue-500/5 dark:bg-blue-955/10 border border-blue-500/10 p-2 rounded-lg font-bold leading-normal">
-                      Click on the icons to open internal floating windows within GoAuct. Organize your workspace however you prefer.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col space-y-1.5">
-                    {widgets.map(w => {
-                      const Icon = w.type === 'map' ? Map :
-                                   w.type === 'smart_ai_finder' ? Brain :
-                                   w.type === 'my_lists' ? Folder :
-                                   w.type === 'live_auctions' ? Calendar :
-                                   w.type === 'property_search' ? Search :
-                                   w.type === 'field_missions' ? Gavel :
-                                   w.type === 'settings' ? Settings :
-                                   Activity;
-                      return (
-                        <button
-                          key={w.id}
-                          onClick={() => toggleVisibility(w.id)}
-                          className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${w.visible
-                              ? 'bg-blue-50/50 dark:bg-blue-955/10 border-blue-500/20 text-blue-700 dark:text-blue-400 font-bold'
-                              : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-650 font-semibold'
-                            }`}
-                        >
-                          <div className="flex items-center gap-2 text-xs">
-                            <Icon size={13} />
-                            <span className="truncate max-w-[130px]">{w.title.replace(/^[^\w\s]*/, '').trim()}</span>
-                          </div>
-                          {w.visible ? <Eye size={12} /> : <EyeOff size={12} />}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <div className="flex flex-col space-y-1.5 pt-3 border-t border-slate-200/50 dark:border-slate-800/50">
-                    <span className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">Global Widgets</span>
-                    <button
-                      onClick={toggleTickerTape}
-                      className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${tickerTapeVisible
-                          ? 'bg-amber-50/50 dark:bg-amber-955/10 border-amber-500/20 text-amber-600 dark:text-amber-400 font-bold'
-                          : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
-                        }`}
-                    >
-                      <div className="flex items-center gap-2 text-xs">
-                        <Calendar size={13} className="text-amber-500" />
-                        <span className="truncate max-w-[130px]">Favorites Ticker</span>
-                      </div>
-                      {tickerTapeVisible ? <Eye size={12} /> : <EyeOff size={12} />}
-                    </button>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-200/50 dark:border-slate-800/50">
-                    <p className="text-[8.5px] font-black uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Workspace stats</p>
-                    <div className="grid grid-cols-2 gap-2 text-[10px] font-bold">
-                      <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/60">
-                        <span className="text-slate-400 block text-[8px] uppercase">Active</span>
-                        <span className="text-slate-900 dark:text-white text-xs font-black">
-                          {widgets.filter(w => w.visible).length + (tickerTapeVisible ? 1 : 0)} / {widgets.length + 1}
-                        </span>
-                      </div>
-                      <div className="p-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200/50 dark:border-slate-800/60">
-                        <span className="text-slate-400 block text-[8px] uppercase">Focus State</span>
-                        <span className="text-blue-500 dark:text-blue-400 text-xs font-black">
-                          {selectedState || 'None'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {activePane === 'presets' && (
-                <>
-                  {isCreatingPreset ? (
-                    <div className="flex flex-col space-y-4 select-none">
-                      <div>
-                        <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Create Layout Preset</h3>
-                        <p className="text-[8px] font-bold text-slate-455 uppercase tracking-widest mt-0.5">Customize your empty blueprint</p>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Preset Name</label>
-                        <input
-                          type="text"
-                          value={newPresetName}
-                          onChange={(e) => setNewPresetName(e.target.value)}
-                          placeholder="e.g. My Yield Room"
-                          className="w-full px-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white focus:outline-none focus:border-indigo-500 font-bold"
-                        />
-                      </div>
-
-                      <div className="w-full h-[1px] bg-slate-200 dark:bg-slate-800/80 my-1" />
-
-                      <div className="flex flex-col space-y-1.5">
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1">Add Workspace Tools</span>
-                        {widgets.map(w => (
-                          <button
-                            key={w.id}
-                            onClick={() => toggleWidgetInPreset(w.id)}
-                            className={`flex items-center justify-between px-3 py-2 rounded-xl text-left transition-all border ${w.visible
-                                ? 'bg-indigo-50/50 dark:bg-indigo-955/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-bold'
-                                : 'bg-slate-50/20 dark:bg-slate-900/20 border-slate-200 dark:border-slate-800 text-slate-455 dark:text-slate-600 font-semibold'
-                              }`}
-                          >
-                            <span className="text-xs truncate">{w.title.replace(/^[^\w\s]*/, '').trim()}</span>
-                            {w.visible ? (
-                              <span className="size-2 rounded-full bg-indigo-500" />
-                            ) : (
-                              <span className="size-2 rounded-full border border-slate-400" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-
-                      <div className="flex items-center gap-2 pt-2">
-                        <button
-                          onClick={saveCustomPreset}
-                          className="flex-1 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs uppercase tracking-wider transition-colors shadow-sm"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={cancelCustomPresetCreation}
-                          className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs uppercase tracking-wider transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-
-
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Layout Presets</h3>
-                          <p className="text-[8px] font-bold text-slate-455 uppercase tracking-widest mt-0.5">Quick window arrangements</p>
-                        </div>
-                        <button
-                          onClick={startCustomPresetCreation}
-                          className="px-2.5 py-1 text-[8.5px] font-black bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg uppercase tracking-wider shadow-sm transition-all"
-                        >
-                          + Create
-                        </button>
-                      </div>
-
-                      <div className="flex flex-col space-y-2 max-h-[360px] overflow-y-auto pr-1">
-                        {/* Standard Presets */}
-                        {[
-                          // Empty standard presets to allow starting from scratch
-                        ].map(p => {
-                          const Icon = p.icon;
-                          return (
-                            <button
-                              key={p.id}
-                              onClick={() => applyPreset(p.id)}
-                              className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-left transition-colors group"
-                            >
-                              <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors">
-                                <Icon size={14} />
-                                <span>{p.label}</span>
-                              </div>
-                              <p className="text-[9px] text-slate-455 dark:text-slate-500 mt-1 leading-normal font-semibold">{p.desc}</p>
-                            </button>
-                          );
-                        })}
-
-                        {/* Custom Presets list */}
-                        {customPresets.map(p => (
-                          <div
-                            key={p.id}
-                            className="p-3 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/40 text-left flex flex-col space-y-1 relative group"
-                          >
-                            <div className="flex items-center justify-between">
-                              <button
-                                onClick={() => applyPreset(p.id)}
-                                className="flex items-center gap-1.5 text-xs font-black text-slate-900 dark:text-white hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors"
-                              >
-                                <Layout size={14} className="text-indigo-400" />
-                                <span>{p.label}</span>
-                              </button>
-                              <div className="flex items-center gap-1.5">
-                                <button
-                                  onClick={() => toggleFavoriteCustomPreset(p.id)}
-                                  className={`p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${p.favorite ? 'text-amber-500' : 'text-slate-400'}`}
-                                  title="Favorite preset"
-                                >
-                                  ★
-                                </button>
-                                <button
-                                  onClick={() => deleteCustomPreset(p.id)}
-                                  className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-950/20 text-slate-400 hover:text-red-500 transition-colors"
-                                  title="Delete preset"
-                                >
-                                  <Trash2 size={12} />
-                                </button>
-                              </div>
-                            </div>
-                            <p className="text-[9px] text-slate-455 dark:text-slate-500 leading-normal font-semibold font-bold">Custom widget layout</p>
-                          </div>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </>
-              )}
 
 
               {activePane === 'notifications' && (
@@ -3244,37 +3053,6 @@ export const ClientWorkbench: React.FC = () => {
                 </>
               )}
 
-              {activePane === 'info' && (
-                <>
-                  <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Workbench Info</h3>
-                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Learn interactive shortcuts</p>
-                  </div>
-
-                  <div className="text-[10px] text-slate-500 dark:text-slate-450 font-semibold space-y-3 leading-relaxed">
-                    <div className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-950/10 border border-blue-500/20 text-slate-800 dark:text-slate-350">
-                      <p className="font-bold flex items-center gap-1 text-blue-600 dark:text-blue-400">
-                        <Move size={12} /> Dotted Background:
-                      </p>
-                      <p className="mt-1">Click and drag any blank area of the grid to **pan** across the workspace. Use mouse-wheel to **zoom** (0.3x - 2.0x).</p>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-950/10 border border-purple-500/20 text-slate-800 dark:text-slate-350">
-                      <p className="font-bold flex items-center gap-1 text-purple-600 dark:text-purple-400">
-                        <Move size={12} /> Draggable Windows:
-                      </p>
-                      <p className="mt-1">Click and hold any window's title header bar to drag and reposition it freely inside the canvas.</p>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-amber-50/50 dark:bg-amber-950/10 border border-amber-500/20 text-slate-800 dark:text-slate-350">
-                      <p className="font-bold flex items-center gap-1 text-amber-600 dark:text-amber-400">
-                        <Maximize2 size={12} /> Resizable Borders:
-                      </p>
-                      <p className="mt-1">Drag the small diagonal handle at the bottom-right corner of any window to adjust width and height.</p>
-                    </div>
-                  </div>
-                </>
-              )}
 
             </div>
           )}
@@ -3309,7 +3087,7 @@ export const ClientWorkbench: React.FC = () => {
                 const isActive = activeIdeTabId === w.id;
                 const isSplit = splitIdeTabId === w.id;
                 const tabIcons: Record<string, React.ReactNode> = {
-                  map: <Map size={10} />,
+                  map: <MapIcon size={10} />,
                   smart_ai_finder: <Brain size={10} />,
                   my_lists: <Folder size={10} />,
                   live_auctions: <Calendar size={10} />,
@@ -3622,332 +3400,54 @@ export const ClientWorkbench: React.FC = () => {
           </div>
         )}
 
-        {/* ─── INTERACTIVE WORKSPACE CANVAS (VIEWPORT) ─── */}
+        {/* ─── DESKTOP OS WORKBENCH (MDI Icons) ─── */}
         {layoutTemplate === 'canvas' && (
-          <div
-            ref={canvasRef}
-            onMouseDown={handleCanvasMouseDown}
-            onTouchStart={handleCanvasTouchStart}
-            className="flex-1 h-full overflow-hidden relative bg-slate-150 dark:bg-[var(--bg-primary)] cursor-grab active:cursor-grabbing border-r border-slate-200 dark:border-slate-800"
-          >
-            {/* Zoomable & Pannable sliding plane container */}
-            <div
-              id="infinite-plane"
-              style={{
-                transform: `translate(${panX}px, ${panY}px) scale(${zoomScale})`,
-                transformOrigin: '0 0',
-                width: '4000px',
-                height: '4000px',
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                transition: isPanningCanvas ? 'none' : 'transform 0.05s linear',
-              }}
-            >
-              {/* Grid dotted backdrop */}
-              <div
-                className="absolute inset-0 canvas-grid pointer-events-none"
-                style={{
-                  backgroundImage: 'radial-gradient(var(--border) 1.5px, transparent 1.5px)',
-                  backgroundSize: '24px 24px',
-                  opacity: 0.16,
-                }}
-              />
-
-              {/* Dynamic SVG Connection Arrows Layer */}
-              <svg className="absolute inset-0 pointer-events-none w-full h-full z-0">
-                <defs>
-                  <marker
-                    id="arrow-head"
-                    viewBox="0 0 10 10"
-                    refX="8"
-                    refY="5"
-                    markerWidth="5"
-                    markerHeight="5"
-                    orient="auto-start-reverse"
-                  >
-                    <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#6366f1" />
-                  </marker>
-                  <linearGradient id="edge-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#6366f1" stopOpacity="0.85" />
-                    <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.85" />
-                  </linearGradient>
-                </defs>
-                <style>{`
-                @keyframes edge-flow {
-                  to {
-                    stroke-dashoffset: -40;
-                  }
-                }
-                .edge-animation {
-                  animation: edge-flow 1.5s linear infinite;
-                }
-                .custom-scrollbar::-webkit-scrollbar {
-                  width: 6px;
-                  height: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                  background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                  background: #cbd5e1;
-                  border-radius: 4px;
-                }
-                .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-                  background: #334155;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                  background: #94a3b8;
-                }
-              `}</style>
-                {/* Render connections */}
-                {(() => {
-                  const connections: { from: string; to: string }[] = [
-                    // Set 1: Deals Suite
-                    { from: 'smart_ai_finder', to: 'dossier' },
-                    { from: 'dossier', to: 'rehab_calc' },
-                    // Set 2: GIS Suite
-                    { from: 'map', to: 'chart' },
-                    { from: 'chart', to: 'yield' }
-                  ];
-
-                  return connections.map((conn, idx) => {
-                    const w1 = widgets.find(w => w.id === conn.from);
-                    const w2 = widgets.find(w => w.id === conn.to);
-
-                    if (!w1 || !w2 || !w1.visible || !w2.visible) return null;
-
-                    const x1 = w1.x + w1.w / 2;
-                    const y1 = w1.y + w1.h / 2;
-                    const x2 = w2.x + w2.w / 2;
-                    const y2 = w2.y + w2.h / 2;
-
-                    const midX = (x1 + x2) / 2;
-                    const path = `M ${x1} ${y1} C ${midX} ${y1}, ${midX} ${y2}, ${x2} ${y2}`;
-
-                    return (
-                      <path
-                        key={idx}
-                        d={path}
-                        stroke="url(#edge-gradient)"
-                        strokeWidth="2.5"
-                        fill="none"
-                        strokeDasharray="6 4"
-                        markerEnd="url(#arrow-head)"
-                        className="edge-animation"
-                      />
-                    );
-                  });
-                })()}
-              </svg>
-
-              {/* Absolute-positioned widgets list */}
-              {/* Absolute-positioned widgets list */}
-              {widgets.filter(w => w.visible).map(w => {
-                if (w.isIcon) {
-                  // Render compact app-like shortcut icon card
-                  const Icon = w.type === 'map' ? Map :
-                               w.type === 'smart_ai_finder' ? Brain :
-                               w.type === 'my_lists' ? Folder :
-                               w.type === 'live_auctions' ? Calendar :
-                               w.type === 'property_search' ? Search :
-                               w.type === 'field_missions' ? Gavel :
-                               w.type === 'settings' ? Settings :
-                               Activity;
-                  
-                  return (
-                    <div
-                      key={w.id}
-                      onClick={() => focusWidget(w.id)}
-                      onDoubleClick={(e) => {
-                        e.stopPropagation();
-                        setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
-                      }}
-                      style={{
-                        position: 'absolute',
-                        left: w.x,
-                        top: w.y,
-                        width: 96,
-                        height: 96,
-                        zIndex: w.zIndex,
-                      }}
-                      className="flex flex-col items-center justify-center cursor-grab active:cursor-grabbing group/icon select-none"
-                    >
-                      {/* Drag handles for mouse and touch */}
-                      <div
-                        onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
-                        onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
-                        className="relative size-14 rounded-2xl flex items-center justify-center bg-white/40 dark:bg-sol-base02/40 backdrop-blur-md border border-slate-200/50 dark:border-sol-base01/30 shadow-lg group-hover/icon:scale-105 group-hover/icon:border-indigo-500/40 group-hover/icon:shadow-indigo-500/10 transition-all duration-200"
-                        title="Double-click to expand to full window"
-                      >
-                        {/* Glow effect on hover */}
-                        <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 opacity-0 group-hover/icon:opacity-100 transition-opacity" />
-                        
-                        <Icon className="size-6 text-slate-700 dark:text-slate-200 group-hover/icon:text-indigo-600 dark:group-hover/icon:text-indigo-400 transition-colors" />
-                        
-                        {/* Tiny collapse/expand icon button in corner */}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: false } : item));
-                          }}
-                          className="absolute -top-1 -right-1 size-5 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-md scale-0 group-hover/icon:scale-100 transition-transform duration-150"
-                          title="Expand"
-                        >
-                          <Maximize size={8} />
-                        </button>
-                      </div>
-                      
-                      {/* Shortcut label */}
-                      <span className="text-[10px] font-bold text-center tracking-wide text-slate-800 dark:text-slate-200 mt-2 truncate w-full px-1 drop-shadow-sm group-hover/icon:text-indigo-650 dark:group-hover/icon:text-indigo-400 transition-colors">
-                        {w.title.replace(/^[^\w\s]*/, '').trim()}
-                      </span>
-                    </div>
-                  );
-                }
-
-                // Otherwise, render full widget window:
+          <div className="flex-1 relative bg-slate-100 dark:bg-[var(--bg-primary)] overflow-hidden">
+            {/* Desktop Icons Grid */}
+            <div className="p-8 flex flex-wrap gap-8 items-start content-start size-full">
+              {[
+                { id: 'map', label: 'US Heatmap', icon: MapIcon, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-500/10' },
+                { id: 'smart_ai_finder', label: 'Smart AI Finder', icon: Brain, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-500/10' },
+                { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-500/10' },
+                { id: 'property_search', label: 'Property Search', icon: Search, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-500/10' },
+                { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10' },
+                { id: 'field_missions', label: 'Field Missions', icon: Gavel, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
+                { id: 'settings', label: 'Settings', icon: Settings, color: 'text-slate-500', bg: 'bg-slate-100 dark:bg-slate-500/10' },
+              ].map(app => {
+                const Icon = app.icon;
+                const isOpen = overlayWindows.some(w => w.type === app.id);
                 return (
-                  <div
-                    key={w.id}
-                    id={
-                      w.id === 'map' ? 'tour-yield-heatmap' :
-                        w.id === 'smart_ai_finder' ? 'tour-suggested-deals' :
-                          undefined
-                    }
-                    onClick={() => focusWidget(w.id)}
-                    style={{
-                      position: 'absolute',
-                      left: w.x,
-                      top: w.y,
-                      width: w.w,
-                      height: w.h,
-                      zIndex: w.zIndex,
+                  <button
+                    key={app.id}
+                    onDoubleClick={() => {
+                      if (!isOpen) {
+                        openOverlayWindow(app.id as any, app.label);
+                      } else {
+                        const win = overlayWindows.find(w => w.type === app.id);
+                        if (win) focusOverlayWindow(win.id);
+                      }
                     }}
-                    className="glass-card flex flex-col overflow-hidden shadow-2xl border border-slate-200/60 dark:border-sol-base01/30 bg-white/75 dark:bg-sol-base02/80 backdrop-blur-md group/window rounded-xl"
+                    onClick={() => {
+                      // Single click can also open/focus in this web environment to feel more responsive
+                      if (!isOpen) {
+                        openOverlayWindow(app.id as any, app.label);
+                      } else {
+                        const win = overlayWindows.find(w => w.type === app.id);
+                        if (win) focusOverlayWindow(win.id);
+                      }
+                    }}
+                    className="flex flex-col items-center gap-2 w-24 group"
                   >
-                    {/* Window Title Bar (Drag Handle) */}
-                    <div
-                      onMouseDown={(e) => handleMouseDown(e, w.id, 'drag')}
-                      onTouchStart={(e) => handleTouchStart(e, w.id, 'drag')}
-                      className={`h-10 border-b border-slate-200 dark:border-[var(--border)] bg-slate-50/70 dark:bg-sol-base03/85 px-4 flex items-center justify-between shrink-0 ${w.isLocked ? 'cursor-default' : 'cursor-move'}`}
-                    >
-                      <div className="flex items-center gap-2 select-none">
-                        {/* Mobile touch grab handle badge */}
-                        <div
-                          onTouchStart={(e) => {
-                            e.stopPropagation();
-                            handleTouchStart(e, w.id, 'drag');
-                          }}
-                          className="flex items-center gap-1 bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/10 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-400/20 px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider cursor-grab select-none active:cursor-grabbing shadow-sm"
-                        >
-                          <Move size={8} className="animate-pulse" />
-                          <span>Grip</span>
-                        </div>
-
-                        {/* grabber icons */}
-                        <div className="grid grid-cols-2 gap-0.5 opacity-30">
-                          {[...Array(6)].map((_, i) => (
-                            <div key={i} className="size-[2px] rounded-full bg-slate-900 dark:bg-white" />
-                          ))}
-                        </div>
-                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-950 dark:text-white">
-                          {w.title}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setWidgets(prev => prev.map(item => item.id === w.id ? { ...item, isIcon: true } : item));
-                          }}
-                          className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
-                          title="Collapse to Shortcut Icon"
-                        >
-                          <Smartphone size={11} />
-                        </button>
-                        <button
-                          onClick={() => toggleVisibility(w.id)}
-                          className="p-1 rounded hover:bg-slate-200/50 dark:hover:bg-slate-800/60 text-slate-400 hover:text-slate-800 dark:hover:text-white"
-                          title="Minimize"
-                        >
-                          <Minimize2 size={10} />
-                        </button>
-                        <button
-                          onClick={() => toggleVisibility(w.id)}
-                          className="p-1 rounded hover:bg-red-500/10 hover:text-red-500 text-slate-400"
-                          title="Close"
-                        >
-                          <X size={10} />
-                        </button>
-                      </div>
+                    <div className={`size-16 rounded-2xl flex items-center justify-center shadow-sm border border-slate-200/50 dark:border-slate-700/50 transition-all transform group-hover:scale-105 group-active:scale-95 ${app.bg} ${isOpen ? 'ring-2 ring-offset-2 ring-indigo-500 dark:ring-offset-[var(--bg-primary)]' : ''}`}>
+                      <Icon size={32} className={`${app.color} opacity-90 group-hover:opacity-100`} strokeWidth={1.5} />
                     </div>
-
-                    {/* Window Inner Content Scroll Area */}
-                    <div className="flex-1 min-h-0 w-full overflow-auto p-4 select-text flex flex-col">
-                      {renderWidgetContent(w)}
-                    </div>
-
-                    {/* Window Bottom-Right Resize Handle */}
-                    {!w.isLocked && (
-                      <div
-                        onMouseDown={(e) => handleMouseDown(e, w.id, 'resize')}
-                        onTouchStart={(e) => handleTouchStart(e, w.id, 'resize')}
-                        className="absolute bottom-0 right-0 size-4 cursor-se-resize flex items-end justify-end p-0.5 z-[100]"
-                      >
-                        <div className="size-2 border-r-2 border-b-2 border-slate-350 dark:border-slate-655 opacity-40 group-hover/window:opacity-100 transition-opacity" />
-                      </div>
-                    )}
-                  </div>
+                    <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 text-center leading-tight bg-white/50 dark:bg-slate-900/50 px-1.5 py-0.5 rounded backdrop-blur-sm">
+                      {app.label}
+                    </span>
+                  </button>
                 );
               })}
             </div>
-
-            {/* Infinite Canvas Floating Zoom & Lock Panel (Bottom-Left) */}
-            <div className="absolute bottom-4 left-4 z-[100] flex flex-col items-center gap-2 p-1.5 bg-white/90 dark:bg-sol-base02/90 backdrop-blur-md border border-slate-200/80 dark:border-sol-base01/30 rounded-2xl shadow-2xl select-none">
-              {/* Lock Button */}
-              <button
-                onClick={() => setIsCanvasLocked(prev => !prev)}
-                className={`size-8 rounded-xl flex items-center justify-center transition-all ${isCanvasLocked
-                    ? 'bg-red-500/10 text-red-500 border border-red-500/25 hover:bg-red-500/20 shadow-sm'
-                    : 'bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 text-slate-400 hover:text-slate-650'
-                  }`}
-                title={isCanvasLocked ? "Canvas is Locked (Click to Unlock)" : "Canvas is Unlocked (Click to Lock)"}
-              >
-                {isCanvasLocked ? <Lock size={14} /> : <Unlock size={14} />}
-              </button>
-
-              <div className="w-6 h-[1px] bg-slate-200 dark:bg-sol-base01/30" />
-
-              {/* Zoom In (+) */}
-              <button
-                onClick={() => setZoomScale(prev => Math.min(2.0, parseFloat((prev + 0.1).toFixed(2))))}
-                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
-                title="Zoom In"
-              >
-                +
-              </button>
-
-              {/* Reset Zoom Indicator */}
-              <button
-                onClick={() => { setZoomScale(1.0); setPanX(0); setPanY(0); }}
-                className="text-[9px] font-black text-slate-455 hover:text-indigo-500 dark:hover:text-indigo-400 py-1 transition-colors select-none tracking-tight text-center"
-                title="Reset Zoom to 100%"
-              >
-                {Math.round(zoomScale * 100)}%
-              </button>
-
-              {/* Zoom Out (-) */}
-              <button
-                onClick={() => setZoomScale(prev => Math.max(0.3, parseFloat((prev - 0.1).toFixed(2))))}
-                className="size-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-sol-base03 dark:hover:bg-sol-base02 flex items-center justify-center font-extrabold text-slate-600 dark:text-slate-350 transition-all hover:scale-105 active:scale-95 text-sm"
-                title="Zoom Out"
-              >
-                -
-              </button>
-            </div>
-
           </div>
         )}
 
@@ -3969,7 +3469,7 @@ export const ClientWorkbench: React.FC = () => {
                 top: w.isMaximized ? 0 : w.y,
                 width: w.isMaximized ? '100%' : w.w,
                 height: w.isMaximized ? '100%' : w.h,
-                zIndex: w.zIndex + 100, // Float over background canvas
+                zIndex: Math.min(w.zIndex + 100, 99980), // Keep below dock (99999) but respect window focus stacking
               }}
               className={`glass-card shadow-2xl border flex flex-col overflow-hidden rounded-2xl transition-shadow backdrop-blur-xl ${isActive
                   ? 'border-indigo-500/80 dark:border-sol-blue/80 shadow-indigo-500/10 bg-white/95 dark:bg-sol-base02/95'
@@ -4039,6 +3539,8 @@ export const ClientWorkbench: React.FC = () => {
 
               {/* Window Content Container */}
               <div className="flex-1 overflow-y-auto min-h-0 bg-white dark:bg-sol-base03 relative custom-scrollbar">
+                {w.type === 'map' && renderWidgetContent({ type: 'map' } as any)}
+                {w.type === 'smart_ai_finder' && renderWidgetContent({ type: 'smart_ai_finder' } as any)}
                 {w.type === 'my_lists' && <ClientLists key={`${w.id}_${w.refreshKey || 0}`} onOpenPropertyDetails={handleOpenPropertyDetails} />}
                 {w.type === 'live_auctions' && <ClientAuctions key={`${w.id}_${w.refreshKey || 0}`} />}
                 {w.type === 'property_search' && <ClientProperties key={`${w.id}_${w.refreshKey || 0}`} onOpenPropertyDetails={handleOpenPropertyDetails} />}
@@ -4051,6 +3553,11 @@ export const ClientWorkbench: React.FC = () => {
                 {w.type === 'team_and_logs' && (
                   <div className="p-6 dark:bg-sol-base03 min-h-full">
                     <ActivityLogsPage />
+                  </div>
+                )}
+                {w.type === 'affiliate_dashboard' && (
+                  <div className="size-full overflow-y-auto no-scrollbar scrollbar-none bg-white dark:bg-sol-base03">
+                    <AffiliateDashboard />
                   </div>
                 )}
                 {w.type === 'billings_and_plans' && (
@@ -4093,6 +3600,21 @@ export const ClientWorkbench: React.FC = () => {
                     <GroupsPage />
                   </div>
                 )}
+                {w.type === 'auction_details' && (
+                  <div className="size-full">
+                    <ClientAuctionDetails eventData={w.data?.eventData} onClose={() => closeOverlayWindow(w.id)} />
+                  </div>
+                )}
+                {w.type === 'auction_group' && (
+                  <div className="size-full">
+                    <ClientAuctionGroupList 
+                      date={w.data?.date} 
+                      type={w.data?.type} 
+                      filters={w.data?.filters || {}} 
+                      onClose={() => closeOverlayWindow(w.id)} 
+                    />
+                  </div>
+                )}
                 {w.type === 'property_details' && (
                   <div className="size-full overflow-y-auto no-scrollbar scrollbar-none">
                     <PropertyDetailPage 
@@ -4122,94 +3644,108 @@ export const ClientWorkbench: React.FC = () => {
           );
         })}
 
-        {/* ─── DOCK / BARRA DE TAREFAS HÍBRIDA (Estilo macOS) ─── */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 h-14 px-4 bg-slate-900/80 dark:bg-sol-base02/85 backdrop-blur-md rounded-2xl border border-slate-700/50 dark:border-sol-base01/30 flex items-center gap-3 z-[99999] shadow-2xl transition-all select-none max-w-[95vw] lg:max-w-[85vw]">
-          {/* Core Shortcuts to open windows */}
-          <div className="flex items-center gap-3 shrink-0">
-            {[
-              { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
-              { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
-              { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
-              { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'hover:text-purple-400 text-purple-500' },
-              { id: 'field_missions', label: 'Missions', icon: Gavel, color: 'hover:text-emerald-400 text-emerald-500' }
-            ].map(item => {
-              const Icon = item.icon;
-              const isOpen = item.id === 'workbench_home' ? false : overlayWindows.some(w => w.type === item.id);
-              const isMin = item.id === 'workbench_home' ? false : overlayWindows.find(w => w.type === item.id)?.isMinimized;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    if (item.id === 'workbench_home') {
-                      setOverlayWindows(prev => prev.map(w => ({ ...w, isMinimized: true })));
-                      setActiveOverlayWindowId(null);
-                      logConsoleActivity('Minimizing all active workspace windows.');
-                      navigate('/client');
-                      return;
-                    }
-                    const match = overlayWindows.find(w => w.type === item.id);
-                    if (match) {
-                      if (match.isMinimized) {
-                        toggleMinimizeOverlayWindow(match.id);
-                      } else if (activeOverlayWindowId === match.id) {
-                        toggleMinimizeOverlayWindow(match.id);
-                      } else {
-                        focusOverlayWindow(match.id);
-                      }
-                    } else {
-                      openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : '⚔️ Field Task Missions');
-                    }
-                  }}
-                  className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 ${item.color} ${isOpen ? 'bg-slate-800 border border-slate-700' : 'bg-transparent'} ${isMin ? 'opacity-50' : ''}`}
-                  title={item.label}
-                >
-                  <Icon size={18} />
-                  {isOpen && (
-                    <span className="absolute bottom-1 size-1 bg-indigo-500 rounded-full animate-pulse" />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Separator if we have open property detail windows */}
-          {overlayWindows.some(w => w.type === 'property_details') && (
-            <div className="w-[1px] h-8 bg-slate-700/50 shrink-0" />
-          )}
-
-          {/* Open Property Details Windows list (SCROLLABLE) */}
-          {overlayWindows.filter(w => w.type === 'property_details').length > 0 && (
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-1 min-w-0 pr-2">
-              {overlayWindows.filter(w => w.type === 'property_details').map(w => {
-                const isActive = activeOverlayWindowId === w.id;
+        {/* ─── DOCK / BARRA DE TAREFAS HÍBRIDA (Estilo macOS / Chatbot Toggle) ─── */}
+        <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 z-[99999] flex flex-col items-center gap-2 transition-all duration-300 ease-spring ${isDockExpanded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}>
+          <div className="h-14 px-4 bg-slate-900/80 dark:bg-sol-base02/85 backdrop-blur-md rounded-2xl border border-slate-700/50 dark:border-sol-base01/30 flex items-center gap-3 shadow-2xl transition-all select-none max-w-[95vw] lg:max-w-[85vw]">
+            {/* Core Shortcuts to open windows */}
+            <div className="flex items-center gap-3 shrink-0">
+              {[
+                { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
+                { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
+                { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
+                { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-purple-400 text-purple-500' }
+              ].map(item => {
+                const Icon = item.icon;
+                const isOpen = item.id === 'workbench_home' ? false : overlayWindows.some(w => w.type === item.id || (w.type === 'auction_details' && item.id === 'live_auctions'));
+                const isMin = item.id === 'workbench_home' ? false : overlayWindows.find(w => w.type === item.id)?.isMinimized;
                 return (
                   <button
-                    key={w.id}
+                    key={item.id}
                     onClick={() => {
-                      if (w.isMinimized) {
-                        toggleMinimizeOverlayWindow(w.id);
-                      } else if (isActive) {
-                        toggleMinimizeOverlayWindow(w.id);
+                      if (item.id === 'workbench_home') {
+                        setOverlayWindows(prev => prev.map(w => ({ ...w, isMinimized: true })));
+                        setActiveOverlayWindowId(null);
+                        logConsoleActivity('Minimizing all active workspace windows.');
+                        navigate('/client');
+                        return;
+                      }
+                      const match = overlayWindows.find(w => w.type === item.id);
+                      if (match) {
+                        if (match.isMinimized) {
+                          toggleMinimizeOverlayWindow(match.id);
+                        } else if (activeOverlayWindowId === match.id) {
+                          toggleMinimizeOverlayWindow(match.id);
+                        } else {
+                          focusOverlayWindow(match.id);
+                        }
                       } else {
-                        focusOverlayWindow(w.id);
+                        openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : '⚔️ Field Task Missions');
                       }
                     }}
-                    className={`relative shrink-0 h-10 px-2 rounded-xl flex items-center gap-1.5 transition-all text-left bg-slate-800/60 border border-slate-700/50 hover:bg-slate-700/60 ${w.isMinimized ? 'opacity-50' : ''}`}
-                    title={w.title}
+                    className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 ${item.color} ${isOpen ? 'bg-slate-800 border border-slate-700' : 'bg-transparent'} ${isMin ? 'opacity-50' : ''}`}
+                    title={item.label}
                   >
-                    <FileText size={14} className="text-indigo-400" />
-                    <span className="text-[8px] font-black text-slate-200 max-w-[80px] truncate uppercase tracking-wider">
-                      {w.data?.parcelId || 'Property'}
-                    </span>
-                    {isActive && !w.isMinimized && (
-                      <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 size-1 bg-indigo-500 rounded-full" />
+                    <Icon size={18} />
+                    {isOpen && (
+                      <span className="absolute bottom-1 size-1 bg-indigo-500 rounded-full animate-pulse" />
                     )}
                   </button>
                 );
               })}
             </div>
-          )}
+
+            {/* Separator if we have open property detail windows */}
+            {overlayWindows.some(w => w.type === 'property_details' || w.type === 'auction_details' || w.type === 'auction_group') && (
+              <div className="w-[1px] h-8 bg-slate-700/50 shrink-0" />
+            )}
+
+            {/* Open Property Details Windows list (SCROLLABLE) */}
+            {(overlayWindows.filter(w => w.type === 'property_details' || w.type === 'auction_details' || w.type === 'auction_group').length > 0) && (
+              <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-1 min-w-0 pr-2">
+                {overlayWindows.filter(w => w.type === 'property_details' || w.type === 'auction_details' || w.type === 'auction_group').map(w => {
+                  const isActive = activeOverlayWindowId === w.id;
+                  return (
+                    <button
+                      key={w.id}
+                      onClick={() => {
+                        if (w.isMinimized) {
+                          toggleMinimizeOverlayWindow(w.id);
+                        } else if (isActive) {
+                          toggleMinimizeOverlayWindow(w.id);
+                        } else {
+                          focusOverlayWindow(w.id);
+                        }
+                      }}
+                      className={`relative shrink-0 h-10 px-2 rounded-xl flex items-center gap-1.5 transition-all text-left bg-slate-800/60 border border-slate-700/50 hover:bg-slate-700/60 animate-slide-up-bounce ${w.isMinimized ? 'opacity-50' : ''}`}
+                      title={w.title}
+                    >
+                      <FileText size={14} className={w.type === 'auction_details' ? "text-amber-400" : w.type === 'auction_group' ? "text-emerald-400" : "text-indigo-400"} />
+                      <span className="text-[8px] font-black text-slate-200 max-w-[80px] truncate uppercase tracking-wider">
+                        {w.type === 'auction_details' ? 'Auction' : w.type === 'auction_group' ? 'Auctions' : (w.data?.parcelId || 'Property')}
+                      </span>
+                      {isActive && !w.isMinimized && (
+                        <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 size-1 bg-indigo-500 rounded-full" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* Floating Dock Toggle Button (Chatbot style) */}
+        <button
+          onClick={() => setIsDockExpanded(!isDockExpanded)}
+          className="absolute bottom-6 right-6 z-[100000] size-12 rounded-full bg-gradient-to-br from-indigo-500 to-blue-600 shadow-xl shadow-indigo-500/20 border border-white/10 flex items-center justify-center transition-all transform hover:scale-110 active:scale-95"
+          title="Toggle Dock"
+        >
+          {isDockExpanded ? (
+            <X size={20} className="text-white" />
+          ) : (
+            <LayoutGrid size={20} className="text-white" />
+          )}
+        </button>
 
       </div>
 

@@ -1,4 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import ReactDOM from 'react-dom';
+
+// Contador global para z-index, garantindo que o modal mais recente sempre fique por cima
+let globalModalZIndex = 9999;
+// Contador de modais abertos para gerenciar o scroll da página (overflow) corretamente
+let openModalsCount = 0;
 
 interface ModalProps {
     isOpen: boolean;
@@ -6,26 +12,44 @@ interface ModalProps {
     title?: string;
     children: React.ReactNode;
     size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+    zIndex?: string; // Para manter retrocompatibilidade
 }
 
-export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md' }) => {
+export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, size = 'md', zIndex }) => {
     const modalRef = useRef<HTMLDivElement>(null);
+    const [dynamicZIndex, setDynamicZIndex] = useState(9999);
 
     useEffect(() => {
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
+            // Apenas o modal mais ao topo deve responder ao ESC
+            if (e.key === 'Escape' && dynamicZIndex === globalModalZIndex) {
+                onClose();
+            }
         };
 
         if (isOpen) {
+            globalModalZIndex += 10;
+            setDynamicZIndex(globalModalZIndex);
+
+            openModalsCount++;
+            if (openModalsCount === 1) {
+                document.body.style.overflow = 'hidden';
+            }
+
             document.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden';
         }
 
         return () => {
-            document.removeEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'unset';
+            if (isOpen) {
+                document.removeEventListener('keydown', handleEscape);
+                
+                openModalsCount--;
+                if (openModalsCount === 0) {
+                    document.body.style.overflow = 'unset';
+                }
+            }
         };
-    }, [isOpen, onClose]);
+    }, [isOpen, onClose, dynamicZIndex]);
 
     if (!isOpen) return null;
 
@@ -38,8 +62,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
         full: 'max-w-full m-4 h-[calc(100vh-2rem)]'
     };
 
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+    const modalContent = (
+        <div className={`fixed inset-0 flex items-center justify-center p-4 sm:p-6 ${zIndex || ''}`} style={{ zIndex: dynamicZIndex }}>
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
@@ -71,4 +95,6 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children, 
             </div>
         </div>
     );
+
+    return ReactDOM.createPortal(modalContent, document.body);
 };

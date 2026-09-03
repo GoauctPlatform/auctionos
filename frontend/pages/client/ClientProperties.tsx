@@ -7,6 +7,8 @@ import { ClientDataService } from '../../services/property.service';
 import { countyService } from '../../services/county.service';
 import { StatesService, StateContact } from '../../services/states.service';
 import { Autocomplete } from '@mui/material';
+import { MapPropertySearchLayout } from '../../components/property/MapPropertySearchLayout';
+import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 import { useAuth } from '../../context/AuthContext';
 
@@ -90,71 +92,156 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
         }
     }, [searchParams]);
 
+    const [viewMode, setViewMode] = useState<'map' | 'list'>(() => {
+        try {
+            return (sessionStorage.getItem('property_search_view') as 'map' | 'list') || 'map';
+        } catch {
+            return 'map';
+        }
+    });
+
+    useEffect(() => {
+        sessionStorage.setItem('property_search_view', viewMode);
+    }, [viewMode]);
+
     // availability='available' is the default — always show results when it's set
     const hasActiveFilters = filters.availability !== undefined || 
         Object.entries(filters).some(([k, v]) => k !== 'availability' && v !== undefined && v !== '');
 
     return (
-        <div className="p-6 w-full space-y-6 px-4 sm:px-8 lg:px-12">
-            <div className="flex justify-between items-center">
-                <Typography variant="h4" className="font-bold text-slate-800 dark:text-white">
-                    Property Search
-                </Typography>
-                <Button 
-                    variant="contained" 
-                    color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
-                    className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-600'} rounded-lg shadow-none`}
-                    onClick={() => {
-                        if (user?.subscription_tier === 'trial') {
-                            alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
-                            return;
-                        }
-                        setCreateModalOpen(true);
-                    }}
-                    startIcon={<span className="material-symbols-outlined text-[18px]">add</span>}
-                >
-                    Create Custom Property
-                </Button>
-            </div>
-            <div id="tour-properties-filters" className="sticky top-0 z-40 pt-2 pb-1 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-md -mx-4 px-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12">
-                <PropertyFilters 
-                    onFilterChange={setFilters} 
-                    readOnly={true} 
-                    initialFilters={filters}
-                    onOpenPropertyDetails={onOpenPropertyDetails}
-                />
-            </div>
-            
-            {hasActiveFilters ? (
-                <div className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl h-[calc(100vh-250px)] flex flex-col">
-                    <PropertyList 
-                        filters={filters} 
-                        readOnly={true} 
-                        onOpenPropertyDetails={onOpenPropertyDetails}
-                        onCreateCustom={() => {
-                            if (user?.subscription_tier === 'trial') {
-                                alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
-                                return;
-                            }
-                            if (filters.keyword) {
-                                // Pre-fill the search term as parcel ID or address
-                                setCreateForm(p => ({
-                                    ...p, 
-                                    parcel_id: filters.keyword || '',
-                                    visibility: 'public' // Quick created properties from search should be public by default so Attom can enrich them
-                                }));
-                            }
-                            setCreateModalOpen(true);
-                        }} 
-                    />
+        <>
+            {viewMode === 'map' ? (
+                <div className="flex flex-col w-full h-full overflow-hidden bg-slate-50 dark:bg-slate-900">
+                    {/* Modern Top Header */}
+                    <div className="z-30 w-full bg-white/40 dark:bg-slate-950/35 backdrop-blur-xl border-b border-slate-200/30 dark:border-slate-800/50 px-4 py-2 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3 sticky top-0">
+                        {/* Filters Combined */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1 min-w-0">
+                            <div className="flex-1 w-full">
+                                <ErrorBoundary name="PropertyFilters">
+                                    <PropertyFilters 
+                                        onFilterChange={setFilters} 
+                                        readOnly={true} 
+                                        initialFilters={filters}
+                                        onOpenPropertyDetails={onOpenPropertyDetails}
+                                        variant="header"
+                                    />
+                                </ErrorBoundary>
+                            </div>
+                        </div>
+
+                        {/* Top Action Buttons */}
+                        <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
+                            <Button 
+                                variant="contained" 
+                                className="bg-white/40 text-slate-800 hover:bg-white/60 border border-slate-200/50 dark:border-slate-800/50 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:bg-slate-900/60 shadow-sm rounded-xl font-bold normal-case text-xs h-[38px] px-3 transition-all"
+                                onClick={() => setViewMode('list')}
+                                startIcon={<span className="material-symbols-outlined text-[16px]">list</span>}
+                            >
+                                List View
+                            </Button>
+                            <Button 
+                                variant="contained" 
+                                color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
+                                className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500'} rounded-xl shadow-sm font-bold normal-case text-xs h-[38px] px-3 transition-all`}
+                                onClick={() => {
+                                    if (user?.subscription_tier === 'trial') {
+                                        alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
+                                        return;
+                                    }
+                                    setCreateModalOpen(true);
+                                }}
+                                startIcon={<span className="material-symbols-outlined text-[16px]">add</span>}
+                            >
+                                Create Custom
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Full Map */}
+                    <div className="flex-1 relative w-full h-full">
+                        <ErrorBoundary name="MapLayout">
+                            <MapPropertySearchLayout 
+                                filters={filters} 
+                                hasActiveFilters={hasActiveFilters} 
+                                onOpenPropertyDetails={onOpenPropertyDetails} 
+                                onFilterChange={setFilters}
+                            />
+                        </ErrorBoundary>
+                    </div>
                 </div>
             ) : (
-                <div className="w-full h-[400px] bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-slate-500">
-                    <span className="material-symbols-outlined text-6xl mb-4 text-slate-300 dark:text-slate-700">search</span>
-                    <Typography variant="h6" className="font-semibold text-slate-600 dark:text-slate-400">Search Properties</Typography>
-                    <Typography variant="body2" className="mt-1">Use the filters above to find what you are looking for.</Typography>
+                <div className="p-6 w-full space-y-6 px-4 sm:px-8 lg:px-12">
+                    <div className="flex justify-between items-center">
+                        <Typography variant="h4" className="font-bold text-slate-800 dark:text-white">
+                            Property Search
+                        </Typography>
+                        <div className="flex gap-2">
+                            <Button 
+                                variant="outlined" 
+                                onClick={() => setViewMode('map')}
+                                startIcon={<span className="material-symbols-outlined text-[18px]">map</span>}
+                            >
+                                Map View
+                            </Button>
+                            <Button 
+                                variant="contained" 
+                                color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
+                                className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-600'} rounded-lg shadow-none`}
+                                onClick={() => {
+                                    if (user?.subscription_tier === 'trial') {
+                                        alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
+                                        return;
+                                    }
+                                    setCreateModalOpen(true);
+                                }}
+                                startIcon={<span className="material-symbols-outlined text-[18px]">add</span>}
+                            >
+                                Create Custom Property
+                            </Button>
+                        </div>
+                    </div>
+                    <div id="tour-properties-filters" className="sticky top-0 z-40 pt-3 pb-2 bg-white/40 dark:bg-slate-950/35 backdrop-blur-xl border-b border-slate-200/30 dark:border-slate-800/50 -mx-4 px-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12 shadow-sm transition-all duration-300">
+                        <PropertyFilters 
+                            onFilterChange={setFilters} 
+                            readOnly={true} 
+                            initialFilters={filters}
+                            onOpenPropertyDetails={onOpenPropertyDetails}
+                        />
+                    </div>
+                    
+                    {hasActiveFilters ? (
+                        <div className="w-full bg-white dark:bg-slate-800 shadow-sm rounded-xl h-[calc(100vh-250px)] flex flex-col">
+                            <PropertyList 
+                                filters={filters} 
+                                readOnly={true} 
+                                onOpenPropertyDetails={onOpenPropertyDetails}
+                                onCreateCustom={() => {
+                                    if (user?.subscription_tier === 'trial') {
+                                        alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
+                                        return;
+                                    }
+                                    if (filters.keyword) {
+                                        setCreateForm(p => ({
+                                            ...p, 
+                                            parcel_id: filters.keyword || '',
+                                            visibility: 'public'
+                                        }));
+                                    }
+                                    setCreateModalOpen(true);
+                                }} 
+                            />
+                        </div>
+                    ) : (
+                        <div className="w-full h-[400px] bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-slate-500">
+                            <span className="material-symbols-outlined text-6xl mb-4 text-slate-300 dark:text-slate-700">search</span>
+                            <Typography variant="h6" className="font-semibold text-slate-600 dark:text-slate-400">Search Properties</Typography>
+                            <Typography variant="body2" className="mt-1">Use the filters above to find what you are looking for.</Typography>
+                        </div>
+                    )}
                 </div>
-            )}            {/* Create Custom Property Modal */}
+            )}
+
+            {/* Create Custom Property Modal */}
             <Dialog open={isCreateModalOpen} onClose={() => setCreateModalOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
                 <Typography variant="h6" className="font-bold mb-4 text-slate-800 dark:text-white">Create Custom Property</Typography>
                 <div className="space-y-4">
@@ -250,7 +337,7 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                     </Button>
                 </div>
             </Dialog>
-        </div>
+        </>
     );
 };
 

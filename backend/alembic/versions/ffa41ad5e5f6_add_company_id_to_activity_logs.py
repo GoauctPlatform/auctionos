@@ -19,6 +19,22 @@ depends_on: Union[str, Sequence[str], None] = 'f102da7a6c29'
 
 
 def upgrade() -> None:
+    # Recreate companies table if it was dropped during core_arch_simplification
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    tables = inspector.get_table_names()
+    if 'companies' not in tables:
+        op.create_table('companies',
+            sa.Column('id', sa.Integer(), nullable=False),
+            sa.Column('user_id', sa.Integer(), sa.ForeignKey('users.id', ondelete='CASCADE'), nullable=False),
+            sa.Column('name', sa.String(length=255), nullable=False),
+            sa.Column('address', sa.Text(), nullable=True),
+            sa.Column('contact', sa.String(length=255), nullable=True),
+            sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
+            sa.PrimaryKeyConstraint('id')
+        )
+        op.create_index(op.f('ix_companies_id'), 'companies', ['id'], unique=False)
+
     # add column company_id to activity_logs
     op.add_column('activity_logs', sa.Column('company_id', sa.Integer(), sa.ForeignKey('companies.id', ondelete='CASCADE'), nullable=True))
     op.create_index(op.f('ix_activity_logs_company_id'), 'activity_logs', ['company_id'], unique=False)

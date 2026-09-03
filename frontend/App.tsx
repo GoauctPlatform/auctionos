@@ -1,13 +1,16 @@
 import React from 'react';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
 import { Login } from './pages/Login';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { ResetPassword } from './pages/ResetPassword';
 import { Dashboard } from './pages/Dashboard';
-import { Landing } from './pages/Landing';
 import { Signup } from './pages/Signup';
+import PublicLayout from './layouts/PublicLayout';
+import Home from './pages/public/Home';
+import Pricing from './pages/public/Pricing';
 import { Onboarding } from './pages/Onboarding';
 import { AuctionList } from './pages/AuctionList';
 import { AuthService } from './services/auth.service';
@@ -33,6 +36,7 @@ import AdminImportProperties from './pages/admin/AdminImportProperties';
 import AdminImportAuctions from './pages/admin/AdminImportAuctions';
 import AdminBroadcasts from './pages/admin/AdminBroadcasts';
 import AdminWithdrawals from './pages/admin/AdminWithdrawals';
+import AdminAffiliates from './pages/admin/AdminAffiliates';
 import { AdminTaskMediation } from './pages/admin/AdminTaskMediation';
 
 // Client Portal Pages
@@ -52,6 +56,7 @@ import VerifyEmail from './pages/auth/VerifyEmail';
 import TrialLimitPage from './pages/client/TrialLimitPage';
 import TrialExpiredPage from './pages/client/TrialExpiredPage';
 import { InvestorTasksDashboard } from './pages/client/InvestorTasksDashboard';
+import { AffiliateDashboard } from './pages/client/AffiliateDashboard';
 import { CompanyProvider } from './context/CompanyContext';
 import RealtorLayout from './pages/realtor/RealtorLayout';
 import RealtorDashboard from './pages/realtor/RealtorDashboard';
@@ -100,7 +105,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: strin
 
 const RootRoute: React.FC = () => {
   const user = AuthService.getCurrentUser();
-  if (!user) return <Landing />;
+  if (!user) return <Home />;
   if (['client', 'manager', 'agent'].includes(user.role)) return <Navigate to="/client" replace />;
   if (user.role === 'realtor') return <Navigate to="/realtor" replace />;
   if (user.role === 'agent_due_diligence') return <Navigate to="/agent" replace />;
@@ -126,24 +131,28 @@ function App() {
   }, []);
 
   return (
+    <LanguageProvider>
     <AuthProvider>
       <HashRouter>
         <TourProvider>
           <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<RootRoute />} />
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<RootRoute />} />
+            <Route path="/pricing" element={<Pricing />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/contact" element={<SupportPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/terms" element={<TermsOfServicePage />} />
+            <Route path="/privacy" element={<PrivacyPolicyPage />} />
+            <Route path="/disclaimer" element={<DisclaimerPage />} />
+          </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/onboarding" element={<Onboarding />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/contact" element={<SupportPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/terms" element={<TermsOfServicePage />} />
-          <Route path="/privacy" element={<PrivacyPolicyPage />} />
-          <Route path="/disclaimer" element={<DisclaimerPage />} />
           
           {/* Public Ecosystem Connect Pages */}
           <Route path="/connect/tax-systems" element={<TaxSystemsLandingPage />} />
@@ -152,7 +161,7 @@ function App() {
           {/* Protected Routes (Admin) */}
           <Route element={<ProtectedRoute allowedRoles={['admin', 'superuser']}><CompanyProvider><Layout /></CompanyProvider></ProtectedRoute>}>
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/auctions" element={<AuctionList filters={{}} />} />
+            <Route path="/auctions" element={<AuctionList />} />
             <Route path="/admin/auctions" element={<AdminAuctions />} />
             <Route path="/admin/properties" element={<AdminAuctions defaultTab="properties" />} />
             <Route path="/admin/properties/:id" element={<PropertyDetailPage />} />
@@ -162,6 +171,7 @@ function App() {
             <Route path="/admin/import/auctions" element={<AdminImportAuctions />} />
             <Route path="/admin/broadcasts" element={<AdminBroadcasts />} />
             <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/affiliates" element={<AdminAffiliates />} />
             <Route path="/admin/withdrawals" element={<AdminWithdrawals />} />
             <Route path="/admin/mediation" element={<AdminTaskMediation />} />
             <Route path="/settings" element={<Settings />} />
@@ -196,8 +206,10 @@ function App() {
             <Route path="contact-support" element={<ClientSupportPage />} />
             <Route path="about" element={<AboutPage standalone={false} />} />
             <Route path="support" element={<SupportPage standalone={false} />} />
-            <Route path="team" element={<ActivityLogsPage />} />
+            <Route path="properties/manual" element={<PropertyManualEntry />} />
+            <Route path="activity-logs" element={<ActivityLogsPage />} />
             <Route path="billing" element={<BillingPage />} />
+            <Route path="affiliate" element={<AffiliateDashboard />} />
             <Route path="trial-limit" element={<TrialLimitPage />} />
             <Route path="expired" element={<TrialExpiredPage />} />
             <Route path="settings" element={<Settings />} />
@@ -241,6 +253,7 @@ function App() {
         </TourProvider>
       </HashRouter>
     </AuthProvider>
+    </LanguageProvider>
   );
 };
 

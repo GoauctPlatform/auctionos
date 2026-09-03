@@ -39,7 +39,7 @@ export const PropertyMetadataModal: React.FC<Props> = ({ property, isOpen, onClo
 
     const assessedValue = property.assessed_value || d.assessed_value || 0;
     // AVM: prefer ATTOM-enriched estimated_value over simple assessed_value multiplier
-    const estimatedValue = d.estimated_value || property.estimated_value || (assessedValue > 0 ? assessedValue * 1.5 : 0);
+    const estimatedValue = d.estimated_value || property.estimated_value || (assessedValue > 0 ? assessedValue * 1.0 : 0);
     const amountDue = property.amount_due || 0;
     const equity = estimatedValue > 0 ? estimatedValue - amountDue : null;
     const equityRatio = estimatedValue > 0 && equity !== null ? (equity / estimatedValue) * 100 : null;

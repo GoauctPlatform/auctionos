@@ -62,7 +62,7 @@ const UserEditModal: React.FC<{
         setSaving(true);
         setError('');
         try {
-            await UserService.update(user.id, { role, is_active: isActive });
+            await UserService.update(user.id, { role: role as any, is_active: isActive });
             onSave();
             onClose();
         } catch (e: any) {
@@ -172,7 +172,7 @@ const AdminUsers: React.FC = () => {
     const [realtors, setConsultants] = useState<ConsultantApplication[]>([]);
     const [agents, setAgents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'users' | 'logs' | 'realtors' | 'agents'>('users');
+    const [tab, setTab] = useState<'users' | 'logs' | 'realtors' | 'agents' | 'contractors'>('users');
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
@@ -194,12 +194,15 @@ const AdminUsers: React.FC = () => {
     // Dynamic pending badges state
     const [pendingRealtorsCount, setPendingRealtorsCount] = useState(0);
     const [pendingAgentsCount, setPendingAgentsCount] = useState(0);
+    const [contractors, setContractors] = useState<any[]>([]);
+    const [pendingContractorsCount, setPendingContractorsCount] = useState(0);
 
     const loadPendingCounts = async () => {
         try {
-            const [rRes, aRes] = await Promise.all([
+            const [rRes, aRes, cRes] = await Promise.all([
                 fetch(`${API_URL}/admin/realtors?status=pending&limit=1`, { headers: getHeaders() }),
-                fetch(`${API_URL}/admin/agents?status=pending&limit=1`, { headers: getHeaders() })
+                fetch(`${API_URL}/admin/agents?status=pending&limit=1`, { headers: getHeaders() }),
+                fetch(`${API_URL}/admin/verifications/pending`, { headers: getHeaders() })
             ]);
             if (rRes.ok) {
                 const rData = await rRes.json();
@@ -208,6 +211,10 @@ const AdminUsers: React.FC = () => {
             if (aRes.ok) {
                 const aData = await aRes.json();
                 setPendingAgentsCount(aData.total || 0);
+            }
+            if (cRes.ok) {
+                const cData = await cRes.json();
+                setPendingContractorsCount(cData.contractors?.length || 0);
             }
         } catch (e) {
             console.error("Failed to load pending counts:", e);
@@ -229,11 +236,17 @@ const AdminUsers: React.FC = () => {
                     const data = await res.json();
                     setConsultants(data.items || []);
                 }
-            } else if (tab === 'agents') {
+} else if (tab === 'agents') {
                 const res = await fetch(`${API_URL}/admin/agents?status=${consultantFilter}&limit=100`, { headers: getHeaders() });
                 if (res.ok) {
                     const data = await res.json();
                     setAgents(data.items || []);
+                }
+            } else if (tab === 'contractors') {
+                const res = await fetch(`${API_URL}/admin/verifications/pending`, { headers: getHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    setContractors(data.contractors || []);
                 }
             }
             await loadPendingCounts();
@@ -244,15 +257,22 @@ const AdminUsers: React.FC = () => {
         }
     };
 
-    const handleVerify = async (id: number, role: 'realtor' | 'agent', status: 'verified' | 'rejected', reason?: string) => {
+    const handleVerify = async (id: number, role: 'realtor' | 'agent' | 'contractor', status: 'verified' | 'rejected', reason?: string) => {
         setActionLoading(id);
         try {
-            const url = role === 'realtor' 
-                ? `${API_URL}/admin/realtors/${id}/verify` 
-                : `${API_URL}/admin/agents/${id}/verify`;
+            let url = '';
+            let method = 'PUT';
+            if (role === 'contractor') {
+                url = `${API_URL}/admin/verifications/contractor/${id}/${status === 'verified' ? 'approve' : 'reject'}`;
+                method = 'POST';
+            } else {
+                url = role === 'realtor' 
+                    ? `${API_URL}/admin/realtors/${id}/verify` 
+                    : `${API_URL}/admin/agents/${id}/verify`;
+            }
                 
             const res = await fetch(url, {
-                method: 'PUT',
+                method,
                 headers: getHeaders(),
                 body: JSON.stringify({ status, reason }),
             });
@@ -270,7 +290,7 @@ const AdminUsers: React.FC = () => {
         }
     };
 
-    const handleDeleteConsultant = async (id: number, role: 'realtor' | 'agent') => {
+    const handleDeleteConsultant = async (id: number, role: 'realtor' | 'agent' | 'contractor') => {
         if (!window.confirm(`Delete this ${role} application?`)) return;
         setActionLoading(id);
         try {
@@ -376,6 +396,7 @@ const AdminUsers: React.FC = () => {
                     { key: 'users', icon: 'manage_accounts', label: 'Users & Roles' },
                     { key: 'realtors', icon: 'handshake', label: 'Realtor Apps', badge: pendingRealtorsCount },
                     { key: 'agents', icon: 'directions_car', label: 'Agent Apps', badge: pendingAgentsCount },
+                    { key: 'contractors', icon: 'construction', label: 'Contractors', badge: pendingContractorsCount },
                     { key: 'logs', icon: 'history', label: 'Activity Logs' },
                 ].map(t => (
                     <button
@@ -400,7 +421,7 @@ const AdminUsers: React.FC = () => {
                 <div className="flex justify-center py-20">
                     <CircularProgress size={32} />
                 </div>
-            ) : (tab === 'realtors' || tab === 'agents') ? (
+            ) : (tab === 'realtors' || tab === 'agents' || tab === 'contractors') ? (
                 <>
                     {/* Filters */}
                     <div className="flex gap-2 flex-wrap">
@@ -433,7 +454,7 @@ const AdminUsers: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
-                                    {(tab === 'realtors' ? realtors : agents).map(c => {
+                                    {(tab === 'realtors' ? realtors : tab === 'contractors' ? contractors : agents).map(c => {
                                         const isExpanded = expandedAppId === c.id;
                                         return (
                                             <React.Fragment key={c.id}>
@@ -450,7 +471,7 @@ const AdminUsers: React.FC = () => {
                                                                 <div className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-1.5">
                                                                     {c.name || 'Anonymous Partner'}
                                                                     <span className="text-[9px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded uppercase">
-                                                                        {tab === 'realtors' ? 'Realtor' : 'Due Diligence'}
+                                                                        {tab === 'realtors' ? 'Realtor' : tab === 'contractors' ? 'Contractor' : 'Due Diligence'}
                                                                     </span>
                                                                 </div>
                                                                 {c.user_email && <div className="text-[10px] text-slate-400">Account: {c.user_email}</div>}
@@ -525,6 +546,19 @@ const AdminUsers: React.FC = () => {
                                                                             <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.mls_id || '—'}</div>
                                                                         </div>
                                                                     </>
+                                                                ) : tab === 'contractors' ? (
+                                                                    <>
+                                                                        <div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Profession</div>
+                                                                            <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.profession || '—'}</div>
+                                                                        </div>
+                                                                        <div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">License / Document</div>
+                                                                            <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                                                                {c.license_number ? <a href={c.license_number} target="_blank" rel="noreferrer" className="text-primary underline">View Document</a> : '—'}
+                                                                            </div>
+                                                                        </div>
+                                                                    </>
                                                                 ) : (
                                                                     <>
                                                                         <div>
@@ -532,8 +566,10 @@ const AdminUsers: React.FC = () => {
                                                                             <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.coverage_area || '—'}</div>
                                                                         </div>
                                                                         <div>
-                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Vehicle Type</div>
-                                                                            <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.vehicle_type || '—'}</div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Work Permit</div>
+                                                                            <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                                                                {c.vehicle_type ? <a href={c.vehicle_type} target="_blank" rel="noreferrer" className="text-primary underline">View Document</a> : '—'}
+                                                                            </div>
                                                                         </div>
                                                                     </>
                                                                 )}
@@ -548,13 +584,13 @@ const AdminUsers: React.FC = () => {
                                             </React.Fragment>
                                         );
                                     })}
-                                    {(tab === 'realtors' ? realtors : agents).length === 0 && (
+                                    {(tab === 'realtors' ? realtors : tab === 'contractors' ? contractors : agents).length === 0 && (
                                         <tr>
                                             <td colSpan={6} className="py-16 text-center text-slate-400">
                                                 <span className="material-symbols-outlined text-3xl mb-2 block opacity-50">
-                                                    {tab === 'realtors' ? 'handshake' : 'directions_car'}
+                                                    {tab === 'realtors' ? 'handshake' : tab === 'contractors' ? 'construction' : 'directions_car'}
                                                 </span>
-                                                No {tab === 'realtors' ? 'realtor' : 'field agent'} applications found.
+                                                No {tab === 'realtors' ? 'realtor' : tab === 'contractors' ? 'contractor' : 'field agent'} applications found.
                                             </td>
                                         </tr>
                                     )}

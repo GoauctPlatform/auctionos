@@ -3,10 +3,14 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import { API_URL } from '../services/httpClient';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export const Signup: React.FC = () => {
     const navigate = useNavigate();
     const { login: authLogin } = useAuth();
+    const { t } = useLanguage();
     const [searchParams] = useSearchParams();
     const defaultRole = (searchParams.get('role') === 'realtor' ? 'realtor' : searchParams.get('role') === 'agent' ? 'agent_due_diligence' : 'client');
 
@@ -16,6 +20,7 @@ export const Signup: React.FC = () => {
         email: '',
         password: '',
         confirmPassword: '',
+        referralCode: searchParams.get('ref') || '',
     });
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +56,7 @@ export const Signup: React.FC = () => {
                     full_name: formData.fullName,
                     role: selectedRole,
                     newsletter: newsletter,
+                    referral_code: formData.referralCode || undefined,
                 }),
             });
 
@@ -99,21 +105,24 @@ export const Signup: React.FC = () => {
             </div>
 
             <div className="relative z-10 w-full max-w-md">
+                <div className="absolute top-0 right-0 -mt-12">
+                    <LanguageSwitcher />
+                </div>
                 <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
 
                     {/* Header Gradient */}
                     <div className={`px-8 pt-8 pb-5 bg-gradient-to-br ${gradientClass} text-center cursor-pointer`} onClick={() => navigate('/')}>
                         <div className="flex items-center justify-center gap-2 mb-2">
-                            <span className="material-symbols-outlined text-white text-[28px]">
-                                person_add
-                            </span>
+                            <div className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-md p-1">
+                                <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain" />
+                            </div>
                             <span className="text-white font-extrabold text-xl">GoAuct</span>
                         </div>
                         <h1 className="text-white font-bold text-lg">
-                            Create Your Account
+                            {t('auth.signup')}
                         </h1>
                         <p className="text-white/70 text-xs mt-1">
-                            Join the GoAuct ecosystem as an investor or realtor
+                            {t('auth.signupSubtitle')}
                         </p>
                     </div>
 
@@ -128,7 +137,7 @@ export const Signup: React.FC = () => {
                             {/* Role Selection */}
                             <div className="flex flex-col gap-1.5 mb-2">
                                 <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">I want to join as a:</span>
-                                <div className="flex flex-col sm:flex-row gap-4">
+                                <div className="grid grid-cols-2 gap-3">
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
                                             type="radio" 
@@ -149,7 +158,7 @@ export const Signup: React.FC = () => {
                                             onChange={() => setSelectedRole('realtor')}
                                             className="text-emerald-600 focus:ring-emerald-600"
                                         />
-                                        <span className="text-sm text-slate-700 dark:text-slate-300">Realtor Partner</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">Realtor</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
@@ -160,14 +169,25 @@ export const Signup: React.FC = () => {
                                             onChange={() => setSelectedRole('agent_due_diligence')}
                                             className="text-orange-600 focus:ring-orange-600"
                                         />
-                                        <span className="text-sm text-slate-700 dark:text-slate-300">Due Diligence Agent</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">Field Agent</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input 
+                                            type="radio" 
+                                            name="role" 
+                                            value="contractor" 
+                                            checked={selectedRole === 'contractor'} 
+                                            onChange={() => setSelectedRole('contractor')}
+                                            className="text-indigo-600 focus:ring-indigo-600"
+                                        />
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">Contractor</span>
                                     </label>
                                 </div>
                             </div>
 
                             {/* Full Name */}
                             <label className="flex flex-col gap-1.5">
-                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Full Name</span>
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.fullName')}</span>
                                 <input
                                     className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
                                     type="text"
@@ -181,7 +201,7 @@ export const Signup: React.FC = () => {
 
                             {/* Email */}
                             <label className="flex flex-col gap-1.5">
-                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Email Address</span>
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.email')}</span>
                                 <input
                                     className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
                                     type="email"
@@ -195,7 +215,7 @@ export const Signup: React.FC = () => {
 
                             {/* Password */}
                             <label className="flex flex-col gap-1.5">
-                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Password</span>
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.password')}</span>
                                 <input
                                     className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
                                     type="password"
@@ -210,7 +230,7 @@ export const Signup: React.FC = () => {
 
                             {/* Confirm Password */}
                             <label className="flex flex-col gap-1.5">
-                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Confirm Password</span>
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.confirmPassword')}</span>
                                 <input
                                     className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow"
                                     type="password"
@@ -223,12 +243,25 @@ export const Signup: React.FC = () => {
                                 />
                             </label>
 
+                            {/* Referral Code */}
+                            <label className="flex flex-col gap-1.5">
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.referralCode')}</span>
+                                <input
+                                    className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-11 px-4 focus:outline-none focus:ring-2 focus:ring-primary transition-shadow uppercase"
+                                    type="text"
+                                    name="referralCode"
+                                    value={formData.referralCode}
+                                    onChange={handleChange}
+                                    placeholder="e.g. GUS-1A2B"
+                                />
+                            </label>
+
                             {/* Realtor Info Banner */}
                             {isRealtor && (
                                 <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 flex gap-2">
                                     <span className="material-symbols-outlined text-emerald-600 text-[18px] mt-0.5 shrink-0">info</span>
                                     <p className="text-xs text-emerald-800 dark:text-emerald-300">
-                                        Your account will be created with <strong>Realtor role</strong>. After registration, your profile will be reviewed and you'll be verified as a GoAuct Partner.
+                                        Your account will be created as a <strong>Realtor Partner</strong>. You must possess a valid US Real Estate License to negotiate properties. Your credentials will be reviewed by our team.
                                     </p>
                                 </div>
                             )}
@@ -237,7 +270,16 @@ export const Signup: React.FC = () => {
                                 <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3 flex gap-2">
                                     <span className="material-symbols-outlined text-orange-600 text-[18px] mt-0.5 shrink-0">info</span>
                                     <p className="text-xs text-orange-800 dark:text-orange-300">
-                                        Your account will be created with <strong>Due Diligence Agent role</strong>. You will be able to claim field tasks after completing your profile verification.
+                                        Your account will be created as a <strong>Field Agent</strong>. You must have a valid US Work Permit. You'll be asked to upload verifying documentation before claiming tasks.
+                                    </p>
+                                </div>
+                            )}
+
+                            {selectedRole === 'contractor' && (
+                                <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 flex gap-2">
+                                    <span className="material-symbols-outlined text-indigo-600 text-[18px] mt-0.5 shrink-0">info</span>
+                                    <p className="text-xs text-indigo-800 dark:text-indigo-300">
+                                        Your account will be created as a <strong>Maintenance Partner</strong>. You will be able to offer renovation and maintenance services to property owners once verified.
                                     </p>
                                 </div>
                             )}

@@ -62,10 +62,10 @@ def reconcile_property_statuses_task():
     logger.info("Starting automatic status reconciliation task.")
     from app.db.session import engine
     from sqlalchemy import text
-    from datetime import datetime
-    
-    current_date = datetime.utcnow().date()
-    now = datetime.utcnow()
+    from datetime import datetime, timezone
+
+    current_date = datetime.now(timezone.utc).date()
+    now = datetime.now(timezone.utc)
     today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
     
     try:
@@ -114,11 +114,11 @@ def check_watchlists_task():
     logger.info("Starting watchlist check task.")
     from app.db.session import engine
     from sqlalchemy import text
-    from datetime import datetime, timedelta
-    
-    current_date = datetime.utcnow().date()
+    from datetime import datetime, timedelta, timezone
+
+    current_date = datetime.now(timezone.utc).date()
     target_date = current_date + timedelta(days=7)
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
     
     try:
         with engine.begin() as conn:
@@ -215,10 +215,10 @@ def revert_expired_tasks_task():
     logger.info("Starting expired tasks check.")
     from app.db.session import engine
     from sqlalchemy import text
-    from datetime import datetime
+    from datetime import datetime, timezone
     from app.core.email import send_email
-    
-    now = datetime.utcnow()
+
+    now = datetime.now(timezone.utc)
     
     try:
         with engine.begin() as conn:
@@ -263,3 +263,37 @@ def revert_expired_tasks_task():
         logger.error(f"Expired tasks check failed: {e}")
         return {"status": "error", "message": str(e)}
 
+
+@celery_app.task(acks_late=True, name="app.tasks.run_scheduled_backup_task")
+def run_scheduled_backup_task():
+    """
+    Automatically triggered by Celery Beat at 04:30 UTC daily.
+    Creates a BackupJob record and runs pg_dump via the existing backup service.
+    Only runs when DATABASE_URL is PostgreSQL (skipped silently for SQLite/local).
+    """
+    logger.info("Starting scheduled daily database backup.")
+    from app.core.config import settings
+
+    db_url = settings.DATABASE_URL
+    if not db_url.startswith("postgresql"):
+        logger.info("Scheduled backup skipped: DATABASE_URL is not PostgreSQL.")
+        return {"status": "skipped", "reason": "non-postgres database"}
+
+    try:
+        from app.models.backup_job import BackupJob
+        from app.services.backup_service import run_backup
+
+        with SessionLocal() as db:
+            job = BackupJob(filename="pending", file_path="pending", status="pending")
+            db.add(job)
+            db.commit()
+            db.refresh(job)
+            job_id = job.id
+
+        # Run the actual backup (reuses existing run_backup coroutine)
+        run_async(run_backup(job_id, SessionLocal()))
+        logger.info(f"Scheduled backup completed successfully. Job ID: {job_id}")
+        return {"status": "success", "job_id": job_id}
+    except Exception as e:
+        logger.error(f"Scheduled backup failed: {e}", exc_info=True)
+        return {"status": "error", "message": str(e)}

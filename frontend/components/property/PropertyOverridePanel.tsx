@@ -29,6 +29,7 @@ const EDITABLE_FIELDS: { key: string; label: string; type: 'text' | 'number' | '
     { key: 'amount_due', label: 'Opening Bid ($)', type: 'number' },
     { key: 'assessed_value', label: 'Assessed Value ($)', type: 'number' },
     { key: 'estimated_value', label: 'My Estimated ARV ($)', type: 'number' },
+    { key: 'max_bid', label: 'Recommended Max Bid ($)', type: 'number' },
     { key: 'rental_value', label: 'My Estimated Rent ($)', type: 'number' },
     { key: 'bedrooms', label: 'Bedrooms', type: 'number' },
     { key: 'bathrooms', label: 'Bathrooms', type: 'number' },

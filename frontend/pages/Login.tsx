@@ -3,10 +3,13 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import { API_BASE_URL } from '../services/httpClient';
 import { useAuth } from '../context/AuthContext';
+import { useLanguage } from '../context/LanguageContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login: authLogin } = useAuth();
+  const { t } = useLanguage();
   const [searchParams] = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -108,22 +111,25 @@ export const Login: React.FC = () => {
       </div>
 
       <div className="relative z-10 w-full max-w-md">
+        <div className="absolute top-0 right-0 -mt-12">
+          <LanguageSwitcher />
+        </div>
         {/* Card */}
         <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 overflow-hidden">
 
           {/* Header */}
           <div className={`px-8 pt-10 pb-6 bg-gradient-to-br ${accentClass} text-center`}>
             <div className="flex items-center justify-center gap-2 mb-3">
-              <span className="material-symbols-outlined text-white text-[32px]">
-                login
-              </span>
+              <div className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-md p-1">
+                <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain" />
+              </div>
               <span className="text-white font-extrabold text-2xl tracking-tight">GoAuct</span>
             </div>
             <h1 className="text-white font-bold text-lg">
-              Sign In to Your Account
+              {t('auth.loginTitle')}
             </h1>
             <p className="text-white/70 text-sm mt-1">
-              Welcome back — access your dashboard
+              {t('auth.loginSubtitle')}
             </p>
           </div>
 
@@ -136,7 +142,7 @@ export const Login: React.FC = () => {
               )}
 
               <label className="flex flex-col gap-1.5">
-                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Email Address</span>
+                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.email')}</span>
                 <input
                   className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-12 px-4 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-primary transition-shadow"
                   type="email"
@@ -148,7 +154,7 @@ export const Login: React.FC = () => {
               </label>
 
               <label className="flex flex-col gap-1.5">
-                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">Password</span>
+                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('auth.password')}</span>
                 <input
                   className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white h-12 px-4 focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-primary transition-shadow"
                   type="password"
@@ -162,10 +168,10 @@ export const Login: React.FC = () => {
               <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" className="rounded border-slate-300 text-primary" />
-                  <span className="text-slate-600 dark:text-slate-400 text-sm">Remember me</span>
+                  <span className="text-slate-600 dark:text-slate-400 text-sm">{t('auth.rememberMe')}</span>
                 </label>
                 <Link to="/forgot-password" className="text-primary text-sm font-bold hover:underline">
-                  Forgot Password?
+                  {t('auth.forgotPassword')}
                 </Link>
               </div>
 
@@ -181,7 +187,7 @@ export const Login: React.FC = () => {
                   </>
                 ) : (
                   <>
-                    Sign In
+                    {t('auth.login')}
                     <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
                   </>
                 )}
@@ -208,15 +214,15 @@ export const Login: React.FC = () => {
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
               </svg>
-              <span className="text-slate-700 dark:text-slate-200 text-sm font-semibold">Continue with Google</span>
+              <span className="text-slate-700 dark:text-slate-200 text-sm font-semibold">{t('auth.continueWithGoogle')}</span>
             </button>
 
             {/* Footer links */}
-            <div className="mt-6 text-center">
-              <p className="text-slate-600 dark:text-slate-400 text-sm">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-primary font-bold hover:underline">Sign up free</Link>
-              </p>
+            <div className="mt-8 text-center text-sm text-slate-500 dark:text-slate-400">
+              {t('auth.noAccount')}{' '}
+              <Link to="/signup" className="text-primary font-bold hover:underline">
+                {t('auth.signUp')}
+              </Link>
             </div>
           </div>
         </div>

@@ -54,6 +54,7 @@ def read_properties(
     added_since: Optional[str] = None,
     is_unavailable: Optional[bool] = None,
     min_score: Optional[float] = None,
+    is_custom: Optional[bool] = None,
 ) -> Any:
     
     # 1. Build Base Filter Query
@@ -76,7 +77,7 @@ def read_properties(
         where_clauses.append("p.state ILIKE :state")
         params["state"] = f"%{state}%"
     if auction_id:
-        where_clauses.append("pah.auction_id = :auction_id")
+        where_clauses.append("(pah.auction_id = :auction_id OR ae_lookup.id = :auction_id)")
         params["auction_id"] = auction_id
     if auction_name:
         where_clauses.append("pah.auction_name ILIKE :auction_name")
@@ -86,7 +87,8 @@ def read_properties(
         params["auction_date"] = f"{auction_date}%"
     if auction_types:
         # Filter by multiple types if provided (e.g. Deed, Lien, Foreclosure)
-        where_clauses.append("LOWER(pah.listed_as) = ANY(:auction_types) OR LOWER(p.property_category) = ANY(:auction_types)")
+        # Check in pah.listed_as, p.property_type, and p.property_category to prevent schema mismatches
+        where_clauses.append("LOWER(pah.listed_as) = ANY(:auction_types) OR LOWER(p.property_type) = ANY(:auction_types) OR LOWER(p.property_category) = ANY(:auction_types)")
         params["auction_types"] = [t.lower() for t in auction_types]
     if min_amount_due is not None:
         where_clauses.append("p.amount_due >= :min_amount_due")
@@ -95,8 +97,10 @@ def read_properties(
         where_clauses.append("p.amount_due <= :max_amount_due")
         params["max_amount_due"] = max_amount_due
     if property_category:
-        where_clauses.append("p.property_category = :property_category")
-        params["property_category"] = property_category
+        # Clean "Tax Deed" -> "deed", "Tax Lien" -> "lien", etc. and search case-insensitively
+        cat_clean = property_category.lower().replace("tax", "").strip()
+        where_clauses.append("(LOWER(p.property_type) LIKE :cat_clean OR LOWER(p.property_category) LIKE :cat_clean)")
+        params["cat_clean"] = f"%{cat_clean}%"
     if occupancy:
         where_clauses.append("p.occupancy ILIKE :occupancy")
         params["occupancy"] = f"%{occupancy}%"
@@ -104,7 +108,8 @@ def read_properties(
         where_clauses.append("p.tax_year = :tax_year")
         params["tax_year"] = tax_year
     if property_type:
-        where_clauses.append("p.property_type ILIKE :property_type")
+        # Check both columns due to inverted mapping (p.property_category contains Land Only, structures, etc.)
+        where_clauses.append("(p.property_type ILIKE :property_type OR p.property_category ILIKE :property_type)")
         params["property_type"] = f"%{property_type}%"
         
     # Apply New Filters
@@ -192,6 +197,12 @@ def read_properties(
     if is_unavailable is True:
         where_clauses.append("p.availability_status = 'unavailable'")
 
+    if is_custom is not None:
+        if is_custom:
+            where_clauses.append("p.created_by_user_id IS NOT NULL")
+        else:
+            where_clauses.append("p.created_by_user_id IS NULL")
+
     if min_score is not None:
         where_clauses.append("ps.deal_score >= :min_score")
         params["min_score"] = min_score
@@ -223,6 +234,7 @@ def read_properties(
     total = db.execute(text(count_query), params).scalar()
 
     # 3. Get Items
+    import json as _json
     items_query = f"""
         SELECT 
             p.parcel_id, 
@@ -272,9 +284,13 @@ def read_properties(
             p.owner_occupied,
             p.latitude,
             p.longitude,
-            p.gsi_url
+            p.gsi_url,
+            p.id,
+            p.max_bid,
+            puo.overrides as user_overrides
         FROM property_details p
         LEFT JOIN {history_table} pah ON pah.property_id = p.property_id
+        LEFT JOIN property_user_overrides puo ON puo.property_id = p.property_id AND puo.user_id = :uid
         {ae_join}
         {score_join}
         WHERE {where_str}
@@ -320,8 +336,9 @@ def read_properties(
 
     result = db.execute(text(items_query), params).fetchall()
     
-    items = [
-        {
+    items = []
+    for r in result:
+        item = {
             "parcel_id": r[0] if r[0] else "",
             "county": r[1],
             "state_code": r[2],
@@ -370,9 +387,17 @@ def read_properties(
             "latitude": r[45],
             "longitude": r[46],
             "gsi_url": r[47],
+            "id": r[48],
+            "max_bid": r[49] if len(r) > 49 and r[49] is not None else None,
         }
-        for r in result
-    ]
+        # Merge user overrides if present
+        if len(r) > 50 and r[50]:
+            user_overrides = r[50] if isinstance(r[50], dict) else (_json.loads(r[50]) if r[50] else {})
+            if user_overrides:
+                for key, new_val in user_overrides.items():
+                    if new_val is not None:
+                        item[key] = new_val
+        items.append(item)
 
     # ── Inject secure gsi_url proxy path ──
     for item in items:
@@ -398,6 +423,7 @@ class PropertyUpdateRequest(BaseModel):
     tax_year: Optional[int] = None
     lot_acres: Optional[float] = None
     estimated_value: Optional[float] = None
+    max_bid: Optional[float] = None
     land_value: Optional[float] = None
     improvement_value: Optional[float] = None
     property_type: Optional[str] = None
@@ -687,7 +713,7 @@ def get_redemption_info(
     if auction_type:
         # Check if either one contains the other (e.g. "Tax Deed" vs "Deed")
         at_lower = auction_type.lower()
-        matches = [d for d in matches if d['type'].lower() in at_lower or at_lower in d['type'].lower()]
+        matches = [d for d in matches if d.get('type') and (d['type'].lower() in at_lower or at_lower in d['type'].lower())]
         
     return {
         "state": state,
@@ -844,15 +870,21 @@ def purchase_property_action(
             if current_status != "available":
                 raise HTTPException(status_code=400, detail=f"Cannot purchase property. Current state is '{current_status}'. Must be 'available'.")
             
-            # Auction Linkage Validation for non-privileged users
+            # Auction Linkage Validation: Must be linked to an auction
+            auction_q = text("SELECT 1 FROM property_auction_history WHERE property_id = :prop_id LIMIT 1")
+            has_auction = db.execute(auction_q, {"prop_id": prop_id}).fetchone()
+            if not has_auction:
+                raise HTTPException(
+                    status_code=400,
+                    detail="Cannot purchase this property because it is not linked to any active auction."
+                )
+            
+            # Prevent direct simulation purchase for clients on live auctions
             if not current_user.is_superuser:
-                auction_q = text("SELECT 1 FROM property_auction_history WHERE property_id = :prop_id LIMIT 1")
-                has_auction = db.execute(auction_q, {"prop_id": prop_id}).fetchone()
-                if has_auction:
-                    raise HTTPException(
-                        status_code=403, 
-                        detail="This property is linked to a live auction. Clients must bid via the official portal instead of direct purchase."
-                    )
+                raise HTTPException(
+                    status_code=403, 
+                    detail="This property is linked to a live auction. Clients must bid via the official portal instead of direct purchase."
+                )
                 
             # Perform atomic update
             new_status = "purchased"
@@ -1108,7 +1140,13 @@ def get_property(
                 """)
                 att_rows = db.execute(att_query, {"prop_id": prop_id_int, "user_id": current_user.id}).fetchall()
             
-            data["attachments"] = [dict(a._mapping) for a in att_rows]
+            from app.services.storage_service import storage_service
+            atts = []
+            for a in att_rows:
+                adict = dict(a._mapping)
+                adict["file_path"] = storage_service.get_presigned_url(adict["file_path"])
+                atts.append(adict)
+            data["attachments"] = atts
 
             # Check Media Monetization (Paywall)
             has_access = False
@@ -1152,6 +1190,7 @@ def get_property(
                 """)
                 realtor_media_rows = db.execute(realtor_media_query, {"prop_id": prop_id_int}).fetchall()
                 
+                from app.services.storage_service import storage_service
                 media_files = []
                 for row in realtor_media_rows:
                     paths = row[0].split(',') if row[0] else []
@@ -1159,7 +1198,7 @@ def get_property(
                         if p:
                             media_files.append({
                                 "name": os.path.basename(p),
-                                "url": p
+                                "url": storage_service.get_presigned_url(p)
                             })
                 data["media_files"] = media_files
                 data["media_unlocked"] = True
@@ -1269,6 +1308,16 @@ def get_property(
         pid = data.get("parcel_id") or data.get("id")
         if pid:
             data["gsi_url"] = f"{settings.API_V1_STR}/properties/{pid}/streetview"
+
+    # ── Presign public photos if they exist ──
+    public_photos = data.get("public_photos")
+    if public_photos:
+        from app.services.storage_service import storage_service
+        presigned = []
+        for p in public_photos.split(","):
+            if p:
+                presigned.append(storage_service.get_presigned_url(p.strip()))
+        data["public_photos"] = ",".join(presigned)
 
     return data
 
@@ -1601,7 +1650,7 @@ async def validate_property_gsi(
 
 
 @router.get("/{parcel_id}/streetview")
-def get_property_streetview(
+async def get_property_streetview(
     parcel_id: str,
 ):
     """
@@ -1611,6 +1660,7 @@ def get_property_streetview(
     - Caches responses locally to avoid redundant billing from Google.
     """
     import httpx
+    from fastapi.concurrency import run_in_threadpool
     
     # 1. Resolve uploads directory
     uploads_dir = os.getenv("UPLOADS_DIR", os.path.join(os.getcwd(), "uploads"))
@@ -1621,8 +1671,9 @@ def get_property_streetview(
     no_image_path = os.path.join(streetview_dir, f"{parcel_id}_no_image.txt")
     
     # 2. Check cache
+    cors_headers = {"Access-Control-Allow-Origin": "*"}
     if os.path.exists(cached_path):
-        return FileResponse(cached_path, media_type="image/jpeg")
+        return FileResponse(cached_path, media_type="image/jpeg", headers=cors_headers)
         
     if os.path.exists(no_image_path):
         raise HTTPException(status_code=404, detail="Street View imagery not available at this location.")
@@ -1635,10 +1686,14 @@ def get_property_streetview(
         query = text("""
             SELECT id, address, county, state, latitude, longitude
             FROM property_details
-            WHERE parcel_id = :pid OR id::text = :pid OR property_id = :pid
+            WHERE parcel_id = :pid OR id::text = :pid OR property_id::text = :pid
             LIMIT 1
         """)
-        row = db.execute(query, {"pid": parcel_id}).fetchone()
+        
+        def fetch_row():
+            return db.execute(query, {"pid": parcel_id}).fetchone()
+            
+        row = await run_in_threadpool(fetch_row)
         if not row:
             raise HTTPException(status_code=404, detail=f"Property not found: {parcel_id}")
             
@@ -1656,7 +1711,7 @@ def get_property_streetview(
             if not location_str or location_str == ", ,":
                 location_str = parcel_id
     finally:
-        db.close()
+        await run_in_threadpool(db.close)
             
     if not location_str:
         raise HTTPException(status_code=400, detail="Insufficient location details to look up Street View.")
@@ -1675,7 +1730,8 @@ def get_property_streetview(
             "location": location_str,
             "key": api_key
         }
-        m_res = httpx.get(metadata_url, params=m_params, timeout=10.0)
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            m_res = await client.get(metadata_url, params=m_params)
         if m_res.status_code == 200:
             m_data = m_res.json()
             status = m_data.get("status")
@@ -1701,11 +1757,12 @@ def get_property_streetview(
             "pitch": "10",
             "key": api_key
         }
-        s_res = httpx.get(streetview_url, params=s_params, timeout=15.0)
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            s_res = await client.get(streetview_url, params=s_params)
         if s_res.status_code == 200:
             with open(cached_path, "wb") as f:
                 f.write(s_res.content)
-            return FileResponse(cached_path, media_type="image/jpeg")
+            return FileResponse(cached_path, media_type="image/jpeg", headers=cors_headers)
         else:
             raise HTTPException(status_code=500, detail=f"Google Static API returned status {s_res.status_code}")
     except Exception as e:

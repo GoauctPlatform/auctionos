@@ -1512,7 +1512,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                         </div>
 
 
-                <div className="flex-1 overflow-y-auto p-3 md:p-6">
+                <div className="flex-1 overflow-y-auto p-3 md:p-6 flex flex-col">
                     {/* Bulk Actions Panel */}
                     {selectedPropIds.size > 0 && (
                         <div className="mb-4 sticky top-0 z-20 bg-slate-900 text-white rounded-xl p-3 flex items-center justify-between shadow-lg border border-slate-800 animate-slideDown print:hidden">
@@ -1764,17 +1764,17 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                         );
                     })()}
                     {propsLoading ? (
-                        <div className="h-full flex items-center justify-center">
+                        <div className="flex-1 flex items-center justify-center min-h-[200px]">
                             <CircularProgress size={24} />
                         </div>
                     ) : selectedListProperties.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
+                        <div className="flex-1 flex flex-col items-center justify-center text-center opacity-40 min-h-[200px]">
                             <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">folder_open</span>
                             <Typography className="text-slate-500 text-sm font-medium">No Properties in this folder</Typography>
                             <Typography className="text-slate-400 text-xs mt-1">Drag and drop properties here from search or other lists.</Typography>
                         </div>
                     ) : displayProperties.length === 0 ? (
-                        <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
+                        <div className="flex-1 flex flex-col items-center justify-center text-center opacity-40 min-h-[200px]">
                             <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">folder_open</span>
                             <Typography className="text-slate-500 text-sm font-medium">No properties found in this specific county.</Typography>
                         </div>

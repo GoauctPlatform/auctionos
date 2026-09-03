@@ -2,7 +2,15 @@
 export enum UserRole {
   ADMIN = 'admin',
   MANAGER = 'manager',
-  AGENT = 'agent'
+  AGENT = 'agent',
+  CLIENT = 'client',
+  SUPERUSER = 'superuser'
+}
+
+export enum PropertyStatus {
+  Active = 'Active',
+  Pending = 'Pending',
+  Sold = 'Sold'
 }
 
 // Minimal Users
@@ -16,6 +24,10 @@ export interface User {
   name?: string;
   full_name?: string;
   subscription_tier?: string;
+  active_company_id?: number | null;
+  company_id?: number | null;
+  linked_company_ids?: number[];
+  is_verified?: boolean;
 }
 
 // Auth State
@@ -45,6 +57,8 @@ export interface AuctionEvent {
   list_link?: string;
   purchase_info_link?: string;
   properties_count?: number;
+  avg_deal_score?: number;
+  deal_rating?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -98,6 +112,21 @@ export interface Property {
   created_at?: string;
   updated_at?: string;
   auction_id?: number | null;
+  county?: string;
+  parcel_address?: string;
+  imageUrl?: string;
+  sqft?: number;
+  bedrooms?: number;
+  opening_bid?: number;
+  property_category?: string;
+  purchase_option_type?: string;
+  status?: string;
+  owner_occupied?: boolean | string;
+  lot_acres?: number;
+  next_auction_date?: string;
+  auction_name?: string;
+  property_id?: string | number;
+  zip?: string;
   
   // V3 Extended Fields
   property_type?: string;
@@ -108,7 +137,10 @@ export interface Property {
   zoning?: string;
   subdivision?: string;
   legal_description?: string;
+  max_bid?: number;
+  estimated_value?: number;
 
+  [key: string]: any;
   latitude?: number;
   longitude?: number;
   redfin_url?: string;
@@ -120,6 +152,20 @@ export interface Property {
   import_error_msg?: string;
   is_processed?: boolean;
   map_link?: string;
+  building_area_sqft?: number;
+  stories?: string | number;
+  num_units?: number;
+  last_sale_price?: number;
+  last_sale_date?: string;
+  tax_amount?: number;
+  tax_year?: number;
+  year_built?: number;
+  beds?: number;
+  baths?: number;
+  bathrooms?: number;
+  additional_parcel_numbers?: string;
+  auction_info_link?: string;
+  auction_list_link?: string;
 
   details?: PropertyDetails;
   media?: any[];
@@ -136,16 +182,21 @@ export interface Property {
   attachments?: any[];
   recommended_next_steps?: any[];
   auction_type?: string;
+  has_realtor_media?: boolean;
+  media_unlocked?: boolean;
 }
 
 // Property Details (nested sub-object and also the single-property API response shape)
 export interface PropertyDetails {
-  id: number;
-  property_id: string;
+  [key: string]: any;
+  id: string | number;
+  property_id?: string | number;
   parcel_id?: string;
   address?: string;
-  county?: string;
+  city?: string;
   state?: string;
+  zip_code?: string;
+  county?: string;
   description?: string;
   amount_due?: number;
   occupancy?: string;
@@ -218,6 +269,9 @@ export interface PropertyDetails {
   last_sale_price?: number;
   last_transfer_date?: string;
 
+  has_realtor_media?: boolean;
+  media_unlocked?: boolean;
+
   // Flags & Misc
   flood_zone_code?: string;
   legal_tags?: string;
@@ -262,8 +316,6 @@ export interface PropertyDetails {
   section_township_range?: string;
 
   // Structure & Building
-  effective_year_built?: number;
-  stories?: string;
   rooms_count?: number;
   partial_baths_count?: number;
   parking_type?: string;
@@ -298,7 +350,7 @@ export interface PropertyDetails {
   owner_formatted_street_address?: string;
   owner_city?: string;
   owner_zip_code?: string;
-  owner_occupied?: string;
+  owner_occupied?: string | boolean;
 
   // Complex Features / JSONB
   other_areas?: any;

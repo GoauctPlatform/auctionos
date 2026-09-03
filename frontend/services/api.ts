@@ -16,14 +16,62 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// Track if a refresh is in progress to avoid infinite loops
+let isRefreshing = false;
+let pendingRequests: Array<(token: string) => void> = [];
+
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      console.warn('Authentication token expired or invalid. Redirecting to login.');
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/#/';
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      // Try to refresh the token once
+      if (!isRefreshing) {
+        isRefreshing = true;
+        originalRequest._retry = true;
+
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (refreshToken) {
+          try {
+            const res = await axios.post(`${API_URL}/auth/refresh`, {
+              refresh_token: refreshToken,
+            });
+            const newToken = res.data.access_token;
+            localStorage.setItem('token', newToken);
+
+            // Retry all pending requests with the new token
+            pendingRequests.forEach((cb) => cb(newToken));
+            pendingRequests = [];
+            isRefreshing = false;
+
+            // Retry the original request
+            originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+            return api(originalRequest);
+          } catch {
+            // Refresh failed — force logout
+            isRefreshing = false;
+            pendingRequests = [];
+            localStorage.removeItem('token');
+            localStorage.removeItem('refresh_token');
+            localStorage.removeItem('user');
+            window.location.href = '/#/';
+          }
+        } else {
+          // No refresh token — force logout
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          window.location.href = '/#/';
+        }
+      } else {
+        // Queue this request until refresh completes
+        return new Promise((resolve) => {
+          pendingRequests.push((token: string) => {
+            originalRequest.headers['Authorization'] = `Bearer ${token}`;
+            resolve(api(originalRequest));
+          });
+        });
+      }
     } else if (error.response?.status === 402) {
       console.warn('Payment required or trial expired.');
       localStorage.setItem('trial_expired', 'true');

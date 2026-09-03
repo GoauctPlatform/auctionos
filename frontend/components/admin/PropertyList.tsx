@@ -108,7 +108,7 @@ const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, 
         }
     };
 
-    const columns: GridColDef[] = [
+    const columns = React.useMemo<GridColDef[]>(() => [
         {
             field: 'deal_grade',
             headerName: 'Grade',
@@ -276,7 +276,8 @@ const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, 
                 return actions;
             },
         },
-    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ], [readOnly, onOpenPropertyDetails, navigate]);
 
     return (
         <Box sx={{ width: '100%', height: '100%', bgcolor: 'background.paper', borderRadius: 2, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -318,7 +319,7 @@ const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, 
                     onFilterModelChange={setFilterModel}
                     sortingMode="server"
                     sortModel={sortModel}
-                    onSortModelChange={setSortModel}
+                    onSortModelChange={setSortModel as any}
                     pageSizeOptions={[20, 50, 100]}
                     disableRowSelectionOnClick
                     density="compact"

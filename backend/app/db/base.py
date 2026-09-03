@@ -18,6 +18,7 @@ from app.models.company import Company
 from app.models.realtor import Realtor
 from app.models.user_property import UserProperty
 from app.models.agent_due_diligence import AgentDueDiligenceProfile
+from app.models.contractor import ContractorProfile
 from app.models.user_onboarding import UserOnboarding
 
 # Realtor Task Ecosystem
@@ -33,3 +34,6 @@ from app.models.realtor_economy import RealtorWallet, WithdrawalRequest, Propert
 from app.models.monetization import UserSubscription, StorageUsage
 from app.models.property_user_override import PropertyUserOverride  # noqa — JSONB Override/Merge pattern
 from app.models.backup_job import BackupJob
+
+# Affiliate System
+from app.models.affiliate import AffiliateProfile, AffiliateReferral, AffiliateWithdrawal

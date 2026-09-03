@@ -3,7 +3,7 @@ from app.api.api_v1.endpoints import (
     auth, users, properties, dashboard, auctions, admin, counties, announcements,
     client_data, states, scores, marketing, companies, realtors, user_properties,
     realtor_tasks, investor_tasks, realtor_economy, billing, agent_tasks, backup,
-    community
+    community, notifications, admin_verification, upload, affiliate
 )
 
 api_router = APIRouter()
@@ -13,6 +13,7 @@ api_router.include_router(auctions.router, prefix="/auctions", tags=["auctions"]
 api_router.include_router(properties.router, prefix="/properties", tags=["properties"])
 api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(admin.router, prefix="/admin", tags=["admin"])
+api_router.include_router(admin_verification.router, prefix="/admin/verifications", tags=["admin"])
 api_router.include_router(counties.router, prefix="/counties", tags=["counties"])
 api_router.include_router(announcements.router, prefix="/admin/announcements", tags=["announcements"])
 api_router.include_router(client_data.router, prefix="/client-data", tags=["client_portal"])
@@ -29,3 +30,6 @@ api_router.include_router(billing.router, prefix="/billing", tags=["billing"])
 api_router.include_router(agent_tasks.router, prefix="/agent", tags=["agent"])
 api_router.include_router(backup.router, prefix="/backup", tags=["backup"])
 api_router.include_router(community.router, prefix="/community", tags=["community"])
+api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
+api_router.include_router(upload.router, prefix="/upload", tags=["upload"])
+api_router.include_router(affiliate.router, prefix="/affiliate", tags=["affiliate"])

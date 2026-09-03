@@ -26,14 +26,19 @@ def upgrade():
     op.create_index('ix_user_company_links_user_id',    'user_company_links', ['user_id'])
     op.create_index('ix_user_company_links_company_id', 'user_company_links', ['company_id'])
 
-    # 2. Seed: migrate every existing company_id from users → new table
-    op.execute("""
-        INSERT INTO user_company_links (user_id, company_id, role)
-        SELECT id, company_id, role
-        FROM users
-        WHERE company_id IS NOT NULL
-        ON CONFLICT DO NOTHING
-    """)
+    # 2. Seed: migrate every existing company_id from users → new table (only if company_id column exists)
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    columns = [c['name'] for c in inspector.get_columns('users')]
+    if 'company_id' in columns:
+        op.execute("""
+            INSERT INTO user_company_links (user_id, company_id, role)
+            SELECT id, company_id, role
+            FROM users
+            WHERE company_id IS NOT NULL
+            ON CONFLICT DO NOTHING
+        """)
+
 
 
 def downgrade():

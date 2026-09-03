@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import Header from '../components/Header';
-import { Footer } from '../components/Footer';
 import { API_URL } from '../services/httpClient';
 
 interface SupportPageProps {
@@ -173,10 +171,10 @@ const SupportPage: React.FC<SupportPageProps> = ({ standalone = true }) => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col">
-            <Header />
-            {content}
-            <Footer />
+        <div className="min-h-screen flex flex-col font-sans pt-24 pb-12">
+            <div className="w-full max-w-4xl mx-auto px-4">
+                {content}
+            </div>
         </div>
     );
 };

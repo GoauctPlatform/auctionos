@@ -11,7 +11,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     is_active = Column(Boolean(), default=True)
     is_superuser = Column(Boolean(), default=False)
-    role = Column(String(50), default="client")   # 'admin', 'client', 'realtor', 'superuser'
+    role = Column(String(50), default="client")   # 'admin', 'client', 'realtor', 'superuser', 'agent_due_diligence', 'contractor'
     full_name = Column(String(255), nullable=True)
     reset_token = Column(String(255), nullable=True)
     reset_token_expires = Column(Integer, nullable=True) # unix timestamp
@@ -81,6 +81,13 @@ class User(Base):
 
     agent_profile = relationship(
         "AgentDueDiligenceProfile",
+        back_populates="user",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
+
+    contractor_profile = relationship(
+        "ContractorProfile",
         back_populates="user",
         uselist=False,
         cascade="all, delete-orphan",

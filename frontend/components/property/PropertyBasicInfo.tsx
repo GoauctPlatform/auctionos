@@ -38,6 +38,8 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
     // Fallback to local calculation if no score passed or persisted yet
     const displayScore = passedScore || calculateDealScore(property);
 
+    const isTaxLien = (property.property_category || property.purchase_option_type || property.property_type || property.auction_type || '').toLowerCase().includes('lien');
+
     const handleUnlockAndSync = async () => {
         if (!property.property_id) return;
         setSyncing(true);
@@ -103,6 +105,34 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                     </div>
                     <h2 className="text-2xl font-black text-slate-800 dark:text-white leading-tight flex items-center gap-2">
                         {property.address || property.parcel_id || 'Unknown Property'}
+                        {(property.address || property.parcel_id) && (
+                            <button 
+                                onClick={() => {
+                                    navigator.clipboard.writeText(property.address || property.parcel_id || '');
+                                    alert('Address copied to clipboard!');
+                                }}
+                                className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                                title="Copy Address"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">content_copy</span>
+                            </button>
+                        )}
+                        {(() => {
+                            const lat = property.latitude || property.details?.latitude;
+                            const lng = property.longitude || property.details?.longitude;
+                            if (!lat || !lng) return null;
+                            return (
+                                <a 
+                                    href={`https://earth.google.com/web/search/${lat},${lng}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-emerald-550 hover:text-emerald-600 dark:text-emerald-400 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                                    title="Open in Google Earth 3D"
+                                >
+                                    <span className="material-symbols-outlined text-[18px]">public</span>
+                                </a>
+                            );
+                        })()}
                     </h2>
                     <p className="text-sm font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                         <span className="material-symbols-outlined text-[18px] text-slate-400">location_on</span>
@@ -166,9 +196,23 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                             </div>
                             <div>
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Parcel ID</label>
-                                <p className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 truncate">
-                                    {property.parcel_id || '-'}
-                                </p>
+                                <div className="flex items-center gap-1.5">
+                                    <p className="text-sm font-mono font-bold text-blue-600 dark:text-blue-400 truncate">
+                                        {property.parcel_id || '-'}
+                                    </p>
+                                    {property.parcel_id && (
+                                        <button 
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(property.parcel_id || '');
+                                                alert('Parcel ID copied to clipboard!');
+                                            }}
+                                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all cursor-pointer flex items-center justify-center shrink-0"
+                                            title="Copy Parcel ID"
+                                        >
+                                            <span className="material-symbols-outlined text-[14px]">content_copy</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                             <div>
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">C/S Number</label>
@@ -226,24 +270,43 @@ export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials,
                                     {property.tax_year ? <span className="text-[10px] text-slate-400 ml-1">({property.tax_year})</span> : ''}
                                 </p>
                             </div>
-                            <div>
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Opening Bid</label>
-                                <p className="text-sm font-black text-rose-600 dark:text-rose-400">
-                                    {property.amount_due ? `$${property.amount_due.toLocaleString()}` : '-'}
-                                </p>
-                            </div>
-                            <div>
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Recommended Max Bid</label>
-                                <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
-                                    {(() => {
-                                        const d = property.details || (property as any);
-                                        const assessedVal = property.assessed_value || d.assessed_value ? Number(property.assessed_value || d.assessed_value) : 0;
-                                        const arv = d.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.5 : 0);
-                                        const maxBid = d.max_bid || property.max_bid || (arv * 0.7);
-                                        return maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'N/A';
-                                    })()}
-                                </p>
-                            </div>
+                            {isTaxLien ? (
+                                <>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Est. Debt Value</label>
+                                        <p className="text-sm font-black text-rose-600 dark:text-rose-400">
+                                            {property.amount_due ? `$${property.amount_due.toLocaleString()}` : '-'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Target Interest Rate</label>
+                                        <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                                            &gt; 16%
+                                        </p>
+                                    </div>
+                                </>
+                            ) : (
+                                <>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Opening Bid</label>
+                                        <p className="text-sm font-black text-rose-600 dark:text-rose-400">
+                                            {property.amount_due ? `$${property.amount_due.toLocaleString()}` : '-'}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">Recommended Max Bid</label>
+                                        <p className="text-sm font-black text-emerald-600 dark:text-emerald-400">
+                                            {(() => {
+                                                const d = property.details || (property as any);
+                                                const assessedVal = property.assessed_value || d.assessed_value ? Number(property.assessed_value || d.assessed_value) : 0;
+                                                const arv = d.estimated_value || property.estimated_value || (assessedVal ? assessedVal * 1.0 : 0);
+                                                const maxBid = d.max_bid || property.max_bid || (arv * 0.7);
+                                                return maxBid ? `$${Math.round(maxBid).toLocaleString()}` : 'N/A';
+                                            })()}
+                                        </p>
+                                    </div>
+                                </>
+                            )}
                         </div>
 
                         {/* Legal Description (Full Width) */}

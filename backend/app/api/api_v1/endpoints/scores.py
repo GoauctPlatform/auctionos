@@ -137,7 +137,7 @@ def get_top_scores(
     """
     where_clauses = [
         "1=1",
-        "LOWER(TRIM(COALESCE(s.status, p.availability_status))) = 'available'",
+        "LOWER(TRIM(p.availability_status)) = 'available'",
         "p.created_by_user_id IS NULL"  # Exclude user-created custom properties
     ]
     params: dict = {"limit": limit}
@@ -165,7 +165,7 @@ def get_top_scores(
             COALESCE(s.state, p.state) as state,
             p.amount_due,
             p.assessed_value,
-            COALESCE(s.status, p.availability_status) as availability_status,
+            p.availability_status as availability_status,
             p.property_type,
             p.lot_acres,
             p.improvement_value,
@@ -174,7 +174,11 @@ def get_top_scores(
             p.property_category,
             p.latitude,
             p.longitude,
-            p.gsi_url
+            p.gsi_url,
+            p.legal_description,
+            p.estimated_value,
+            p.max_bid,
+            p.description
         FROM property_scores s
         JOIN property_details p ON p.parcel_id = s.parcel_id
         WHERE {where_str}
@@ -214,6 +218,10 @@ def get_top_scores(
             "latitude": r[18],
             "longitude": r[19],
             "gsi_url": r[20],
+            "legal_description": r[21],
+            "estimated_value": r[22],
+            "max_bid": r[23],
+            "description": r[24],
         }
         for r in results
     ]

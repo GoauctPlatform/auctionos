@@ -4,7 +4,7 @@ import { AuctionService } from '../../services/auction.service';
 import { AuctionEvent } from '../../types';
 import { Box, Typography, Button } from '@mui/material';
 import { AuctionForm } from './AuctionForm';
-import { AuctionDetailsModal } from './AuctionDetailsModal';
+import { AuctionWorkspaceModal } from './AuctionWorkspaceModal';
 
 
 
@@ -12,9 +12,10 @@ interface AuctionListProps {
     filters: any;
     readOnly?: boolean;
     hideFilterSelector?: boolean;
+    onSelectAuction?: (event: any) => void;
 }
 
-const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hideFilterSelector = false }) => {
+const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hideFilterSelector = false, onSelectAuction }) => {
     const [rows, setRows] = useState<AuctionEvent[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 
@@ -35,7 +36,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
         if (hideFilterSelector) return 'all';
         const saved = localStorage.getItem('goauct_favorites_filter_active');
         if (saved) return saved as 'all' | 'favorites';
-        return 'favorites'; // Default to favorites by default
+        return 'all'; // Default to all by default
     });
 
     const handleSetFilterMode = (mode: 'all' | 'favorites') => {
@@ -172,7 +173,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
     };
 
     const handleViewClick = (row: AuctionEvent) => {
-        setViewingEvent({
+        const eventData = {
             id: row.id,
             title: row.name,
             start: row.auction_date ? new Date(row.auction_date).toISOString() : '',
@@ -186,10 +187,17 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
                 register_link: row.register_link,
                 list_link: row.list_link,
                 tax_status: row.tax_status,
-                state: row.state
+                state: row.state,
+                county: row.county
             }
-        });
-        setViewModalOpen(true);
+        };
+
+        if (onSelectAuction) {
+            onSelectAuction(eventData);
+        } else {
+            setViewingEvent(eventData);
+            setViewModalOpen(true);
+        }
     };
 
     const baseColumns: GridColDef[] = [
@@ -208,8 +216,8 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
             }
         },
         { field: 'time', headerName: 'Time', width: 100 },
-        { field: 'state', headerName: 'State', width: 80, type: 'singleSelect', valueOptions: ['AL', 'AR', 'AZ', 'CA', 'CO', 'CT', 'DE', 'FL', 'GA', 'HI', 'IA', 'ID', 'IL', 'IN', 'KS', 'KY', 'LA', 'MA', 'MD', 'ME', 'MI', 'MN', 'MO', 'MS', 'MT', 'NC', 'ND', 'NE', 'NH', 'NJ', 'NM', 'NV', 'NY', 'OH', 'OK', 'OR', 'PA', 'RI', 'SC', 'SD', 'TN', 'TX', 'UT', 'VA', 'VT', 'WA', 'WI', 'WV', 'WY'] },
-        { field: 'county', headerName: 'County', width: 150 },
+        { field: 'state', headerName: 'State', width: 90 },
+        { field: 'county', headerName: 'County', width: 130 },
         { field: 'location', headerName: 'Location', width: 150 },
         { field: 'tax_status', headerName: 'Tax Status', width: 150, type: 'singleSelect', valueOptions: ['Tax Sale', 'Over the Counter', 'Sealed Bid', 'Public Outcry', 'Tax Deed', 'Tax Lien', 'Foreclosure'] },
         { field: 'parcels_count', headerName: 'Parcels', type: 'number', width: 90 },
@@ -309,10 +317,11 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
         }
     };
 
-    const displayColumns = [
+    const displayColumns = React.useMemo(() => [
         favoriteColumn,
         ...(readOnly ? [...baseColumns, ...clientActionColumn] : [...baseColumns, ...actionColumn])
-    ];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    ], [favorites, readOnly]);
 
     return (
         <Box sx={{ width: '100%', bgcolor: 'background.paper', borderRadius: 2, overflow: 'hidden' }}>
@@ -375,7 +384,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
                         paginationModel={paginationModel}
                         onPaginationModelChange={setPaginationModel}
                         initialState={{
-                            sorting: { sortModel: [{ field: 'auction_date', sort: 'asc' }] }
+                            sorting: { sortModel: [{ field: 'auction_date', sort: 'desc' }] }
                         }}
                         pageSizeOptions={[20, 50, 100]}
                         disableRowSelectionOnClick
@@ -400,8 +409,8 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
                 editingEvent={editingEvent}
             />
 
-            <AuctionDetailsModal
-                open={viewModalOpen}
+            <AuctionWorkspaceModal
+                isOpen={viewModalOpen}
                 onClose={() => setViewModalOpen(false)}
                 eventData={viewingEvent}
             />

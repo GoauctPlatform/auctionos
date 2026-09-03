@@ -201,7 +201,7 @@ export const RedemptionIntelligenceBoard: React.FC = () => {
 
                         <Grid container spacing={3} sx={{ maxHeight: '600px', overflowY: 'auto', p: 0.5 }}>
                             {filteredRules.map((item, idx) => (
-                                <Grid item xs={12} md={6} lg={4} key={`${item.state}-${idx}`}>
+                                <Grid {...({ item: true, xs: 12, md: 6, lg: 4 } as any)} key={`${item.state}-${idx}`}>
                                     <Box 
                                         className="glass-card hover:border-primary-400/50 transition-all duration-300"
                                         sx={{ 

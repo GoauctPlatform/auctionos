@@ -10,9 +10,12 @@ import { Mail, ShieldAlert, Loader2, RefreshCw, Calendar, Search, Folder, Gavel,
 import api from '../services/api';
 import { useTour } from '../context/TourContext';
 import { TourOverlay } from '../components/TourOverlay';
-
+import { useNotifications } from '../utils/useNotifications';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useLanguage } from '../context/LanguageContext';
 const ClientLayout: React.FC = () => {
   const { user, logout: authLogout } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const { startTour, tourActive } = useTour();
@@ -21,6 +24,9 @@ const ClientLayout: React.FC = () => {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [upcomingAuctions, setUpcomingAuctions] = useState<number>(0);
   const [envelopeClicks, setEnvelopeClicks] = useState(0);
+
+  // Real-time notifications via WebSocket
+  const { notifications, unreadCount, markRead, markAllRead } = useNotifications(user);
 
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const hasDebugParam = new URLSearchParams(window.location.search).get('debug') === 'true' || 
@@ -240,6 +246,11 @@ const ClientLayout: React.FC = () => {
   if ((role === 'manager' || role === 'client') && user?.subscription_tier !== 'trial') {
     navItems.push(
       {
+        icon: 'handshake',
+        label: t('nav.affiliate') || 'Affiliates',
+        path: '/client/affiliate'
+      },
+      {
         icon: 'hub',
         label: 'Connect',
         dropdown: [
@@ -366,6 +377,7 @@ const ClientLayout: React.FC = () => {
               </div>
 
               <div className="flex items-center gap-4">
+                <LanguageSwitcher />
                 {/* Company Switcher inside the Header */}
                 <CompanySelector compact />
 
@@ -389,7 +401,7 @@ const ClientLayout: React.FC = () => {
                     onClick={() => setNotificationsOpen(!notificationsOpen)}
                 >
                   <span className="material-symbols-outlined text-[22px]">notifications</span>
-                  {upcomingAuctions > 0 && (
+                  {unreadCount > 0 && (
                     <span className="absolute top-1 right-1 flex size-2">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                       <span className="relative inline-flex rounded-full size-2 bg-red-500"></span>
@@ -398,54 +410,59 @@ const ClientLayout: React.FC = () => {
 
                   {/* Notifications Dropdown */}
                   {notificationsOpen && (
-                      <div className="absolute top-full right-0 mt-3 w-72 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden cursor-default" onClick={e => e.stopPropagation()}>
+                      <div className="absolute top-full right-0 mt-3 w-80 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden cursor-default" onClick={e => e.stopPropagation()}>
                           <div className="p-3 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
-                              <span className="font-bold text-xs text-slate-800 dark:text-white uppercase tracking-wider">Alerts</span>
-                              {upcomingAuctions > 0 && (
-                                  <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[9px] font-black px-2 py-0.5 rounded-full">{upcomingAuctions} New</span>
-                              )}
+                              <span className="font-bold text-xs text-slate-800 dark:text-white uppercase tracking-wider">Notifications</span>
+                              <div className="flex items-center gap-2">
+                                {unreadCount > 0 && (
+                                  <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[9px] font-black px-2 py-0.5 rounded-full">{unreadCount} Unread</span>
+                                )}
+                                {unreadCount > 0 && (
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); markAllRead(); }}
+                                    className="text-[9px] font-bold text-blue-500 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                                  >Mark all read</button>
+                                )}
+                              </div>
                           </div>
-                          <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                              {upcomingAuctions > 0 && (
-                                  <div 
-                                      className="p-3 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3"
-                                      onClick={() => { setNotificationsOpen(false); navigate('/client/lists'); }}
+                          <div className="max-h-[320px] overflow-y-auto custom-scrollbar">
+                              {notifications.length > 0 ? notifications.map((notif) => (
+                                  <div
+                                      key={notif.id}
+                                      className={`p-3 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3 ${!notif.is_read ? 'bg-blue-50/40 dark:bg-blue-900/10' : ''}`}
+                                      onClick={() => {
+                                        if (!notif.is_read) markRead(notif.id);
+                                        if (notif.type === 'auction_starting_soon' || notif.type === 'auction_approaching') {
+                                          setNotificationsOpen(false);
+                                          navigate('/client/lists');
+                                        }
+                                      }}
                                   >
-                                      <div className="mt-0.5 size-7 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 flex items-center justify-center shrink-0">
-                                          <span className="material-symbols-outlined text-[14px]">gavel</span>
+                                      <div className={`mt-0.5 size-7 rounded-full flex items-center justify-center shrink-0 ${
+                                        notif.type === 'auction_starting_soon' ? 'bg-red-100 dark:bg-red-900/30 text-red-600'
+                                        : notif.type === 'auction_approaching' ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600'
+                                        : 'bg-blue-100 dark:bg-blue-900/30 text-blue-600'
+                                      }`}>
+                                          <span className="material-symbols-outlined text-[14px]">
+                                            {notif.type === 'auction_starting_soon' ? 'gavel'
+                                              : notif.type === 'auction_approaching' ? 'event'
+                                              : 'notifications'}
+                                          </span>
                                       </div>
-                                      <div>
-                                          <p className="text-xs font-bold text-slate-800 dark:text-slate-250 mb-0.5 leading-tight">Upcoming Auctions</p>
-                                          <p className="text-[9px] text-slate-500">You have {upcomingAuctions} properties in your My List that are going to auction within the next 7 days.</p>
+                                      <div className="flex-1 min-w-0">
+                                          <p className="text-xs font-bold text-slate-800 dark:text-slate-250 mb-0.5 leading-tight">
+                                            {notif.type === 'auction_starting_soon' ? 'Auction Starting Soon'
+                                              : notif.type === 'auction_approaching' ? 'Auction Approaching'
+                                              : 'Notification'}
+                                          </p>
+                                          <p className="text-[9px] text-slate-500 leading-snug line-clamp-2">{notif.message}</p>
+                                          {!notif.is_read && <span className="inline-block mt-1 size-1.5 rounded-full bg-blue-500"></span>}
                                       </div>
                                   </div>
-                              )}
-                              
-                              {/* Static mocked notifications */}
-                              <div className="p-3 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3">
-                                  <div className="mt-0.5 size-7 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 flex items-center justify-center shrink-0">
-                                      <span className="material-symbols-outlined text-[14px]">task_alt</span>
-                                  </div>
-                                  <div>
-                                      <p className="text-xs font-bold text-slate-800 dark:text-slate-250 mb-0.5 leading-tight">BPO Mission Completed</p>
-                                      <p className="text-[9px] text-slate-500">The field agent has submitted the report for 123 Main St. Review pending.</p>
-                                  </div>
-                              </div>
-                              
-                              <div className="p-3 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3">
-                                  <div className="mt-0.5 size-7 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
-                                      <span className="material-symbols-outlined text-[14px]">info</span>
-                                  </div>
-                                  <div>
-                                      <p className="text-xs font-bold text-slate-800 dark:text-slate-250 mb-0.5 leading-tight">Platform Update</p>
-                                      <p className="text-[9px] text-slate-500">New analytics dashboard is now live.</p>
-                                  </div>
-                              </div>
-
-                              {upcomingAuctions === 0 && (
+                              )) : (
                                   <div className="p-6 text-center text-slate-400">
                                       <span className="material-symbols-outlined text-2xl mb-1.5 opacity-50 block">notifications_paused</span>
-                                      <p className="text-xs">No other notifications</p>
+                                      <p className="text-xs">No notifications yet</p>
                                   </div>
                               )}
                           </div>
@@ -524,6 +541,9 @@ const ClientLayout: React.FC = () => {
                 </div>
               ))}
               <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div className="mb-3 flex justify-center">
+                  <LanguageSwitcher />
+                </div>
                 <button
                   onClick={handleLogout}
                   className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-rose-50 text-rose-600 font-bold hover:bg-rose-100 transition-colors text-xs uppercase tracking-wider"

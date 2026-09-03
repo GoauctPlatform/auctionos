@@ -106,6 +106,7 @@ class PropertyAuctionHistory(PropertyAuctionHistoryBase):
 
 # Extended unified view for the Frontend DataGrid
 class PropertyDashboardSchema(BaseModel):
+    id: int
     parcel_id: str
     county: Optional[str] = None
     state_code: Optional[str] = None
@@ -119,6 +120,7 @@ class PropertyDashboardSchema(BaseModel):
     tax_year: Optional[int] = None
     lot_acres: Optional[float] = None
     estimated_value: Optional[float] = None
+    max_bid: Optional[float] = None
     land_value: Optional[float] = None
     improvement_value: Optional[float] = None
     property_type: Optional[str] = None

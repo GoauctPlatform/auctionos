@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { DataGrid, GridColDef, GridFilterModel } from '@mui/x-data-grid';
 import { AdminService } from '../../services/admin.service';
+import { PropertyPreviewDrawer } from '../PropertyPreviewDrawer';
 import { AuthService } from '../../services/auth.service';
 import { Box, Typography, Button, IconButton } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
@@ -10,12 +11,14 @@ interface AuctionPropertiesListProps {
     auctionDate?: string;
     auctionId?: number;
     onClose?: () => void;
+    embedded?: boolean;
 }
 
-const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionName, auctionDate, auctionId, onClose }) => {
+const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionName, auctionDate, auctionId, onClose, embedded = false }) => {
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [rowCount, setRowCount] = useState(0);
+    const [previewPropertyId, setPreviewPropertyId] = useState<string | number | null>(null);
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
         pageSize: 10,
@@ -86,7 +89,7 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
         }
     }, [auctionId, auctionName, paginationModel, filterModel]);
 
-    const columns: GridColDef[] = [
+    const columns = React.useMemo<GridColDef[]>(() => [
         { field: 'parcel_id', headerName: 'Parcel Number', width: 140 },
         { field: 'address', headerName: 'Address', width: 200 },
         { field: 'county', headerName: 'County', width: 120 },
@@ -106,41 +109,43 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
             renderCell: (params) => (
                 <IconButton
                     size="small"
-                    component="a"
-                    href={`${basePath}/${params.row.parcel_id}`}
-                    target="_blank"
                     title="Open Details"
-                    onClick={(e) => e.stopPropagation()}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewPropertyId(params.row.id || params.row.parcel_id);
+                    }}
                 >
                     <OpenInNewIcon fontSize="small" className="text-blue-500" />
                 </IconButton>
             )
         }
-    ];
+    ], []);
 
     return (
-        <Box sx={{ width: '100%', height: 400, bgcolor: 'background.paper', display: 'flex', flexDirection: 'column' }}>
-            <Box p={1} display="flex" justifyContent="space-between" alignItems="center" sx={{ borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
-                <Typography variant="subtitle1" className="text-slate-800 dark:text-white font-semibold">
-                    Properties for: {auctionName}
-                </Typography>
-                <div className="flex gap-2">
-                    <Button
-                        size="small"
-                        onClick={fetchProperties}
-                        startIcon={<span className="material-symbols-outlined text-sm">refresh</span>}
-                    >
-                        Refresh
-                    </Button>
-                    {onClose && (
-                        <Button size="small" onClick={onClose} color="inherit">
-                            Back
+        <Box sx={{ width: '100%', height: embedded ? '100%' : 400, bgcolor: 'background.paper', display: 'flex', flexDirection: 'column', borderRadius: embedded ? 2 : 0, overflow: 'hidden', border: embedded ? 'none' : 'none' }}>
+            {!embedded && (
+                <Box p={1} display="flex" justifyContent="space-between" alignItems="center" sx={{ borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
+                    <Typography variant="subtitle1" className="text-slate-800 dark:text-white font-semibold">
+                        Properties for: {auctionName}
+                    </Typography>
+                    <div className="flex gap-2">
+                        <Button
+                            size="small"
+                            onClick={fetchProperties}
+                            startIcon={<span className="material-symbols-outlined text-sm">refresh</span>}
+                        >
+                            Refresh
                         </Button>
-                    )}
-                </div>
-            </Box>
+                        {onClose && (
+                            <Button size="small" onClick={onClose} color="inherit">
+                                Back
+                            </Button>
+                        )}
+                    </div>
+                </Box>
+            )}
 
-            <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0 }}>
+            <Box sx={{ flexGrow: 1, width: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }}>
                 <DataGrid
                     rows={rows}
                     columns={columns}
@@ -152,22 +157,38 @@ const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionNa
                     onPaginationModelChange={setPaginationModel}
                     filterModel={filterModel}
                     onFilterModelChange={setFilterModel}
-                    pageSizeOptions={[10, 20]}
+                    pageSizeOptions={[10, 25, 50, 100]}
                     disableRowSelectionOnClick
                     density="compact"
                     onRowClick={(params) => {
-                        window.open(`${basePath}/${params.row.parcel_id}`, '_blank');
+                        setPreviewPropertyId(params.row.id || params.row.parcel_id);
                     }}
                     sx={{
                         border: 'none',
                         '& .MuiDataGrid-columnHeaders': {
                             backgroundColor: '#f8fafc',
+                            borderBottom: '1px solid #e2e8f0',
                         },
                         '& .MuiDataGrid-row': { cursor: 'pointer' },
                         '& .MuiDataGrid-row:hover': { backgroundColor: 'rgba(59, 130, 246, 0.04)' }
                     }}
                 />
             </Box>
+
+            <PropertyPreviewDrawer 
+                open={!!previewPropertyId} 
+                propertyId={previewPropertyId} 
+                onClose={() => setPreviewPropertyId(null)}
+                onOpenPropertyDetails={(id, parcelId) => {
+                    window.dispatchEvent(new CustomEvent('open-workbench-overlay', {
+                        detail: {
+                            type: 'property_details',
+                            title: `🔍 Property: ${parcelId || id}`,
+                            data: { propertyId: id, parcelId: parcelId }
+                        }
+                    }));
+                }}
+            />
         </Box>
     );
 };

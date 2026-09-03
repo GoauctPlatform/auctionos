@@ -86,6 +86,18 @@ const PropertyDetails: React.FC = () => {
         fetchProperty();
     }, [id]);
 
+    useEffect(() => {
+        if (property && searchParams.get('action') === 'export_flyer') {
+            const timeout = setTimeout(() => {
+                handleExport('pdf');
+                const newParams = new URLSearchParams(location.search);
+                newParams.delete('action');
+                navigate({ search: newParams.toString() }, { replace: true });
+            }, 800);
+            return () => clearTimeout(timeout);
+        }
+    }, [property, location.search]);
+
     const handleAddToStandardList = async () => {
         if (!property?.id) return;
         try {

@@ -80,6 +80,18 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         loadLists();
     }, [id, activeCompany?.id]);
 
+    useEffect(() => {
+        if (property && searchParams.get('action') === 'export_flyer') {
+            const timeout = setTimeout(() => {
+                handleExport('pdf');
+                const newParams = new URLSearchParams(location.search);
+                newParams.delete('action');
+                navigate({ search: newParams.toString() }, { replace: true });
+            }, 800);
+            return () => clearTimeout(timeout);
+        }
+    }, [property, location.search]);
+
     const loadLists = async () => {
         try {
             const data = await ClientDataService.getLists(activeCompany?.id);
@@ -132,7 +144,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 // Use the stored backend score for display consistency
                 setLocalScore({
                     score: data.deal_score,
-                    rating: data.deal_rating,
+                    rating: data.deal_rating as any,
                     factors: data.score_factors || [],
                 });
             }
@@ -208,7 +220,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
     const handleToggleFavorite = async () => {
         try {
-            const res = await PropertyService.toggleFavorite(property.id, activeCompany?.id);
+            const res = await PropertyService.toggleFavorite(Number(property.id), activeCompany?.id);
             setIsFavorite(res.is_favorite);
         } catch (err: any) {
             alert(err.message);
@@ -228,7 +240,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         if (!property?.id) return;
         try {
             setActionLoading(true);
-            await ClientDataService.addPropertyToList(listId, property.id);
+            await ClientDataService.addPropertyToList(listId, Number(property.id));
             alert(`Property added to list safely!`);
             handleCloseListMenu();
         } catch (err: any) {
@@ -242,7 +254,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         if (!property?.id) return;
         try {
             setActionLoading(true);
-            await ClientDataService.addPropertyToStandardList(property.id, activeCompany?.id);
+            await ClientDataService.addPropertyToStandardList(Number(property.id), activeCompany?.id);
             loadLists(); // Refresh counts
             handleCloseListMenu();
         } catch (err: any) {
@@ -258,7 +270,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         try {
             setActionLoading(true);
             const newList = await ClientDataService.createList(name, undefined, activeCompany?.id);
-            await ClientDataService.addPropertyToList(newList.id, property.id);
+            await ClientDataService.addPropertyToList(newList.id, Number(property.id));
             alert(`List "${name}" created & property added!`);
             loadLists();
             handleCloseListMenu();
@@ -341,7 +353,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 setTimeout(() => {
                     iframe.contentWindow?.focus();
                     iframe.contentWindow?.print();
-                }, 500);
+                }, 1500);
             }
             return;
         }
@@ -358,12 +370,18 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                 
                 // Try Web Share API (native share on mobile browsers)
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    await navigator.share({
-                        files: [file],
-                        title: `GoAuct Property Report - ${property.parcel_id || 'Property'}`,
-                        text: `Check out this investment property report from GoAuct: ${property.address || property.parcel_id}`
-                    });
-                    return; // Successfully shared natively!
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: `GoAuct Property Report - ${property.parcel_id || 'Property'}`,
+                            text: `Check out this investment property report from GoAuct: ${property.address || property.parcel_id}`
+                        });
+                        return; // Successfully shared natively!
+                    } catch (shareError: any) {
+                        // If user cancelled, don't fall back to download or show error
+                        if (shareError.name === 'AbortError') return;
+                        console.error('Share failed natively', shareError);
+                    }
                 }
             }
 
@@ -372,9 +390,11 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
             link.download = `GoAuct-Property-${property.parcel_id || 'Export'}.jpeg`;
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
-        } catch (e) {
+        } catch (e: any) {
             console.error('Export failed', e);
-            alert('Export failed');
+            if (e.name !== 'AbortError') {
+                alert('Export failed. Make sure images are fully loaded before exporting.');
+            }
         } finally {
             setExporting(false);
         }
@@ -550,11 +570,11 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                     </div>
 
                     <div id="tour-property-financials" className="space-y-8">
-                        <PropertyEstimatesComps property={property} />
+                        <PropertyEstimatesComps property={property as any} />
 
                         <div className="grid grid-cols-1 gap-8">
                             <PropertyPurchaseOptions 
-                                property={property} 
+                                property={property as any} 
                                 readOnly={readOnly}
                                 actionLoading={actionLoading}
                                 onSimulatePurchase={handlePurchaseOnline}
@@ -562,13 +582,13 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         </div>
                     </div>
 
-                    <PropertyExtendedTabs property={property} onUpdate={(updated) => setProperty(updated)} />
+                    <PropertyExtendedTabs property={property as any} onUpdate={(updated) => setProperty(updated as any)} />
 
                     <PropertyRedemptionCard stateCode={property.state} auctionType={property.auction_type} />
 
                     <div id="tour-property-maps" className="space-y-4">
-                        <GISMap property={property} className="w-full h-[300px] sm:h-[450px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg" />
-                        <PropertyMap property={property} />
+                        <GISMap property={property as any} className="w-full h-[300px] sm:h-[450px] rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-lg" />
+                        <PropertyMap property={property as any} />
                     </div>
 
                     {/* Preserved Raw Data Block */}
@@ -591,31 +611,31 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
                 {/* Sidebar Column (Right) */}
                 <div className="space-y-8 mt-0">
-                    <PropertyOwnerCard property={property} />
+                    <PropertyOwnerCard property={property as any} />
                     <div id="tour-property-actions">
                         <PropertyUserActions 
-                            property={property} 
+                            property={property as any} 
                             isFavorite={isFavorite}
                             onToggleFavorite={handleToggleFavorite}
                             onAddToList={handleOpenListMenu}
                             onUpdateNotes={async (noteText) => {
                                 try {
-                                    await ClientDataService.createNote(property.id, noteText);
+                                    await ClientDataService.createNote(Number(property.id), noteText);
                                 } catch (err) {}
                             }}
                             onUploadAttachment={async (file) => {
                                 try {
-                                    await ClientDataService.uploadAttachment(property.id, file);
+                                    await ClientDataService.uploadAttachment(Number(property.id), file);
                                     loadProperty(property.parcel_id);
                                 } catch (err: any) { alert(err.message); }
                             }}
                         />
                     </div>
                     <div id="tour-property-research-links">
-                        <PropertyResearchLinks property={property} />
+                        <PropertyResearchLinks property={property as any} />
                     </div>
                     
-                    <PropertyNextSteps property={property} />
+                    <PropertyNextSteps property={property as any} />
 
                     {/* BPO Due Diligence Marketplace */}
                     <div className="glass-card rounded-xl p-6">
@@ -639,14 +659,14 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         </button>
                     </div>
 
-                    <PropertyContactInfo property={property} />
+                    <PropertyContactInfo property={property as any} />
 
                     <CountyContactCard 
                         contacts={countyContacts} 
                         countyName={property.details?.county || property.county} 
                     />
 
-                    <PropertyInventoryHistory property={property} />
+                    <PropertyInventoryHistory property={property as any} />
 
                     {/* Admin Actions - Preserved/Minimized */}
                     {!readOnly && (
@@ -694,7 +714,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
 
             {isBpoOpen && (
                 <CreateTaskForm 
-                    propertyId={property.id} 
+                    propertyId={Number(property.id)} 
                     propertyAddress={property.parcel_address || property.parcel_id} 
                     onClose={() => setIsBpoOpen(false)} 
                 />

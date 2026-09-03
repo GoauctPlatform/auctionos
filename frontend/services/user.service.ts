@@ -22,7 +22,7 @@ export const UserService = {
         return response.json();
     },
 
-    create: async (data: { email: string, password: string, role: UserRole, company_ids?: number[] }): Promise<User> => {
+    create: async (data: { email: string, password: string, role: UserRole, full_name?: string, company_ids?: number[] }): Promise<User> => {
         const response = await fetch(`${API_URL}/users/`, {
             method: 'POST',
             headers: getHeaders(),
@@ -35,7 +35,7 @@ export const UserService = {
         return response.json();
     },
 
-    update: async (id: number, data: { email?: string, password?: string, role?: UserRole, company_ids?: number[], is_active?: boolean }): Promise<User> => {
+    update: async (id: number, data: { email?: string, password?: string, role?: UserRole, full_name?: string, company_ids?: number[], is_active?: boolean }): Promise<User> => {
         const response = await fetch(`${API_URL}/users/${id}`, {
             method: 'PUT',
             headers: getHeaders(),

@@ -1,7 +1,6 @@
 from datetime import date, datetime
-from sqlalchemy import Column, Integer, String, Date, Text, DateTime
+from sqlalchemy import Column, Integer, String, Date, Text, DateTime, Float
 from app.db.base_class import Base
-
 class AuctionEvent(Base):
     __tablename__ = "auction_events"
 
@@ -18,6 +17,10 @@ class AuctionEvent(Base):
     parcels_count = Column(Integer, nullable=True, default=0)
     available_count = Column(Integer, nullable=True, default=0)
     notes = Column(Text, nullable=True)
+    
+    # ML Scoring / Ranking
+    avg_deal_score = Column(Float, nullable=True)
+    deal_rating = Column(String(5), nullable=True)
     
     # Links
     search_link = Column(String(2048), nullable=True)
