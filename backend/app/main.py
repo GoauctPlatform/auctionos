@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 from app.core.config import settings
-from app.core.config import settings
+# Railway deployment trigger
 from app.api.api_v1.api import api_router
 # Import base to register all models (including new property_scores)
 from app.db import base  # noqa
