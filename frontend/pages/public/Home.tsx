@@ -13,19 +13,11 @@ const Home = () => {
         {/* Video Background */}
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-b from-[#050B14]/80 via-[#050B14]/40 to-[#050B14] z-10" />
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover opacity-60"
-            poster="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80"
-          >
-            <source
-              src="https://cdn.coverr.co/videos/coverr-a-beautiful-modern-house-5192/1080p.mp4"
-              type="video/mp4"
-            />
-          </video>
+          <img
+            src="/img_7507.png"
+            alt="Hero Background"
+            className="w-full h-full object-cover object-center opacity-60"
+          />
         </div>
 
         {/* Hero Content */}
