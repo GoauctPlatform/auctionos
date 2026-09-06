@@ -3651,8 +3651,6 @@ export const ClientWorkbench: React.FC = () => {
             <div className="flex items-center gap-3 shrink-0">
               {[
                 { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
-                { id: 'map', label: 'US Heatmap', icon: MapIcon, color: 'hover:text-indigo-400 text-indigo-500' },
-                { id: 'smart_ai_finder', label: 'Smart AI Finder', icon: Brain, color: 'hover:text-purple-400 text-purple-500' },
                 { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
                 { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
                 { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'hover:text-blue-400 text-blue-500' }
@@ -3696,15 +3694,15 @@ export const ClientWorkbench: React.FC = () => {
               })}
             </div>
 
-            {/* Separator if we have open property detail windows */}
-            {overlayWindows.some(w => w.type === 'property_details' || w.type === 'auction_details' || w.type === 'auction_group') && (
+            {/* Separator if we have open dynamic windows */}
+            {overlayWindows.some(w => !['live_auctions', 'property_search', 'my_lists'].includes(w.type)) && (
               <div className="w-[1px] h-8 bg-slate-700/50 shrink-0" />
             )}
 
-            {/* Open Property Details Windows list (SCROLLABLE) */}
-            {(overlayWindows.filter(w => w.type === 'property_details' || w.type === 'auction_details' || w.type === 'auction_group').length > 0) && (
+            {/* Open Dynamic Windows list (SCROLLABLE) */}
+            {(overlayWindows.filter(w => !['live_auctions', 'property_search', 'my_lists'].includes(w.type)).length > 0) && (
               <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-1 min-w-0 pr-2">
-                {overlayWindows.filter(w => w.type === 'property_details' || w.type === 'auction_details' || w.type === 'auction_group').map(w => {
+                {overlayWindows.filter(w => !['live_auctions', 'property_search', 'my_lists'].includes(w.type)).map(w => {
                   const isActive = activeOverlayWindowId === w.id;
                   return (
                     <button
@@ -3721,9 +3719,16 @@ export const ClientWorkbench: React.FC = () => {
                       className={`relative shrink-0 h-10 px-2 rounded-xl flex items-center gap-1.5 transition-all text-left bg-slate-800/60 border border-slate-700/50 hover:bg-slate-700/60 animate-slide-up-bounce ${w.isMinimized ? 'opacity-50' : ''}`}
                       title={w.title}
                     >
-                      <FileText size={14} className={w.type === 'auction_details' ? "text-amber-400" : w.type === 'auction_group' ? "text-emerald-400" : "text-indigo-400"} />
+                      {w.type === 'map' ? <MapIcon size={14} className="text-indigo-400" /> :
+                       w.type === 'smart_ai_finder' ? <Brain size={14} className="text-purple-400" /> :
+                       w.type === 'field_missions' ? <Gavel size={14} className="text-emerald-400" /> :
+                       w.type === 'settings' ? <Settings size={14} className="text-slate-400" /> :
+                       <FileText size={14} className={w.type === 'auction_details' ? "text-amber-400" : w.type === 'auction_group' ? "text-emerald-400" : "text-indigo-400"} />}
                       <span className="text-[8px] font-black text-slate-200 max-w-[80px] truncate uppercase tracking-wider">
-                        {w.type === 'auction_details' ? 'Auction' : w.type === 'auction_group' ? 'Auctions' : (w.data?.parcelId || 'Property')}
+                        {w.type === 'auction_details' ? 'Auction' : 
+                         w.type === 'auction_group' ? 'Auctions' : 
+                         w.type === 'property_details' ? (w.data?.parcelId || 'Property') : 
+                         (w.title.replace(/^[^\w]+/, '').trim() || w.type)}
                       </span>
                       {isActive && !w.isMinimized && (
                         <span className="absolute bottom-0.5 left-1/2 -translate-x-1/2 size-1 bg-indigo-500 rounded-full" />
