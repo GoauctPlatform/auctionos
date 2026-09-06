@@ -4,6 +4,7 @@ import { CircularProgress, Dialog, Button } from '@mui/material';
 import { RealtorTaskService, Task } from '../../services/realtor_task.service';
 import { InvestorTaskService } from '../../services/realtor_task.service';
 import { ExecuteTaskMission } from '../../components/property/ExecuteTaskMission';
+import { useLanguage } from "../../context/LanguageContext";
 
 const STATUS_COLORS: Record<string, string> = {
   open: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
@@ -33,19 +34,16 @@ const TaskCard: React.FC<{ task: Task; onClaim?: () => void; onSubmit?: () => vo
 
       <div className="flex flex-wrap gap-2">
         <span className="text-[10px] font-bold bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 px-2 py-1 rounded-lg">
-          💰 ${usd} ({task.reward_points} pts)
-        </span>
+          {t('AvailableTasks.text970')}{usd} ({task.reward_points} {t('AvailableTasks.pts')}</span>
         <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-lg">
-          📷 {task.min_photos}–{task.max_photos} photos
-        </span>
+          📷 {task.min_photos}–{task.max_photos} {t('AvailableTasks.photos')}</span>
         <span className="text-[10px] font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg">
-          📍 {task.geo_radius_meters || 50}m radius
-        </span>
+          📍 {task.geo_radius_meters || 50}{t('AvailableTasks.mRadius')}</span>
       </div>
 
       {task.deadline && (
         <p className="text-[10px] text-amber-600 dark:text-amber-400 font-bold">
-          ⏰ Deadline: {new Date(task.deadline).toLocaleString()}
+          {t('AvailableTasks.Deadline')}{new Date(task.deadline).toLocaleString()}
         </p>
       )}
 
@@ -55,16 +53,14 @@ const TaskCard: React.FC<{ task: Task; onClaim?: () => void; onSubmit?: () => vo
             onClick={onClaim}
             className="flex-1 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition-colors"
           >
-            Claim Task
-          </button>
+            {t('AvailableTasks.claimTask')}</button>
         )}
         {task.status === 'claimed' && onSubmit && (
           <button
             onClick={onSubmit}
             className="flex-1 py-2 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-700 text-white transition-colors"
           >
-            Submit Evidence
-          </button>
+            {t('AvailableTasks.submitEvidence')}</button>
         )}
       </div>
     </div>
@@ -75,6 +71,7 @@ const TaskCard: React.FC<{ task: Task; onClaim?: () => void; onSubmit?: () => vo
 interface OfflineItem { taskId: number; files: File[]; lat?: number; lng?: number; notes?: string; }
 
 function saveOffline(item: OfflineItem) {
+    const { t } = useLanguage();
   const queue: any[] = JSON.parse(localStorage.getItem('offline_task_queue') || '[]');
   queue.push({ ...item, files: item.files.map(f => f.name), savedAt: new Date().toISOString() });
   localStorage.setItem('offline_task_queue', JSON.stringify(queue));
@@ -190,13 +187,13 @@ const AvailableTasks: React.FC = () => {
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Field Tasks</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Claim tasks, submit photo evidence, earn commissions.</p>
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">{t('AvailableTasks.fieldTasks')}</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('AvailableTasks.claimTasksSubmitPhot')}</p>
         </div>
         {offlineCount > 0 && (
           <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl px-3 py-2">
-            <span className="material-symbols-outlined text-amber-600 text-[16px]">cloud_off</span>
-            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">{offlineCount} offline uploads pending</span>
+            <span className="material-symbols-outlined text-amber-600 text-[16px]">{t('AvailableTasks.cloudoff')}</span>
+            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">{offlineCount} {t('AvailableTasks.offlineUploadsPendin')}</span>
           </div>
         )}
       </div>
@@ -225,7 +222,7 @@ const AvailableTasks: React.FC = () => {
         <div className="flex justify-center py-20"><CircularProgress /></div>
       ) : displayTasks.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-          <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">task_alt</span>
+          <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">{t('AvailableTasks.taskalt')}</span>
           <p className="text-sm font-medium">{tab === 'available' ? 'No available tasks right now.' : 'You have no active tasks.'}</p>
         </div>
       ) : (
@@ -243,28 +240,27 @@ const AvailableTasks: React.FC = () => {
 
       {/* Claim Dialog */}
       <Dialog open={!!claimTask} onClose={() => setClaimTask(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-        <p className="text-base font-bold text-slate-800 dark:text-white mb-1">Claim Task</p>
+        <p className="text-base font-bold text-slate-800 dark:text-white mb-1">{t('AvailableTasks.claimTask')}</p>
         <p className="text-sm text-slate-500 mb-4">{claimTask?.title}</p>
         <div className="space-y-3">
           <div>
-            <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-1 block">Commit to finish in:</label>
+            <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-1 block">{t('AvailableTasks.commitToFinishIn')}</label>
             <select
               value={deadlineHours}
               onChange={e => setDeadlineHours(Number(e.target.value))}
               className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white h-10 px-3 text-sm"
             >
-              <option value={24}>24 hours</option>
-              <option value={48}>48 hours (default)</option>
-              <option value={72}>72 hours</option>
-              <option value={168}>1 week</option>
+              <option value={24}>{t('AvailableTasks.24Hours')}</option>
+              <option value={48}>{t('AvailableTasks.48HoursDefault')}</option>
+              <option value={72}>{t('AvailableTasks.72Hours')}</option>
+              <option value={168}>{t('AvailableTasks.1Week')}</option>
             </select>
           </div>
           <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-3 text-xs text-amber-700 dark:text-amber-300 font-medium">
-            ⚠️ Once claimed, no other realtor can take this task. If you miss the deadline, the task returns to the pool.
-          </div>
+            {t('AvailableTasks.OnceClaimedNoOtherRe')}</div>
         </div>
         <div className="flex gap-2 mt-4">
-          <Button onClick={() => setClaimTask(null)} color="inherit" size="small">Cancel</Button>
+          <Button onClick={() => setClaimTask(null)} color="inherit" size="small">{t('AvailableTasks.cancel')}</Button>
           <Button onClick={handleClaim} variant="contained" color="success" size="small" disabled={claiming}>
             {claiming ? 'Claiming…' : 'Confirm Claim'}
           </Button>

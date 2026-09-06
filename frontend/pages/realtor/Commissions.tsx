@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { CircularProgress, Dialog, TextField, Button } from '@mui/material';
 import { RealtorTaskService, CommissionsResponse } from '../../services/realtor_task.service';
 import { getHeaders, API_URL } from '../../services/httpClient';
+import { useLanguage } from "../../context/LanguageContext";
 
 const STATUS_STYLES: Record<string, string> = {
   earned: 'text-emerald-600 dark:text-emerald-400',
@@ -10,6 +11,7 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 const Commissions: React.FC = () => {
+    const { t } = useLanguage();
   const [data, setData] = useState<CommissionsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<'history' | 'in_progress'>('history');
@@ -63,8 +65,8 @@ const Commissions: React.FC = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Commissions</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Track your earnings and payment history.</p>
+        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">{t('Commissions.commissions')}</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('Commissions.trackYourEarningsAnd')}</p>
       </div>
 
       {/* Balance Cards */}
@@ -87,8 +89,8 @@ const Commissions: React.FC = () => {
       {(data?.available_usd || 0) >= 200 && (
         <div className="bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-200 dark:border-emerald-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">You have ${data?.available_usd.toFixed(2)} available for withdrawal!</p>
-            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">Minimum withdrawal is $200. Request a payout now.</p>
+            <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">{t('Commissions.youHave')}{data?.available_usd.toFixed(2)} {t('Commissions.availableForWithdraw')}</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">{t('Commissions.minimumWithdrawalIs2')}</p>
           </div>
           <button 
             onClick={() => {
@@ -97,16 +99,15 @@ const Commissions: React.FC = () => {
             }}
             className="shrink-0 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors"
           >
-            Request Payout
-          </button>
+            {t('Commissions.requestPayout')}</button>
         </div>
       )}
 
       {/* Withdrawal Modal */}
       <Dialog open={withdrawOpen} onClose={() => setWithdrawOpen(false)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
         <div className="p-5 border-b border-slate-100 dark:border-slate-800">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Request Payout</h2>
-          <p className="text-xs text-slate-500 mt-1">Available balance: ${data?.available_usd.toFixed(2)}</p>
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">{t('Commissions.requestPayout')}</h2>
+          <p className="text-xs text-slate-500 mt-1">{t('Commissions.availableBalance')}{data?.available_usd.toFixed(2)}</p>
         </div>
         <div className="p-5 space-y-4">
           <TextField 
@@ -128,7 +129,7 @@ const Commissions: React.FC = () => {
           />
         </div>
         <div className="p-5 bg-slate-50 dark:bg-slate-900/50 flex gap-3">
-          <Button onClick={() => setWithdrawOpen(false)} fullWidth>Cancel</Button>
+          <Button onClick={() => setWithdrawOpen(false)} fullWidth>{t('Commissions.cancel')}</Button>
           <Button 
             onClick={handleWithdraw} 
             disabled={submitting || parseFloat(withdrawForm.amount) < 200 || !withdrawForm.payment_details} 
@@ -159,8 +160,8 @@ const Commissions: React.FC = () => {
       {/* Commission List */}
       {display.length === 0 ? (
         <div className="flex flex-col items-center py-16 text-slate-400">
-          <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">payments</span>
-          <p className="text-sm font-medium">No records yet.</p>
+          <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">{t('Commissions.payments')}</span>
+          <p className="text-sm font-medium">{t('Commissions.noRecordsYet')}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -179,7 +180,7 @@ const Commissions: React.FC = () => {
                 <p className={`text-sm font-extrabold ${STATUS_STYLES[c.type] || ''}`}>
                   {c.type === 'earned' ? '+' : '-'}${c.usd_value.toFixed(2)}
                 </p>
-                <p className="text-[10px] text-slate-400">{c.points} pts</p>
+                <p className="text-[10px] text-slate-400">{c.points} {t('Commissions.pts')}</p>
               </div>
             </div>
           ))}

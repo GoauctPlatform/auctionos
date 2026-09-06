@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { API_BASE_URL } from '../../services/httpClient';
 import { ShieldAlert, CheckCircle, XCircle, Clock, MapPin, Search } from 'lucide-react';
 import { PhotoViewerLightbox } from '../../components/PhotoViewerLightbox';
+import { useLanguage } from "../../context/LanguageContext";
 
 export const AdminTaskMediation: React.FC = () => {
+    const { t } = useLanguage();
     const [tickets, setTickets] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<'open' | 'resolved'>('open');
@@ -82,7 +84,7 @@ export const AdminTaskMediation: React.FC = () => {
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-slate-500 font-medium">Loading Mediation Queue...</div>;
+    if (loading) return <div className="p-8 text-center text-slate-500 font-medium">{t('AdminTaskMediation.loadingMediationQueu')}</div>;
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -90,9 +92,8 @@ export const AdminTaskMediation: React.FC = () => {
                 <div>
                     <h1 className="text-3xl font-black text-slate-900 dark:text-white flex items-center gap-3">
                         <ShieldAlert className="text-rose-500" size={32} />
-                        Dispute Mediation Center
-                    </h1>
-                    <p className="text-slate-500 mt-1">Review double-rejected BPO missions and force a final resolution.</p>
+                        {t('AdminTaskMediation.disputeMediationCent')}</h1>
+                    <p className="text-slate-500 mt-1">{t('AdminTaskMediation.reviewDoubleRejected')}</p>
                 </div>
             </div>
 
@@ -105,8 +106,7 @@ export const AdminTaskMediation: React.FC = () => {
                     }}
                     className={`pb-3 px-4 font-bold text-sm border-b-2 transition-colors ${statusFilter === 'open' ? 'border-rose-500 text-rose-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                 >
-                    Active Disputes
-                </button>
+                    {t('AdminTaskMediation.activeDisputes')}</button>
                 <button
                     onClick={() => {
                         setStatusFilter('resolved');
@@ -114,8 +114,7 @@ export const AdminTaskMediation: React.FC = () => {
                     }}
                     className={`pb-3 px-4 font-bold text-sm border-b-2 transition-colors ${statusFilter === 'resolved' ? 'border-emerald-500 text-emerald-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}
                 >
-                    Resolved History
-                </button>
+                    {t('AdminTaskMediation.resolvedHistory')}</button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -125,8 +124,8 @@ export const AdminTaskMediation: React.FC = () => {
                     {tickets.length === 0 ? (
                         <div className="glass-card p-12 text-center text-slate-500 rounded-2xl flex flex-col items-center">
                             <CheckCircle size={48} className="text-emerald-500 opacity-50 mb-4" />
-                            <h3 className="font-bold text-lg mb-1">Queue is Empty</h3>
-                            <p className="text-sm">No conflicts found matching this status.</p>
+                            <h3 className="font-bold text-lg mb-1">{t('AdminTaskMediation.queueIsEmpty')}</h3>
+                            <p className="text-sm">{t('AdminTaskMediation.noConflictsFoundMatc')}</p>
                         </div>
                     ) : (
                         tickets.map(ticket => (
@@ -136,16 +135,16 @@ export const AdminTaskMediation: React.FC = () => {
                                 className={`glass-card p-4 rounded-xl cursor-pointer transition-all border-l-4 ${selectedTicket?.id === ticket.id ? (statusFilter === 'open' ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/10' : 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/10') : 'border-transparent hover:border-slate-300'}`}
                             >
                                 <div className="flex justify-between items-start mb-1">
-                                    <h3 className="font-bold text-slate-900 dark:text-white truncate">Task #{ticket.task_id}</h3>
+                                    <h3 className="font-bold text-slate-900 dark:text-white truncate">{t('AdminTaskMediation.task')}{ticket.task_id}</h3>
                                     {ticket.status === 'resolved' ? (
-                                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">Resolved</span>
+                                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400">{t('AdminTaskMediation.resolved')}</span>
                                     ) : (
-                                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">Double Rejected</span>
+                                        <span className="text-xs font-bold px-2 py-0.5 rounded bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400">{t('AdminTaskMediation.doubleRejected')}</span>
                                     )}
                                 </div>
-                                <p className="text-xs text-slate-500 mb-2 truncate">Investor User ID: {ticket.user_id}</p>
+                                <p className="text-xs text-slate-500 mb-2 truncate">{t('AdminTaskMediation.investorUserID')}{ticket.user_id}</p>
                                 <div className="text-xs text-slate-400 flex items-center gap-1">
-                                    <Clock size={12}/> Escalated {new Date(ticket.created_at).toLocaleDateString()}
+                                    <Clock size={12}/> {t('AdminTaskMediation.escalated')}{new Date(ticket.created_at).toLocaleDateString()}
                                 </div>
                             </div>
                         ))
@@ -158,9 +157,9 @@ export const AdminTaskMediation: React.FC = () => {
                         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm h-full flex flex-col">
                             
                             <div className="mb-6">
-                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Mediation Ticket #{selectedTicket.id}</h2>
+                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('AdminTaskMediation.mediationTicket')}{selectedTicket.id}</h2>
                                 <div className="bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-300 p-4 rounded-xl border border-rose-200 dark:border-rose-800/30 mb-4">
-                                    <p className="font-bold mb-1">Conflict Summary:</p>
+                                    <p className="font-bold mb-1">{t('AdminTaskMediation.conflictSummary')}</p>
                                     <p className="text-sm">{selectedTicket.message}</p>
                                 </div>
 
@@ -168,18 +167,18 @@ export const AdminTaskMediation: React.FC = () => {
                                     <div className="bg-emerald-50 dark:bg-emerald-950/20 text-emerald-800 dark:text-emerald-300 p-5 rounded-xl border border-emerald-200 dark:border-emerald-800/30 shadow-sm">
                                         <div className="flex items-center gap-2 mb-2">
                                             <CheckCircle className="text-emerald-500 shrink-0" size={20} />
-                                            <span className="font-black text-lg">Conflict Concluded</span>
+                                            <span className="font-black text-lg">{t('AdminTaskMediation.conflictConcluded')}</span>
                                         </div>
                                         <p className="text-sm font-semibold mb-3">
-                                            Verdict: {taskDetails?.status === 'approved' ? (
-                                                <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-1 rounded-lg">Force Approved (Agent Paid)</span>
+                                            {t('AdminTaskMediation.verdict')}{taskDetails?.status === 'approved' ? (
+                                                <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-100 dark:bg-emerald-900/40 px-2.5 py-1 rounded-lg">{t('AdminTaskMediation.forceApprovedAgentPa')}</span>
                                             ) : (
-                                                <span className="text-rose-600 dark:text-rose-400 font-bold bg-rose-100 dark:bg-rose-900/40 px-2.5 py-1 rounded-lg">Refunded Investor (Submission Rejected)</span>
+                                                <span className="text-rose-600 dark:text-rose-400 font-bold bg-rose-100 dark:bg-rose-900/40 px-2.5 py-1 rounded-lg">{t('AdminTaskMediation.refundedInvestorSubm')}</span>
                                             )}
                                         </p>
                                         {selectedTicket.admin_response && (
                                             <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/20">
-                                                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">Administrator's Audit Notes</span>
+                                                <span className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest block mb-1">{t('AdminTaskMediation.administratorSAuditN')}</span>
                                                 <p className="text-sm italic text-slate-700 dark:text-slate-350 font-medium">"{selectedTicket.admin_response}"</p>
                                             </div>
                                         )}
@@ -191,27 +190,27 @@ export const AdminTaskMediation: React.FC = () => {
                                 <div className="flex-1 overflow-y-auto space-y-6">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Investor Target</p>
+                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t('AdminTaskMediation.investorTarget')}</p>
                                             <p className="font-medium">{taskDetails.property_address || 'Unknown Property'}</p>
-                                            <p className="text-sm mt-2"><span className="font-bold text-slate-700">Requirement:</span> {taskDetails.min_photos} Photos + Checklist</p>
+                                            <p className="text-sm mt-2"><span className="font-bold text-slate-700">{t('AdminTaskMediation.requirement')}</span> {taskDetails.min_photos} {t('AdminTaskMediation.photosChecklist')}</p>
                                         </div>
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Agent Submission Data</p>
+                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t('AdminTaskMediation.agentSubmissionData')}</p>
                                             <div className="flex items-center gap-1 text-sm font-medium">
                                                 {taskDetails.geo_validated ? (
-                                                    <span className="text-emerald-600 flex items-center gap-1"><MapPin size={14}/> GPS Validated ({taskDetails.distance_meters}m)</span>
+                                                    <span className="text-emerald-600 flex items-center gap-1"><MapPin size={14}/> {t('AdminTaskMediation.gPSValidated')}{taskDetails.distance_meters}m)</span>
                                                 ) : (
-                                                    <span className="text-rose-600 flex items-center gap-1"><MapPin size={14}/> GPS Mismatch ({taskDetails.distance_meters}m)</span>
+                                                    <span className="text-rose-600 flex items-center gap-1"><MapPin size={14}/> {t('AdminTaskMediation.gPSMismatch')}{taskDetails.distance_meters}m)</span>
                                                 )}
                                             </div>
-                                            <p className="text-sm mt-2">{taskDetails.submission_photos?.length || 0} Photos Uploaded</p>
+                                            <p className="text-sm mt-2">{taskDetails.submission_photos?.length || 0} {t('AdminTaskMediation.photosUploaded')}</p>
                                         </div>
                                     </div>
 
                                     {/* Agent's Notes */}
                                     {taskDetails.agent_notes && (
                                         <div className="p-4 bg-slate-50 dark:bg-slate-800 rounded-xl">
-                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Agent's Field Comments</p>
+                                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">{t('AdminTaskMediation.agentSFieldComments')}</p>
                                             <p className="text-sm italic text-slate-700 dark:text-slate-350">"{taskDetails.agent_notes}"</p>
                                         </div>
                                     )}
@@ -220,7 +219,7 @@ export const AdminTaskMediation: React.FC = () => {
                                     {taskDetails.submission_photos && taskDetails.submission_photos.length > 0 && (
                                         <div>
                                             <h4 className="font-bold mb-3 text-slate-800 dark:text-white flex items-center gap-2">
-                                                Uploaded Evidence Photos ({taskDetails.submission_photos.length})
+                                                {t('AdminTaskMediation.uploadedEvidencePhot')}{taskDetails.submission_photos.length})
                                             </h4>
                                             <div className="grid grid-cols-4 gap-3">
                                                 {taskDetails.submission_photos.map((photo: string, index: number) => {
@@ -243,8 +242,7 @@ export const AdminTaskMediation: React.FC = () => {
                                                                 }}
                                                             />
                                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">
-                                                                View Fullscreen
-                                                            </div>
+                                                                {t('AdminTaskMediation.viewFullscreen')}</div>
                                                         </div>
                                                     );
                                                 })}
@@ -256,8 +254,7 @@ export const AdminTaskMediation: React.FC = () => {
                                     {taskDetails.checklist_responses && (
                                         <div className="space-y-4">
                                             <h4 className="font-bold mb-2 flex items-center gap-2 text-slate-800 dark:text-white flex items-center gap-2">
-                                                <CheckCircle size={16}/> Checklist Responses
-                                            </h4>
+                                                <CheckCircle size={16}/> {t('AdminTaskMediation.checklistResponses')}</h4>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 {Object.entries(JSON.parse(taskDetails.checklist_responses)).map(([catId, items]: [string, any]) => (
                                                     <div key={catId} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -277,16 +274,16 @@ export const AdminTaskMediation: React.FC = () => {
                                                                                 {itemId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                                                             </span>
                                                                             {value === true ? (
-                                                                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded text-xs font-bold shrink-0 shadow-sm">Yes</span>
+                                                                                <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded text-xs font-bold shrink-0 shadow-sm">{t('AdminTaskMediation.yes')}</span>
                                                                             ) : value === false ? (
                                                                                 <span className="px-2 py-0.5 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 rounded text-xs font-bold shrink-0 shadow-sm">No</span>
                                                                             ) : (
-                                                                                <span className="px-2 py-0.5 bg-slate-200 text-slate-500 dark:bg-slate-700 rounded text-xs font-bold shrink-0">N/A</span>
+                                                                                <span className="px-2 py-0.5 bg-slate-200 text-slate-500 dark:bg-slate-700 rounded text-xs font-bold shrink-0">{t('AdminTaskMediation.nA')}</span>
                                                                             )}
                                                                         </div>
                                                                         {note && (
                                                                             <p className="text-xs text-slate-600 dark:text-slate-400 italic bg-white dark:bg-slate-900/60 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 mt-1">
-                                                                                <span className="font-bold block mb-0.5 text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[9px]">Comments</span>
+                                                                                <span className="font-bold block mb-0.5 text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[9px]">{t('AdminTaskMediation.comments')}</span>
                                                                                 {note}
                                                                             </p>
                                                                         )}
@@ -303,7 +300,7 @@ export const AdminTaskMediation: React.FC = () => {
                                     {/* Admin Decision Form */}
                                     {selectedTicket.status === 'open' ? (
                                         <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800">
-                                            <h3 className="font-black text-lg mb-4">Executive Decision</h3>
+                                            <h3 className="font-black text-lg mb-4">{t('AdminTaskMediation.executiveDecision')}</h3>
                                             <textarea 
                                                 value={resolutionNotes} 
                                                 onChange={e => setResolutionNotes(e.target.value)}
@@ -317,32 +314,28 @@ export const AdminTaskMediation: React.FC = () => {
                                                     disabled={resolving}
                                                     className="flex-1 py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20"
                                                 >
-                                                    <CheckCircle size={20}/> Force Approve (Pay Agent)
-                                                </button>
+                                                    <CheckCircle size={20}/> {t('AdminTaskMediation.forceApprovePayAgent')}</button>
                                                 <button 
                                                     onClick={() => handleResolve('refund_investor')}
                                                     disabled={resolving}
                                                     className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl flex items-center justify-center gap-2"
                                                 >
-                                                    <XCircle size={20}/> Reject Submission (Refund Investor)
-                                                </button>
+                                                    <XCircle size={20}/> {t('AdminTaskMediation.rejectSubmissionRefu')}</button>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 text-center text-slate-400 font-bold text-sm italic">
-                                            This dispute has been concluded and resolved.
-                                        </div>
+                                            {t('AdminTaskMediation.thisDisputeHasBeenCo')}</div>
                                     )}
 
                                 </div>
                             ) : (
-                                <div className="flex-1 flex items-center justify-center text-slate-400">Loading mission evidence...</div>
+                                <div className="flex-1 flex items-center justify-center text-slate-400">{t('AdminTaskMediation.loadingMissionEviden')}</div>
                             )}
                         </div>
                     ) : (
                         <div className="h-full flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400 bg-slate-50 dark:bg-slate-900/50">
-                            Select a mediation ticket from the queue to review evidence.
-                        </div>
+                            {t('AdminTaskMediation.selectAMediationTick')}</div>
                     )}
                 </div>
             </div>

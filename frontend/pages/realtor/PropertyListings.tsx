@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CircularProgress, Dialog, IconButton } from '@mui/material';
 import { API_URL, getHeaders } from '../../services/httpClient';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface ExportedProperty {
   export_id: number;
@@ -61,15 +62,14 @@ const PropertyDetailDrawer: React.FC<{ p: ExportedProperty | null; onClose: () =
           <p className="text-base font-extrabold text-slate-900 dark:text-white truncate">{p.address || p.parcel_id}</p>
           <p className="text-xs text-slate-500 uppercase tracking-widest mt-0.5">{p.county}, {p.state}</p>
           {p.parcel_id && (
-            <p className="text-[10px] text-slate-400 mt-0.5 font-mono">Parcel: {p.parcel_id}</p>
+            <p className="text-[10px] text-slate-400 mt-0.5 font-mono">{t('PropertyListings.parcel')}{p.parcel_id}</p>
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <span className="text-[10px] font-black uppercase bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-            Owner Export
-          </span>
+            {t('PropertyListings.ownerExport')}</span>
           <IconButton size="small" onClick={onClose}>
-            <span className="material-symbols-outlined text-[20px]">close</span>
+            <span className="material-symbols-outlined text-[20px]">{t('PropertyListings.close')}</span>
           </IconButton>
         </div>
       </div>
@@ -91,7 +91,7 @@ const PropertyDetailDrawer: React.FC<{ p: ExportedProperty | null; onClose: () =
 
         {/* Property Details */}
         <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-          <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-3">Property Details</p>
+          <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-3">{t('PropertyListings.propertyDetails')}</p>
           <DetailRow label="Property Type" value={p.property_type} />
           <DetailRow label="Bedrooms" value={num(p.bedrooms)} />
           <DetailRow label="Bathrooms" value={num(p.bathrooms)} />
@@ -103,7 +103,7 @@ const PropertyDetailDrawer: React.FC<{ p: ExportedProperty | null; onClose: () =
           <DetailRow label="Owner" value={p.owner_name} />
           {p.legal_description && (
             <div className="py-2 border-b border-slate-100 dark:border-slate-800">
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">Legal Description</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-1">{t('PropertyListings.legalDescription')}</p>
               <p className="text-xs font-medium text-slate-700 dark:text-slate-300">{p.legal_description}</p>
             </div>
           )}
@@ -111,23 +111,23 @@ const PropertyDetailDrawer: React.FC<{ p: ExportedProperty | null; onClose: () =
 
         {/* Investor Contact */}
         <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800">
-          <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-3">Investor Contact</p>
+          <p className="text-[10px] uppercase font-black text-slate-400 tracking-widest mb-3">{t('PropertyListings.investorContact')}</p>
           <DetailRow label="Name" value={p.contact_name || p.investor_name} />
           {p.contact_phone && (
             <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-xs text-slate-500">Phone</span>
+              <span className="text-xs text-slate-500">{t('PropertyListings.phone')}</span>
               <a href={`tel:${p.contact_phone}`} className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:underline">{p.contact_phone}</a>
             </div>
           )}
           {p.contact_email && (
             <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-              <span className="text-xs text-slate-500">Email</span>
+              <span className="text-xs text-slate-500">{t('PropertyListings.email')}</span>
               <a href={`mailto:${p.contact_email}`} className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline truncate ml-4">{p.contact_email}</a>
             </div>
           )}
           {p.export_notes && (
             <div className="mt-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3">
-              <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">Investor Notes</p>
+              <p className="text-[10px] uppercase font-bold text-slate-400 mb-1">{t('PropertyListings.investorNotes')}</p>
               <p className="text-xs text-slate-600 dark:text-slate-300">{p.export_notes}</p>
             </div>
           )}
@@ -137,7 +137,7 @@ const PropertyDetailDrawer: React.FC<{ p: ExportedProperty | null; onClose: () =
         <div className="px-5 py-4">
           {p.exported_at && (
             <p className="text-[10px] text-slate-400">
-              Exported on {new Date(p.exported_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+              {t('PropertyListings.exportedOn')}{new Date(p.exported_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
             </p>
           )}
         </div>
@@ -164,15 +164,14 @@ const PropertyCard: React.FC<{ p: ExportedProperty; onClick: () => void }> = ({ 
           </p>
         </div>
         <span className="shrink-0 text-[9px] font-black uppercase bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
-          Owner Export
-        </span>
+          {t('PropertyListings.ownerExport')}</span>
       </div>
 
       {/* Badges */}
       <div className="flex flex-wrap gap-1.5">
         {currency(p.requested_sale_price) && (
           <span className="text-[10px] font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg">
-            Target Price: {currency(p.requested_sale_price)}
+            {t('PropertyListings.targetPrice')}{currency(p.requested_sale_price)}
           </span>
         )}
         {p.property_type && (
@@ -182,24 +181,24 @@ const PropertyCard: React.FC<{ p: ExportedProperty; onClick: () => void }> = ({ 
         )}
         {p.bedrooms && (
           <span className="text-[10px] font-bold bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 px-2 py-1 rounded-lg">
-            🛏 {p.bedrooms}bd / {p.bathrooms}ba
+            🛏 {p.bedrooms}{t('PropertyListings.bd')}{p.bathrooms}ba
           </span>
         )}
       </div>
 
       {/* Investor Contact Preview */}
       <div className="border-t border-slate-100 dark:border-slate-700 pt-3 space-y-1">
-        <p className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Investor Contact</p>
+        <p className="text-[9px] uppercase font-black text-slate-400 tracking-widest">{t('PropertyListings.investorContact')}</p>
         {(p.contact_name || p.investor_name) && (
           <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
-            <span className="material-symbols-outlined text-[13px]">person</span>
+            <span className="material-symbols-outlined text-[13px]">{t('PropertyListings.person')}</span>
             {p.contact_name || p.investor_name}
           </div>
         )}
         {p.contact_phone && (
           <a href={`tel:${p.contact_phone}`} onClick={e => e.stopPropagation()}
             className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 hover:underline">
-            <span className="material-symbols-outlined text-[13px]">phone</span>
+            <span className="material-symbols-outlined text-[13px]">{t('PropertyListings.phone')}</span>
             {p.contact_phone}
           </a>
         )}
@@ -207,7 +206,7 @@ const PropertyCard: React.FC<{ p: ExportedProperty; onClick: () => void }> = ({ 
 
       {/* View Details CTA */}
       <div className="flex items-center justify-end gap-1 mt-auto pt-1">
-        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline">View Full Details →</span>
+        <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline">{t('PropertyListings.viewFullDetails')}</span>
       </div>
     </div>
   );
@@ -215,6 +214,7 @@ const PropertyCard: React.FC<{ p: ExportedProperty; onClick: () => void }> = ({ 
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 const PropertyListings: React.FC = () => {
+    const { t } = useLanguage();
   const [exports, setExports] = useState<ExportedProperty[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState<ExportedProperty | null>(null);
@@ -241,10 +241,9 @@ const PropertyListings: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Property Listings</h1>
+          <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">{t('PropertyListings.propertyListings')}</h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Properties shared by investors — click any card to view full details.
-          </p>
+            {t('PropertyListings.propertiesSharedByIn')}</p>
         </div>
         <div className="flex items-center gap-2">
           <input
@@ -258,26 +257,24 @@ const PropertyListings: React.FC = () => {
             onClick={load}
             className="h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
           >
-            Search
-          </button>
+            {t('PropertyListings.search')}</button>
         </div>
       </div>
 
       {/* Stats bar */}
       <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl px-4 py-2.5 flex items-center gap-2">
-        <span className="material-symbols-outlined text-emerald-600 text-[16px]">upload</span>
+        <span className="material-symbols-outlined text-emerald-600 text-[16px]">{t('PropertyListings.upload')}</span>
         <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
-          {exports.length} {exports.length === 1 ? 'property' : 'properties'} exported by investors
-        </span>
+          {exports.length} {exports.length === 1 ? 'property' : 'properties'} {t('PropertyListings.exportedByInvestors')}</span>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-20"><CircularProgress color="success" /></div>
       ) : exports.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-          <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">home_search</span>
-          <p className="text-sm font-medium">No properties exported by investors yet.</p>
-          <p className="text-xs mt-1 text-slate-400">Investors export properties from their My List panel.</p>
+          <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">{t('PropertyListings.homesearch')}</span>
+          <p className="text-sm font-medium">{t('PropertyListings.noPropertiesExported')}</p>
+          <p className="text-xs mt-1 text-slate-400">{t('PropertyListings.investorsExportPrope')}</p>
         </div>
       ) : (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

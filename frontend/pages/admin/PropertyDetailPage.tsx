@@ -35,7 +35,7 @@ import { PropertyOwnerCard } from '../../components/property/PropertyOwnerCard';
 import { useCompany } from '../../context/CompanyContext';
 import { CreateTaskForm } from '../../components/property/CreateTaskForm';
 import { useTour } from '../../context/TourContext';
-
+import { useLanguage } from "../../context/LanguageContext";
 
 interface PropertyDetailPageProps {
     readOnly?: boolean;
@@ -44,6 +44,7 @@ interface PropertyDetailPageProps {
 }
 
 const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = false, overrideId, onClose }) => {
+    const { t } = useLanguage();
     const { id: paramId } = useParams<{ id: string }>();
     const id = overrideId ? String(overrideId) : paramId;
     const navigate = useNavigate();
@@ -180,7 +181,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
         return (
             <div className="p-8 text-center text-red-500">
                 <h2>{error || 'Property not found'}</h2>
-                <Button onClick={() => navigate(-1)} sx={{ mt: 2 }}>Go Back</Button>
+                <Button onClick={() => navigate(-1)} sx={{ mt: 2 }}>{t('PropertyDetailPage.goBack')}</Button>
             </div>
         );
     }
@@ -433,14 +434,12 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         onClick={() => startTour('property_details')}
                         className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse"
                     >
-                        <span className="material-symbols-outlined text-[16px]">menu_book</span>
-                        Page Tour
-                    </button>
+                        <span className="material-symbols-outlined text-[16px]">{t('PropertyDetailPage.menubook')}</span>
+                        {t('PropertyDetailPage.pageTour')}</button>
                     {(property as any).has_overrides && !isEditing && (
                         <span className="flex items-center gap-1 text-[10px] font-black px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full uppercase tracking-wider">
                             <PencilLine size={10} />
-                            Customized View
-                        </span>
+                            {t('PropertyDetailPage.customizedView')}</span>
                     )}
                     <button
                         id="btn-customize-property-view"
@@ -456,12 +455,12 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                     </button>
                     <div className="relative group">
                         <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-slate-800 text-white hover:bg-slate-700">
-                            <span className="material-symbols-outlined text-[16px]">download</span>
+                            <span className="material-symbols-outlined text-[16px]">{t('PropertyDetailPage.download')}</span>
                             {exporting ? 'Exporting...' : 'Export'}
                         </button>
                         <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
-                            <button onClick={() => handleExport('jpeg')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">As JPEG</button>
-                            <button onClick={() => handleExport('pdf')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">As PDF (Print)</button>
+                            <button onClick={() => handleExport('jpeg')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">{t('PropertyDetailPage.asJPEG')}</button>
+                            <button onClick={() => handleExport('pdf')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">{t('PropertyDetailPage.asPDFPrint')}</button>
                         </div>
                     </div>
                 </div>
@@ -493,8 +492,8 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         >
                             {!property.imageUrl && (
                                 <div className="text-slate-400 flex flex-col items-center gap-2">
-                                    <span className="material-symbols-outlined text-4xl">image_not_supported</span>
-                                    <span className="text-xs font-bold uppercase tracking-widest">No Preview Available</span>
+                                    <span className="material-symbols-outlined text-4xl">{t('PropertyDetailPage.imagenotsupported')}</span>
+                                    <span className="text-xs font-bold uppercase tracking-widest">{t('PropertyDetailPage.noPreviewAvailable')}</span>
                                 </div>
                             )}
                         </div>
@@ -509,9 +508,8 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                             rel="noreferrer"
                             className="absolute bottom-4 right-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-full shadow-xl flex items-center gap-2 text-xs font-bold text-slate-800 dark:text-white hover:bg-primary hover:text-white transition-all transform hover:scale-105"
                         >
-                            <span className="material-symbols-outlined text-[18px]">map</span>
-                            View on Google Maps
-                        </a>
+                            <span className="material-symbols-outlined text-[18px]">{t('PropertyDetailPage.map')}</span>
+                            {t('PropertyDetailPage.viewOnGoogleMaps')}</a>
                     )}
                 </div>
             </div>
@@ -520,9 +518,8 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
             {AuthService.getCurrentUser()?.role === 'admin' && property.is_processed === false && (
                 <div className="bg-red-50 dark:bg-red-900/20 p-4 border border-red-200 dark:border-red-800 rounded-lg shadow-sm">
                     <h3 className="text-red-800 dark:text-red-300 font-bold mb-1 flex items-center gap-2">
-                        <span className="material-symbols-outlined text-[20px]">error</span>
-                        Import Processing Error
-                    </h3>
+                        <span className="material-symbols-outlined text-[20px]">{t('PropertyDetailPage.error')}</span>
+                        {t('PropertyDetailPage.importProcessingErro')}</h3>
                     <p className="text-sm text-red-600 dark:text-red-400">{property.import_error_msg || 'An unknown error occurred during the CSV import phase. Please review.'}</p>
                 </div>
             )}
@@ -533,14 +530,14 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                         {ownerNameFallback !== 'UNKNOWN OWNER' ? ownerNameFallback : (property.parcel_address || property.parcel_id)}
                     </h1>
                     <div className="flex items-center gap-3 mt-2">
-                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{property.county} County, {property.state}</span>
+                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{property.county} {t('PropertyDetailPage.county')}{property.state}</span>
                         <div className="w-1 h-1 rounded-full bg-slate-300"></div>
-                        <span className="text-xs font-mono font-bold text-blue-500">ID: {property.parcel_id}</span>
+                        <span className="text-xs font-mono font-bold text-blue-500">{t('PropertyDetailPage.iD')}{property.parcel_id}</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
                     {property.is_qoz && (
-                        <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-amber-200 dark:border-amber-800">Opportunity Zone</span>
+                        <span className="bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-amber-200 dark:border-amber-800">{t('PropertyDetailPage.opportunityZone')}</span>
                     )}
                     {!readOnly && (
                         <Button
@@ -549,8 +546,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                             onClick={() => navigate(`/admin/properties/${property.parcel_id}/edit`)}
                             className="normal-case font-bold text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700"
                         >
-                            Edit
-                        </Button>
+                            {t('PropertyDetailPage.edit')}</Button>
                     )}
                 </div>
             </div>
@@ -594,16 +590,15 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                     {/* Preserved Raw Data Block */}
                     <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
                         <div className="bg-slate-50 dark:bg-slate-900/50 p-4 px-6 font-bold text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-slate-400 text-lg">database</span>
-                            Full Parcel Features
-                        </div>
+                            <span className="material-symbols-outlined text-slate-400 text-lg">{t('PropertyDetailPage.database')}</span>
+                            {t('PropertyDetailPage.fullParcelFeatures')}</div>
                         <div className="p-6 px-7">
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-y-6 gap-x-8 text-sm text-slate-700 dark:text-slate-300">
-                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">Zoning</span> {property.zoning || 'Residential (Default)'}</div>
-                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">Subdivision</span> {property.subdivision || 'Unrecorded'}</div>
-                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">Sewer Type</span> {property.sewer_type || 'Public'}</div>
-                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">Water Type</span> {property.water_type || 'Municipal'}</div>
-                                <div className="col-span-2"><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">Property Type Detail</span> {property.property_type_detail || property.description || 'Single Family Residence'}</div>
+                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">{t('PropertyDetailPage.zoning')}</span> {property.zoning || 'Residential (Default)'}</div>
+                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">{t('PropertyDetailPage.subdivision')}</span> {property.subdivision || 'Unrecorded'}</div>
+                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">{t('PropertyDetailPage.sewerType')}</span> {property.sewer_type || 'Public'}</div>
+                                <div><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">{t('PropertyDetailPage.waterType')}</span> {property.water_type || 'Municipal'}</div>
+                                <div className="col-span-2"><span className="font-bold text-slate-400 uppercase text-[10px] tracking-widest block mb-1">{t('PropertyDetailPage.propertyTypeDetail')}</span> {property.property_type_detail || property.description || 'Single Family Residence'}</div>
                             </div>
                         </div>
                     </div>
@@ -640,10 +635,9 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                     {/* BPO Due Diligence Marketplace */}
                     <div className="glass-card rounded-xl p-6">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-indigo-500">real_estate_agent</span>
-                            BPO Due Diligence
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Request a local field agent to perform a property condition check and take custom photos.</p>
+                            <span className="material-symbols-outlined text-indigo-500">{t('PropertyDetailPage.realestateagent')}</span>
+                            {t('PropertyDetailPage.bPODueDiligence')}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{t('PropertyDetailPage.requestALocalFieldAg')}</p>
                         <button
                             onClick={() => {
                                 const currentUser = AuthService.getCurrentUser();
@@ -655,8 +649,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                             }}
                             className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-colors shadow-sm"
                         >
-                            Request Field Mission
-                        </button>
+                            {t('PropertyDetailPage.requestFieldMission')}</button>
                     </div>
 
                     <PropertyContactInfo property={property as any} />
@@ -671,7 +664,7 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                     {/* Admin Actions - Preserved/Minimized */}
                     {!readOnly && (
                         <div className="bg-slate-50 dark:bg-slate-900/30 rounded-2xl p-6 border border-slate-100 dark:border-slate-800">
-                            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-1">System Administration</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-1">{t('PropertyDetailPage.systemAdministration')}</h3>
                             <div className="space-y-3">
                                 <button
                                     onClick={async () => {
@@ -689,9 +682,8 @@ const PropertyDetailPage: React.FC<PropertyDetailPageProps> = ({ readOnly = fals
                                     disabled={actionLoading}
                                     className="w-full py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 font-bold text-xs transition-all flex items-center justify-center gap-2"
                                 >
-                                    <span className="material-symbols-outlined text-[16px]">verified</span>
-                                    Force GSI Validation
-                                </button>
+                                    <span className="material-symbols-outlined text-[16px]">{t('PropertyDetailPage.verified')}</span>
+                                    {t('PropertyDetailPage.forceGSIValidation')}</button>
                             </div>
                         </div>
                     )}

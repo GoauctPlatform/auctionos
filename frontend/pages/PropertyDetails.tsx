@@ -27,8 +27,10 @@ import { PropertyService, ClientDataService } from '../services/property.service
 import { useCompany } from '../context/CompanyContext';
 import { useTour } from '../context/TourContext';
 import { AuthService } from '../services/auth.service';
+import { useLanguage } from "../context/LanguageContext";
 
 const PropertyDetails: React.FC = () => {
+    const { t } = useLanguage();
     const { activeCompany } = useCompany();
     const { startTour } = useTour();
     const { id } = useParams<{ id: string }>();
@@ -246,8 +248,8 @@ const PropertyDetails: React.FC = () => {
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-slate-500">Loading details...</div>;
-    if (!property) return <div className="p-8 text-center text-red-500">Property not found.</div>;
+    if (loading) return <div className="p-8 text-center text-slate-500">{t('PropertyDetails.loadingDetails')}</div>;
+    if (!property) return <div className="p-8 text-center text-red-500">{t('PropertyDetails.propertyNotFound')}</div>;
 
     const currentUrl = window.location.href;
 
@@ -267,7 +269,7 @@ const PropertyDetails: React.FC = () => {
                     className="flex items-center text-slate-500 hover:text-slate-700 mb-2 transition-colors"
                 >
                     <ChevronLeft size={20} />
-                    <span>Back to Inventory</span>
+                    <span>{t('PropertyDetails.backToInventory')}</span>
                 </button>
 
                 {/* ── Edit / Customize Button ─────────────────────────────── */}
@@ -276,14 +278,12 @@ const PropertyDetails: React.FC = () => {
                         onClick={() => startTour('property_details')}
                         className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white"
                     >
-                        <span className="material-symbols-outlined text-[16px]">menu_book</span>
-                        Page Tour
-                    </button>
+                        <span className="material-symbols-outlined text-[16px]">{t('PropertyDetails.menubook')}</span>
+                        {t('PropertyDetails.pageTour')}</button>
                     {property.has_overrides && !isEditing && (
                         <span className="flex items-center gap-1 text-[10px] font-black px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-full uppercase tracking-wider">
                             <PencilLine size={10} />
-                            Customized View
-                        </span>
+                            {t('PropertyDetails.customizedView')}</span>
                     )}
                     <button
                         onClick={() => setIsEditing(prev => !prev)}
@@ -299,12 +299,12 @@ const PropertyDetails: React.FC = () => {
                     </button>
                     <div className="relative group">
                         <button className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-slate-800 text-white hover:bg-slate-700">
-                            <span className="material-symbols-outlined text-[16px]">download</span>
+                            <span className="material-symbols-outlined text-[16px]">{t('PropertyDetails.download')}</span>
                             {exporting ? 'Exporting...' : 'Export'}
                         </button>
                         <div className="absolute right-0 top-full mt-2 w-32 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
-                            <button onClick={() => handleExport('jpeg')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">As JPEG</button>
-                            <button onClick={() => handleExport('pdf')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">As PDF (Print)</button>
+                            <button onClick={() => handleExport('jpeg')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">{t('PropertyDetails.asJPEG')}</button>
+                            <button onClick={() => handleExport('pdf')} className="w-full text-left px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">{t('PropertyDetails.asPDFPrint')}</button>
                         </div>
                     </div>
                 </div>
@@ -313,12 +313,12 @@ const PropertyDetails: React.FC = () => {
             {/* Print-only QR Code Header */}
             <div className="hidden print:flex items-center justify-between mb-8 border-b pb-4">
                 <div>
-                    <h1 className="text-2xl font-black text-slate-900">GoAuct Property Intelligence</h1>
-                    <p className="text-sm text-slate-500">Generated automatically from the GoAuct Platform</p>
+                    <h1 className="text-2xl font-black text-slate-900">{t('PropertyDetails.goAuctPropertyIntell')}</h1>
+                    <p className="text-sm text-slate-500">{t('PropertyDetails.generatedAutomatical')}</p>
                 </div>
                 <div className="flex flex-col items-center">
                     <QRCodeSVG value={currentUrl} size={64} />
-                    <span className="text-[10px] mt-1 text-slate-500">Scan to view online</span>
+                    <span className="text-[10px] mt-1 text-slate-500">{t('PropertyDetails.scanToViewOnline')}</span>
                 </div>
             </div>
 
@@ -352,47 +352,44 @@ const PropertyDetails: React.FC = () => {
                     {/* BPO Secondary Market Packages */}
                     {property.has_realtor_media && !property.media_unlocked && (
                         <div className="bg-slate-900 rounded-xl p-8 shadow-sm flex flex-col items-center text-center text-white border-2 border-indigo-500/30">
-                            <span className="material-symbols-outlined text-4xl mb-3 text-indigo-400">verified_user</span>
-                            <h3 className="text-xl font-black mb-1">Verified BPO Data Available</h3>
-                            <p className="text-sm text-slate-400 mb-6 max-w-md">A licensed Field Agent has already completed a Due Diligence mission for this property. Purchase the data instantly.</p>
+                            <span className="material-symbols-outlined text-4xl mb-3 text-indigo-400">{t('PropertyDetails.verifieduser')}</span>
+                            <h3 className="text-xl font-black mb-1">{t('PropertyDetails.verifiedBPODataAvail')}</h3>
+                            <p className="text-sm text-slate-400 mb-6 max-w-md">{t('PropertyDetails.aLicensedFieldAgentH')}</p>
                             
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 w-full">
                                 {/* Photos Package */}
                                 <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col items-center hover:border-slate-500 transition-colors">
-                                    <span className="material-symbols-outlined text-3xl text-emerald-400 mb-2">photo_camera</span>
-                                    <h4 className="font-bold text-sm">Photos Only</h4>
-                                    <p className="text-emerald-400 font-black text-xl my-2">$20</p>
+                                    <span className="material-symbols-outlined text-3xl text-emerald-400 mb-2">{t('PropertyDetails.photocamera')}</span>
+                                    <h4 className="font-bold text-sm">{t('PropertyDetails.photosOnly')}</h4>
+                                    <p className="text-emerald-400 font-black text-xl my-2">{t('PropertyDetails.20')}</p>
                                     <button
                                         onClick={() => handlePurchaseSecondaryBPO('photos')}
                                         className="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition-colors mt-auto"
                                     >
-                                        Buy Photos
-                                    </button>
+                                        {t('PropertyDetails.buyPhotos')}</button>
                                 </div>
                                 {/* Checklist Package */}
                                 <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 flex flex-col items-center hover:border-slate-500 transition-colors">
-                                    <span className="material-symbols-outlined text-3xl text-amber-400 mb-2">fact_check</span>
-                                    <h4 className="font-bold text-sm">Checklist Only</h4>
-                                    <p className="text-amber-400 font-black text-xl my-2">$30</p>
+                                    <span className="material-symbols-outlined text-3xl text-amber-400 mb-2">{t('PropertyDetails.factcheck')}</span>
+                                    <h4 className="font-bold text-sm">{t('PropertyDetails.checklistOnly')}</h4>
+                                    <p className="text-amber-400 font-black text-xl my-2">{t('PropertyDetails.30')}</p>
                                     <button
                                         onClick={() => handlePurchaseSecondaryBPO('checklist')}
                                         className="w-full py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-xs font-bold transition-colors mt-auto"
                                     >
-                                        Buy Checklist
-                                    </button>
+                                        {t('PropertyDetails.buyChecklist')}</button>
                                 </div>
                                 {/* Combo Package */}
                                 <div className="bg-indigo-900 p-5 rounded-xl border border-indigo-500 flex flex-col items-center transform scale-105 shadow-xl shadow-indigo-900/50 relative">
-                                    <span className="absolute -top-3 right-3 bg-rose-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">Best Value</span>
-                                    <span className="material-symbols-outlined text-3xl text-white mb-2">diamond</span>
-                                    <h4 className="font-bold text-sm">Full Combo</h4>
-                                    <p className="text-white font-black text-2xl my-2">$50</p>
+                                    <span className="absolute -top-3 right-3 bg-rose-500 text-white text-[9px] font-black uppercase px-2 py-0.5 rounded-full">{t('PropertyDetails.bestValue')}</span>
+                                    <span className="material-symbols-outlined text-3xl text-white mb-2">{t('PropertyDetails.diamond')}</span>
+                                    <h4 className="font-bold text-sm">{t('PropertyDetails.fullCombo')}</h4>
+                                    <p className="text-white font-black text-2xl my-2">{t('PropertyDetails.50')}</p>
                                     <button
                                         onClick={() => handlePurchaseSecondaryBPO('combo')}
                                         className="w-full py-2 bg-indigo-500 hover:bg-indigo-400 rounded-lg text-xs font-bold transition-colors mt-auto text-white shadow-lg"
                                     >
-                                        Unlock All
-                                    </button>
+                                        {t('PropertyDetails.unlockAll')}</button>
                                 </div>
                             </div>
                         </div>
@@ -400,7 +397,7 @@ const PropertyDetails: React.FC = () => {
 
                     {property.media_unlocked && (
                         <div className="glass-card rounded-xl p-6">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Unlocked Realtor Media</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">{t('PropertyDetails.unlockedRealtorMedia')}</h3>
                             {property.media_files && property.media_files.length > 0 ? (
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                                     {(() => {
@@ -424,7 +421,7 @@ const PropertyDetails: React.FC = () => {
                                                     <img src={file.url} alt="Property Media" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
                                                 ) : (
                                                     <div className="flex flex-col items-center justify-center w-full h-full text-slate-400">
-                                                        <span className="material-symbols-outlined text-3xl">image</span>
+                                                        <span className="material-symbols-outlined text-3xl">{t('PropertyDetails.image')}</span>
                                                         <span className="text-xs mt-2">{file.name || 'Media File'}</span>
                                                     </div>
                                                 )}
@@ -433,7 +430,7 @@ const PropertyDetails: React.FC = () => {
                                     })()}
                                 </div>
                             ) : (
-                                <p className="text-sm text-slate-500">Processing media files... They will appear here shortly.</p>
+                                <p className="text-sm text-slate-500">{t('PropertyDetails.processingMediaFiles')}</p>
                             )}
                         </div>
                     )}
@@ -482,10 +479,9 @@ const PropertyDetails: React.FC = () => {
                     {/* BPO Due Diligence Marketplace */}
                     <div className="glass-card rounded-xl p-6">
                         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-indigo-500">real_estate_agent</span>
-                            BPO Due Diligence
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">Request a local field agent to perform a property condition check and take custom photos.</p>
+                            <span className="material-symbols-outlined text-indigo-500">{t('PropertyDetails.realestateagent')}</span>
+                            {t('PropertyDetails.bPODueDiligence')}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">{t('PropertyDetails.requestALocalFieldAg')}</p>
                         <button
                             onClick={() => {
                                 const currentUser = AuthService.getCurrentUser();
@@ -497,26 +493,23 @@ const PropertyDetails: React.FC = () => {
                             }}
                             className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-lg transition-colors shadow-sm"
                         >
-                            Request Field Mission
-                        </button>
+                            {t('PropertyDetails.requestFieldMission')}</button>
                     </div>
 
                     {/* Admin Actions */}
                     <div className="glass-card rounded-xl p-6">
-                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">Admin Actions</h3>
+                        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{t('PropertyDetails.adminActions')}</h3>
                         <div className="space-y-3">
                             <button
                                 onClick={() => navigate(`/properties/${property.parcel_id}/edit`)}
                                 className="w-full py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition-colors shadow-sm"
                             >
-                                Edit Property Data
-                            </button>
+                                {t('PropertyDetails.editPropertyData')}</button>
                             <button
                                 onClick={() => alert('Validation feature coming soon')}
                                 className="w-full py-2.5 border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 font-medium transition-colors"
                             >
-                                Run GSI Validation
-                            </button>
+                                {t('PropertyDetails.runGSIValidation')}</button>
                         </div>
                     </div>
                 </div>

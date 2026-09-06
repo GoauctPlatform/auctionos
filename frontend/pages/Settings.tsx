@@ -117,7 +117,7 @@ export const Settings: React.FC = () => {
 
     return (
         <div className="max-w-7xl mx-auto space-y-8 pb-24">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Settings</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white">{t('Settings.settings')}</h2>
 
             {/* Tabs */}
             <div className="flex border-b border-slate-200 dark:border-slate-700">
@@ -128,8 +128,7 @@ export const Settings: React.FC = () => {
                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                         }`}
                 >
-                    Profile
-                </button>
+                    {t('Settings.profile')}</button>
                 <button
                     onClick={() => setActiveTab('general')}
                     className={`px-4 py-2 border-b-2 font-medium text-sm transition-colors ${activeTab === 'general'
@@ -137,8 +136,7 @@ export const Settings: React.FC = () => {
                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                         }`}
                 >
-                    General
-                </button>
+                    {t('Settings.general')}</button>
                 {isManagerOrAdmin && (
                     <button
                         onClick={() => setActiveTab('users')}
@@ -147,8 +145,7 @@ export const Settings: React.FC = () => {
                             : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                             }`}
                     >
-                        Users
-                    </button>
+                        {t('Settings.users')}</button>
                 )}
                 <button
                     onClick={() => setActiveTab('companies')}
@@ -157,15 +154,14 @@ export const Settings: React.FC = () => {
                         : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300'
                         }`}
                 >
-                    Companies
-                </button>
+                    {t('Settings.companies')}</button>
             </div>
 
             {/* Profile Tab */}
             {activeTab === 'profile' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">My Profile</h3>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-6">{t('Settings.myProfile')}</h3>
 
                         {/* Avatar */}
                         <div className="flex items-center gap-5 mb-8 pb-6 border-b border-slate-200 dark:border-slate-700">
@@ -190,7 +186,7 @@ export const Settings: React.FC = () => {
                         {/* Display Name */}
                         <div className="space-y-4 max-w-md">
                             <div>
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">Display Name</label>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">{t('Settings.displayName')}</label>
                                 <input
                                     type="text"
                                     value={displayName}
@@ -202,7 +198,7 @@ export const Settings: React.FC = () => {
 
                             {/* Theme Visual Selector */}
                             <div className="space-y-3 pt-2">
-                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">Appearance</label>
+                                <label className="block text-sm font-bold text-slate-700 dark:text-slate-300">{t('Settings.appearance')}</label>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {[
                                         {
@@ -275,8 +271,7 @@ export const Settings: React.FC = () => {
                                                     </span>
                                                     {isSelected && (
                                                         <span className="ml-auto material-symbols-outlined text-blue-500 dark:text-blue-400 text-sm font-bold">
-                                                            check_circle
-                                                        </span>
+                                                            {t('Settings.checkcircle')}</span>
                                                     )}
                                                 </div>
                                                 <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-normal font-normal">
@@ -295,11 +290,11 @@ export const Settings: React.FC = () => {
                                     className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
                                 >
                                     {savingProfile
-                                        ? <><span className="material-symbols-outlined animate-spin text-[16px]">progress_activity</span> Saving...</>
-                                        : <><span className="material-symbols-outlined text-[16px]">save</span> Save Profile</>
+                                        ? <><span className="material-symbols-outlined animate-spin text-[16px]">{t('Settings.progressactivity')}</span> {t('Settings.saving')}</>
+                                        : <><span className="material-symbols-outlined text-[16px]">{t('Settings.save')}</span> {t('Settings.saveProfile')}</>
                                     }
                                 </button>
-                                {profileSaved && <span className="text-sm text-emerald-600 font-semibold flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">check_circle</span> Saved!</span>}
+                                {profileSaved && <span className="text-sm text-emerald-600 font-semibold flex items-center gap-1"><span className="material-symbols-outlined text-[16px]">{t('Settings.checkcircle')}</span> {t('Settings.saved')}</span>}
                             </div>
                         </div>
                     </div>
@@ -311,13 +306,13 @@ export const Settings: React.FC = () => {
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     {/* Preferences Card */}
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Preferences</h3>
+                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">{t('Settings.preferences')}</h3>
 
                         {/* Appearance Premium Selector */}
                         <div className="pb-6 border-b border-slate-200 dark:border-slate-700 space-y-4">
                             <div>
-                                <h4 className="text-md font-semibold text-slate-900 dark:text-white">Appearance</h4>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Customize the workspace design and interface themes.</p>
+                                <h4 className="text-md font-semibold text-slate-900 dark:text-white">{t('Settings.appearance')}</h4>
+                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t('Settings.customizeTheWorkspac')}</p>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {[
@@ -389,8 +384,7 @@ export const Settings: React.FC = () => {
                                                 </span>
                                                 {isSelected && (
                                                     <span className="ml-auto material-symbols-outlined text-blue-500 dark:text-blue-400 text-sm font-bold">
-                                                        check_circle
-                                                    </span>
+                                                        {t('Settings.checkcircle')}</span>
                                                 )}
                                             </div>
                                             <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-normal font-normal">
@@ -406,8 +400,8 @@ export const Settings: React.FC = () => {
                         <div className="p-6 border-b border-slate-200 dark:border-slate-700">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">Notifications</h3>
-                                    <p className="text-sm text-slate-500">Receive email updates about new auctions.</p>
+                                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('Settings.notifications')}</h3>
+                                    <p className="text-sm text-slate-500">{t('Settings.receiveEmailUpdatesA')}</p>
                                 </div>
                                 <button
                                     onClick={() => {
@@ -427,8 +421,7 @@ export const Settings: React.FC = () => {
                         </div>
                         <div className="p-6 bg-slate-50 dark:bg-slate-800/50">
                             <button onClick={handleLogout} className="text-red-600 hover:text-red-700 font-medium text-sm">
-                                Log out of all devices
-                            </button>
+                                {t('Settings.logOutOfAllDevices')}</button>
                         </div>
                     </div>
                 </div>
@@ -445,12 +438,12 @@ export const Settings: React.FC = () => {
                     <div className="bg-white dark:bg-slate-800 p-6 rounded-xl border border-slate-200 dark:border-slate-700">
                         {/* New Company Section (Moved to Top for Visibility) */}
                         <div className="mb-8 pb-8 border-b border-slate-200 dark:border-slate-700">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">Add New Company</h3>
-                            <p className="text-sm text-slate-500 mb-6">Register a new business entity to manage separate portfolios and teams.</p>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-1">{t('Settings.addNewCompany')}</h3>
+                            <p className="text-sm text-slate-500 mb-6">{t('Settings.registerANewBusiness')}</p>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mb-4">
                                 <div className="md:col-span-2">
-                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Company Legal Name *</label>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{t('Settings.companyLegalName')}</label>
                                     <input 
                                         className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" 
                                         value={newCompanyName}
@@ -459,7 +452,7 @@ export const Settings: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Official Address</label>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{t('Settings.officialAddress')}</label>
                                     <input 
                                         className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" 
                                         value={newCompanyAddress}
@@ -468,7 +461,7 @@ export const Settings: React.FC = () => {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">Primary Contact</label>
+                                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 ml-1">{t('Settings.primaryContact')}</label>
                                     <input 
                                         className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 rounded-xl text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all" 
                                         value={newCompanyContact}
@@ -496,16 +489,16 @@ export const Settings: React.FC = () => {
                                 className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl transition-all shadow-md shadow-emerald-500/20 disabled:opacity-50 flex items-center gap-2 active:scale-95"
                             >
                                 {isCreatingCompany ? (
-                                    <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+                                    <span className="material-symbols-outlined text-[18px] animate-spin">{t('Settings.progressactivity')}</span>
                                 ) : (
-                                    <span className="material-symbols-outlined text-[18px]">add_business</span>
+                                    <span className="material-symbols-outlined text-[18px]">{t('Settings.addbusiness')}</span>
                                 )}
                                 {isCreatingCompany ? 'Registering...' : 'Register Company'}
                             </button>
                         </div>
 
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Existing Connected Companies</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('Settings.existingConnectedCom')}</h3>
                         </div>
 
                         <div className="space-y-4">
@@ -517,7 +510,7 @@ export const Settings: React.FC = () => {
                                         </div>
                                         <div>
                                             <h4 className={`text-sm font-bold ${company.is_active ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-700 dark:text-slate-300'}`}>{company.name}</h4>
-                                            <p className="text-xs text-slate-500">ID: {company.id} {company.is_active && '• Active Context'}</p>
+                                            <p className="text-xs text-slate-500">{t('Settings.iD')}{company.id} {company.is_active && '• Active Context'}</p>
                                         </div>
                                     </div>
                                     <div className="flex gap-2">
@@ -526,8 +519,7 @@ export const Settings: React.FC = () => {
                                                 onClick={() => selectCompany(company.id)}
                                                 className="px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
                                             >
-                                                Switch Context
-                                            </button>
+                                                {t('Settings.switchContext')}</button>
                                         )}
                                         <button 
                                             onClick={() => {
@@ -537,15 +529,13 @@ export const Settings: React.FC = () => {
                                             }}
                                             className="px-3 py-1.5 text-xs font-bold text-red-600 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors"
                                         >
-                                            Delete
-                                        </button>
+                                            {t('Settings.delete')}</button>
                                     </div>
                                 </div>
                             ))}
                             {companies.length === 0 && (
                                 <div className="text-center py-6 text-sm text-slate-500 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-700">
-                                    You haven't created any companies yet. Actions will default to your personal profile.
-                                </div>
+                                    {t('Settings.youHavenTCreatedAnyC')}</div>
                             )}
                         </div>
                     </div>

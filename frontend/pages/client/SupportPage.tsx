@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL, getHeaders } from '../../services/httpClient';
 import { AuthService } from '../../services/auth.service';
+import { useLanguage } from "../../context/LanguageContext";
 
 const ClientSupportPage: React.FC = () => {
+    const { t } = useLanguage();
   const currentUser = AuthService.getCurrentUser();
   const isClient = currentUser?.role === 'client';
   
@@ -96,10 +98,9 @@ const ClientSupportPage: React.FC = () => {
 
   return (
     <div className="p-6 max-w-2xl mx-auto w-full">
-      <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">Contact Support</h1>
+      <h1 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">{t('SupportPage.contactSupport')}</h1>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
-        Send us a message and our team will get back to you within 1–2 business days.
-      </p>
+        {t('SupportPage.sendUsAMessageAndOur')}</p>
 
       {activeTab === 'support' ? (
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
@@ -107,7 +108,7 @@ const ClientSupportPage: React.FC = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Name <span className="text-red-500">*</span>
+                {t('SupportPage.name')}<span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -121,8 +122,7 @@ const ClientSupportPage: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Phone
-              </label>
+                {t('SupportPage.phone')}</label>
               <input
                 type="tel"
                 name="phone"
@@ -136,7 +136,7 @@ const ClientSupportPage: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Email <span className="text-red-500">*</span>
+              {t('SupportPage.email')}<span className="text-red-500">*</span>
             </label>
             <input
               type="email"
@@ -151,7 +151,7 @@ const ClientSupportPage: React.FC = () => {
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-              Message <span className="text-red-500">*</span>
+              {t('SupportPage.message')}<span className="text-red-500">*</span>
             </label>
             <textarea
               name="message"
@@ -171,39 +171,35 @@ const ClientSupportPage: React.FC = () => {
           >
             {status === 'submitting' ? (
               <>
-                <span className="material-symbols-outlined animate-spin text-[18px]">refresh</span>
-                Sending...
-              </>
+                <span className="material-symbols-outlined animate-spin text-[18px]">{t('SupportPage.refresh')}</span>
+                {t('SupportPage.sending')}</>
             ) : (
               <>
-                <span className="material-symbols-outlined text-[18px]">send</span>
-                Send Message
-              </>
+                <span className="material-symbols-outlined text-[18px]">{t('SupportPage.send')}</span>
+                {t('SupportPage.sendMessage')}</>
             )}
           </button>
 
           {status === 'success' && (
             <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-lg border border-green-200 dark:border-green-800 text-sm">
-              <span className="material-symbols-outlined text-[18px]">check_circle</span>
-              Message sent! Our team will get back to you within 1–2 business days.
-            </div>
+              <span className="material-symbols-outlined text-[18px]">{t('SupportPage.checkcircle')}</span>
+              {t('SupportPage.messageSentOurTeamWi')}</div>
           )}
 
           {status === 'error' && (
             <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-lg border border-red-200 dark:border-red-800 text-sm">
-              <span className="material-symbols-outlined text-[18px]">error</span>
-              Failed to send message. Please try again.
-            </div>
+              <span className="material-symbols-outlined text-[18px]">{t('SupportPage.error')}</span>
+              {t('SupportPage.failedToSendMessageP')}</div>
           )}
         </form>
       </div>
       ) : activeTab === 'security' ? (
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">Change Password</h2>
-        <p className="text-sm text-slate-500 mb-6">Update your account password to keep your data secure.</p>
+        <h2 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{t('SupportPage.changePassword')}</h2>
+        <p className="text-sm text-slate-500 mb-6">{t('SupportPage.updateYourAccountPas')}</p>
         <form onSubmit={handlePasswordSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Current Password</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('SupportPage.currentPassword')}</label>
             <input
               type="password"
               value={pwdForm.currentPassword}
@@ -213,7 +209,7 @@ const ClientSupportPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">New Password</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('SupportPage.newPassword')}</label>
             <input
               type="password"
               value={pwdForm.newPassword}
@@ -224,7 +220,7 @@ const ClientSupportPage: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Confirm New Password</label>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{t('SupportPage.confirmNewPassword')}</label>
             <input
               type="password"
               value={pwdForm.confirmPassword}
@@ -247,19 +243,18 @@ const ClientSupportPage: React.FC = () => {
 
           {pwdStatus === 'success' && (
             <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg border border-green-200 text-sm">
-              <span className="material-symbols-outlined text-[18px]">check_circle</span>
-              Password updated successfully.
-            </div>
+              <span className="material-symbols-outlined text-[18px]">{t('SupportPage.checkcircle')}</span>
+              {t('SupportPage.passwordUpdatedSucce')}</div>
           )}
         </form>
       </div>
       ) : (activeTab === 'billing' && isClient) ? (
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 p-6">
-        <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Current Plan: <span className="uppercase text-blue-600">{billingInfo?.tier || '...'}</span></h2>
+        <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4">{t('SupportPage.currentPlan')}<span className="uppercase text-blue-600">{billingInfo?.tier || '...'}</span></h2>
         
         <div className="mb-8">
             <div className="flex justify-between text-sm mb-2">
-                <span className="font-bold text-slate-700 dark:text-slate-300">Property Details Searches</span>
+                <span className="font-bold text-slate-700 dark:text-slate-300">{t('SupportPage.propertyDetailsSearc')}</span>
                 <span className="text-slate-500">{billingInfo?.searches} / {billingInfo ? (limitMap[billingInfo.tier] === 999999 ? 'Unlimited' : limitMap[billingInfo.tier]) : '...'}</span>
             </div>
             {billingInfo && (
@@ -271,23 +266,22 @@ const ClientSupportPage: React.FC = () => {
                 </div>
             )}
             <p className="text-xs text-slate-500 mt-2">
-                Your quota is consumed every time you view the full details of a property.
-            </p>
+                {t('SupportPage.yourQuotaIsConsumedE')}</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
             <div className="border border-slate-200 dark:border-slate-700 p-4 rounded-xl">
-                <h3 className="font-bold text-slate-800 dark:text-white text-lg">Pro Plan</h3>
-                <p className="text-slate-500 text-sm mt-1 mb-4">2,000 property searches per month and dedicated cloud storage.</p>
-                <div className="text-2xl font-black text-slate-800 dark:text-white mb-4">$130 <span className="text-sm font-medium text-slate-500">/mo</span></div>
-                <button className="w-full py-2 bg-blue-50 text-blue-600 font-bold rounded-lg hover:bg-blue-100 transition-colors">Upgrade to Pro</button>
+                <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('SupportPage.proPlan')}</h3>
+                <p className="text-slate-500 text-sm mt-1 mb-4">{t('SupportPage.2000PropertySearches')}</p>
+                <div className="text-2xl font-black text-slate-800 dark:text-white mb-4">{t('SupportPage.130')}<span className="text-sm font-medium text-slate-500">{t('SupportPage.Mo')}</span></div>
+                <button className="w-full py-2 bg-blue-50 text-blue-600 font-bold rounded-lg hover:bg-blue-100 transition-colors">{t('SupportPage.upgradeToPro')}</button>
             </div>
             <div className="border-2 border-blue-500 dark:border-blue-600 bg-blue-50/30 dark:bg-blue-900/10 p-4 rounded-xl relative">
-                <span className="absolute -top-3 right-4 bg-blue-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">Recommended</span>
-                <h3 className="font-bold text-slate-800 dark:text-white text-lg">Enterprise</h3>
-                <p className="text-slate-500 text-sm mt-1 mb-4">10,000 searches, priority support, and team features.</p>
-                <div className="text-2xl font-black text-slate-800 dark:text-white mb-4">$350 <span className="text-sm font-medium text-slate-500">/mo</span></div>
-                <button className="w-full py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">Upgrade to Enterprise</button>
+                <span className="absolute -top-3 right-4 bg-blue-500 text-white text-[10px] font-black uppercase px-2 py-0.5 rounded-full">{t('SupportPage.recommended')}</span>
+                <h3 className="font-bold text-slate-800 dark:text-white text-lg">{t('SupportPage.enterprise')}</h3>
+                <p className="text-slate-500 text-sm mt-1 mb-4">{t('SupportPage.10000SearchesPriorit')}</p>
+                <div className="text-2xl font-black text-slate-800 dark:text-white mb-4">{t('SupportPage.350')}<span className="text-sm font-medium text-slate-500">{t('SupportPage.Mo')}</span></div>
+                <button className="w-full py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors">{t('SupportPage.upgradeToEnterprise')}</button>
             </div>
         </div>
       </div>

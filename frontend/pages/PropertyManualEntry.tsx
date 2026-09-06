@@ -11,9 +11,11 @@ import {
     InputAdornment,
 } from '@mui/material';
 import { ChevronLeft } from 'lucide-react';
+import { useLanguage } from "../context/LanguageContext";
 
 // Custom Hook for Dirty Form Detection
 function useDirtyFormWarning(isDirty: boolean) {
+    const { t } = useLanguage();
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
             if (isDirty) {
@@ -49,7 +51,7 @@ const PropertyManualEntry: React.FC = () => {
 
     useDirtyFormWarning(isFormDirty);
 
-    if (loading) return <div>Loading editor...</div>;
+    if (loading) return <div>{t('PropertyManualEntry.loadingEditor')}</div>;
     return (
         <div className="container mx-auto px-4 py-8 max-w-5xl">
             <button
@@ -62,7 +64,7 @@ const PropertyManualEntry: React.FC = () => {
                 className="flex items-center text-slate-500 hover:text-slate-700 mb-6 transition-colors"
             >
                 <ChevronLeft size={20} />
-                <span>Back</span>
+                <span>{t('PropertyManualEntry.back')}</span>
             </button>
 
             <div className="mb-8">

@@ -116,7 +116,7 @@ export const Signup: React.FC = () => {
                             <div className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-md p-1">
                                 <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain" />
                             </div>
-                            <span className="text-white font-extrabold text-xl">GoAuct</span>
+                            <span className="text-white font-extrabold text-xl">{t('Signup.goAuct')}</span>
                         </div>
                         <h1 className="text-white font-bold text-lg">
                             {t('auth.signup')}
@@ -136,7 +136,7 @@ export const Signup: React.FC = () => {
 
                             {/* Role Selection */}
                             <div className="flex flex-col gap-1.5 mb-2">
-                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">I want to join as a:</span>
+                                <span className="text-slate-700 dark:text-slate-300 text-sm font-semibold">{t('Signup.iWantToJoinAsA')}</span>
                                 <div className="grid grid-cols-2 gap-3">
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
@@ -147,7 +147,7 @@ export const Signup: React.FC = () => {
                                             onChange={() => setSelectedRole('client')}
                                             className="text-primary focus:ring-primary"
                                         />
-                                        <span className="text-sm text-slate-700 dark:text-slate-300">Investor</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">{t('Signup.investor')}</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
@@ -158,7 +158,7 @@ export const Signup: React.FC = () => {
                                             onChange={() => setSelectedRole('realtor')}
                                             className="text-emerald-600 focus:ring-emerald-600"
                                         />
-                                        <span className="text-sm text-slate-700 dark:text-slate-300">Realtor</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">{t('Signup.realtor')}</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
@@ -169,7 +169,7 @@ export const Signup: React.FC = () => {
                                             onChange={() => setSelectedRole('agent_due_diligence')}
                                             className="text-orange-600 focus:ring-orange-600"
                                         />
-                                        <span className="text-sm text-slate-700 dark:text-slate-300">Field Agent</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">{t('Signup.fieldAgent')}</span>
                                     </label>
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input 
@@ -180,7 +180,7 @@ export const Signup: React.FC = () => {
                                             onChange={() => setSelectedRole('contractor')}
                                             className="text-indigo-600 focus:ring-indigo-600"
                                         />
-                                        <span className="text-sm text-slate-700 dark:text-slate-300">Contractor</span>
+                                        <span className="text-sm text-slate-700 dark:text-slate-300">{t('Signup.contractor')}</span>
                                     </label>
                                 </div>
                             </div>
@@ -259,28 +259,25 @@ export const Signup: React.FC = () => {
                             {/* Realtor Info Banner */}
                             {isRealtor && (
                                 <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 flex gap-2">
-                                    <span className="material-symbols-outlined text-emerald-600 text-[18px] mt-0.5 shrink-0">info</span>
+                                    <span className="material-symbols-outlined text-emerald-600 text-[18px] mt-0.5 shrink-0">{t('Signup.info')}</span>
                                     <p className="text-xs text-emerald-800 dark:text-emerald-300">
-                                        Your account will be created as a <strong>Realtor Partner</strong>. You must possess a valid US Real Estate License to negotiate properties. Your credentials will be reviewed by our team.
-                                    </p>
+                                        {t('Signup.yourAccountWillBeCre')}<strong>{t('Signup.realtorPartner')}</strong>{t('Signup.YouMustPossessAValid')}</p>
                                 </div>
                             )}
                             
                             {isAgent && (
                                 <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-3 flex gap-2">
-                                    <span className="material-symbols-outlined text-orange-600 text-[18px] mt-0.5 shrink-0">info</span>
+                                    <span className="material-symbols-outlined text-orange-600 text-[18px] mt-0.5 shrink-0">{t('Signup.info')}</span>
                                     <p className="text-xs text-orange-800 dark:text-orange-300">
-                                        Your account will be created as a <strong>Field Agent</strong>. You must have a valid US Work Permit. You'll be asked to upload verifying documentation before claiming tasks.
-                                    </p>
+                                        {t('Signup.yourAccountWillBeCre')}<strong>{t('Signup.fieldAgent')}</strong>{t('Signup.YouMustHaveAValidUSW')}</p>
                                 </div>
                             )}
 
                             {selectedRole === 'contractor' && (
                                 <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-3 flex gap-2">
-                                    <span className="material-symbols-outlined text-indigo-600 text-[18px] mt-0.5 shrink-0">info</span>
+                                    <span className="material-symbols-outlined text-indigo-600 text-[18px] mt-0.5 shrink-0">{t('Signup.info')}</span>
                                     <p className="text-xs text-indigo-800 dark:text-indigo-300">
-                                        Your account will be created as a <strong>Maintenance Partner</strong>. You will be able to offer renovation and maintenance services to property owners once verified.
-                                    </p>
+                                        {t('Signup.yourAccountWillBeCre')}<strong>{t('Signup.maintenancePartner')}</strong>{t('Signup.YouWillBeAbleToOffer')}</p>
                                 </div>
                             )}
 
@@ -294,8 +291,7 @@ export const Signup: React.FC = () => {
                                         className="mt-0.5 text-primary focus:ring-primary rounded border-slate-300"
                                     />
                                     <span className="text-xs text-slate-600 dark:text-slate-400">
-                                        I accept the <a href="/terms" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Terms of Use</a> and <a href="/privacy" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a>. *
-                                    </span>
+                                        {t('Signup.iAcceptThe')}<a href="/terms" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{t('Signup.termsOfUse')}</a> {t('Signup.and')}<a href="/privacy" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">{t('Signup.privacyPolicy')}</a>{t('Signup.text176')}</span>
                                 </label>
                                 <label className="flex items-start gap-2 cursor-pointer">
                                     <input 
@@ -305,8 +301,7 @@ export const Signup: React.FC = () => {
                                         className="mt-0.5 text-primary focus:ring-primary rounded border-slate-300"
                                     />
                                     <span className="text-xs text-slate-600 dark:text-slate-400">
-                                        Send me updates, tips, and offers from GoAuct.
-                                    </span>
+                                        {t('Signup.sendMeUpdatesTipsAnd')}</span>
                                 </label>
                             </div>
 
@@ -317,25 +312,23 @@ export const Signup: React.FC = () => {
                             >
                                 {isLoading ? (
                                     <>
-                                        <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-                                        Creating account…
-                                    </>
+                                        <span className="material-symbols-outlined text-[18px] animate-spin">{t('Signup.progressactivity')}</span>
+                                        {t('Signup.creatingAccount')}</>
                                 ) : (
                                     <>
                                         {isRealtor ? 'Register as Realtor' : isAgent ? 'Register as Due Diligence Agent' : 'Create Investor Account'}
-                                        <span className="material-symbols-outlined text-[18px]">person_add</span>
+                                        <span className="material-symbols-outlined text-[18px]">{t('Signup.personadd')}</span>
                                     </>
                                 )}
                             </button>
 
                             <div className="text-center mt-1">
-                                <span className="text-slate-500 dark:text-slate-400 text-sm">Already have an account? </span>
+                                <span className="text-slate-500 dark:text-slate-400 text-sm">{t('Signup.alreadyHaveAnAccount')}</span>
                                 <Link
                                     to="/login"
                                     className={`text-sm font-bold hover:underline ${isRealtor ? 'text-emerald-600 dark:text-emerald-400' : isAgent ? 'text-orange-600 dark:text-orange-400' : 'text-primary'}`}
                                 >
-                                    Sign in
-                                </Link>
+                                    {t('Signup.signIn')}</Link>
                             </div>
                         </form>
                     </div>

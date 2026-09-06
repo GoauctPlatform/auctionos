@@ -5,6 +5,7 @@ import { PlusIcon, Edit2Icon, Trash2Icon, ArrowLeftIcon } from 'lucide-react';
 import { useCompany } from '../../context/CompanyContext';
 import { ClientDataService } from '../../services/property.service';
 import { AuthService } from '../../services/auth.service';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface Props {
     onBack?: () => void;
@@ -18,6 +19,7 @@ const EMPTY_FORM: CustomPropertyPayload = {
 };
 
 export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
+    const { t } = useLanguage();
     const { activeCompany } = useCompany();
     const user = AuthService.getCurrentUser();
     const [lists, setLists] = useState<any[]>([]);
@@ -125,9 +127,9 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                         </IconButton>
                     )}
                     <div>
-                        <Typography variant="h5" className="font-bold text-slate-800 dark:text-white">My Properties</Typography>
+                        <Typography variant="h5" className="font-bold text-slate-800 dark:text-white">{t('ClientUserProperties.myProperties')}</Typography>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                            Custom properties created by you • {user?.email?.split('@')[0]} · {activeCompany?.name || 'No company'}
+                            {t('ClientUserProperties.customPropertiesCrea')}{user?.email?.split('@')[0]} · {activeCompany?.name || 'No company'}
                         </p>
                     </div>
                 </div>
@@ -137,8 +139,7 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                     onClick={openCreate}
                     sx={{ textTransform: 'none', borderRadius: 2 }}
                 >
-                    Add Property
-                </Button>
+                    {t('ClientUserProperties.addProperty')}</Button>
             </div>
 
             {/* Properties Grid */}
@@ -146,12 +147,11 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                 <div className="flex justify-center p-10"><CircularProgress /></div>
             ) : properties.length === 0 ? (
                 <div className="flex flex-col items-center justify-center p-20 text-slate-400">
-                    <span className="material-symbols-outlined text-[56px] mb-4 opacity-40">real_estate_agent</span>
-                    <Typography className="font-semibold">No custom properties yet.</Typography>
-                    <p className="text-sm mt-1">Create a custom property to track investments not in the main database.</p>
+                    <span className="material-symbols-outlined text-[56px] mb-4 opacity-40">{t('ClientUserProperties.realestateagent')}</span>
+                    <Typography className="font-semibold">{t('ClientUserProperties.noCustomPropertiesYe')}</Typography>
+                    <p className="text-sm mt-1">{t('ClientUserProperties.createACustomPropert')}</p>
                     <button onClick={openCreate} className="mt-6 flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold text-sm transition-colors">
-                        <span className="material-symbols-outlined text-[18px]">add</span> Add First Property
-                    </button>
+                        <span className="material-symbols-outlined text-[18px]">{t('ClientUserProperties.add')}</span> {t('ClientUserProperties.addFirstProperty')}</button>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -163,7 +163,7 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                                         {p.address || 'Untitled Property'}
                                     </Typography>
                                     {p.parcel_id && (
-                                        <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">PID: {p.parcel_id}</span>
+                                        <span className="text-[10px] font-black uppercase text-blue-500 tracking-wider">{t('ClientUserProperties.pID')}{p.parcel_id}</span>
                                     )}
                                 </div>
                                 <div className="flex gap-1 shrink-0 ml-2">
@@ -181,7 +181,7 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                                         className="text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                                     >
                                         {deleting === p.id
-                                            ? <span className="material-symbols-outlined animate-spin text-[14px]">progress_activity</span>
+                                            ? <span className="material-symbols-outlined animate-spin text-[14px]">{t('ClientUserProperties.progressactivity')}</span>
                                             : <Trash2Icon size={14} />
                                         }
                                     </IconButton>
@@ -198,16 +198,16 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                                 )}
                                 {p.bedrooms > 0 && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">{p.bedrooms}bd</span>}
                                 {p.bathrooms > 0 && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">{p.bathrooms}ba</span>}
-                                {p.sqft > 0 && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">{p.sqft?.toLocaleString()} sqft</span>}
+                                {p.sqft > 0 && <span className="text-[10px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded">{p.sqft?.toLocaleString()} {t('ClientUserProperties.sqft')}</span>}
                             </div>
 
                             <div className="mt-auto pt-3 border-t border-slate-100 dark:border-slate-700 grid grid-cols-2 gap-2">
                                 <div className="flex flex-col">
-                                    <span className="text-[10px] uppercase text-slate-400 font-bold">Assessed Value</span>
+                                    <span className="text-[10px] uppercase text-slate-400 font-bold">{t('ClientUserProperties.assessedValue')}</span>
                                     <span className="text-sm font-bold text-emerald-600">${p.assessed_value?.toLocaleString() || '0'}</span>
                                 </div>
                                 <div className="flex flex-col items-end">
-                                    <span className="text-[10px] uppercase text-slate-400 font-bold">Opening Bid</span>
+                                    <span className="text-[10px] uppercase text-slate-400 font-bold">{t('ClientUserProperties.openingBid')}</span>
                                     <span className="text-sm font-bold text-red-500">${p.amount_due?.toLocaleString() || '0'}</span>
                                 </div>
                             </div>
@@ -266,7 +266,7 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                                 value={formData.target_list_id || ''}
                                 onChange={e => setFormData({ ...formData, target_list_id: e.target.value ? parseInt(e.target.value) : undefined })}
                             >
-                                <option value="">-- Default (Custom Folder) --</option>
+                                <option value="">{t('ClientUserProperties.DefaultCustomFolder')}</option>
                                 {lists.map(list => (
                                     <option key={list.id} value={list.id}>{list.name}</option>
                                 ))}
@@ -278,12 +278,12 @@ export const ClientUserProperties: React.FC<Props> = ({ onBack }) => {
                             value={formData.visibility || 'private'}
                             onChange={e => setFormData({ ...formData, visibility: e.target.value })}
                         >
-                            <option value="private">Private (Only my company)</option>
-                            <option value="public">Public (Share with network)</option>
+                            <option value="private">{t('ClientUserProperties.privateOnlyMyCompany')}</option>
+                            <option value="public">{t('ClientUserProperties.publicShareWithNetwo')}</option>
                         </TextField>
                     </div>
                     <div className="flex justify-end gap-2 mt-4">
-                        <Button onClick={() => { setModalOpen(false); setEditingId(null); }} color="inherit">Cancel</Button>
+                        <Button onClick={() => { setModalOpen(false); setEditingId(null); }} color="inherit">{t('ClientUserProperties.cancel')}</Button>
                         <Button onClick={handleSave} variant="contained" color="primary" disabled={saving}>
                             {saving ? 'Saving...' : (editingId ? 'Save Changes' : 'Create Property')}
                         </Button>

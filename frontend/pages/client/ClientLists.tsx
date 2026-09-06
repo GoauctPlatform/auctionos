@@ -17,6 +17,7 @@ import { StreetViewThumbnail } from '../../components/StreetViewThumbnail';
 import { ClientUserProperties } from './ClientUserProperties';
 import { InvestorTasksDashboard } from './InvestorTasksDashboard';
 import { CreateTaskForm } from '../../components/property/CreateTaskForm';
+import { useLanguage } from "../../context/LanguageContext";
 
 // Helper to map state names to codes for the SVG silhouette
 const STATE_CODE_MAP: Record<string, string> = {
@@ -96,13 +97,12 @@ const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => 
             {/* Header */}
             <div className="p-4 border-b border-slate-100 dark:border-slate-900 flex items-center gap-3">
                 <button onClick={onBack} className="flex items-center gap-1.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                    Back to My List
-                </button>
+                    <span className="material-symbols-outlined text-[18px]">{t('ClientLists.arrowback')}</span>
+                    {t('ClientLists.backToMyList')}</button>
                 <span className="text-slate-300 dark:text-slate-700">|</span>
                 <div className="flex items-center gap-2">
-                    <span className="material-symbols-outlined text-blue-500 text-[18px]">upload</span>
-                    <span className="text-sm font-bold text-slate-800 dark:text-white">My Exported Properties</span>
+                    <span className="material-symbols-outlined text-blue-500 text-[18px]">{t('ClientLists.upload')}</span>
+                    <span className="text-sm font-bold text-slate-800 dark:text-white">{t('ClientLists.myExportedProperties')}</span>
                 </div>
             </div>
 
@@ -112,9 +112,9 @@ const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => 
                     <div className="flex justify-center py-20"><CircularProgress size={28} /></div>
                 ) : exports.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                        <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">upload</span>
-                        <p className="text-sm font-medium">No properties exported yet.</p>
-                        <p className="text-xs mt-1 text-slate-400">Export properties to realtors from your folders using the Export action.</p>
+                        <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">{t('ClientLists.upload')}</span>
+                        <p className="text-sm font-medium">{t('ClientLists.noPropertiesExported')}</p>
+                        <p className="text-xs mt-1 text-slate-400">{t('ClientLists.exportPropertiesToRe')}</p>
                     </div>
                 ) : (
                     <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -127,32 +127,32 @@ const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => 
                                     </div>
                                     <div className="flex items-center gap-1">
                                         <IconButton size="small" onClick={() => openEdit(exp)} className="text-slate-400 hover:text-blue-500">
-                                            <span className="material-symbols-outlined text-[18px]">edit</span>
+                                            <span className="material-symbols-outlined text-[18px]">{t('ClientLists.edit')}</span>
                                         </IconButton>
                                         <IconButton size="small" onClick={() => handleCancelExport(exp)} className="text-slate-400 hover:text-red-500">
-                                            <span className="material-symbols-outlined text-[18px]">delete</span>
+                                            <span className="material-symbols-outlined text-[18px]">{t('ClientLists.delete')}</span>
                                         </IconButton>
                                     </div>
                                 </div>
 
                                 <div className="mt-3 space-y-1">
-                                    <p className="text-[9px] uppercase font-black text-slate-400 tracking-widest">Shared Contact Info</p>
+                                    <p className="text-[9px] uppercase font-black text-slate-400 tracking-widest">{t('ClientLists.sharedContactInfo')}</p>
                                     <p className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                                        <span className="material-symbols-outlined text-[14px]">person</span> {exp.contact_name || '—'}
+                                        <span className="material-symbols-outlined text-[14px]">{t('ClientLists.person')}</span> {exp.contact_name || '—'}
                                     </p>
                                     {exp.contact_phone && (
                                         <p className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                                            <span className="material-symbols-outlined text-[14px]">phone</span> {exp.contact_phone}
+                                            <span className="material-symbols-outlined text-[14px]">{t('ClientLists.phone')}</span> {exp.contact_phone}
                                         </p>
                                     )}
                                     {exp.requested_sale_price && (
                                         <p className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5 font-bold">
-                                            <span className="material-symbols-outlined text-[14px]">sell</span> Target: ${Number(exp.requested_sale_price).toLocaleString()}
+                                            <span className="material-symbols-outlined text-[14px]">{t('ClientLists.sell')}</span> {t('ClientLists.target')}{Number(exp.requested_sale_price).toLocaleString()}
                                         </p>
                                     )}
                                     {exp.contact_email && (
                                         <p className="text-xs text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
-                                            <span className="material-symbols-outlined text-[14px]">mail</span> {exp.contact_email}
+                                            <span className="material-symbols-outlined text-[14px]">{t('ClientLists.mail')}</span> {exp.contact_email}
                                         </p>
                                     )}
                                 </div>
@@ -163,7 +163,7 @@ const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => 
                                     </div>
                                 )}
 
-                                <p className="text-[9px] text-slate-400 mt-4">Exported on {new Date(exp.exported_at).toLocaleDateString()}</p>
+                                <p className="text-[9px] text-slate-400 mt-4">{t('ClientLists.exportedOn')}{new Date(exp.exported_at).toLocaleDateString()}</p>
                             </div>
                         ))}
                     </div>
@@ -173,7 +173,7 @@ const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => 
             {/* Edit Export Dialog */}
             <Dialog open={!!editingExport} onClose={() => setEditingExport(null)} maxWidth="xs" fullWidth PaperProps={{ sx: { borderRadius: 3 } }}>
                 <div className="p-5 border-b border-slate-100 dark:border-slate-800">
-                    <Typography variant="h6" className="font-bold text-slate-900 dark:text-white">Edit Export Info</Typography>
+                    <Typography variant="h6" className="font-bold text-slate-900 dark:text-white">{t('ClientLists.editExportInfo')}</Typography>
                 </div>
                 <div className="p-5 space-y-4">
                     <TextField label="Contact Name" fullWidth value={editForm.contact_name} onChange={e => setEditForm({ ...editForm, contact_name: e.target.value })} />
@@ -183,8 +183,8 @@ const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => 
                     <TextField label="Notes for Realtors" fullWidth multiline rows={3} value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} />
                 </div>
                 <div className="p-5 bg-slate-50 dark:bg-slate-900/50 flex gap-3">
-                    <Button onClick={() => setEditingExport(null)} fullWidth>Cancel</Button>
-                    <Button onClick={handleSaveEdit} fullWidth variant="contained" color="primary" className="rounded-xl bg-blue-600">Save Changes</Button>
+                    <Button onClick={() => setEditingExport(null)} fullWidth>{t('ClientLists.cancel')}</Button>
+                    <Button onClick={handleSaveEdit} fullWidth variant="contained" color="primary" className="rounded-xl bg-blue-600">{t('ClientLists.saveChanges')}</Button>
                 </div>
             </Dialog>
         </div>
@@ -197,6 +197,7 @@ interface ClientListsProps {
 }
 
 const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
+    const { t } = useLanguage();
     // Helper to match county name robustly (ignoring case, spaces, and the "County" suffix)
     const normalizedMatch = (c1: string, c2: string) => {
         if (!c1 || !c2) return false;
@@ -991,7 +992,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
             {/* Left Sidebar */}
             <div id="tour-lists-sidebar" className={`${sidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 border-r border-slate-200 dark:border-sol-base01/20 flex flex-col bg-slate-100/50 dark:bg-sol-base02/50 backdrop-blur-xl overflow-hidden shrink-0`}>
                 <div className="p-4 flex justify-between items-center w-64">
-                    <Typography variant="h6" className="font-bold text-slate-800 dark:text-white tracking-tight">Folders</Typography>
+                    <Typography variant="h6" className="font-bold text-slate-800 dark:text-white tracking-tight">{t('ClientLists.folders')}</Typography>
                     <IconButton size="small" onClick={() => setOpenModal(true)} className="hover:bg-slate-200 dark:hover:bg-slate-800">
                         <FolderPlusIcon size={18} className="text-blue-600" />
                     </IconButton>
@@ -1008,11 +1009,11 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         InputProps={{
                             startAdornment: (
-                                <span className="material-symbols-outlined text-[18px] text-slate-400 mr-1.5 select-none">search</span>
+                                <span className="material-symbols-outlined text-[18px] text-slate-400 mr-1.5 select-none">{t('ClientLists.search')}</span>
                             ),
                             endAdornment: searchTerm && (
                                 <IconButton size="small" onClick={() => setSearchTerm('')} className="p-0.5" edge="end">
-                                    <span className="material-symbols-outlined text-[16px] text-slate-400">close</span>
+                                    <span className="material-symbols-outlined text-[16px] text-slate-400">{t('ClientLists.close')}</span>
                                 </IconButton>
                             ),
                             className: "bg-white dark:bg-slate-800 rounded-xl text-xs"
@@ -1024,7 +1025,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                     {searchTerm ? (
                         <div className="space-y-2">
                             <Typography variant="overline" className="text-slate-400 font-bold text-[10px] px-3">
-                                Search Results ({filteredResults.length})
+                                {t('ClientLists.searchResults')}{filteredResults.length})
                             </Typography>
                             {filteredResults.length > 0 ? (
                                 filteredResults.map(({ property, list, county }) => {
@@ -1068,7 +1069,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                         await handleRemoveProperty(property.id, list.id);
                                                     }}
                                                 >
-                                                    <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                    <span className="material-symbols-outlined text-[16px]">{t('ClientLists.delete')}</span>
                                                 </IconButton>
                                             </div>
                                         </div>
@@ -1076,8 +1077,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                 })
                             ) : (
                                 <div className="text-center py-8 text-slate-400 dark:text-slate-600 text-xs">
-                                    No properties found.
-                                </div>
+                                    {t('ClientLists.noPropertiesFound')}</div>
                             )}
                         </div>
                     ) : (
@@ -1089,8 +1089,8 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                     className="flex items-center justify-between px-3 cursor-pointer group"
                                     onClick={() => setCollapsedSections(prev => ({ ...prev, smart: !prev.smart }))}
                                 >
-                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">Smart Lists</Typography>
-                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.smart ? '-rotate-90' : ''}`}>expand_more</span>
+                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">{t('ClientLists.smartLists')}</Typography>
+                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.smart ? '-rotate-90' : ''}`}>{t('ClientLists.expandmore')}</span>
                                 </div>
                                 {!collapsedSections.smart && (
                                     <div className="mt-1 space-y-0.5">
@@ -1105,11 +1105,11 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                     ${selectedListId === list.id ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}
                                                     ${dragOverListId === list.id ? 'ring-2 ring-blue-400 ring-inset scale-[1.02]' : ''}`}
                                             >
-                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-amber-500'}`}>star</span>
+                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-amber-500'}`}>{t('ClientLists.star')}</span>
                                                 <span className="flex-1 text-sm font-medium truncate">{list.name}</span>
                                                 {list.has_upcoming_auction && (
                                                     <div className="flex items-center gap-0.5 bg-orange-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">
-                                                        <span className="material-symbols-outlined text-[10px]">gavel</span>
+                                                        <span className="material-symbols-outlined text-[10px]">{t('ClientLists.gavel')}</span>
                                                         <span className="text-[9px] font-black">{list.upcoming_auctions_count}</span>
                                                     </div>
                                                 )}
@@ -1127,8 +1127,8 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                 className="flex items-center justify-between px-3 cursor-pointer group"
                                 onClick={() => setCollapsedSections(prev => ({ ...prev, custom: !prev.custom }))}
                             >
-                                <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">Custom Folders</Typography>
-                                <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.custom ? '-rotate-90' : ''}`}>expand_more</span>
+                                <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">{t('ClientLists.customFolders')}</Typography>
+                                <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.custom ? '-rotate-90' : ''}`}>{t('ClientLists.expandmore')}</span>
                             </div>
                             {!collapsedSections.custom && (
                                 <div className="mt-1 space-y-0.5">
@@ -1144,18 +1144,17 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                 ${dragOverListId === list.id ? 'ring-2 ring-blue-400 ring-inset scale-[1.02]' : ''}`}
                                         >
                                             <div className="relative shrink-0">
-                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-blue-500'}`}>folder</span>
+                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-blue-500'}`}>{t('ClientLists.folder')}</span>
                                                 {list.has_upcoming_auction && (
                                                     <div className="absolute -top-1 -right-1 bg-orange-500 text-white rounded-full p-0.5 shadow-sm z-10 leading-none">
-                                                        <span className="material-symbols-outlined text-[10px] block">gavel</span>
+                                                        <span className="material-symbols-outlined text-[10px] block">{t('ClientLists.gavel')}</span>
                                                     </div>
                                                 )}
                                             </div>
                                             <span className="flex-1 text-sm font-medium truncate">{list.name}</span>
                                             {list.has_upcoming_auction && (
                                                 <span className="text-[10px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded-md font-black">
-                                                    AUCTION
-                                                </span>
+                                                    {t('ClientLists.aUCTION')}</span>
                                             )}
                                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <IconButton
@@ -1187,8 +1186,8 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                     className="flex items-center justify-between px-3 cursor-pointer group"
                                     onClick={() => setCollapsedSections(prev => ({ ...prev, standard: !prev.standard }))}
                                 >
-                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">Standard Folders</Typography>
-                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.standard ? '-rotate-90' : ''}`}>expand_more</span>
+                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">{t('ClientLists.standardFolders')}</Typography>
+                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.standard ? '-rotate-90' : ''}`}>{t('ClientLists.expandmore')}</span>
                                 </div>
                                 {!collapsedSections.standard && (
                                     <div className="mt-1 space-y-1">
@@ -1233,12 +1232,11 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                     >
                                                         <div className="flex items-center gap-2">
                                                             <span className={`material-symbols-outlined text-[16px] transition-transform duration-200 ${expandedStates[list.name] ? 'rotate-90 text-blue-500' : 'text-slate-400'}`}>
-                                                                chevron_right
-                                                            </span>
+                                                                {t('ClientLists.chevronright')}</span>
                                                             <span className="text-sm font-bold truncate tracking-tight">{list.name}</span>
                                                             {list.has_upcoming_auction && (
                                                                 <div className="flex items-center gap-0.5 bg-orange-500 text-white px-1.5 py-0.5 rounded-full">
-                                                                    <span className="material-symbols-outlined text-[10px]">gavel</span>
+                                                                    <span className="material-symbols-outlined text-[10px]">{t('ClientLists.gavel')}</span>
                                                                     <span className="text-[9px] font-black">{list.upcoming_auctions_count}</span>
                                                                 </div>
                                                             )}
@@ -1255,8 +1253,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                                 </IconButton>
                                                             </div>
                                                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${selectedStateName === list.name && !selectedCountyName ? 'text-blue-600 bg-blue-200/50 dark:bg-blue-800/50 dark:text-blue-300' : 'text-slate-400 bg-slate-200 dark:bg-slate-800'}`}>
-                                                                {list.property_count} Props
-                                                            </span>
+                                                                {list.property_count} {t('ClientLists.props')}</span>
                                                         </div>
                                                     </div>
 
@@ -1286,11 +1283,11 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                                         className={`group flex items-center gap-3 px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 
                                                                         ${selectedCountyName === county ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
                                                                     >
-                                                                        <span className={`material-symbols-outlined text-[16px] ${selectedCountyName === county ? 'text-white' : 'text-emerald-500'}`}>map</span>
+                                                                        <span className={`material-symbols-outlined text-[16px] ${selectedCountyName === county ? 'text-white' : 'text-emerald-500'}`}>{t('ClientLists.map')}</span>
                                                                         <span className="flex-1 text-sm font-medium truncate">{county}</span>
                                                                         {hasAuction && (
                                                                             <div className="flex items-center gap-0.5 bg-orange-500 text-white px-1.5 py-0.5 rounded-full animate-pulse shadow-sm">
-                                                                                <span className="material-symbols-outlined text-[10px]">gavel</span>
+                                                                                <span className="material-symbols-outlined text-[10px]">{t('ClientLists.gavel')}</span>
                                                                             </div>
                                                                         )}
                                                                         
@@ -1325,8 +1322,8 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                     className="flex items-center justify-between px-3 cursor-pointer group"
                                     onClick={() => setCollapsedSections(prev => ({ ...prev, broadcasted: !prev.broadcasted }))}
                                 >
-                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">From Admin</Typography>
-                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.broadcasted ? '-rotate-90' : ''}`}>expand_more</span>
+                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">{t('ClientLists.fromAdmin')}</Typography>
+                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.broadcasted ? '-rotate-90' : ''}`}>{t('ClientLists.expandmore')}</span>
                                 </div>
                                 {!collapsedSections.broadcasted && (
                                     <div className="mt-1 space-y-0.5">
@@ -1337,7 +1334,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                 className={`group flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 
                                                     ${selectedListId === list.id ? 'bg-green-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
                                             >
-                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-green-500'}`}>campaign</span>
+                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-green-500'}`}>{t('ClientLists.campaign')}</span>
                                                 <span className="flex-1 text-sm font-medium truncate">{list.name}</span>
 
                                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -1357,7 +1354,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
 
                         {/* User Content / Tasks */}
                         <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-                            <Typography variant="overline" className="px-3 text-slate-400 font-bold text-[10px] tracking-widest uppercase">Team Collaboration</Typography>
+                            <Typography variant="overline" className="px-3 text-slate-400 font-bold text-[10px] tracking-widest uppercase">{t('ClientLists.teamCollaboration')}</Typography>
                             <div className="mt-2 space-y-0.5">
                                 <div
                                     onClick={() => { 
@@ -1373,10 +1370,10 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                     className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 
                                         ${viewMode === 'my_tasks' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
                                 >
-                                    <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_tasks' ? 'text-white' : 'text-blue-500'}`}>task_alt</span>
+                                    <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_tasks' ? 'text-white' : 'text-blue-500'}`}>{t('ClientLists.taskalt')}</span>
                                     <div className="flex-1 flex items-center justify-between min-w-0">
-                                        <span className="text-sm font-medium truncate">My Tasks</span>
-                                        {isTrial && <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>}
+                                        <span className="text-sm font-medium truncate">{t('ClientLists.myTasks')}</span>
+                                        {isTrial && <span className="material-symbols-outlined text-[14px] text-slate-400">{t('ClientLists.lock')}</span>}
                                     </div>
                                 </div>
                                 <div
@@ -1393,10 +1390,10 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                     className={`group flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 
                                         ${viewMode === 'my_exports' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
                                 >
-                                    <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_exports' ? 'text-white' : 'text-blue-500'}`}>upload</span>
+                                    <span className={`material-symbols-outlined text-[18px] ${viewMode === 'my_exports' ? 'text-white' : 'text-blue-500'}`}>{t('ClientLists.upload')}</span>
                                     <div className="flex-1 flex items-center justify-between min-w-0">
-                                        <span className="text-sm font-medium truncate">My Exports</span>
-                                        {isTrial && <span className="material-symbols-outlined text-[14px] text-slate-400">lock</span>}
+                                        <span className="text-sm font-medium truncate">{t('ClientLists.myExports')}</span>
+                                        {isTrial && <span className="material-symbols-outlined text-[14px] text-slate-400">{t('ClientLists.lock')}</span>}
                                     </div>
                                 </div>
                             </div>
@@ -1407,9 +1404,9 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
 
                 <div className="p-3 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
                     <IconButton size="small" onClick={() => setOpenModal(true)} className="text-blue-600">
-                        <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                        <span className="material-symbols-outlined text-[20px]">{t('ClientLists.addcircle')}</span>
                     </IconButton>
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-tighter">New Folder</span>
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-tighter">{t('ClientLists.newFolder')}</span>
                 </div>
             </div>
 
@@ -1493,8 +1490,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                                                 {selectedStateName && selectedCountyName
                                                     ? selectedListProperties.filter(p => (p.county || '').trim().toLowerCase() === selectedCountyName.trim().toLowerCase()).length
-                                                    : selectedListProperties.length} Properties
-                                            </span>
+                                                    : selectedListProperties.length} {t('ClientLists.properties')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -1504,9 +1500,8 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                         onClick={() => window.print()}
                                         className="print:hidden flex items-center gap-1.5 px-3 py-2 text-xs font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-sm transition-all"
                                     >
-                                        <span className="material-symbols-outlined text-[16px]">picture_as_pdf</span>
-                                        Export List PDF
-                                    </button>
+                                        <span className="material-symbols-outlined text-[16px]">{t('ClientLists.pictureaspdf')}</span>
+                                        {t('ClientLists.exportListPDF')}</button>
                                 )}
                             </div>
                         </div>
@@ -1545,30 +1540,27 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                     className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-blue-500 focus:ring-blue-400 cursor-pointer"
                                 />
                                 <span className="text-xs font-bold text-slate-300">
-                                    {selectedPropIds.size} Selected
-                                </span>
+                                    {selectedPropIds.size} {t('ClientLists.selected')}</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setIsBulkMoving(true)}
                                     className="px-3 py-1.5 text-xs font-bold bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-all flex items-center gap-1.5"
                                 >
-                                    <span className="material-symbols-outlined text-[16px]">drive_file_move</span>
-                                    Move Selected
-                                </button>
+                                    <span className="material-symbols-outlined text-[16px]">{t('ClientLists.drivefilemove')}</span>
+                                    {t('ClientLists.moveSelected')}</button>
                                 <button
                                     onClick={handleBulkRemoveProperties}
                                     className="px-3 py-1.5 text-xs font-bold bg-red-600 hover:bg-red-500 text-white rounded-lg transition-all flex items-center gap-1.5"
                                 >
-                                    <span className="material-symbols-outlined text-[16px]">delete</span>
-                                    Remove Selected
-                                </button>
+                                    <span className="material-symbols-outlined text-[16px]">{t('ClientLists.delete')}</span>
+                                    {t('ClientLists.removeSelected')}</button>
                                 <button
                                     onClick={() => setSelectedPropIds(new Set())}
                                     className="p-1 text-slate-400 hover:text-white rounded-lg transition-all"
                                     title="Clear selection"
                                 >
-                                    <span className="material-symbols-outlined text-[18px]">close</span>
+                                    <span className="material-symbols-outlined text-[18px]">{t('ClientLists.close')}</span>
                                 </button>
                             </div>
                         </div>
@@ -1577,13 +1569,12 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                     {(selectedList?.has_upcoming_auction || selectedListProperties.some(p => p.auction_status === "started" || (p.auction_date && new Date(p.auction_date).getTime() < Date.now() + 7 * 24 * 60 * 60 * 1000))) && (
                         <div className="mb-4 bg-orange-50 dark:bg-orange-900/10 border border-orange-200 dark:border-orange-800/50 rounded-xl p-4 flex gap-4 items-start">
                             <div className="size-10 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 flex items-center justify-center shrink-0">
-                                <span className="material-symbols-outlined text-xl">warning</span>
+                                <span className="material-symbols-outlined text-xl">{t('ClientLists.warning')}</span>
                             </div>
                             <div>
-                                <h4 className="text-orange-800 dark:text-orange-400 font-bold text-sm">Action Required: Approaching Auctions</h4>
+                                <h4 className="text-orange-800 dark:text-orange-400 font-bold text-sm">{t('ClientLists.actionRequiredApproa')}</h4>
                                 <p className="text-orange-700 dark:text-orange-500 text-xs mt-1">
-                                    One or more properties in this watchlist have an upcoming auction date within the next 7 days or have already started. Please verify funds and register to bid on the respective county portal.
-                                </p>
+                                    {t('ClientLists.oneOrMorePropertiesI')}</p>
                             </div>
                         </div>
                     )}
@@ -1636,8 +1627,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                     </div>
                                                 </div>
                                                 <Typography className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                                                    {selectedStateName} Official Info
-                                                </Typography>
+                                                    {selectedStateName} {t('ClientLists.officialInfo')}</Typography>
                                             </div>
                                             {contactInfo?.url && (
                                                 <Button
@@ -1648,14 +1638,13 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                     className="text-[10px] h-6 px-2 rounded-sm border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 normal-case"
                                                     startIcon={<ExternalLinkIcon size={10} />}
                                                 >
-                                                    State Portal
-                                                </Button>
+                                                    {t('ClientLists.statePortal')}</Button>
                                             )}
                                         </div>
 
                                         {/* Dynamic Auction Links Section */}
                                         <div className="space-y-2">
-                                            <Typography variant="overline" className="text-[10px] font-bold text-slate-400">Active Auction Portals</Typography>
+                                            <Typography variant="overline" className="text-[10px] font-bold text-slate-400">{t('ClientLists.activeAuctionPortals')}</Typography>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                 {auctionLinks.length > 0 ? (
                                                     auctionLinks.map((link, idx) => (
@@ -1664,20 +1653,18 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                             <div className="flex gap-2">
                                                                  {link.register && (
                                                                     <a href={link.register} target="_blank" rel="noreferrer" className="text-[9px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5 font-bold">
-                                                                        <span className="material-symbols-outlined text-[10px]">app_registration</span> Registration
-                                                                    </a>
+                                                                        <span className="material-symbols-outlined text-[10px]">{t('ClientLists.appregistration')}</span> {t('ClientLists.registration')}</a>
                                                                  )}
                                                                  {link.list && (
                                                                     <a href={link.list} target="_blank" rel="noreferrer" className="text-[9px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-0.5 font-bold">
-                                                                        <span className="material-symbols-outlined text-[10px]">list_alt</span> List
-                                                                    </a>
+                                                                        <span className="material-symbols-outlined text-[10px]">{t('ClientLists.listalt')}</span> {t('ClientLists.list')}</a>
                                                                  )}
                                                             </div>
                                                         </div>
                                                     ))
                                                 ) : (
                                                     <div className="col-span-full py-3 bg-slate-100/50 dark:bg-slate-800/40 rounded-lg text-center">
-                                                        <span className="text-[10px] text-slate-400 italic">No auction links found for properties in this list.</span>
+                                                        <span className="text-[10px] text-slate-400 italic">{t('ClientLists.noAuctionLinksFoundF')}</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -1689,7 +1676,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                 <Typography variant="overline" className="text-[10px] font-bold text-slate-400">
                                                     {selectedCountyName ? `${selectedCountyName} Specific Notes` : 'General Folder Notes'}
                                                 </Typography>
-                                                {selectedCountyName && <span className="text-[9px] bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 px-1.5 py-0.5 rounded uppercase font-bold">Subfolder</span>}
+                                                {selectedCountyName && <span className="text-[9px] bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 px-1.5 py-0.5 rounded uppercase font-bold">{t('ClientLists.subfolder')}</span>}
                                             </div>
                                             <TextField
                                                 multiline
@@ -1711,7 +1698,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                     }
                                                 }}
                                             />
-                                            {savingNotes && <span className="text-[9px] text-blue-500 animate-pulse ml-1">Saving changes...</span>}
+                                            {savingNotes && <span className="text-[9px] text-blue-500 animate-pulse ml-1">{t('ClientLists.savingChanges')}</span>}
                                         </div>
                                     </div>
 
@@ -1735,7 +1722,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                     {/* County Contacts (Overlay/Replacement) */}
                                     {selectedCountyName && (
                                         <div className="w-full md:w-64 p-4 bg-white dark:bg-slate-800 overflow-y-auto max-h-[300px]">
-                                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{selectedCountyName} Sub-Links</h3>
+                                            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">{selectedCountyName} {t('ClientLists.subLinks')}</h3>
                                             <div className="space-y-2">
                                                 {countyContacts.length > 0 ? (
                                                     countyContacts.map((contact, idx) => (
@@ -1750,11 +1737,11 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                                 <span className="font-bold text-[10px] truncate">{contact.name}</span>
                                                                 {contact.phone && <span className="text-[9px] text-slate-500 opacity-70 italic">{contact.phone}</span>}
                                                             </div>
-                                                            <span className="material-symbols-outlined text-[14px] text-blue-500">open_in_new</span>
+                                                            <span className="material-symbols-outlined text-[14px] text-blue-500">{t('ClientLists.openinnew')}</span>
                                                         </a>
                                                     ))
                                                 ) : (
-                                                    <span className="text-[10px] text-slate-400 italic">No specific county links.</span>
+                                                    <span className="text-[10px] text-slate-400 italic">{t('ClientLists.noSpecificCountyLink')}</span>
                                                 )}
                                             </div>
                                         </div>
@@ -1769,14 +1756,14 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                         </div>
                     ) : selectedListProperties.length === 0 ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-center opacity-40 min-h-[200px]">
-                            <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">folder_open</span>
-                            <Typography className="text-slate-500 text-sm font-medium">No Properties in this folder</Typography>
-                            <Typography className="text-slate-400 text-xs mt-1">Drag and drop properties here from search or other lists.</Typography>
+                            <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">{t('ClientLists.folderopen')}</span>
+                            <Typography className="text-slate-500 text-sm font-medium">{t('ClientLists.noPropertiesInThisFo')}</Typography>
+                            <Typography className="text-slate-400 text-xs mt-1">{t('ClientLists.dragAndDropPropertie')}</Typography>
                         </div>
                     ) : displayProperties.length === 0 ? (
                         <div className="flex-1 flex flex-col items-center justify-center text-center opacity-40 min-h-[200px]">
-                            <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">folder_open</span>
-                            <Typography className="text-slate-500 text-sm font-medium">No properties found in this specific county.</Typography>
+                            <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">{t('ClientLists.folderopen')}</span>
+                            <Typography className="text-slate-500 text-sm font-medium">{t('ClientLists.noPropertiesFoundInT')}</Typography>
                         </div>
                     ) : (
                         <div className="space-y-3">
@@ -1784,16 +1771,15 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                 <div className="mb-4 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 border border-orange-200 dark:border-orange-800/30 rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
                                     <div className="flex items-start gap-3">
                                         <div className="p-2 bg-orange-100 dark:bg-orange-800/40 rounded-lg text-orange-600 dark:text-orange-400 shadow-inner">
-                                            <span className="material-symbols-outlined pt-0.5">notification_important</span>
+                                            <span className="material-symbols-outlined pt-0.5">{t('ClientLists.notificationimportan')}</span>
                                         </div>
                                         <div>
-                                            <h5 className="font-extrabold text-orange-800 dark:text-orange-300 text-sm tracking-tight">Upcoming Auctions Detected!</h5>
-                                            <p className="text-xs text-orange-700 dark:text-orange-400 mt-0.5 font-medium">There are {selectedList.upcoming_auctions_count} properties in this folder scheduled for auction soon. Review them immediately.</p>
+                                            <h5 className="font-extrabold text-orange-800 dark:text-orange-300 text-sm tracking-tight">{t('ClientLists.upcomingAuctionsDete')}</h5>
+                                            <p className="text-xs text-orange-700 dark:text-orange-400 mt-0.5 font-medium">{t('ClientLists.thereAre')}{selectedList.upcoming_auctions_count} {t('ClientLists.propertiesInThisFold')}</p>
                                         </div>
                                     </div>
                                     <Button variant="contained" color="warning" size="small" className="whitespace-nowrap shadow-none font-bold text-xs" onClick={() => { }}>
-                                        Review Agenda
-                                    </Button>
+                                        {t('ClientLists.reviewAgenda')}</Button>
                                 </div>
                             )}
                             {displayProperties.map((prop: any) => (
@@ -1879,20 +1865,19 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                                 fontVariationSettings: favoritesSet.has(prop.id) ? "'FILL' 1, 'wght' 700" : "'FILL' 0, 'wght' 400"
                                                             }}
                                                         >
-                                                            star
-                                                        </span>
+                                                            {t('ClientLists.star')}</span>
                                                     </IconButton>
                                                 </div>
                                                 <div className="flex items-center gap-3 text-[11px] text-slate-500 dark:text-slate-400">
                                                     <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{prop.parcel_id}</span>
                                                     <span className="opacity-30">|</span>
                                                     <div className="flex items-center gap-1">
-                                                        <span className="material-symbols-outlined text-[14px] text-red-500">location_on</span>
+                                                        <span className="material-symbols-outlined text-[14px] text-red-500">{t('ClientLists.locationon')}</span>
                                                         <span className="truncate">{prop.address || 'No Address Listed'}</span>
                                                     </div>
                                                     <span className="opacity-30">|</span>
                                                     <div className="flex items-center gap-1">
-                                                        <span className="material-symbols-outlined text-[14px] text-emerald-500">map</span>
+                                                        <span className="material-symbols-outlined text-[14px] text-emerald-500">{t('ClientLists.map')}</span>
                                                         <span className="truncate text-emerald-600 dark:text-emerald-400">{prop.county || 'Unknown County'}</span>
                                                     </div>
                                                 </div>
@@ -1906,22 +1891,22 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
 
                                                 <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-4">
                                                     <div className="flex flex-col">
-                                                        <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Opening Bid</span>
+                                                        <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">{t('ClientLists.openingBid')}</span>
                                                         <span className="text-xs font-bold text-slate-700 dark:text-white">${prop.amount_due?.toLocaleString() || '0'}</span>
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Acres</span>
+                                                        <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">{t('ClientLists.acres')}</span>
                                                         <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{prop.lot_acres || 'N/A'}</span>
                                                     </div>
                                                     {/* Legal Description Hover Badge */}
                                                     {prop.legal_description && (
                                                         <div className="relative group/legal flex flex-col cursor-default">
-                                                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Legal Desc.</span>
-                                                            <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 underline decoration-dotted">View ℹ</span>
+                                                            <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">{t('ClientLists.legalDesc')}</span>
+                                                            <span className="text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 underline decoration-dotted">{t('ClientLists.view')}</span>
                                                             {/* Tooltip */}
                                                             <div className="absolute bottom-full left-0 mb-2 z-50 w-72 invisible opacity-0 group-hover/legal:visible group-hover/legal:opacity-100 transition-all duration-200 pointer-events-none">
                                                                 <div className="bg-slate-900 dark:bg-slate-700 text-white text-[11px] leading-relaxed rounded-xl shadow-2xl p-3 border border-slate-700 dark:border-slate-600">
-                                                                    <p className="font-black uppercase tracking-wider text-indigo-300 text-[9px] mb-1">Legal Description</p>
+                                                                    <p className="font-black uppercase tracking-wider text-indigo-300 text-[9px] mb-1">{t('ClientLists.legalDescription')}</p>
                                                                     <p className="font-mono break-words">{prop.legal_description}</p>
                                                                 </div>
                                                                 {/* Arrow */}
@@ -1931,9 +1916,9 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                     )}
                                                     {prop.is_auction_upcoming && (
                                                         <div className="flex items-center gap-2 bg-orange-50 dark:bg-orange-950/40 px-2 py-1 rounded-lg border border-orange-100 dark:border-orange-900/30">
-                                                            <span className="material-symbols-outlined text-[16px] text-orange-600 animate-bounce">gavel</span>
+                                                            <span className="material-symbols-outlined text-[16px] text-orange-600 animate-bounce">{t('ClientLists.gavel')}</span>
                                                             <div className="flex flex-col">
-                                                                <span className="text-[9px] text-orange-600 font-black uppercase tracking-tighter">Auction Soon</span>
+                                                                <span className="text-[9px] text-orange-600 font-black uppercase tracking-tighter">{t('ClientLists.auctionSoon')}</span>
                                                                 <span className="text-xs font-bold text-orange-700 dark:text-orange-400">
                                                                     {prop.days_until_auction === 0 ? 'TODAY' : `${prop.days_until_auction} days left`}
                                                                 </span>
@@ -1942,17 +1927,15 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                     )}
                                                     {(prop.auction_info_link || prop.auction_list_link) && (
                                                         <div className="flex items-center gap-3 bg-blue-50/50 dark:bg-blue-900/20 px-2 py-1 rounded-lg border border-blue-100/50 dark:border-blue-800/30">
-                                                            <span className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter">Portals:</span>
+                                                            <span className="text-[9px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-tighter">{t('ClientLists.portals')}</span>
                                                             <div className="flex gap-2">
                                                                 {prop.auction_info_link && (
                                                                     <a href={prop.auction_info_link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-0.5 font-bold">
-                                                                        Registration / Instructions
-                                                                    </a>
+                                                                        {t('ClientLists.registrationInstruct')}</a>
                                                                 )}
                                                                 {prop.auction_list_link && (
                                                                     <a href={prop.auction_list_link} target="_blank" rel="noreferrer" onClick={(e) => e.stopPropagation()} className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-0.5 font-bold">
-                                                                        Auction List
-                                                                    </a>
+                                                                        {t('ClientLists.auctionList')}</a>
                                                                 )}
                                                             </div>
                                                         </div>
@@ -1977,7 +1960,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                     draggable
                                                     onDragStart={(e) => handleDragStart(e, prop.id)}
                                                 >
-                                                    <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
+                                                    <span className="material-symbols-outlined text-[18px]">{t('ClientLists.dragindicator')}</span>
                                                 </div>
                                             </div>
                                             {/* Task & Export action buttons */}
@@ -1994,9 +1977,8 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                         }}
                                                         className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 border border-blue-200 dark:border-blue-800 transition-colors"
                                                     >
-                                                        <span className="material-symbols-outlined text-[14px]">task_alt</span>
-                                                        Create Task
-                                                    </button>
+                                                        <span className="material-symbols-outlined text-[14px]">{t('ClientLists.taskalt')}</span>
+                                                        {t('ClientLists.createTask')}</button>
                                                     <button
                                                         onClick={() => {
                                                             if (isTrial) {
@@ -2008,9 +1990,8 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                                                         }}
                                                         className="flex-1 flex items-center justify-center gap-1.5 py-1.5 text-[10px] font-bold rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800 transition-colors"
                                                     >
-                                                        <span className="material-symbols-outlined text-[14px]">upload</span>
-                                                        Export to Realtors
-                                                    </button>
+                                                        <span className="material-symbols-outlined text-[14px]">{t('ClientLists.upload')}</span>
+                                                        {t('ClientLists.exportToRealtors')}</button>
                                                 </div>
                                             )}
                                         </div>
@@ -2026,7 +2007,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
             {/* Create Folder Modal */}
             <Dialog open={openModal} onClose={() => setOpenModal(false)} PaperProps={{ className: "rounded-2xl dark:bg-slate-900", sx: { overflow: 'visible' } }}>
                 <div className="p-6 min-w-[320px] max-w-[400px]">
-                    <Typography variant="h6" className="font-bold mb-4 dark:text-white">New Folder</Typography>
+                    <Typography variant="h6" className="font-bold mb-4 dark:text-white">{t('ClientLists.newFolder')}</Typography>
 
                     <Tabs value={creationMode} onChange={(_, v) => setCreationMode(v)} className="mb-6 border-b border-slate-100 dark:border-slate-800">
                         <Tab value="custom" label="Custom" className="font-bold capitalize rounded-t-lg" />
@@ -2072,7 +2053,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                         </div>
                     )}
                     <div className="flex justify-end gap-3 mt-6">
-                        <Button color="inherit" onClick={() => setOpenModal(false)}>Cancel</Button>
+                        <Button color="inherit" onClick={() => setOpenModal(false)}>{t('ClientLists.cancel')}</Button>
                         <Button
                             variant="contained"
                             onClick={handleCreateList}
@@ -2088,7 +2069,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
             {/* Edit Folder Modal */}
             <Dialog open={editModalOpen} onClose={() => setEditModalOpen(false)} PaperProps={{ className: "rounded-2xl dark:bg-slate-900", sx: { overflow: 'visible' } }}>
                 <div className="p-6 min-w-[320px] max-w-[400px]">
-                    <Typography variant="h6" className="font-bold mb-4 dark:text-white">Edit Folder</Typography>
+                    <Typography variant="h6" className="font-bold mb-4 dark:text-white">{t('ClientLists.editFolder')}</Typography>
 
                     {editFolderType === 'custom' ? (
                         <TextField
@@ -2138,7 +2119,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                     )}
 
                     <div className="flex justify-end gap-2 mt-4">
-                        <Button onClick={() => setEditModalOpen(false)} className="text-slate-500 font-bold capitalize">Cancel</Button>
+                        <Button onClick={() => setEditModalOpen(false)} className="text-slate-500 font-bold capitalize">{t('ClientLists.cancel')}</Button>
                         <Button 
                             variant="contained" 
                             color="primary" 
@@ -2146,8 +2127,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                             onClick={handleEditFolderSave}
                             disabled={editFolderType === 'custom' ? !editFolderName : !editFolderState}
                         >
-                            Save Changes
-                        </Button>
+                            {t('ClientLists.saveChanges')}</Button>
                     </div>
                 </div>
             </Dialog>
@@ -2161,8 +2141,8 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
 
             {/* Move Property Dialog */}
             <Dialog open={!!movingPropertyId} onClose={() => setMovingPropertyId(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-                <Typography variant="h6" className="font-bold mb-4 text-slate-800 dark:text-white">Move Property to Folder</Typography>
-                <Typography variant="body2" className="text-slate-500 mb-4">Select the destination folder for this property.</Typography>
+                <Typography variant="h6" className="font-bold mb-4 text-slate-800 dark:text-white">{t('ClientLists.movePropertyToFolder')}</Typography>
+                <Typography variant="body2" className="text-slate-500 mb-4">{t('ClientLists.selectTheDestination')}</Typography>
                 <TextField
                     select
                     SelectProps={{ native: true }}
@@ -2171,21 +2151,21 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                     value={moveTargetListId}
                     onChange={(e) => setMoveTargetListId(e.target.value)}
                 >
-                    <option value="" disabled>-- Select a Folder --</option>
+                    <option value="" disabled>{t('ClientLists.SelectAFolder')}</option>
                     {lists.filter(l => l.id !== selectedListId).map(l => (
                         <option key={l.id} value={l.id}>{l.name}</option>
                     ))}
                 </TextField>
                 <div className="flex justify-end gap-2 mt-6">
-                    <Button onClick={() => setMovingPropertyId(null)} color="inherit">Cancel</Button>
-                    <Button onClick={handleMoveProperty} variant="contained" color="primary" disabled={!moveTargetListId}>Move Property</Button>
+                    <Button onClick={() => setMovingPropertyId(null)} color="inherit">{t('ClientLists.cancel')}</Button>
+                    <Button onClick={handleMoveProperty} variant="contained" color="primary" disabled={!moveTargetListId}>{t('ClientLists.moveProperty')}</Button>
                 </div>
             </Dialog>
 
             {/* Bulk Move Properties Dialog */}
             <Dialog open={isBulkMoving} onClose={() => { setIsBulkMoving(false); setBulkMoveTargetListId(''); }} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-                <Typography variant="h6" className="font-bold mb-4 text-slate-800 dark:text-white">Move {selectedPropIds.size} Properties to Folder</Typography>
-                <Typography variant="body2" className="text-slate-500 mb-4">Select the destination folder for the selected properties.</Typography>
+                <Typography variant="h6" className="font-bold mb-4 text-slate-800 dark:text-white">{t('ClientLists.move')}{selectedPropIds.size} {t('ClientLists.propertiesToFolder')}</Typography>
+                <Typography variant="body2" className="text-slate-500 mb-4">{t('ClientLists.selectTheDestination')}</Typography>
                 <TextField
                     select
                     SelectProps={{ native: true }}
@@ -2194,14 +2174,14 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                     value={bulkMoveTargetListId}
                     onChange={(e) => setBulkMoveTargetListId(e.target.value)}
                 >
-                    <option value="" disabled>-- Select a Folder --</option>
+                    <option value="" disabled>{t('ClientLists.SelectAFolder')}</option>
                     {lists.filter(l => l.id !== selectedListId).map(l => (
                         <option key={l.id} value={l.id}>{l.name}</option>
                     ))}
                 </TextField>
                 <div className="flex justify-end gap-2 mt-6">
-                    <Button onClick={() => { setIsBulkMoving(false); setBulkMoveTargetListId(''); }} color="inherit">Cancel</Button>
-                    <Button onClick={handleBulkMoveProperties} variant="contained" color="primary" disabled={!bulkMoveTargetListId}>Move Properties</Button>
+                    <Button onClick={() => { setIsBulkMoving(false); setBulkMoveTargetListId(''); }} color="inherit">{t('ClientLists.cancel')}</Button>
+                    <Button onClick={handleBulkMoveProperties} variant="contained" color="primary" disabled={!bulkMoveTargetListId}>{t('ClientLists.moveProperties')}</Button>
                 </div>
             </Dialog>
 
@@ -2216,12 +2196,11 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
 
             {/* Export Property Dialog */}
             <Dialog open={!!exportProperty} onClose={() => setExportProperty(null)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-                <Typography variant="h6" className="font-bold mb-1 text-slate-800 dark:text-white">Export to Realtors</Typography>
+                <Typography variant="h6" className="font-bold mb-1 text-slate-800 dark:text-white">{t('ClientLists.exportToRealtors')}</Typography>
                 <Typography variant="body2" className="text-slate-500 mb-4 text-xs">{exportProperty?.address || exportProperty?.parcel_id}</Typography>
                 <div className="space-y-3">
                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-3 text-xs text-emerald-700 dark:text-emerald-300">
-                        📤 Realtors will see this property in their listings and can contact you for commission negotiations.
-                    </div>
+                        {t('ClientLists.RealtorsWillSeeThisP')}</div>
                     <TextField label="Your Name (visible to realtors)" size="small" fullWidth value={exportForm.contact_name} onChange={e => setExportForm(p => ({...p, contact_name: e.target.value}))} />
                     <TextField label="Contact Phone" size="small" fullWidth value={exportForm.contact_phone} onChange={e => setExportForm(p => ({...p, contact_phone: e.target.value}))} />
                     <TextField label="Contact Email" size="small" fullWidth value={exportForm.contact_email} onChange={e => setExportForm(p => ({...p, contact_email: e.target.value}))} />
@@ -2229,7 +2208,7 @@ const ClientLists: React.FC<ClientListsProps> = ({ onOpenPropertyDetails }) => {
                     <TextField label="Additional Notes (optional)" size="small" fullWidth multiline rows={2} value={exportForm.notes} onChange={e => setExportForm(p => ({...p, notes: e.target.value}))} />
                 </div>
                 <div className="flex gap-2 mt-4">
-                    <Button onClick={() => setExportProperty(null)} color="inherit">Cancel</Button>
+                    <Button onClick={() => setExportProperty(null)} color="inherit">{t('ClientLists.cancel')}</Button>
                     <Button
                         variant="contained" color="success"
                         disabled={exportSubmitting}

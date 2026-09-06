@@ -2,8 +2,10 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Clock, AlertCircle, ChevronRight } from 'lucide-react';
 import { AuthService } from '../../services/auth.service';
+import { useLanguage } from "../../context/LanguageContext";
 
 export const TrialExpiredPage: React.FC = () => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
 
     // Prevent browser back button from accessing workbench
@@ -43,17 +45,14 @@ export const TrialExpiredPage: React.FC = () => {
                 
                 {/* Heading */}
                 <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">
-                    Trial Expired
-                </h1>
+                    {t('TrialExpiredPage.trialExpired')}</h1>
                 
                 {/* Message */}
                 <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-lg mb-2 leading-relaxed">
-                    Your 7-day trial period has ended. To continue accessing Live Auctions, property data, and all premium features, please upgrade to a paid plan.
-                </p>
+                    {t('TrialExpiredPage.your7DayTrialPeriodH')}</p>
                 
                 <p className="text-sm text-slate-500 dark:text-slate-500 mb-8">
-                    You'll maintain access to view and manage your account settings even without an active subscription.
-                </p>
+                    {t('TrialExpiredPage.youLlMaintainAccessT')}</p>
 
                 {/* CTA Card */}
                 <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-xl mb-6">
@@ -61,8 +60,7 @@ export const TrialExpiredPage: React.FC = () => {
                         onClick={handleUpgrade}
                         className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg shadow-md transition-all active:scale-95 text-lg flex items-center justify-center gap-2 group"
                     >
-                        View Upgrade Plans
-                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        {t('TrialExpiredPage.viewUpgradePlans')}<ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
 
@@ -71,12 +69,11 @@ export const TrialExpiredPage: React.FC = () => {
                     onClick={handleLogout}
                     className="w-full px-6 py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-semibold rounded-lg border border-slate-200 dark:border-slate-600 transition-all text-base"
                 >
-                    Log Out
-                </button>
+                    {t('TrialExpiredPage.logOut')}</button>
 
                 {/* Info Footer */}
                 <p className="text-xs text-slate-500 dark:text-slate-500 mt-8">
-                    Questions? Contact our <a href="/#/support" className="text-blue-600 dark:text-blue-400 hover:underline">support team</a>.
+                    {t('TrialExpiredPage.questionsContactOur')}<a href="/#/support" className="text-blue-600 dark:text-blue-400 hover:underline">{t('TrialExpiredPage.supportTeam')}</a>.
                 </p>
             </div>
         </div>

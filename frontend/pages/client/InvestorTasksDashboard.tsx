@@ -5,12 +5,14 @@ import { API_BASE_URL } from '../../services/httpClient';
 import { PhotoViewerLightbox } from '../../components/PhotoViewerLightbox';
 import { useTour } from '../../context/TourContext';
 import { AuthService } from '../../services/auth.service';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface InvestorTasksDashboardProps {
     onBack?: () => void;
 }
 
 export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ onBack }) => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const { startTour } = useTour();
     const [tasks, setTasks] = useState<any[]>([]);
@@ -138,12 +140,12 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
 
     const renderStatusBadge = (status: string) => {
         switch (status) {
-            case 'open': return <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold uppercase">Open</span>;
-            case 'pending_payment': return <span className="px-2 py-1 bg-amber-100 text-amber-600 rounded text-xs font-bold uppercase">Pending Escrow</span>;
-            case 'claimed': return <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs font-bold uppercase">Claimed</span>;
-            case 'submitted': return <span className="px-2 py-1 bg-purple-100 text-purple-600 rounded text-xs font-bold uppercase">Review Ready</span>;
-            case 'approved': return <span className="px-2 py-1 bg-emerald-100 text-emerald-600 rounded text-xs font-bold uppercase">Approved</span>;
-            case 'disputed': return <span className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs font-bold uppercase">Disputed (Admin)</span>;
+            case 'open': return <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold uppercase">{t('InvestorTasksDashboard.open')}</span>;
+            case 'pending_payment': return <span className="px-2 py-1 bg-amber-100 text-amber-600 rounded text-xs font-bold uppercase">{t('InvestorTasksDashboard.pendingEscrow')}</span>;
+            case 'claimed': return <span className="px-2 py-1 bg-blue-100 text-blue-600 rounded text-xs font-bold uppercase">{t('InvestorTasksDashboard.claimed')}</span>;
+            case 'submitted': return <span className="px-2 py-1 bg-purple-100 text-purple-600 rounded text-xs font-bold uppercase">{t('InvestorTasksDashboard.reviewReady')}</span>;
+            case 'approved': return <span className="px-2 py-1 bg-emerald-100 text-emerald-600 rounded text-xs font-bold uppercase">{t('InvestorTasksDashboard.approved')}</span>;
+            case 'disputed': return <span className="px-2 py-1 bg-red-100 text-red-600 rounded text-xs font-bold uppercase">{t('InvestorTasksDashboard.disputedAdmin')}</span>;
             default: return <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-bold uppercase">{status}</span>;
         }
     };
@@ -153,30 +155,26 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
         return (
             <div className="flex flex-col items-center justify-center p-8 py-16 text-center max-w-lg mx-auto size-full min-h-[60vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl backdrop-blur-md">
                 <div className="size-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
-                    <span className="material-symbols-outlined text-4xl text-amber-500 animate-bounce">lock</span>
+                    <span className="material-symbols-outlined text-4xl text-amber-500 animate-bounce">{t('InvestorTasksDashboard.lock')}</span>
                 </div>
                 <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-extrabold uppercase tracking-widest mb-3 border border-amber-500/20">
-                    Premium Feature Locked
-                </span>
+                    {t('InvestorTasksDashboard.premiumFeatureLocked')}</span>
                 <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
-                    Field Missions (BPO)
-                </h3>
+                    {t('InvestorTasksDashboard.fieldMissionsBPO')}</h3>
                 <p className="text-slate-650 dark:text-slate-400 text-sm leading-relaxed mb-8 font-medium">
-                    Your current account is in **Trial Mode**. Publishing BPO (Broker Price Opinion) tasks, skip tracing vacancy runners, and real-time field tasks mapping are restricted to **Pro** and **Enterprise** subscribers.
-                </p>
+                    {t('InvestorTasksDashboard.yourCurrentAccountIs')}</p>
                 <button
                     onClick={() => {
                         window.dispatchEvent(new CustomEvent('open-workbench-widget', { detail: { widgetId: 'billings_and_plans' } }));
                     }}
                     className="w-full max-w-xs py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold rounded-2xl shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
                 >
-                    Upgrade Plan Now
-                </button>
+                    {t('InvestorTasksDashboard.upgradePlanNow')}</button>
             </div>
         );
     }
 
-    if (loading) return <div className="p-8 text-center">Loading your BPO Missions...</div>;
+    if (loading) return <div className="p-8 text-center">{t('InvestorTasksDashboard.loadingYourBPOMissio')}</div>;
 
     return (
         <div id="tour-missions-dashboard" className="max-w-7xl mx-auto px-4 py-8 h-full overflow-y-auto w-full scrollbar-thin">
@@ -185,15 +183,15 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                     <div className="flex items-center gap-3 text-emerald-800 dark:text-emerald-300">
                         <CheckCircle className="text-emerald-600 dark:text-emerald-400 shrink-0" size={24} />
                         <div>
-                            <p className="font-bold text-sm">Escrow Payment Confirmed!</p>
-                            <p className="text-xs opacity-90">Your BPO Due Diligence mission has been successfully published to the Realtor Marketplace.</p>
+                            <p className="font-bold text-sm">{t('InvestorTasksDashboard.escrowPaymentConfirm')}</p>
+                            <p className="text-xs opacity-90">{t('InvestorTasksDashboard.yourBPODueDiligenceM')}</p>
                         </div>
                     </div>
                     <button 
                         onClick={() => setShowSuccessToast(false)} 
                         className="text-emerald-600 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-200 p-1 rounded-full hover:bg-emerald-100/50"
                     >
-                        <span className="material-symbols-outlined text-[20px]">close</span>
+                        <span className="material-symbols-outlined text-[20px]">{t('InvestorTasksDashboard.close')}</span>
                     </button>
                 </div>
             )}
@@ -202,22 +200,20 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                     onClick={onBack}
                     className="mb-6 flex items-center gap-1.5 text-sm font-bold text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                 >
-                    <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                    Back to folders
-                </button>
+                    <span className="material-symbols-outlined text-[18px]">{t('InvestorTasksDashboard.arrowback')}</span>
+                    {t('InvestorTasksDashboard.backToFolders')}</button>
             )}
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white">My Field Missions</h1>
-                    <p className="text-slate-500">Track and review BPO Due Diligence requests.</p>
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white">{t('InvestorTasksDashboard.myFieldMissions')}</h1>
+                    <p className="text-slate-500">{t('InvestorTasksDashboard.trackAndReviewBPODue')}</p>
                 </div>
                 <button
                     onClick={() => startTour('bpo_missions')}
                     className="flex items-center gap-1.5 px-4 py-2 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse"
                 >
-                    <span className="material-symbols-outlined text-[16px]">menu_book</span>
-                    Page Tour
-                </button>
+                    <span className="material-symbols-outlined text-[16px]">{t('InvestorTasksDashboard.menubook')}</span>
+                    {t('InvestorTasksDashboard.pageTour')}</button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -225,7 +221,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                 {/* Task List */}
                 <div id="tour-missions-grid" className="lg:col-span-1 space-y-4">
                     {tasks.length === 0 ? (
-                        <div className="glass-card p-6 text-center text-slate-500 rounded-xl">No missions created yet.</div>
+                        <div className="glass-card p-6 text-center text-slate-500 rounded-xl">{t('InvestorTasksDashboard.noMissionsCreatedYet')}</div>
                     ) : (
                         tasks.map(task => (
                             <div 
@@ -240,7 +236,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                 <p className="text-xs text-slate-500 mb-2 truncate">{task.address}</p>
                                 <div className="flex items-center gap-4 text-xs font-medium text-slate-600 dark:text-slate-400">
                                     <span className="flex items-center gap-1"><Clock size={14}/> {new Date(task.created_at).toLocaleDateString()}</span>
-                                    <span className="flex items-center gap-1 text-emerald-600"><CheckCircle size={14}/> ${(task.reward_points / 100).toFixed(2)} Escrow</span>
+                                    <span className="flex items-center gap-1 text-emerald-600"><CheckCircle size={14}/> ${(task.reward_points / 100).toFixed(2)} {t('InvestorTasksDashboard.escrow')}</span>
                                 </div>
                             </div>
                         ))
@@ -265,30 +261,27 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                         <div key={idx} className="border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
                                             <div id="tour-missions-verification-check" className="bg-slate-50 dark:bg-slate-800 p-4 border-b border-slate-200 dark:border-slate-700 flex flex-wrap gap-3 justify-between items-center">
                                                 <div className="flex items-center gap-3">
-                                                    <h3 className="font-bold text-slate-800 dark:text-white">Submission by {sub.realtor_name}</h3>
+                                                    <h3 className="font-bold text-slate-800 dark:text-white">{t('InvestorTasksDashboard.submissionBy')}{sub.realtor_name}</h3>
                                                     {sub.review_status === 'pending' && (
                                                         <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 rounded-md">
-                                                            Pending Review
-                                                        </span>
+                                                            {t('InvestorTasksDashboard.pendingReview')}</span>
                                                     )}
                                                     {sub.review_status === 'approved' && (
                                                         <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 rounded-md">
-                                                            Approved
-                                                        </span>
+                                                            {t('InvestorTasksDashboard.approved')}</span>
                                                     )}
                                                     {sub.review_status === 'rejected' && (
                                                         <span className="px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300 rounded-md">
-                                                            Rejected
-                                                        </span>
+                                                            {t('InvestorTasksDashboard.rejected')}</span>
                                                     )}
                                                 </div>
                                                 {sub.geo_validated ? (
                                                     <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-100 px-2 py-1 rounded">
-                                                        <MapPin size={12}/> GPS Validated ({sub.distance_meters}m)
+                                                        <MapPin size={12}/> {t('InvestorTasksDashboard.gPSValidated')}{sub.distance_meters}m)
                                                     </span>
                                                 ) : (
                                                     <span className="flex items-center gap-1 text-xs font-bold text-red-600 bg-red-100 px-2 py-1 rounded">
-                                                        <AlertTriangle size={12}/> GPS Mismatch ({sub.distance_meters}m)
+                                                        <AlertTriangle size={12}/> {t('InvestorTasksDashboard.gPSMismatch')}{sub.distance_meters}m)
                                                     </span>
                                                 )}
                                             </div>
@@ -296,7 +289,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                             <div className="p-4 space-y-6">
                                                 {/* Photos */}
                                                 <div>
-                                                    <h4 className="font-bold mb-3 flex items-center gap-2 text-slate-800 dark:text-white"><FileText size={16}/> Evidence Photos</h4>
+                                                    <h4 className="font-bold mb-3 flex items-center gap-2 text-slate-800 dark:text-white"><FileText size={16}/> {t('InvestorTasksDashboard.evidencePhotos')}</h4>
                                                     <div className="grid grid-cols-3 gap-2">
                                                         {(() => {
                                                             const allImages = sub.file_path?.split(',').map((url: string) => url.startsWith('http') ? url : `${API_BASE_URL}${url}`) || [];
@@ -330,7 +323,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                 {/* Checklist */}
                                                 {sub.checklist_responses && (
                                                     <div id="tour-missions-checklist-review" className="space-y-4">
-                                                        <h4 className="font-bold mb-2 flex items-center gap-2 text-slate-800 dark:text-white"><CheckCircle size={16}/> Checklist Responses</h4>
+                                                        <h4 className="font-bold mb-2 flex items-center gap-2 text-slate-800 dark:text-white"><CheckCircle size={16}/> {t('InvestorTasksDashboard.checklistResponses')}</h4>
                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                             {Object.entries(JSON.parse(sub.checklist_responses)).map(([catId, items]: [string, any]) => (
                                                                 <div key={catId} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -350,16 +343,16 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                                                             {itemId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                                                                                         </span>
                                                                                         {value === true ? (
-                                                                                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded text-xs font-bold shrink-0 shadow-sm">Yes</span>
+                                                                                            <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded text-xs font-bold shrink-0 shadow-sm">{t('InvestorTasksDashboard.yes')}</span>
                                                                                         ) : value === false ? (
                                                                                             <span className="px-2 py-0.5 bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 rounded text-xs font-bold shrink-0 shadow-sm">No</span>
                                                                                         ) : (
-                                                                                            <span className="px-2 py-0.5 bg-slate-200 text-slate-500 dark:bg-slate-700 rounded text-xs font-bold shrink-0">N/A</span>
+                                                                                            <span className="px-2 py-0.5 bg-slate-200 text-slate-500 dark:bg-slate-700 rounded text-xs font-bold shrink-0">{t('InvestorTasksDashboard.nA')}</span>
                                                                                         )}
                                                                                     </div>
                                                                                     {note && (
                                                                                         <p className="text-xs text-slate-600 dark:text-slate-400 italic bg-white dark:bg-slate-900/60 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800 mt-1">
-                                                                                            <span className="font-bold block mb-0.5 text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[9px]">Comments</span>
+                                                                                            <span className="font-bold block mb-0.5 text-slate-400 dark:text-slate-500 uppercase tracking-widest text-[9px]">{t('InvestorTasksDashboard.comments')}</span>
                                                                                             {note}
                                                                                         </p>
                                                                                     )}
@@ -377,8 +370,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                 {sub.review_status === 'rejected' && sub.review_notes && (
                                                     <div className="p-4 bg-rose-50/50 dark:bg-rose-950/15 border border-rose-100 dark:border-rose-900/30 rounded-xl space-y-1">
                                                         <h5 className="text-[10px] font-black text-rose-700 dark:text-rose-400 uppercase tracking-widest">
-                                                            Investor Rejection Feedback
-                                                        </h5>
+                                                            {t('InvestorTasksDashboard.investorRejectionFee')}</h5>
                                                         <p className="text-sm text-slate-700 dark:text-slate-300 italic">
                                                             "{sub.review_notes}"
                                                         </p>
@@ -388,7 +380,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                 {/* Review Action Form (Only active on latest submission if pending) */}
                                                 {idx === 0 && sub.review_status === 'pending' && selectedTask.status === 'submitted' && (
                                                     <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                                                        <h4 className="font-bold mb-2 text-slate-800 dark:text-white">Review Decision</h4>
+                                                        <h4 className="font-bold mb-2 text-slate-800 dark:text-white">{t('InvestorTasksDashboard.reviewDecision')}</h4>
                                                         <textarea 
                                                             value={reviewNotes} 
                                                             onChange={e => setReviewNotes(e.target.value)}
@@ -400,8 +392,7 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                         {selectedTask.rejections_count > 0 && (
                                                             <div className="mb-4 p-3 bg-red-50 text-red-700 text-sm rounded-lg border border-red-200 flex items-center gap-2">
                                                                 <AlertTriangle size={16} />
-                                                                Warning: This task has already been rejected {selectedTask.rejections_count} times. Another rejection will escalate it to Admin Mediation.
-                                                            </div>
+                                                                {t('InvestorTasksDashboard.warningThisTaskHasAl')}{selectedTask.rejections_count} {t('InvestorTasksDashboard.timesAnotherRejectio')}</div>
                                                         )}
 
                                                         <div className="flex gap-4">
@@ -410,15 +401,13 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                                                                 disabled={isReviewing}
                                                                 className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg flex items-center justify-center gap-2"
                                                             >
-                                                                <CheckCircle size={18}/> Approve & Pay Escrow
-                                                            </button>
+                                                                <CheckCircle size={18}/> {t('InvestorTasksDashboard.approvePayEscrow')}</button>
                                                             <button 
                                                                 onClick={() => handleReview(false)}
                                                                 disabled={isReviewing}
                                                                 className="flex-1 py-3 bg-rose-600 hover:bg-rose-500 text-white font-bold rounded-lg flex items-center justify-center gap-2"
                                                             >
-                                                                <XCircle size={18}/> Reject Submission
-                                                            </button>
+                                                                <XCircle size={18}/> {t('InvestorTasksDashboard.rejectSubmission')}</button>
                                                         </div>
                                                     </div>
                                                 )}
@@ -431,14 +420,12 @@ export const InvestorTasksDashboard: React.FC<InvestorTasksDashboardProps> = ({ 
                             {selectedTask.status === 'open' && (
                                 <div className="py-12 text-center text-slate-500">
                                     <div className="animate-pulse mb-4 flex justify-center"><Clock size={40} className="text-slate-300" /></div>
-                                    Waiting for a Field Agent to claim this mission...
-                                </div>
+                                    {t('InvestorTasksDashboard.waitingForAFieldAgen')}</div>
                             )}
                         </div>
                     ) : (
                         <div className="h-full flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl text-slate-400">
-                            Select a mission from the list to view details and review submissions.
-                        </div>
+                            {t('InvestorTasksDashboard.selectAMissionFromTh')}</div>
                     )}
                 </div>
             </div>

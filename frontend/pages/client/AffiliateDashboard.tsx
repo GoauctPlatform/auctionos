@@ -102,7 +102,7 @@ export const AffiliateDashboard: React.FC = () => {
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 text-center shadow-xl border border-slate-100 dark:border-slate-700">
           <div className="size-20 bg-blue-100 dark:bg-blue-900/30 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="material-symbols-outlined text-[40px]">handshake</span>
+            <span className="material-symbols-outlined text-[40px]">{t('AffiliateDashboard.handshake')}</span>
           </div>
           <h1 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{t('affiliate.applyTitle') || 'Partner Program'}</h1>
           <p className="text-slate-600 dark:text-slate-400 mb-6 max-w-lg mx-auto">
@@ -111,21 +111,20 @@ export const AffiliateDashboard: React.FC = () => {
 
           <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 text-left max-w-xl mx-auto mb-8 border border-slate-200 dark:border-slate-700">
             <h3 className="font-bold text-slate-800 dark:text-slate-200 mb-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-green-500">check_circle</span>
-              Program Benefits & Terms
-            </h3>
+              <span className="material-symbols-outlined text-green-500">{t('AffiliateDashboard.checkcircle')}</span>
+              {t('AffiliateDashboard.programBenefitsTerms')}</h3>
             <ul className="space-y-3 text-sm text-slate-600 dark:text-slate-400">
               <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-blue-500 text-lg shrink-0">payments</span>
-                <span><strong>20% Commission:</strong> Earn a flat 20% recurring commission on all subscription plans acquired via your referral code.</span>
+                <span className="material-symbols-outlined text-blue-500 text-lg shrink-0">{t('AffiliateDashboard.payments')}</span>
+                <span><strong>{t('AffiliateDashboard.20Commission')}</strong> {t('AffiliateDashboard.earnAFlat20Recurring')}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-blue-500 text-lg shrink-0">account_balance</span>
-                <span><strong>Payouts:</strong> Minimum withdrawal amount is $50. Payments are processed securely.</span>
+                <span className="material-symbols-outlined text-blue-500 text-lg shrink-0">{t('AffiliateDashboard.accountbalance')}</span>
+                <span><strong>{t('AffiliateDashboard.payouts')}</strong> {t('AffiliateDashboard.minimumWithdrawalAmo')}</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-blue-500 text-lg shrink-0">gavel</span>
-                <span><strong>Compliance:</strong> You agree to ethical promotion. Spam or deceptive practices will result in immediate termination.</span>
+                <span className="material-symbols-outlined text-blue-500 text-lg shrink-0">{t('AffiliateDashboard.gavel')}</span>
+                <span><strong>{t('AffiliateDashboard.compliance')}</strong> {t('AffiliateDashboard.youAgreeToEthicalPro')}</span>
               </li>
             </ul>
 
@@ -137,8 +136,7 @@ export const AffiliateDashboard: React.FC = () => {
                 onChange={(e) => setAcceptedTerms(e.target.checked)}
               />
               <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                I have read and agree to the Affiliate Terms of Service.
-              </span>
+                {t('AffiliateDashboard.iHaveReadAndAgreeToT')}</span>
             </label>
           </div>
           
@@ -160,7 +158,7 @@ export const AffiliateDashboard: React.FC = () => {
       <div className="max-w-4xl mx-auto p-4 md:p-8">
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 text-center shadow-xl border border-slate-100 dark:border-slate-700">
           <div className="size-20 bg-orange-100 dark:bg-orange-900/30 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="material-symbols-outlined text-[40px]">hourglass_empty</span>
+            <span className="material-symbols-outlined text-[40px]">{t('AffiliateDashboard.hourglassempty')}</span>
           </div>
           <h1 className="text-2xl font-black text-slate-800 dark:text-white mb-2">{t('affiliate.applicationPending')}</h1>
           <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-lg mx-auto">
@@ -179,7 +177,7 @@ export const AffiliateDashboard: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-slate-800 dark:text-white">{t('affiliate.dashboard')}</h1>
-          <p className="text-slate-500 text-sm mt-1">Welcome back, Partner.</p>
+          <p className="text-slate-500 text-sm mt-1">{t('AffiliateDashboard.welcomeBackPartner')}</p>
         </div>
         
         <div className="flex flex-col gap-2">
@@ -195,8 +193,7 @@ export const AffiliateDashboard: React.FC = () => {
               }}
               className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-bold transition-colors"
             >
-              Copy Link
-            </button>
+              {t('AffiliateDashboard.copyLink')}</button>
           </div>
           <div className="flex items-center gap-2">
             <a 
@@ -204,16 +201,14 @@ export const AffiliateDashboard: React.FC = () => {
               target="_blank" rel="noopener noreferrer"
               className="flex-1 text-center px-3 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1"
             >
-              <span className="material-symbols-outlined text-[16px]">chat</span>
-              WhatsApp
-            </a>
+              <span className="material-symbols-outlined text-[16px]">{t('AffiliateDashboard.chat')}</span>
+              {t('AffiliateDashboard.whatsApp')}</a>
             <a 
               href={`mailto:?subject=${encodeURIComponent("Join me on GoAuct!")}&body=${encodeURIComponent(`Hey! Join me on GoAuct and upgrade your property investing workflow. Use my invite link: ${referralLink}`)}`}
               className="flex-1 text-center px-3 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center justify-center gap-1"
             >
-              <span className="material-symbols-outlined text-[16px]">mail</span>
-              Email
-            </a>
+              <span className="material-symbols-outlined text-[16px]">{t('AffiliateDashboard.mail')}</span>
+              {t('AffiliateDashboard.email')}</a>
           </div>
         </div>
       </div>

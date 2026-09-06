@@ -4,8 +4,10 @@ import { AdminService } from '../services/admin.service';
 import { AuctionEvent } from '../types';
 import { AuctionFormModal } from '../components/AuctionFormModal';
 import AuctionFilters, { AuctionFilterParams } from '../components/admin/AuctionFilters';
+import { useLanguage } from "../context/LanguageContext";
 
 export const AuctionList: React.FC = () => {
+    const { t } = useLanguage();
     const [auctions, setAuctions] = useState<AuctionEvent[]>([]);
     const [viewMode, setViewMode] = useState<'calendar' | 'list'>('calendar');
     const [isLoading, setIsLoading] = useState(false);
@@ -116,7 +118,7 @@ export const AuctionList: React.FC = () => {
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Auction Calendar</h1>
+                <h1 className="text-2xl font-bold text-slate-900 dark:text-white">{t('AuctionList.auctionCalendar')}</h1>
                 <div className="flex items-center gap-3">
                     <div className="flex bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
                         <button
@@ -126,8 +128,7 @@ export const AuctionList: React.FC = () => {
                                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
                                 }`}
                         >
-                            Calendar
-                        </button>
+                            {t('AuctionList.calendar')}</button>
                         <button
                             onClick={() => setViewMode('list')}
                             className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${viewMode === 'list'
@@ -135,8 +136,7 @@ export const AuctionList: React.FC = () => {
                                 : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
                                 }`}
                         >
-                            List
-                        </button>
+                            {t('AuctionList.list')}</button>
                     </div>
 
                     <input
@@ -152,7 +152,7 @@ export const AuctionList: React.FC = () => {
                         disabled={isImporting}
                         className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
                     >
-                        <span className="material-symbols-outlined text-[20px]">upload_file</span>
+                        <span className="material-symbols-outlined text-[20px]">{t('AuctionList.uploadfile')}</span>
                         {isImporting ? 'Importing...' : 'Import CSV'}
                     </button>
 
@@ -163,9 +163,8 @@ export const AuctionList: React.FC = () => {
                         }}
                         className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90"
                     >
-                        <span className="material-symbols-outlined text-[20px]">add</span>
-                        Add Auction
-                    </button>
+                        <span className="material-symbols-outlined text-[20px]">{t('AuctionList.add')}</span>
+                        {t('AuctionList.addAuction')}</button>
                 </div>
             </div>
 
@@ -180,18 +179,18 @@ export const AuctionList: React.FC = () => {
                             <thead className="text-xs text-slate-500 uppercase bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-10 shadow-sm">
                                 <tr>
                                     <th className="px-6 py-3 font-medium cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition" onClick={() => handleSort('auction_date')}>
-                                        Date {sortField === 'auction_date' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                        {t('AuctionList.date')}{sortField === 'auction_date' && (sortOrder === 'asc' ? '↑' : '↓')}
                                     </th>
                                     <th className="px-6 py-3 font-medium cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition" onClick={() => handleSort('name')}>
-                                        Name {sortField === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                        {t('AuctionList.name')}{sortField === 'name' && (sortOrder === 'asc' ? '↑' : '↓')}
                                     </th>
                                     <th className="px-6 py-3 font-medium cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition" onClick={() => handleSort('location')}>
-                                        Location {sortField === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                        {t('AuctionList.location')}{sortField === 'location' && (sortOrder === 'asc' ? '↑' : '↓')}
                                     </th>
                                     <th className="px-6 py-3 font-medium cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition" onClick={() => handleSort('properties_count')}>
-                                        Properties {sortField === 'properties_count' && (sortOrder === 'asc' ? '↑' : '↓')}
+                                        {t('AuctionList.properties')}{sortField === 'properties_count' && (sortOrder === 'asc' ? '↑' : '↓')}
                                     </th>
-                                    <th className="px-6 py-3 font-medium text-right">Actions</th>
+                                    <th className="px-6 py-3 font-medium text-right">{t('AuctionList.actions')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -212,12 +211,10 @@ export const AuctionList: React.FC = () => {
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col gap-1">
                                                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${auction.live_available_count && auction.live_available_count > 0 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400'}`}>
-                                                    <span className="material-symbols-outlined text-[14px] mr-1">check_circle</span>
-                                                    {auction.live_available_count || 0} Available
-                                                </span>
+                                                    <span className="material-symbols-outlined text-[14px] mr-1">{t('AuctionList.checkcircle')}</span>
+                                                    {auction.live_available_count || 0} {t('AuctionList.available')}</span>
                                                 <span className="text-[11px] text-slate-500 dark:text-slate-400 ml-2">
-                                                    of {auction.parcels_count || 0} total parcelas
-                                                </span>
+                                                    of {auction.parcels_count || 0} {t('AuctionList.totalParcelas')}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
@@ -229,13 +226,13 @@ export const AuctionList: React.FC = () => {
                                                     }}
                                                     className="p-1 text-slate-400 hover:text-primary transition-colors"
                                                 >
-                                                    <span className="material-symbols-outlined">edit</span>
+                                                    <span className="material-symbols-outlined">{t('AuctionList.edit')}</span>
                                                 </button>
                                                 <button
                                                     onClick={() => handleDelete(auction.id)}
                                                     className="p-1 text-slate-400 hover:text-red-500 transition-colors"
                                                 >
-                                                    <span className="material-symbols-outlined">delete</span>
+                                                    <span className="material-symbols-outlined">{t('AuctionList.delete')}</span>
                                                 </button>
                                             </div>
                                         </td>
@@ -244,8 +241,7 @@ export const AuctionList: React.FC = () => {
                                 {sortedAuctions.length === 0 && !isLoading && (
                                     <tr>
                                         <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                                            No auctions found. Import a CSV or create one manually.
-                                        </td>
+                                            {t('AuctionList.noAuctionsFoundImpor')}</td>
                                     </tr>
                                 )}
                             </tbody>

@@ -4,8 +4,10 @@ import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { API_URL, getHeaders } from '../../services/httpClient';
 import { useCompany } from '../../context/CompanyContext';
+import { useLanguage } from "../../context/LanguageContext";
 
 const ActivityLogsPage: React.FC = () => {
+    const { t } = useLanguage();
     const [logs, setLogs] = useState<any[]>([]);
     const [team, setTeam] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -158,9 +160,9 @@ const ActivityLogsPage: React.FC = () => {
     if (isAgent) {
         return (
             <div className="p-8 text-center text-slate-500">
-                <span className="material-symbols-outlined text-[48px] mb-4 opacity-50">block</span>
-                <Typography variant="h6">Access Denied</Typography>
-                <p>You do not have permission to view team logs.</p>
+                <span className="material-symbols-outlined text-[48px] mb-4 opacity-50">{t('ActivityLogsPage.block')}</span>
+                <Typography variant="h6">{t('ActivityLogsPage.accessDenied')}</Typography>
+                <p>{t('ActivityLogsPage.youDoNotHavePermissi')}</p>
             </div>
         );
     }
@@ -169,8 +171,8 @@ const ActivityLogsPage: React.FC = () => {
         <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6 w-full">
             <div className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">Team Management & Logs</h1>
-                    <p className="text-sm text-slate-500 mt-1">Manage your agents, managers, and monitor their actions.</p>
+                    <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">{t('ActivityLogsPage.teamManagementLogs')}</h1>
+                    <p className="text-sm text-slate-500 mt-1">{t('ActivityLogsPage.manageYourAgentsMana')}</p>
                 </div>
                 {tab === 'team' && (
                     <Button
@@ -178,20 +180,17 @@ const ActivityLogsPage: React.FC = () => {
                         color="primary"
                         className="bg-blue-600 rounded-xl shadow-none font-bold"
                         onClick={() => setOpenCreate(true)}
-                        startIcon={<span className="material-symbols-outlined text-[18px]">person_add</span>}
+                        startIcon={<span className="material-symbols-outlined text-[18px]">{t('ActivityLogsPage.personadd')}</span>}
                     >
-                        Add Member
-                    </Button>
+                        {t('ActivityLogsPage.addMember')}</Button>
                 )}
             </div>
 
             <div className="flex border-b border-slate-200 dark:border-slate-700 gap-1">
                 <button onClick={() => setTab('team')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 transition-colors ${tab === 'team' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
-                    <span className="material-symbols-outlined text-[18px]">group</span> Team Members
-                </button>
+                    <span className="material-symbols-outlined text-[18px]">{t('ActivityLogsPage.group')}</span> {t('ActivityLogsPage.teamMembers')}</button>
                 <button onClick={() => setTab('logs')} className={`flex items-center gap-2 px-4 py-2.5 text-sm font-bold border-b-2 transition-colors ${tab === 'logs' ? 'border-blue-500 text-blue-600 dark:text-blue-400' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>
-                    <span className="material-symbols-outlined text-[18px]">history</span> Activity Logs
-                </button>
+                    <span className="material-symbols-outlined text-[18px]">{t('ActivityLogsPage.history')}</span> {t('ActivityLogsPage.activityLogs')}</button>
             </div>
 
             <div id="tour-team-logs" className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden min-h-[400px]">
@@ -199,7 +198,7 @@ const ActivityLogsPage: React.FC = () => {
                     <div className="flex justify-center py-20"><CircularProgress /></div>
                 ) : tab === 'team' ? (
                     team.length === 0 ? (
-                        <div className="p-12 text-center text-slate-500 font-medium">No team members found. Add an agent or manager to get started.</div>
+                        <div className="p-12 text-center text-slate-500 font-medium">{t('ActivityLogsPage.noTeamMembersFoundAd')}</div>
                     ) : (
                         <div className="divide-y divide-slate-100 dark:divide-slate-700">
                             {team.map(member => (
@@ -227,9 +226,8 @@ const ActivityLogsPage: React.FC = () => {
                                                     onClick={() => handleOpenEdit(member)}
                                                     className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors"
                                                 >
-                                                    <span className="material-symbols-outlined text-[15px]">edit</span>
-                                                    Edit
-                                                </button>
+                                                    <span className="material-symbols-outlined text-[15px]">{t('ActivityLogsPage.edit')}</span>
+                                                    {t('ActivityLogsPage.edit')}</button>
                                                 <button
                                                     id={`btn-delete-member-${member.id}`}
                                                     onClick={() => handleDeleteUser(member.id, member.full_name || member.email)}
@@ -237,11 +235,10 @@ const ActivityLogsPage: React.FC = () => {
                                                     className="flex items-center gap-1 px-3 py-1.5 text-xs font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 border border-red-200 dark:border-red-800 rounded-lg transition-colors disabled:opacity-50"
                                                 >
                                                     {deletingId === member.id
-                                                        ? <span className="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>
-                                                        : <span className="material-symbols-outlined text-[15px]">delete</span>
+                                                        ? <span className="material-symbols-outlined text-[15px] animate-spin">{t('ActivityLogsPage.progressactivity')}</span>
+                                                        : <span className="material-symbols-outlined text-[15px]">{t('ActivityLogsPage.delete')}</span>
                                                     }
-                                                    Delete
-                                                </button>
+                                                    {t('ActivityLogsPage.delete')}</button>
                                             </>
                                         )}
                                     </div>
@@ -251,7 +248,7 @@ const ActivityLogsPage: React.FC = () => {
                     )
                 ) : (
                     logs.length === 0 ? (
-                        <div className="p-12 text-center text-slate-500">No activity recorded yet.</div>
+                        <div className="p-12 text-center text-slate-500">{t('ActivityLogsPage.noActivityRecordedYe')}</div>
                     ) : (
                         <div className="divide-y divide-slate-100 dark:divide-slate-700">
                             {logs.map(log => (
@@ -280,7 +277,7 @@ const ActivityLogsPage: React.FC = () => {
 
             {/* Create User Dialog */}
             <Dialog open={openCreate} onClose={() => setOpenCreate(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-                <Typography variant="h6" className="font-bold text-slate-800 dark:text-white mb-4">Add Team Member</Typography>
+                <Typography variant="h6" className="font-bold text-slate-800 dark:text-white mb-4">{t('ActivityLogsPage.addTeamMember')}</Typography>
                 <div className="space-y-4">
                     <TextField label="Full Name" fullWidth value={createForm.full_name} onChange={e => setCreateForm(p => ({ ...p, full_name: e.target.value }))} />
                     <TextField label="Email Address" type="email" fullWidth value={createForm.email} onChange={e => setCreateForm(p => ({ ...p, email: e.target.value }))} />
@@ -288,25 +285,25 @@ const ActivityLogsPage: React.FC = () => {
                     <TextField label="Contact Phone" fullWidth value={createForm.contact_phone} onChange={e => setCreateForm(p => ({ ...p, contact_phone: e.target.value }))} />
 
                     <div>
-                        <Typography variant="caption" className="font-bold text-slate-500 mb-1 block">Role</Typography>
+                        <Typography variant="caption" className="font-bold text-slate-500 mb-1 block">{t('ActivityLogsPage.role')}</Typography>
                         <Select
                             fullWidth
                             value={createForm.role}
                             onChange={e => setCreateForm(p => ({ ...p, role: e.target.value }))}
                         >
-                            {isClient && <MenuItem value="manager">Manager</MenuItem>}
-                            <MenuItem value="agent">Agent</MenuItem>
+                            {isClient && <MenuItem value="manager">{t('ActivityLogsPage.manager')}</MenuItem>}
+                            <MenuItem value="agent">{t('ActivityLogsPage.agent')}</MenuItem>
                         </Select>
                     </div>
 
                     {/* Multi-Company Picker */}
                     <div>
                         <Typography variant="caption" className="font-bold text-slate-500 mb-2 block">
-                            Assign to Companies <span style={{ fontWeight: 400, textTransform: 'none' }}>(select one or more)</span>
+                            {t('ActivityLogsPage.assignToCompanies')}<span style={{ fontWeight: 400, textTransform: 'none' }}>{t('ActivityLogsPage.SelectOneOrMore')}</span>
                         </Typography>
                         <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
                             {companies.length === 0 && (
-                                <span className="text-xs text-slate-400 italic">No companies yet. Create one first.</span>
+                                <span className="text-xs text-slate-400 italic">{t('ActivityLogsPage.noCompaniesYetCreate')}</span>
                             )}
                             {companies.map(c => {
                                 const sel = createCompanyIds.includes(c.id);
@@ -328,12 +325,12 @@ const ActivityLogsPage: React.FC = () => {
                             })}
                         </div>
                         {createCompanyIds.length > 0 && (
-                            <p className="text-xs text-blue-600 font-bold mt-1">{createCompanyIds.length} company(s) selected</p>
+                            <p className="text-xs text-blue-600 font-bold mt-1">{createCompanyIds.length} {t('ActivityLogsPage.companySSelected')}</p>
                         )}
                     </div>
                 </div>
                 <div className="flex justify-end gap-2 mt-6">
-                    <Button onClick={() => setOpenCreate(false)} color="inherit">Cancel</Button>
+                    <Button onClick={() => setOpenCreate(false)} color="inherit">{t('ActivityLogsPage.cancel')}</Button>
                     <Button onClick={handleCreateUser} variant="contained" color="primary" disabled={creating || !createForm.email || !createForm.password} className="bg-blue-600 rounded-lg shadow-none">
                         {creating ? 'Creating...' : 'Create User'}
                     </Button>
@@ -342,7 +339,7 @@ const ActivityLogsPage: React.FC = () => {
 
             {/* Edit User Dialog */}
             <Dialog open={openEdit} onClose={() => setOpenEdit(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-                <Typography variant="h6" className="font-bold text-slate-800 dark:text-white mb-4">Edit Team Member</Typography>
+                <Typography variant="h6" className="font-bold text-slate-800 dark:text-white mb-4">{t('ActivityLogsPage.editTeamMember')}</Typography>
                 <div className="space-y-4">
                     <TextField label="Email Address" disabled fullWidth value={editForm.email} />
                     <TextField label="Full Name" fullWidth value={editForm.full_name} onChange={e => setEditForm(p => ({ ...p, full_name: e.target.value }))} />
@@ -352,11 +349,11 @@ const ActivityLogsPage: React.FC = () => {
                     {/* Multi-Company Picker */}
                     <div>
                         <Typography variant="caption" className="font-bold text-slate-500 mb-2 block">
-                            Companies <span style={{ fontWeight: 400, textTransform: 'none' }}>(select one or more)</span>
+                            {t('ActivityLogsPage.companies')}<span style={{ fontWeight: 400, textTransform: 'none' }}>{t('ActivityLogsPage.SelectOneOrMore')}</span>
                         </Typography>
                         <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-1">
                             {companies.length === 0 && (
-                                <span className="text-xs text-slate-400 italic">No companies yet.</span>
+                                <span className="text-xs text-slate-400 italic">{t('ActivityLogsPage.noCompaniesYet')}</span>
                             )}
                             {companies.map(c => {
                                 const sel = editCompanyIds.includes(c.id);
@@ -378,12 +375,12 @@ const ActivityLogsPage: React.FC = () => {
                             })}
                         </div>
                         {editCompanyIds.length > 0 && (
-                            <p className="text-xs text-blue-600 font-bold mt-1">{editCompanyIds.length} company(s) selected</p>
+                            <p className="text-xs text-blue-600 font-bold mt-1">{editCompanyIds.length} {t('ActivityLogsPage.companySSelected')}</p>
                         )}
                     </div>
                 </div>
                 <div className="flex justify-end gap-2 mt-6">
-                    <Button onClick={() => setOpenEdit(false)} color="inherit">Cancel</Button>
+                    <Button onClick={() => setOpenEdit(false)} color="inherit">{t('ActivityLogsPage.cancel')}</Button>
                     <Button onClick={handleUpdateUser} variant="contained" color="primary" disabled={updating} className="bg-blue-600 rounded-lg shadow-none">
                         {updating ? 'Saving...' : 'Save Changes'}
                     </Button>

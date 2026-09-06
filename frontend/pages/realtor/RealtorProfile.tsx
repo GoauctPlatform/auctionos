@@ -2,8 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { CircularProgress } from '@mui/material';
 import { RealtorService } from '../../services/company.service';
 import { AuthService } from '../../services/auth.service';
+import { useLanguage } from "../../context/LanguageContext";
 
 const RealtorProfile: React.FC = () => {
+    const { t } = useLanguage();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -37,8 +39,8 @@ const RealtorProfile: React.FC = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">My Profile</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage your realtor account information.</p>
+        <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">{t('RealtorProfile.myProfile')}</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('RealtorProfile.manageYourRealtorAcc')}</p>
       </div>
 
       {/* Avatar */}
@@ -62,9 +64,8 @@ const RealtorProfile: React.FC = () => {
       {/* Form */}
       <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-4">
         <h2 className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
-          <span className="material-symbols-outlined text-[18px] text-emerald-500">edit</span>
-          Edit Information
-        </h2>
+          <span className="material-symbols-outlined text-[18px] text-emerald-500">{t('RealtorProfile.edit')}</span>
+          {t('RealtorProfile.editInformation')}</h2>
         {[
           { label: 'Full Name', key: 'name', type: 'text', placeholder: 'Your full name' },
           { label: 'Phone', key: 'phone', type: 'tel', placeholder: '+1 (555) 000-0000' },
@@ -88,16 +89,16 @@ const RealtorProfile: React.FC = () => {
           className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-colors disabled:opacity-70 flex items-center justify-center gap-2 text-sm"
         >
           {saving ? (
-            <><CircularProgress size={14} color="inherit" /> Saving…</>
+            <><CircularProgress size={14} color="inherit" /> {t('RealtorProfile.saving')}</>
           ) : saved ? '✅ Saved!' : (
-            <><span className="material-symbols-outlined text-[18px]">save</span> Save Changes</>
+            <><span className="material-symbols-outlined text-[18px]">{t('RealtorProfile.save')}</span> {t('RealtorProfile.saveChanges')}</>
           )}
         </button>
       </div>
 
       {/* Account Info */}
       <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 space-y-2">
-        <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Account</h2>
+        <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">{t('RealtorProfile.account')}</h2>
         {[
           { label: 'Email', value: user?.email },
           { label: 'Role', value: 'Realtor Partner' },

@@ -8,8 +8,10 @@ import { Box, Typography } from '@mui/material';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTour } from '../../context/TourContext';
+import { useLanguage } from "../../context/LanguageContext";
 
 const ClientAuctions: React.FC = () => {
+    const { t } = useLanguage();
     const [filters, setFilters] = useState<AuctionFilterParams>({});
     const [searchParams, setSearchParams] = useSearchParams();
 
@@ -75,25 +77,21 @@ const ClientAuctions: React.FC = () => {
         return (
             <div className="flex flex-col items-center justify-center p-8 py-16 text-center max-w-lg mx-auto size-full min-h-[60vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-xl backdrop-blur-md">
                 <div className="size-16 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
-                    <span className="material-symbols-outlined text-4xl text-amber-500 animate-bounce">lock</span>
+                    <span className="material-symbols-outlined text-4xl text-amber-500 animate-bounce">{t('ClientAuctions.lock')}</span>
                 </div>
                 <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-extrabold uppercase tracking-widest mb-3 border border-amber-500/20">
-                    Premium Feature Locked
-                </span>
+                    {t('ClientAuctions.premiumFeatureLocked')}</span>
                 <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
-                    Live Auctions Calendar
-                </h3>
+                    {t('ClientAuctions.liveAuctionsCalendar')}</h3>
                 <p className="text-slate-650 dark:text-slate-400 text-sm leading-relaxed mb-8 font-medium">
-                    Your current account is in **Trial Mode**. Detailed county-level Live Auctions calendar and historical bidding timelines are restricted to **Pro** and **Enterprise** subscribers.
-                </p>
+                    {t('ClientAuctions.yourCurrentAccountIs')}</p>
                 <button
                     onClick={() => {
                         window.dispatchEvent(new CustomEvent('open-workbench-widget', { detail: { widgetId: 'billings_and_plans' } }));
                     }}
                     className="w-full max-w-xs py-3.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-extrabold rounded-2xl shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
                 >
-                    Upgrade Plan Now
-                </button>
+                    {t('ClientAuctions.upgradePlanNow')}</button>
             </div>
         );
     }
@@ -106,9 +104,8 @@ const ClientAuctions: React.FC = () => {
                         onClick={() => startTour('live_auctions')}
                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-black rounded-lg transition-all shadow-sm bg-indigo-600 hover:bg-indigo-500 text-white animate-pulse"
                     >
-                        <span className="material-symbols-outlined text-[16px]">menu_book</span>
-                        Page Tour
-                    </button>
+                        <span className="material-symbols-outlined text-[16px]">{t('ClientAuctions.menubook')}</span>
+                        {t('ClientAuctions.pageTour')}</button>
                 </div>
                 <AuctionFilters onFilterChange={setFilters} />
             </div>

@@ -2,8 +2,10 @@ import React from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, Star, Lock } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from "../../context/LanguageContext";
 
 export const TrialLimitPage: React.FC = () => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const { user } = useAuth();
@@ -32,8 +34,7 @@ export const TrialLimitPage: React.FC = () => {
 
             <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 shadow-xl max-w-2xl w-full text-left">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                    <Star className="text-amber-500" /> Unlock Premium Features
-                </h3>
+                    <Star className="text-amber-500" /> {t('TrialLimitPage.unlockPremiumFeature')}</h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                     {[
@@ -58,14 +59,12 @@ export const TrialLimitPage: React.FC = () => {
                         onClick={() => navigate('/client/billing')}
                         className="w-full sm:w-auto px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-95"
                     >
-                        View Upgrade Plans
-                    </button>
+                        {t('TrialLimitPage.viewUpgradePlans')}</button>
                     <button
                         onClick={() => navigate('/client')}
                         className="w-full sm:w-auto px-8 py-3 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl border border-slate-200 dark:border-slate-600 transition-all"
                     >
-                        Return to Dashboard
-                    </button>
+                        {t('TrialLimitPage.returnToDashboard')}</button>
                 </div>
             </div>
         </div>

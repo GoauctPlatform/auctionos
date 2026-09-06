@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../../services/api';
 import { AuthService } from '../../services/auth.service';
 import { CircularProgress } from '@mui/material';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface Task {
   id: number;
@@ -34,6 +35,7 @@ interface Commission {
 }
 
 const AgentDashboard: React.FC = () => {
+    const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showWelcomeModal, setShowWelcomeModal] = useState(searchParams.get('welcome') === 'true');
@@ -112,12 +114,11 @@ const AgentDashboard: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center border border-slate-100 dark:border-slate-700 animate-in fade-in zoom-in duration-300">
             <div className="w-20 h-20 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="material-symbols-outlined text-4xl text-orange-600 dark:text-orange-400">directions_car</span>
+              <span className="material-symbols-outlined text-4xl text-orange-600 dark:text-orange-400">{t('AgentDashboard.directionscar')}</span>
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Welcome, Partner!</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('AgentDashboard.welcomePartner')}</h2>
             <p className="text-slate-600 dark:text-slate-400 mb-8">
-              Your certified Field Agent account is fully active. Start browsing available properties, claim missions, capture verified media, and withdraw your payouts!
-            </p>
+              {t('AgentDashboard.yourCertifiedFieldAg')}</p>
             <button 
               onClick={() => {
                 setShowWelcomeModal(false);
@@ -125,8 +126,7 @@ const AgentDashboard: React.FC = () => {
               }} 
               className="w-full py-3.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-[0.98]"
             >
-              Access Command Center
-            </button>
+              {t('AgentDashboard.accessCommandCenter')}</button>
           </div>
         </div>
       )}
@@ -142,12 +142,10 @@ const AgentDashboard: React.FC = () => {
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl sm:text-3xl font-black text-white">{displayName}</h1>
               <span className="px-2.5 py-0.5 text-[9px] font-black tracking-widest bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full uppercase flex items-center gap-1">
-                <span className="material-symbols-outlined text-[10px]">verified</span> Verified Field Agent
-              </span>
+                <span className="material-symbols-outlined text-[10px]">{t('AgentDashboard.verified')}</span> {t('AgentDashboard.verifiedFieldAgent')}</span>
             </div>
             <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
-              Welcome to the Command Center. Manage your active claims, view local valuation and photos assignments, and track your pending and paid commissions in real-time.
-            </p>
+              {t('AgentDashboard.welcomeToTheCommandC')}</p>
           </div>
         </div>
         <div className="relative z-10 flex gap-3 shrink-0">
@@ -155,9 +153,8 @@ const AgentDashboard: React.FC = () => {
             onClick={() => navigate('/agent/tasks')}
             className="px-5 py-3 bg-white hover:bg-slate-50 text-slate-900 font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center gap-2"
           >
-            <span className="material-symbols-outlined text-base">explore</span>
-            Find Local Missions
-          </button>
+            <span className="material-symbols-outlined text-base">{t('AgentDashboard.explore')}</span>
+            {t('AgentDashboard.findLocalMissions')}</button>
         </div>
       </div>
 
@@ -166,56 +163,56 @@ const AgentDashboard: React.FC = () => {
         {/* KPI 1: Active Claims */}
         <div className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:border-orange-500/40 transition-all cursor-pointer" onClick={() => navigate('/agent/tasks?tab=mine')}>
           <div className="space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">In Progress</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AgentDashboard.inProgress')}</div>
             <div className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white group-hover:text-orange-500 transition-colors">
               {loading ? <CircularProgress size={20} /> : activeMissionsCount}
             </div>
-            <div className="text-[9px] font-semibold text-slate-400">Claimed & working</div>
+            <div className="text-[9px] font-semibold text-slate-400">{t('AgentDashboard.claimedWorking')}</div>
           </div>
           <div className="w-12 h-12 rounded-xl bg-orange-50 dark:bg-orange-950/20 flex items-center justify-center text-orange-500">
-            <span className="material-symbols-outlined text-2xl">schedule</span>
+            <span className="material-symbols-outlined text-2xl">{t('AgentDashboard.schedule')}</span>
           </div>
         </div>
 
         {/* KPI 2: Pending Review */}
         <div className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:border-purple-500/40 transition-all cursor-pointer" onClick={() => navigate('/agent/tasks?tab=mine')}>
           <div className="space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Submitted</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AgentDashboard.submitted')}</div>
             <div className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white group-hover:text-purple-500 transition-colors">
               {loading ? <CircularProgress size={20} /> : pendingReviewCount}
             </div>
-            <div className="text-[9px] font-semibold text-slate-400">Awaiting approval</div>
+            <div className="text-[9px] font-semibold text-slate-400">{t('AgentDashboard.awaitingApproval')}</div>
           </div>
           <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/20 flex items-center justify-center text-purple-500">
-            <span className="material-symbols-outlined text-2xl">publish</span>
+            <span className="material-symbols-outlined text-2xl">{t('AgentDashboard.publish')}</span>
           </div>
         </div>
 
         {/* KPI 3: Total Completed */}
         <div className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:border-emerald-500/40 transition-all cursor-pointer" onClick={() => navigate('/agent/tasks?tab=mine')}>
           <div className="space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Approved</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AgentDashboard.approved')}</div>
             <div className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white group-hover:text-emerald-500 transition-colors">
               {loading ? <CircularProgress size={20} /> : completedMissionsCount}
             </div>
-            <div className="text-[9px] font-semibold text-slate-400">Payouts completed</div>
+            <div className="text-[9px] font-semibold text-slate-400">{t('AgentDashboard.payoutsCompleted')}</div>
           </div>
           <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center text-emerald-500">
-            <span className="material-symbols-outlined text-2xl">verified</span>
+            <span className="material-symbols-outlined text-2xl">{t('AgentDashboard.verified')}</span>
           </div>
         </div>
 
         {/* KPI 4: Available Wallet Balance */}
         <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-5 rounded-2xl shadow-md flex items-center justify-between group hover:border-amber-500/40 transition-all cursor-pointer" onClick={() => navigate('/agent/withdraw')}>
           <div className="space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-widest text-amber-500">Wallet Balance</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-amber-500">{t('AgentDashboard.walletBalance')}</div>
             <div className="text-2xl sm:text-3xl font-black text-emerald-400">
               {loading ? <CircularProgress size={20} className="text-emerald-400" /> : `$${earnings.available_usd.toFixed(2)}`}
             </div>
-            <div className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{earnings.available_points} Pts</div>
+            <div className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{earnings.available_points} {t('AgentDashboard.pts')}</div>
           </div>
           <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-amber-500">
-            <span className="material-symbols-outlined text-2xl">account_balance_wallet</span>
+            <span className="material-symbols-outlined text-2xl">{t('AgentDashboard.accountbalancewallet')}</span>
           </div>
         </div>
       </div>
@@ -231,17 +228,16 @@ const AgentDashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                  <span className="material-symbols-outlined text-orange-500">directions_car</span>
-                  Your Active Claims
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">Assignments you are currently committed to finish</p>
+                  <span className="material-symbols-outlined text-orange-500">{t('AgentDashboard.directionscar')}</span>
+                  {t('AgentDashboard.yourActiveClaims')}</h2>
+                <p className="text-xs text-slate-400 mt-1">{t('AgentDashboard.assignmentsYouAreCur')}</p>
               </div>
               {myTasks.filter(t => t.status === 'claimed' || t.status === 'submitted').length > 0 && (
                 <button
                   onClick={() => navigate('/agent/tasks?tab=mine')}
                   className="text-[10px] font-black text-orange-500 hover:text-orange-600 uppercase tracking-widest flex items-center gap-1 transition-colors"
                 >
-                  Manage All <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                  {t('AgentDashboard.manageAll')}<span className="material-symbols-outlined text-xs">{t('AgentDashboard.arrowforward')}</span>
                 </button>
               )}
             </div>
@@ -250,17 +246,15 @@ const AgentDashboard: React.FC = () => {
               <div className="flex justify-center py-8"><CircularProgress size={30} className="text-orange-500" /></div>
             ) : myTasks.filter(t => t.status === 'claimed' || t.status === 'submitted').length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">assignment_late</span>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No Active Missions</p>
+                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">{t('AgentDashboard.assignmentlate')}</span>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('AgentDashboard.noActiveMissions')}</p>
                 <p className="text-[11px] text-slate-400 mt-1 max-w-sm">
-                  You are not currently working on any property tasks. Find open tasks nearby to claim and start earning!
-                </p>
+                  {t('AgentDashboard.youAreNotCurrentlyWo')}</p>
                 <button
                   onClick={() => navigate('/agent/tasks')}
                   className="mt-4 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-xs rounded-xl shadow-md shadow-orange-500/10 transition-colors"
                 >
-                  Browse Available Tasks
-                </button>
+                  {t('AgentDashboard.browseAvailableTasks')}</button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -277,7 +271,7 @@ const AgentDashboard: React.FC = () => {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 text-[8px] font-black uppercase bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md">
-                              Task #{task.id}
+                              {t('AgentDashboard.task')}{task.id}
                             </span>
                             <span className={`px-2 py-0.5 text-[8px] font-black uppercase rounded-md ${
                               isSubmitted ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
@@ -287,27 +281,25 @@ const AgentDashboard: React.FC = () => {
                           </div>
                           <h3 className="text-sm font-black text-slate-800 dark:text-white truncate max-w-sm sm:max-w-md">{task.title}</h3>
                           <p className="text-xs text-slate-400 flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[14px]">location_on</span>
+                            <span className="material-symbols-outlined text-[14px]">{t('AgentDashboard.locationon')}</span>
                             {task.address}
                           </p>
                         </div>
                         <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 shrink-0">
                           <div className="text-right">
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Payout</div>
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('AgentDashboard.payout')}</div>
                             <div className="text-base font-black text-emerald-500">${(task.reward_points / 100).toFixed(2)}</div>
                           </div>
                           
                           {isSubmitted ? (
                             <span className="px-3.5 py-2 border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 font-bold text-[10px] uppercase rounded-xl">
-                              Awaiting Review
-                            </span>
+                              {t('AgentDashboard.awaitingReview')}</span>
                           ) : (
                             <button
                               onClick={() => navigate(`/agent/tasks?tab=mine`)}
                               className="px-3.5 py-2 bg-orange-500 hover:bg-orange-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-xl shadow-md shadow-orange-500/10 transition-colors"
                             >
-                              Execute Mission
-                            </button>
+                              {t('AgentDashboard.executeMission')}</button>
                           )}
                         </div>
                       </div>
@@ -315,10 +307,10 @@ const AgentDashboard: React.FC = () => {
                       {!isSubmitted && task.deadline && (
                         <div className="mt-4 border-t border-slate-100 dark:border-slate-800/60 pt-3 flex items-center justify-between text-[10px] font-bold text-slate-400">
                           <span className="flex items-center gap-1 text-amber-500">
-                            <span className="material-symbols-outlined text-[14px]">timer</span>
-                            Expires: {deadlineStr}
+                            <span className="material-symbols-outlined text-[14px]">{t('AgentDashboard.timer')}</span>
+                            {t('AgentDashboard.expires')}{deadlineStr}
                           </span>
-                          <span className="italic">Claimed: {task.claimed_at ? new Date(task.claimed_at).toLocaleDateString() : ''}</span>
+                          <span className="italic">{t('AgentDashboard.claimed')}{task.claimed_at ? new Date(task.claimed_at).toLocaleDateString() : ''}</span>
                         </div>
                       )}
                     </div>
@@ -333,16 +325,15 @@ const AgentDashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                  <span className="material-symbols-outlined text-orange-500">trending_up</span>
-                  High-Value Open Opportunities
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">Claim high payout missions available in your region</p>
+                  <span className="material-symbols-outlined text-orange-500">{t('AgentDashboard.trendingup')}</span>
+                  {t('AgentDashboard.highValueOpenOpportu')}</h2>
+                <p className="text-xs text-slate-400 mt-1">{t('AgentDashboard.claimHighPayoutMissi')}</p>
               </div>
               <button
                 onClick={() => navigate('/agent/tasks')}
                 className="text-[10px] font-black text-orange-500 hover:text-orange-600 uppercase tracking-widest flex items-center gap-1 transition-colors"
               >
-                View All Missions <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                {t('AgentDashboard.viewAllMissions')}<span className="material-symbols-outlined text-xs">{t('AgentDashboard.arrowforward')}</span>
               </button>
             </div>
 
@@ -350,9 +341,9 @@ const AgentDashboard: React.FC = () => {
               <div className="flex justify-center py-8"><CircularProgress size={30} className="text-orange-500" /></div>
             ) : availableTasks.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl">
-                <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">info</span>
-                <p className="text-xs font-bold text-slate-400">No open assignments</p>
-                <p className="text-[10px] text-slate-400 mt-1">Check back later for new local research options.</p>
+                <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">{t('AgentDashboard.info')}</span>
+                <p className="text-xs font-bold text-slate-400">{t('AgentDashboard.noOpenAssignments')}</p>
+                <p className="text-[10px] text-slate-400 mt-1">{t('AgentDashboard.checkBackLaterForNew')}</p>
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-4">
@@ -364,13 +355,13 @@ const AgentDashboard: React.FC = () => {
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <span className="px-2 py-0.5 text-[8px] font-black uppercase bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 rounded-md">
-                          Task #{task.id}
+                          {t('AgentDashboard.task')}{task.id}
                         </span>
                         <span className="text-[11px] font-black text-emerald-500">${(task.reward_points / 100).toFixed(2)}</span>
                       </div>
                       <h3 className="text-xs font-black text-slate-800 dark:text-white mt-2 group-hover:text-orange-500 transition-colors line-clamp-1">{task.title}</h3>
                       <p className="text-[10px] text-slate-400 truncate flex items-center gap-1 mt-0.5">
-                        <span className="material-symbols-outlined text-[12px]">location_on</span>
+                        <span className="material-symbols-outlined text-[12px]">{t('AgentDashboard.locationon')}</span>
                         {task.address || `${task.county}, ${task.state}`}
                       </p>
                     </div>
@@ -380,7 +371,7 @@ const AgentDashboard: React.FC = () => {
                         onClick={() => navigate('/agent/tasks')}
                         className="text-[9px] font-black text-orange-500 group-hover:underline uppercase tracking-wider flex items-center gap-0.5"
                       >
-                        Claim <span className="material-symbols-outlined text-[10px]">chevron_right</span>
+                        {t('AgentDashboard.claim')}<span className="material-symbols-outlined text-[10px]">{t('AgentDashboard.chevronright')}</span>
                       </button>
                     </div>
                   </div>
@@ -398,23 +389,22 @@ const AgentDashboard: React.FC = () => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(249,115,22,0.15),transparent_40%)]"></div>
             
             <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 relative z-10">
-              <span className="material-symbols-outlined text-orange-500 text-lg">account_balance_wallet</span>
-              Earnings command
-            </h3>
+              <span className="material-symbols-outlined text-orange-500 text-lg">{t('AgentDashboard.accountbalancewallet')}</span>
+              {t('AgentDashboard.earningsCommand')}</h3>
             
             <div className="mt-6 relative z-10">
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Available Balance</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AgentDashboard.availableBalance')}</div>
               <div className="text-4xl font-black text-emerald-400 mt-1">${earnings.available_usd.toFixed(2)}</div>
-              <p className="text-[10px] text-slate-400 mt-1 tracking-wider uppercase font-bold">{earnings.available_points} Points ready for payout</p>
+              <p className="text-[10px] text-slate-400 mt-1 tracking-wider uppercase font-bold">{earnings.available_points} {t('AgentDashboard.pointsReadyForPayout')}</p>
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3 border-t border-slate-800 pt-5 relative z-10">
               <div>
-                <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest block">Total Payouts</span>
+                <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest block">{t('AgentDashboard.totalPayouts')}</span>
                 <span className="text-sm font-black text-white">${earnings.total_earned_usd.toFixed(2)}</span>
               </div>
               <div>
-                <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest block">Withdrawn</span>
+                <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest block">{t('AgentDashboard.withdrawn')}</span>
                 <span className="text-sm font-black text-slate-300">${(earnings.withdrawn_points / 100).toFixed(2)}</span>
               </div>
             </div>
@@ -423,23 +413,20 @@ const AgentDashboard: React.FC = () => {
               onClick={() => navigate('/agent/withdraw')}
               className="mt-6 w-full py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-orange-500/10 transition-all active:scale-[0.98] relative z-10"
             >
-              Request Withdrawal
-            </button>
+              {t('AgentDashboard.requestWithdrawal')}</button>
           </section>
 
           {/* Dynamic Commissions Activity Log */}
           <section className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm">
             <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-orange-500 text-[18px]">receipt_long</span>
-              Earnings History
-            </h2>
+              <span className="material-symbols-outlined text-orange-500 text-[18px]">{t('AgentDashboard.receiptlong')}</span>
+              {t('AgentDashboard.earningsHistory')}</h2>
 
             {loading ? (
               <div className="flex justify-center py-6"><CircularProgress size={20} className="text-orange-500" /></div>
             ) : !earnings.commissions || earnings.commissions.length === 0 ? (
               <div className="text-center py-8 text-slate-400 text-[11px] italic">
-                No financial history available yet.
-              </div>
+                {t('AgentDashboard.noFinancialHistoryAv')}</div>
             ) : (
               <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
                 {earnings.commissions.slice(0, 5).map((comm: Commission) => {

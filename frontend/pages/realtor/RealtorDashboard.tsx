@@ -6,6 +6,7 @@ import api from '../../services/api';
 import { API_URL, getHeaders } from '../../services/httpClient';
 import { CircularProgress } from '@mui/material';
 import { ExecuteTaskMission } from '../../components/property/ExecuteTaskMission';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface ExportedProperty {
   export_id: number;
@@ -53,6 +54,7 @@ interface Commission {
 }
 
 const ConsultantDashboard: React.FC = () => {
+    const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [showWelcomeModal, setShowWelcomeModal] = useState(searchParams.get('welcome') === 'true');
@@ -143,12 +145,11 @@ const ConsultantDashboard: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/70 backdrop-blur-sm">
           <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 max-w-md w-full shadow-2xl text-center border border-slate-100 dark:border-slate-700 animate-in fade-in zoom-in duration-300">
             <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <span className="material-symbols-outlined text-4xl text-emerald-600 dark:text-emerald-400">handshake</span>
+              <span className="material-symbols-outlined text-4xl text-emerald-600 dark:text-emerald-400">{t('RealtorDashboard.handshake')}</span>
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Welcome to GoAuct!</h2>
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('RealtorDashboard.welcomeToGoAuct')}</h2>
             <p className="text-slate-600 dark:text-slate-400 mb-8">
-              Your Realtor Partner account is active. You can now claim due diligence tasks from investors, manage your portfolio, and track your commissions!
-            </p>
+              {t('RealtorDashboard.yourRealtorPartnerAc')}</p>
             <button 
               onClick={() => {
                 setShowWelcomeModal(false);
@@ -156,8 +157,7 @@ const ConsultantDashboard: React.FC = () => {
               }} 
               className="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98]"
             >
-              Access Dashboard
-            </button>
+              {t('RealtorDashboard.accessDashboard')}</button>
           </div>
         </div>
       )}
@@ -174,17 +174,14 @@ const ConsultantDashboard: React.FC = () => {
               <h1 className="text-2xl sm:text-3xl font-black text-white">{displayName}</h1>
               {profile?.verification_status === 'verified' ? (
                 <span className="px-2.5 py-0.5 text-[9px] font-black tracking-widest bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full uppercase flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[10px]">verified</span> Verified Partner
-                </span>
+                  <span className="material-symbols-outlined text-[10px]">{t('RealtorDashboard.verified')}</span> {t('RealtorDashboard.verifiedPartner')}</span>
               ) : (
                 <span className="px-2.5 py-0.5 text-[9px] font-black tracking-widest bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-full uppercase flex items-center gap-1">
-                  <span className="material-symbols-outlined text-[10px]">pending</span> Verification Pending
-                </span>
+                  <span className="material-symbols-outlined text-[10px]">{t('RealtorDashboard.pending')}</span> {t('RealtorDashboard.verificationPending')}</span>
               )}
             </div>
             <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
-              Welcome back to your partner terminal. Coordinate investor outreach, research probate/tax listings, and monitor your commission flow instantly.
-            </p>
+              {t('RealtorDashboard.welcomeBackToYourPar')}</p>
           </div>
         </div>
         <div className="relative z-10 flex gap-3 shrink-0">
@@ -192,9 +189,8 @@ const ConsultantDashboard: React.FC = () => {
             onClick={() => navigate('/realtor/profile')}
             className="px-5 py-3 bg-white hover:bg-slate-50 text-slate-900 font-bold rounded-xl text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center gap-2"
           >
-            <span className="material-symbols-outlined text-base">manage_accounts</span>
-            Edit Profile
-          </button>
+            <span className="material-symbols-outlined text-base">{t('RealtorDashboard.manageaccounts')}</span>
+            {t('RealtorDashboard.editProfile')}</button>
         </div>
       </div>
 
@@ -203,56 +199,56 @@ const ConsultantDashboard: React.FC = () => {
         {/* KPI 1: Exported Properties */}
         <div className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:border-emerald-500/40 transition-all cursor-pointer" onClick={() => navigate('/realtor/listings')}>
           <div className="space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Exported Listings</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('RealtorDashboard.exportedListings')}</div>
             <div className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white group-hover:text-emerald-500 transition-colors">
               {loading ? <CircularProgress size={20} /> : recentExports.length}
             </div>
-            <div className="text-[9px] font-semibold text-slate-400">Shared by investors</div>
+            <div className="text-[9px] font-semibold text-slate-400">{t('RealtorDashboard.sharedByInvestors')}</div>
           </div>
           <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center text-emerald-500">
-            <span className="material-symbols-outlined text-2xl">home_work</span>
+            <span className="material-symbols-outlined text-2xl">{t('RealtorDashboard.homework')}</span>
           </div>
         </div>
 
         {/* KPI 2: Open Tasks */}
         <div className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:border-blue-500/40 transition-all cursor-pointer" onClick={() => navigate('/realtor/tasks')}>
           <div className="space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tasks In Progress</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('RealtorDashboard.tasksInProgress')}</div>
             <div className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white group-hover:text-blue-500 transition-colors">
               {loading ? <CircularProgress size={20} /> : (activeMissionsCount + pendingReviewCount)}
             </div>
-            <div className="text-[9px] font-semibold text-slate-400">Active assignments</div>
+            <div className="text-[9px] font-semibold text-slate-400">{t('RealtorDashboard.activeAssignments')}</div>
           </div>
           <div className="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center text-blue-500">
-            <span className="material-symbols-outlined text-2xl">assignment</span>
+            <span className="material-symbols-outlined text-2xl">{t('RealtorDashboard.assignment')}</span>
           </div>
         </div>
 
         {/* KPI 3: Total Completed */}
         <div className="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 p-5 rounded-2xl shadow-sm flex items-center justify-between group hover:border-emerald-500/40 transition-all cursor-pointer" onClick={() => navigate('/realtor/tasks?tab=mine')}>
           <div className="space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Approved</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('RealtorDashboard.approved')}</div>
             <div className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-white group-hover:text-emerald-500 transition-colors">
               {loading ? <CircularProgress size={20} /> : completedMissionsCount}
             </div>
-            <div className="text-[9px] font-semibold text-slate-400">Payouts completed</div>
+            <div className="text-[9px] font-semibold text-slate-400">{t('RealtorDashboard.payoutsCompleted')}</div>
           </div>
           <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/20 flex items-center justify-center text-emerald-500">
-            <span className="material-symbols-outlined text-2xl">verified</span>
+            <span className="material-symbols-outlined text-2xl">{t('RealtorDashboard.verified')}</span>
           </div>
         </div>
 
         {/* KPI 4: Commissions Wallet Balance */}
         <div className="bg-gradient-to-br from-slate-900 to-slate-950 border border-slate-800 p-5 rounded-2xl shadow-md flex items-center justify-between group hover:border-emerald-500/40 transition-all cursor-pointer" onClick={() => navigate('/realtor/commissions')}>
           <div className="space-y-1">
-            <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Earned Balance</div>
+            <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500">{t('RealtorDashboard.earnedBalance')}</div>
             <div className="text-2xl sm:text-3xl font-black text-emerald-400">
               {loading ? <CircularProgress size={20} className="text-emerald-400" /> : `$${earnings.available_usd.toFixed(2)}`}
             </div>
-            <div className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{earnings.available_points} Pts</div>
+            <div className="text-[9px] font-semibold text-slate-400 uppercase tracking-wider">{earnings.available_points} {t('RealtorDashboard.pts')}</div>
           </div>
           <div className="w-12 h-12 rounded-xl bg-slate-800 flex items-center justify-center text-emerald-500">
-            <span className="material-symbols-outlined text-2xl">account_balance_wallet</span>
+            <span className="material-symbols-outlined text-2xl">{t('RealtorDashboard.accountbalancewallet')}</span>
           </div>
         </div>
       </div>
@@ -268,17 +264,16 @@ const ConsultantDashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                  <span className="material-symbols-outlined text-emerald-500">upload</span>
-                  Recently Exported Listings
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">Properties shared with you by investors for seller outreach and representation</p>
+                  <span className="material-symbols-outlined text-emerald-500">{t('RealtorDashboard.upload')}</span>
+                  {t('RealtorDashboard.recentlyExportedList')}</h2>
+                <p className="text-xs text-slate-400 mt-1">{t('RealtorDashboard.propertiesSharedWith')}</p>
               </div>
               {recentExports.length > 0 && (
                 <button
                   onClick={() => navigate('/realtor/listings')}
                   className="text-[10px] font-black text-emerald-600 hover:text-emerald-700 uppercase tracking-widest flex items-center gap-1 transition-colors"
                 >
-                  View All Listings <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                  {t('RealtorDashboard.viewAllListings')}<span className="material-symbols-outlined text-xs">{t('RealtorDashboard.arrowforward')}</span>
                 </button>
               )}
             </div>
@@ -291,11 +286,10 @@ const ConsultantDashboard: React.FC = () => {
               </div>
             ) : recentExports.length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">home_work</span>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No Shared Listings</p>
+                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">{t('RealtorDashboard.homework')}</span>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('RealtorDashboard.noSharedListings')}</p>
                 <p className="text-[11px] text-slate-400 mt-1 max-w-sm">
-                  Investors have not shared any properties with you yet. Once they add items to your outreach folder, they will populate here.
-                </p>
+                  {t('RealtorDashboard.investorsHaveNotShar')}</p>
               </div>
             ) : (
               <div className="grid sm:grid-cols-2 gap-4">
@@ -308,12 +302,12 @@ const ConsultantDashboard: React.FC = () => {
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="px-2 py-0.5 text-[8px] font-black uppercase bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md">
-                          Export #{p.export_id}
+                          {t('RealtorDashboard.export')}{p.export_id}
                         </span>
                       </div>
                       <h3 className="text-sm font-black text-slate-800 dark:text-white mt-2 group-hover:text-emerald-500 transition-colors truncate">{p.address || p.parcel_id}</h3>
                       <p className="text-[10px] text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
-                        <span className="material-symbols-outlined text-[14px]">location_on</span>
+                        <span className="material-symbols-outlined text-[14px]">{t('RealtorDashboard.locationon')}</span>
                         {p.county}, {p.state}
                       </p>
                     </div>
@@ -322,17 +316,17 @@ const ConsultantDashboard: React.FC = () => {
                       <div className="flex gap-2">
                         {p.assessed_value && (
                           <span className="text-[9px] font-black bg-blue-500/10 text-blue-500 border border-blue-500/10 px-2 py-0.5 rounded-lg uppercase">
-                            ARV: ${(p.assessed_value / 1000).toFixed(0)}k
+                            {t('RealtorDashboard.aRV')}{(p.assessed_value / 1000).toFixed(0)}k
                           </span>
                         )}
                         {p.amount_due && (
                           <span className="text-[9px] font-black bg-amber-500/10 text-amber-500 border border-amber-500/10 px-2 py-0.5 rounded-lg uppercase">
-                            Due: ${(p.amount_due / 1000).toFixed(0)}k
+                            {t('RealtorDashboard.due')}{(p.amount_due / 1000).toFixed(0)}k
                           </span>
                         )}
                       </div>
                       <span className="text-[9px] font-black text-emerald-500 group-hover:underline uppercase tracking-wider flex items-center gap-0.5">
-                        Details <span className="material-symbols-outlined text-[10px]">chevron_right</span>
+                        {t('RealtorDashboard.details')}<span className="material-symbols-outlined text-[10px]">{t('RealtorDashboard.chevronright')}</span>
                       </span>
                     </div>
                   </div>
@@ -346,17 +340,16 @@ const ConsultantDashboard: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <div>
                 <h2 className="text-lg font-black text-slate-800 dark:text-white flex items-center gap-2">
-                  <span className="material-symbols-outlined text-emerald-500">task_alt</span>
-                  Active Due Diligence Claims
-                </h2>
-                <p className="text-xs text-slate-400 mt-1">Paid field research tasks you have claimed and committed to finish</p>
+                  <span className="material-symbols-outlined text-emerald-500">{t('RealtorDashboard.taskalt')}</span>
+                  {t('RealtorDashboard.activeDueDiligenceCl')}</h2>
+                <p className="text-xs text-slate-400 mt-1">{t('RealtorDashboard.paidFieldResearchTas')}</p>
               </div>
               {(activeMissionsCount + pendingReviewCount) > 0 && (
                 <button
                   onClick={() => navigate('/realtor/tasks?tab=mine')}
                   className="text-[10px] font-black text-emerald-600 hover:text-emerald-700 uppercase tracking-widest flex items-center gap-1 transition-colors"
                 >
-                  Manage Claims <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                  {t('RealtorDashboard.manageClaims')}<span className="material-symbols-outlined text-xs">{t('RealtorDashboard.arrowforward')}</span>
                 </button>
               )}
             </div>
@@ -365,17 +358,15 @@ const ConsultantDashboard: React.FC = () => {
               <div className="flex justify-center py-8"><CircularProgress size={30} className="text-emerald-500" /></div>
             ) : myTasks.filter(t => t.status === 'claimed' || t.status === 'submitted').length === 0 ? (
               <div className="flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">assignment_late</span>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No Active Tasks</p>
+                <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 mb-2">{t('RealtorDashboard.assignmentlate')}</span>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('RealtorDashboard.noActiveTasks')}</p>
                 <p className="text-[11px] text-slate-400 mt-1 max-w-sm">
-                  You are not currently executing any investor-assigned verification tasks. Check available local options to earn points!
-                </p>
+                  {t('RealtorDashboard.youAreNotCurrentlyEx')}</p>
                 <button
                   onClick={() => navigate('/realtor/tasks')}
                   className="mt-4 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-500/10 transition-colors"
                 >
-                  Browse Tasks
-                </button>
+                  {t('RealtorDashboard.browseTasks')}</button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -392,7 +383,7 @@ const ConsultantDashboard: React.FC = () => {
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             <span className="px-2 py-0.5 text-[8px] font-black uppercase bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-md">
-                              Task #{task.id}
+                              {t('RealtorDashboard.task')}{task.id}
                             </span>
                             <span className={`px-2 py-0.5 text-[8px] font-black uppercase rounded-md ${
                               isSubmitted ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
@@ -402,27 +393,25 @@ const ConsultantDashboard: React.FC = () => {
                           </div>
                           <h3 className="text-sm font-black text-slate-800 dark:text-white truncate max-w-sm sm:max-w-md">{task.title}</h3>
                           <p className="text-xs text-slate-400 flex items-center gap-1.5">
-                            <span className="material-symbols-outlined text-[14px]">location_on</span>
+                            <span className="material-symbols-outlined text-[14px]">{t('RealtorDashboard.locationon')}</span>
                             {task.address}
                           </p>
                         </div>
                         <div className="flex items-center justify-between sm:flex-col sm:items-end gap-2 shrink-0">
                           <div className="text-right">
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">Payout</div>
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('RealtorDashboard.payout')}</div>
                             <div className="text-base font-black text-emerald-500">${(task.reward_points / 100).toFixed(2)}</div>
                           </div>
                           
                           {isSubmitted ? (
                             <span className="px-3.5 py-2 border border-purple-200 dark:border-purple-800 bg-purple-50 dark:bg-purple-950/20 text-purple-600 dark:text-purple-400 font-bold text-[10px] uppercase rounded-xl">
-                              Awaiting Review
-                            </span>
+                              {t('RealtorDashboard.awaitingReview')}</span>
                           ) : (
                             <button
                               onClick={() => setSubmitTask(task)}
                               className="px-3.5 py-2 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-xl shadow-md shadow-emerald-500/10 transition-colors"
                             >
-                              Submit Task
-                            </button>
+                              {t('RealtorDashboard.submitTask')}</button>
                           )}
                         </div>
                       </div>
@@ -430,10 +419,10 @@ const ConsultantDashboard: React.FC = () => {
                       {!isSubmitted && task.deadline && (
                         <div className="mt-4 border-t border-slate-100 dark:border-slate-800/60 pt-3 flex items-center justify-between text-[10px] font-bold text-slate-400">
                           <span className="flex items-center gap-1 text-amber-500">
-                            <span className="material-symbols-outlined text-[14px]">timer</span>
-                            Expires: {deadlineStr}
+                            <span className="material-symbols-outlined text-[14px]">{t('RealtorDashboard.timer')}</span>
+                            {t('RealtorDashboard.expires')}{deadlineStr}
                           </span>
-                          <span className="italic">Claimed: {task.claimed_at ? new Date(task.claimed_at).toLocaleDateString() : ''}</span>
+                          <span className="italic">{t('RealtorDashboard.claimed')}{task.claimed_at ? new Date(task.claimed_at).toLocaleDateString() : ''}</span>
                         </div>
                       )}
                     </div>
@@ -452,23 +441,22 @@ const ConsultantDashboard: React.FC = () => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(16,185,129,0.15),transparent_40%)]"></div>
             
             <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 flex items-center gap-2 relative z-10">
-              <span className="material-symbols-outlined text-emerald-500 text-lg">account_balance_wallet</span>
-              Realtor Commission Wallet
-            </h3>
+              <span className="material-symbols-outlined text-emerald-500 text-lg">{t('RealtorDashboard.accountbalancewallet')}</span>
+              {t('RealtorDashboard.realtorCommissionWal')}</h3>
             
             <div className="mt-6 relative z-10">
-              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">Available Balance</div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-400">{t('RealtorDashboard.availableBalance')}</div>
               <div className="text-4xl font-black text-emerald-400 mt-1">${earnings.available_usd.toFixed(2)}</div>
-              <p className="text-[10px] text-slate-400 mt-1 tracking-wider uppercase font-bold">{earnings.available_points} Points ready for withdrawal</p>
+              <p className="text-[10px] text-slate-400 mt-1 tracking-wider uppercase font-bold">{earnings.available_points} {t('RealtorDashboard.pointsReadyForWithdr')}</p>
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-3 border-t border-slate-800 pt-5 relative z-10">
               <div>
-                <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest block">Total Payouts</span>
+                <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest block">{t('RealtorDashboard.totalPayouts')}</span>
                 <span className="text-sm font-black text-white">${earnings.total_earned_usd.toFixed(2)}</span>
               </div>
               <div>
-                <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest block">Withdrawn</span>
+                <span className="text-[9px] text-slate-400 uppercase font-black tracking-widest block">{t('RealtorDashboard.withdrawn')}</span>
                 <span className="text-sm font-black text-slate-300">${(earnings.withdrawn_points / 100).toFixed(2)}</span>
               </div>
             </div>
@@ -477,23 +465,20 @@ const ConsultantDashboard: React.FC = () => {
               onClick={() => navigate('/realtor/commissions')}
               className="mt-6 w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-xl text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/10 transition-all active:scale-[0.98] relative z-10"
             >
-              Request Withdrawal
-            </button>
+              {t('RealtorDashboard.requestWithdrawal')}</button>
           </section>
 
           {/* Dynamic Commissions Activity Log */}
           <section className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/60 rounded-3xl p-6 shadow-sm">
             <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
-              <span className="material-symbols-outlined text-emerald-500 text-[18px]">receipt_long</span>
-              Commission History
-            </h2>
+              <span className="material-symbols-outlined text-emerald-500 text-[18px]">{t('RealtorDashboard.receiptlong')}</span>
+              {t('RealtorDashboard.commissionHistory')}</h2>
 
             {loading ? (
               <div className="flex justify-center py-6"><CircularProgress size={20} className="text-emerald-500" /></div>
             ) : !earnings.commissions || earnings.commissions.length === 0 ? (
               <div className="text-center py-8 text-slate-400 text-[11px] italic">
-                No financial history available yet.
-              </div>
+                {t('RealtorDashboard.noFinancialHistoryAv')}</div>
             ) : (
               <div className="space-y-4 max-h-[300px] overflow-y-auto pr-1">
                 {earnings.commissions.slice(0, 5).map((comm: Commission) => {

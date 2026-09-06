@@ -4,6 +4,7 @@ import { AuthService } from '../../services/auth.service';
 import { RealtorService } from '../../services/company.service';
 import { RealtorTaskService } from '../../services/realtor_task.service';
 import { CircularProgress } from '@mui/material';
+import { useLanguage } from "../../context/LanguageContext";
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/realtor', icon: 'dashboard', exact: true },
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
 ];
 
 const ConsultantLayout: React.FC = () => {
+    const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -85,7 +87,7 @@ const ConsultantLayout: React.FC = () => {
       <div className="min-h-screen bg-slate-50 dark:bg-[#060c19] flex flex-col items-center justify-center p-6">
         <div className="flex flex-col items-center gap-4 p-8 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 rounded-3xl shadow-xl">
           <CircularProgress size={40} className="text-emerald-500" />
-          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest animate-pulse">Initializing Portal...</p>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest animate-pulse">{t('RealtorLayout.initializingPortal')}</p>
         </div>
       </div>
     );
@@ -97,38 +99,34 @@ const ConsultantLayout: React.FC = () => {
       <div className="min-h-screen bg-slate-50 dark:bg-[#060c19] flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center gap-6">
           <div className="size-20 rounded-full bg-amber-50 dark:bg-amber-950/20 border-2 border-dashed border-amber-500 flex items-center justify-center animate-spin-slow">
-            <span className="material-symbols-outlined text-amber-500 text-[40px]">pending_actions</span>
+            <span className="material-symbols-outlined text-amber-500 text-[40px]">{t('RealtorLayout.pendingactions')}</span>
           </div>
           
           <div className="flex flex-col gap-2">
-            <h2 className="text-xl font-black text-slate-900 dark:text-white">Verification Pending</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase">Compliance Review In Progress</p>
+            <h2 className="text-xl font-black text-slate-900 dark:text-white">{t('RealtorLayout.verificationPending')}</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase">{t('RealtorLayout.complianceReviewInPr')}</p>
           </div>
           
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            Thank you for joining GoAuct! Compliance is currently reviewing your registration form (SSN, Professional License, and MLS details).
-          </p>
+            {t('RealtorLayout.thankYouForJoiningGo')}</p>
 
           <p className="text-xs text-slate-500 dark:text-slate-400 italic">
-            This compliance check is required before you can access listings, claim tasks, and execute missions. You will receive an email as soon as your account is verified!
-          </p>
+            {t('RealtorLayout.thisComplianceCheckI')}</p>
 
           <div className="flex w-full gap-3 mt-2">
             <button
               onClick={() => window.location.href = 'mailto:support@goauct.com?subject=Pending%20Verification%20Status'}
               className="flex-1 py-3 text-xs font-bold bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/20 dark:hover:bg-emerald-900/40 text-emerald-700 dark:text-emerald-400 rounded-xl transition-all flex items-center justify-center gap-2 border border-emerald-200 dark:border-emerald-800"
             >
-              <span className="material-symbols-outlined text-[18px]">support_agent</span>
-              Contact Support
-            </button>
+              <span className="material-symbols-outlined text-[18px]">{t('RealtorLayout.supportagent')}</span>
+              {t('RealtorLayout.contactSupport')}</button>
 
             <button
               onClick={handleLogout}
               className="flex-1 py-3 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-300 rounded-xl transition-all flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-[18px]">logout</span>
-              Sign Out
-            </button>
+              <span className="material-symbols-outlined text-[18px]">{t('RealtorLayout.logout')}</span>
+              {t('RealtorLayout.signOut')}</button>
           </div>
         </div>
       </div>
@@ -143,45 +141,41 @@ const ConsultantLayout: React.FC = () => {
       <div className="min-h-screen bg-slate-50 dark:bg-[#060c19] flex flex-col items-center justify-center p-6">
         <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl flex flex-col items-center text-center gap-6">
           <div className="size-20 rounded-full bg-red-50 dark:bg-red-950/20 border-2 border-red-500 flex items-center justify-center">
-            <span className="material-symbols-outlined text-red-500 text-[40px]">gavel</span>
+            <span className="material-symbols-outlined text-red-500 text-[40px]">{t('RealtorLayout.gavel')}</span>
           </div>
           
           <div className="flex flex-col gap-2">
-            <h2 className="text-xl font-black text-red-600 dark:text-red-400">Access Revoked</h2>
-            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase">compliance suspension</p>
+            <h2 className="text-xl font-black text-red-600 dark:text-red-400">{t('RealtorLayout.accessRevoked')}</h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold tracking-wider uppercase">{t('RealtorLayout.complianceSuspension')}</p>
           </div>
           
           <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            We regret to inform you that your partner application has been rejected by compliance.
-          </p>
+            {t('RealtorLayout.weRegretToInformYouT')}</p>
 
           <div className="w-full bg-red-50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/30 p-4 rounded-2xl text-left">
-            <span className="text-[10px] font-bold text-red-700 dark:text-red-400 uppercase tracking-widest block mb-1">Reason for Rejection:</span>
+            <span className="text-[10px] font-bold text-red-700 dark:text-red-400 uppercase tracking-widest block mb-1">{t('RealtorLayout.reasonForRejection')}</span>
             <p className="text-xs text-red-600 dark:text-red-300 font-medium leading-relaxed">
               {profile.rejection_reason || "SSN or License credentials mismatch."}
             </p>
           </div>
 
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            If you believe this is a mistake, please contact our compliance and support team. Access to partner portal tools is suspended.
-          </p>
+            {t('RealtorLayout.ifYouBelieveThisIsAM')}</p>
 
           <div className="flex w-full gap-3 mt-2">
             <button
               onClick={() => window.location.href = 'mailto:support@goauct.com?subject=Rejected%20Application%20Appeal'}
               className="flex-1 py-3 text-xs font-bold bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-700 dark:text-red-400 rounded-xl transition-all flex items-center justify-center gap-2 border border-red-200 dark:border-red-800"
             >
-              <span className="material-symbols-outlined text-[18px]">support_agent</span>
-              Contact Support
-            </button>
+              <span className="material-symbols-outlined text-[18px]">{t('RealtorLayout.supportagent')}</span>
+              {t('RealtorLayout.contactSupport')}</button>
 
             <button
               onClick={handleLogout}
               className="flex-1 py-3 text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-300 rounded-xl transition-all flex items-center justify-center gap-2"
             >
-              <span className="material-symbols-outlined text-[18px]">logout</span>
-              Sign Out
-            </button>
+              <span className="material-symbols-outlined text-[18px]">{t('RealtorLayout.logout')}</span>
+              {t('RealtorLayout.signOut')}</button>
           </div>
         </div>
       </div>
@@ -205,10 +199,9 @@ const ConsultantLayout: React.FC = () => {
       {/* Suspended Grace Period Banner */}
       {isRejectedGrace && (
         <div className="bg-gradient-to-r from-red-650 to-amber-650 bg-red-600 text-white px-4 py-2.5 text-center text-xs font-bold flex items-center justify-center gap-2 shrink-0 z-50">
-          <span className="material-symbols-outlined text-[16px] animate-pulse">warning</span>
+          <span className="material-symbols-outlined text-[16px] animate-pulse">{t('RealtorLayout.warning')}</span>
           <span>
-            Compliance Suspended: Your application was rejected due to: <strong>{profile.rejection_reason || "SSN or License mismatch"}</strong>. You have a temporary grace period to complete current tasks and request final withdrawals.
-          </span>
+            {t('RealtorLayout.complianceSuspendedY')}<strong>{profile.rejection_reason || "SSN or License mismatch"}</strong>{t('RealtorLayout.YouHaveATemporaryGra')}</span>
         </div>
       )}
 
@@ -225,11 +218,11 @@ const ConsultantLayout: React.FC = () => {
           {/* Logo */}
           <div className="flex items-center gap-2.5 px-5 py-5 border-b border-slate-100 dark:border-slate-800">
             <div className="size-9 rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center">
-              <span className="material-symbols-outlined text-white text-[20px]">handshake</span>
+              <span className="material-symbols-outlined text-white text-[20px]">{t('RealtorLayout.handshake')}</span>
             </div>
             <div>
-              <p className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">GoAuct</p>
-              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest">Partner Portal</p>
+              <p className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight">{t('RealtorLayout.goAuct')}</p>
+              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest">{t('RealtorLayout.partnerPortal')}</p>
             </div>
           </div>
 
@@ -272,9 +265,8 @@ const ConsultantLayout: React.FC = () => {
               onClick={handleLogout}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-red-650 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
-              <span className="material-symbols-outlined text-[20px]">logout</span>
-              Sign Out
-            </button>
+              <span className="material-symbols-outlined text-[20px]">{t('RealtorLayout.logout')}</span>
+              {t('RealtorLayout.signOut')}</button>
           </div>
         </aside>
 
@@ -296,7 +288,7 @@ const ConsultantLayout: React.FC = () => {
                 onClick={() => setMobileOpen(true)}
                 className="lg:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
-                <span className="material-symbols-outlined">menu</span>
+                <span className="material-symbols-outlined">{t('RealtorLayout.menu')}</span>
               </button>
               {/* Desktop toggle button */}
               <button
@@ -310,8 +302,8 @@ const ConsultantLayout: React.FC = () => {
               </button>
 
               <div className="lg:hidden flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-600 text-[20px]">handshake</span>
-                <span className="font-extrabold text-sm text-slate-900 dark:text-white">Partner Portal</span>
+                <span className="material-symbols-outlined text-emerald-600 text-[20px]">{t('RealtorLayout.handshake')}</span>
+                <span className="font-extrabold text-sm text-slate-900 dark:text-white">{t('RealtorLayout.partnerPortal')}</span>
               </div>
             </div>
 
@@ -333,7 +325,7 @@ const ConsultantLayout: React.FC = () => {
                 className="hidden sm:flex items-center justify-center p-2 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 title="Logout"
               >
-                <span className="material-symbols-outlined text-[20px]">logout</span>
+                <span className="material-symbols-outlined text-[20px]">{t('RealtorLayout.logout')}</span>
               </button>
             </div>
           </header>

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { API_URL } from '../services/httpClient';
+import { useLanguage } from "../context/LanguageContext";
 
 export const ForgotPassword: React.FC = () => {
+    const { t } = useLanguage();
     const [email, setEmail] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState('');
@@ -51,25 +53,23 @@ export const ForgotPassword: React.FC = () => {
             <div className="w-full max-w-[480px] relative z-10">
                 <div className="mb-6">
                     <Link to="/login" className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-primary transition-colors">
-                        <span className="material-symbols-outlined text-[20px]">arrow_back</span> Back to Login
-                    </Link>
+                        <span className="material-symbols-outlined text-[20px]">{t('ForgotPassword.arrowback')}</span> {t('ForgotPassword.backToLogin')}</Link>
                 </div>
                 <div className="bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 p-8 sm:p-10 overflow-hidden">
                     <div className="flex flex-col items-center text-center mb-8">
                         <div className="size-14 rounded-2xl bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center mb-6 text-blue-600 dark:text-blue-400">
-                            <span className="material-symbols-outlined text-[32px]">lock_reset</span>
+                            <span className="material-symbols-outlined text-[32px]">{t('ForgotPassword.lockreset')}</span>
                         </div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">Forgot Password?</h1>
-                        <p className="text-slate-500 dark:text-slate-400 text-sm">Enter your email to receive a password reset link.</p>
+                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">{t('ForgotPassword.forgotPassword')}</h1>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">{t('ForgotPassword.enterYourEmailToRece')}</p>
                     </div>
 
                     {message ? (
                         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 rounded-2xl p-6 text-center animate-in fade-in zoom-in duration-300">
-                            <span className="material-symbols-outlined text-emerald-500 text-[40px] mb-3">mark_email_read</span>
+                            <span className="material-symbols-outlined text-emerald-500 text-[40px] mb-3">{t('ForgotPassword.markemailread')}</span>
                             <p className="text-emerald-800 dark:text-emerald-300 font-medium">{message}</p>
                             <Link to="/login" className="inline-block mt-6 text-emerald-600 dark:text-emerald-400 font-bold hover:underline">
-                                Return to Sign In
-                            </Link>
+                                {t('ForgotPassword.returnToSignIn')}</Link>
                         </div>
                     ) : (
                         <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
@@ -79,10 +79,10 @@ export const ForgotPassword: React.FC = () => {
                                 </div>
                             )}
                             <div className="flex flex-col gap-2">
-                                <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">Email Address</label>
+                                <label className="text-slate-700 dark:text-slate-300 text-sm font-semibold ml-1">{t('ForgotPassword.emailAddress')}</label>
                                 <div className="relative">
                                     <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                                        <span className="material-symbols-outlined text-[20px]">mail</span>
+                                        <span className="material-symbols-outlined text-[20px]">{t('ForgotPassword.mail')}</span>
                                     </span>
                                     <input 
                                         className="w-full rounded-2xl pl-12 h-13 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none" 
@@ -101,13 +101,11 @@ export const ForgotPassword: React.FC = () => {
                             >
                                 {isLoading ? (
                                     <>
-                                        <span className="material-symbols-outlined text-[20px] animate-spin">progress_activity</span>
-                                        Sending Link...
-                                    </>
+                                        <span className="material-symbols-outlined text-[20px] animate-spin">{t('ForgotPassword.progressactivity')}</span>
+                                        {t('ForgotPassword.sendingLink')}</>
                                 ) : (
                                     <>
-                                        Send Reset Link
-                                        <span className="material-symbols-outlined text-[20px]">send</span>
+                                        {t('ForgotPassword.sendResetLink')}<span className="material-symbols-outlined text-[20px]">{t('ForgotPassword.send')}</span>
                                     </>
                                 )}
                             </button>

@@ -123,7 +123,7 @@ export const Login: React.FC = () => {
               <div className="w-8 h-8 flex items-center justify-center bg-white/10 rounded-md p-1">
                 <img src="/goauct-logo.png" alt="GoAuct Logo" className="w-full h-full object-contain" />
               </div>
-              <span className="text-white font-extrabold text-2xl tracking-tight">GoAuct</span>
+              <span className="text-white font-extrabold text-2xl tracking-tight">{t('Login.goAuct')}</span>
             </div>
             <h1 className="text-white font-bold text-lg">
               {t('auth.loginTitle')}
@@ -182,13 +182,12 @@ export const Login: React.FC = () => {
               >
                 {isLoading ? (
                   <>
-                    <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
-                    Signing in…
-                  </>
+                    <span className="material-symbols-outlined text-[18px] animate-spin">{t('Login.progressactivity')}</span>
+                    {t('Login.signingIn')}</>
                 ) : (
                   <>
                     {t('auth.login')}
-                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                    <span className="material-symbols-outlined text-[18px]">{t('Login.arrowforward')}</span>
                   </>
                 )}
               </button>
@@ -197,7 +196,7 @@ export const Login: React.FC = () => {
             {/* Divider */}
             <div className="relative flex py-5 items-center">
               <div className="flex-grow border-t border-slate-200 dark:border-slate-700" />
-              <span className="flex-shrink-0 mx-4 text-slate-400 text-xs font-medium uppercase tracking-wider">Or continue with</span>
+              <span className="flex-shrink-0 mx-4 text-slate-400 text-xs font-medium uppercase tracking-wider">{t('Login.orContinueWith')}</span>
               <div className="flex-grow border-t border-slate-200 dark:border-slate-700" />
             </div>
 

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import api from '../services/api';
+import { useLanguage } from "../context/LanguageContext";
 
 export const Onboarding: React.FC = () => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [user, setUser] = useState<any>(null);
     const [step, setStep] = useState<'role_selection' | 'profile_setup' | 'document_upload' | 'tour' | 'done'>('role_selection');
@@ -97,24 +99,24 @@ export const Onboarding: React.FC = () => {
                 
                 {step === 'role_selection' && (
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold mb-2 text-slate-800 dark:text-white">Welcome to GoAuct!</h1>
-                        <p className="text-slate-600 dark:text-slate-400 mb-6">Please select how you want to use the platform:</p>
+                        <h1 className="text-2xl font-bold mb-2 text-slate-800 dark:text-white">{t('Onboarding.welcomeToGoAuct')}</h1>
+                        <p className="text-slate-600 dark:text-slate-400 mb-6">{t('Onboarding.pleaseSelectHowYouWa')}</p>
                         <div className="flex flex-col gap-4">
                             <button onClick={() => { setSelectedRole('client'); setStep('profile_setup'); }} className="p-4 border rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-left font-semibold">
-                                <div className="text-primary text-lg">Investor</div>
-                                <div className="text-xs text-slate-500 font-normal">I want to find, analyze, and buy properties.</div>
+                                <div className="text-primary text-lg">{t('Onboarding.investor')}</div>
+                                <div className="text-xs text-slate-500 font-normal">{t('Onboarding.iWantToFindAnalyzeAn')}</div>
                             </button>
                             <button onClick={() => { setSelectedRole('realtor'); setStep('profile_setup'); }} className="p-4 border rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-left font-semibold">
-                                <div className="text-emerald-600 text-lg">Realtor Partner</div>
-                                <div className="text-xs text-slate-500 font-normal">I want to manage listings, earn commissions, and do due diligence.</div>
+                                <div className="text-emerald-600 text-lg">{t('Onboarding.realtorPartner')}</div>
+                                <div className="text-xs text-slate-500 font-normal">{t('Onboarding.iWantToManageListing')}</div>
                             </button>
                             <button onClick={() => { setSelectedRole('agent_due_diligence'); setStep('profile_setup'); }} className="p-4 border rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-left font-semibold">
-                                <div className="text-orange-600 text-lg">Field Agent</div>
-                                <div className="text-xs text-slate-500 font-normal">I want to complete field tasks and capture property media.</div>
+                                <div className="text-orange-600 text-lg">{t('Onboarding.fieldAgent')}</div>
+                                <div className="text-xs text-slate-500 font-normal">{t('Onboarding.iWantToCompleteField')}</div>
                             </button>
                             <button onClick={() => { setSelectedRole('contractor'); setStep('profile_setup'); }} className="p-4 border rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-left font-semibold">
-                                <div className="text-amber-600 text-lg">Maintenance Contractor</div>
-                                <div className="text-xs text-slate-500 font-normal">I want to provide repair and maintenance services.</div>
+                                <div className="text-amber-600 text-lg">{t('Onboarding.maintenanceContracto')}</div>
+                                <div className="text-xs text-slate-500 font-normal">{t('Onboarding.iWantToProvideRepair')}</div>
                             </button>
                         </div>
                     </div>
@@ -122,32 +124,31 @@ export const Onboarding: React.FC = () => {
 
                 {step === 'profile_setup' && (
                     <div>
-                        <h1 className="text-2xl font-bold mb-2 text-slate-800 dark:text-white">Complete Your Profile</h1>
-                        <p className="text-slate-600 dark:text-slate-400 mb-6">Please provide your details to finish setting up your {selectedRole} account.</p>
+                        <h1 className="text-2xl font-bold mb-2 text-slate-800 dark:text-white">{t('Onboarding.completeYourProfile')}</h1>
+                        <p className="text-slate-600 dark:text-slate-400 mb-6">{t('Onboarding.pleaseProvideYourDet')}{selectedRole} {t('Onboarding.account')}</p>
                         
                         <div className="flex flex-col gap-4">
                             {selectedRole === 'client' && (
                                 <div className="p-4 bg-slate-100 dark:bg-slate-700 rounded-xl text-sm">
-                                    No additional details required for Investors. You're ready to go!
-                                </div>
+                                    {t('Onboarding.noAdditionalDetailsR')}</div>
                             )}
 
                             {selectedRole === 'realtor' && (
                                 <>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">Social Security Number</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.socialSecurityNumber')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={ssn} onChange={e => setSsn(e.target.value)} placeholder="XXX-XX-XXXX" />
                                     </label>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">License Number (CRECI/Equivalent)</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.licenseNumberCRECIEq')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={license} onChange={e => setLicense(e.target.value)} placeholder="License #" />
                                     </label>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">MLS ID</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.mLSID')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={mlsId} onChange={e => setMlsId(e.target.value)} placeholder="MLS ID" />
                                     </label>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">Payment Account (PayPal / Bank)</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.paymentAccountPayPal')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={paymentAccount} onChange={e => setPaymentAccount(e.target.value)} placeholder="Email or Routing/Account" />
                                     </label>
                                 </>
@@ -156,19 +157,19 @@ export const Onboarding: React.FC = () => {
                             {selectedRole === 'agent_due_diligence' && (
                                 <>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">Social Security Number</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.socialSecurityNumber')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={ssn} onChange={e => setSsn(e.target.value)} placeholder="XXX-XX-XXXX" />
                                     </label>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">Coverage Area (ZIP or City)</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.coverageAreaZIPOrCit')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={coverageArea} onChange={e => setCoverageArea(e.target.value)} placeholder="e.g. 32801" />
                                     </label>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">Vehicle Type</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.vehicleType')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={vehicleType} onChange={e => setVehicleType(e.target.value)} placeholder="Sedan, SUV, Truck" />
                                     </label>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">Payment Account (PayPal / Bank)</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.paymentAccountPayPal')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={paymentAccount} onChange={e => setPaymentAccount(e.target.value)} placeholder="Email or Routing/Account" />
                                     </label>
                                 </>
@@ -177,19 +178,19 @@ export const Onboarding: React.FC = () => {
                             {selectedRole === 'contractor' && (
                                 <>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">Social Security Number</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.socialSecurityNumber')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={ssn} onChange={e => setSsn(e.target.value)} placeholder="XXX-XX-XXXX" />
                                     </label>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">Profession</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.profession')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={profession} onChange={e => setProfession(e.target.value)} placeholder="e.g. Plumber, Electrician" />
                                     </label>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">License Number (If applicable)</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.licenseNumberIfAppli')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={license} onChange={e => setLicense(e.target.value)} placeholder="License #" />
                                     </label>
                                     <label className="flex flex-col gap-1.5">
-                                        <span className="text-sm font-semibold">Payment Account</span>
+                                        <span className="text-sm font-semibold">{t('Onboarding.paymentAccount')}</span>
                                         <input type="text" className="rounded-lg border p-2 dark:bg-slate-700 dark:border-slate-600" value={paymentAccount} onChange={e => setPaymentAccount(e.target.value)} placeholder="Email or Routing/Account" />
                                     </label>
                                 </>
@@ -202,8 +203,8 @@ export const Onboarding: React.FC = () => {
                                 {isSaving ? 'Saving...' : 'Complete Profile'}
                             </button>
                             <button onClick={() => { setSelectedRole('contractor'); setStep('profile_setup'); }} className="p-4 border rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 text-left font-semibold">
-                                <div className="text-amber-600 text-lg">Maintenance Contractor</div>
-                                <div className="text-xs text-slate-500 font-normal">I want to provide repair and maintenance services.</div>
+                                <div className="text-amber-600 text-lg">{t('Onboarding.maintenanceContracto')}</div>
+                                <div className="text-xs text-slate-500 font-normal">{t('Onboarding.iWantToProvideRepair')}</div>
                             </button>
                         </div>
                     </div>
@@ -211,15 +212,15 @@ export const Onboarding: React.FC = () => {
 
                 {step === 'document_upload' && (
                     <div className="text-center">
-                        <h1 className="text-2xl font-bold mb-2 text-slate-800 dark:text-white">Verify Your Identity</h1>
+                        <h1 className="text-2xl font-bold mb-2 text-slate-800 dark:text-white">{t('Onboarding.verifyYourIdentity')}</h1>
                         <p className="text-slate-600 dark:text-slate-400 mb-6">
                             {selectedRole === 'contractor' ? 'Please upload a copy of your Professional License or ID.' : 'Please upload a copy of your Work Permit or Driver\'s License.'}
                         </p>
                         <div className="flex flex-col gap-4">
                             <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl p-8 hover:bg-slate-50 dark:hover:bg-slate-700/50 cursor-pointer transition-colors">
-                                <span className="material-symbols-outlined text-4xl text-primary mb-2">upload_file</span>
+                                <span className="material-symbols-outlined text-4xl text-primary mb-2">{t('Onboarding.uploadfile')}</span>
                                 <span className="text-sm font-bold">{documentFile ? documentFile.name : 'Click to browse file'}</span>
-                                <span className="text-xs text-slate-500 mt-1">PDF, JPG, PNG up to 15MB</span>
+                                <span className="text-xs text-slate-500 mt-1">{t('Onboarding.pDFJPGPNGUpTo15MB')}</span>
                                 <input 
                                     type="file" 
                                     className="hidden" 
@@ -265,12 +266,11 @@ export const Onboarding: React.FC = () => {
                                 disabled={uploadingDoc || !documentFile}
                                 className="bg-primary text-white p-3 rounded-xl hover:bg-primary/90 mt-2 font-bold disabled:opacity-50 flex items-center justify-center gap-2"
                             >
-                                {uploadingDoc && <span className="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>}
+                                {uploadingDoc && <span className="material-symbols-outlined text-[18px] animate-spin">{t('Onboarding.progressactivity')}</span>}
                                 {uploadingDoc ? 'Uploading...' : 'Upload & Continue'}
                             </button>
                             <button onClick={() => setStep('tour')} className="text-sm font-bold text-slate-400 hover:text-slate-600 transition-colors">
-                                Skip for now
-                            </button>
+                                {t('Onboarding.skipForNow')}</button>
                         </div>
                     </div>
                 )}
@@ -487,23 +487,20 @@ export const Onboarding: React.FC = () => {
                                         disabled={currentSlide === 0}
                                         className="px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-white uppercase tracking-wider disabled:opacity-30 transition-colors"
                                     >
-                                        Previous
-                                    </button>
+                                        {t('Onboarding.previous')}</button>
                                     
                                     {currentSlide < slides.length - 1 ? (
                                         <button
                                             onClick={() => setCurrentSlide(prev => prev + 1)}
                                             className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-md shadow-blue-500/10 transition-colors"
                                         >
-                                            Next Step
-                                        </button>
+                                            {t('Onboarding.nextStep')}</button>
                                     ) : (
                                         <button
                                             onClick={handleComplete}
                                             className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs uppercase tracking-widest rounded-xl shadow-md shadow-emerald-500/10 transition-all active:scale-[0.98]"
                                         >
-                                            Enter Platform 🚀
-                                        </button>
+                                            {t('Onboarding.enterPlatform')}</button>
                                     )}
                                 </div>
                             </div>

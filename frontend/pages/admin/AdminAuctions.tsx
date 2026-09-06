@@ -13,12 +13,14 @@ import { useSearchParams } from 'react-router-dom';
 import { PropertyService } from '../../services/property.service';
 import { RedemptionIntelligenceBoard } from '../../components/property/RedemptionIntelligenceBoard';
 import AdminAffiliates from './AdminAffiliates';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface AdminAuctionsProps {
     defaultTab?: 'auctions' | 'properties' | 'affiliates';
 }
 
 export const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auctions' }) => {
+    const { t } = useLanguage();
     const [activeTab, setActiveTab] = useState<'auctions' | 'properties' | 'affiliates'>(defaultTab as any);
     const [filters, setFilters] = useState<AuctionFilterParams>({});
     const [propertyFilters, setPropertyFilters] = useState<PropertyFilterParams>(() => {
@@ -69,13 +71,13 @@ export const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auct
     return (
         <div className="container mx-auto px-4 py-8">
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Admin Module</h1>
+                <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{t('AdminAuctions.adminModule')}</h1>
                 <button
                     onClick={handleForceStatusUpdate}
                     disabled={isUpdatingStatus}
                     className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white font-semibold rounded-lg shadow-sm flex items-center gap-2 transition-colors text-sm disabled:opacity-50"
                 >
-                    <span className={`material-symbols-outlined ${isUpdatingStatus ? 'animate-spin' : ''}`}>sync</span>
+                    <span className={`material-symbols-outlined ${isUpdatingStatus ? 'animate-spin' : ''}`}>{t('AdminAuctions.sync')}</span>
                     {isUpdatingStatus ? 'Updating...' : 'Force Status Auto-Update'}
                 </button>
             </div>

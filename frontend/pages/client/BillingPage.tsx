@@ -3,6 +3,7 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { AuthService } from '../../services/auth.service';
 import { Shield, Zap, CheckCircle, AlertTriangle, HardDrive, Star, Lock } from 'lucide-react';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface UsageStats {
   used?: number;
@@ -150,7 +151,7 @@ const BillingPage: React.FC = () => {
     <div className="flex items-center justify-center min-h-[400px]">
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-slate-500">Loading billing data...</p>
+        <p className="text-sm text-slate-500">{t('BillingPage.loadingBillingData')}</p>
       </div>
     </div>
   );
@@ -161,14 +162,13 @@ const BillingPage: React.FC = () => {
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="flex flex-col items-center gap-4 p-8 max-w-md text-center bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl text-red-700 dark:text-red-300">
             <AlertTriangle size={48} className="text-red-500" />
-            <h2 className="text-xl font-bold">Failed to Load Billing</h2>
+            <h2 className="text-xl font-bold">{t('BillingPage.failedToLoadBilling')}</h2>
             <p className="text-sm">{error}</p>
             <button 
               onClick={fetchUsage} 
               className="mt-2 px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors"
             >
-              Try Again
-            </button>
+              {t('BillingPage.tryAgain')}</button>
           </div>
         </div>
       );
@@ -187,8 +187,8 @@ const BillingPage: React.FC = () => {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Billing & Usage</h1>
-          <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">Manage your GoAuct subscription and resource limits.</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{t('BillingPage.billingUsage')}</h1>
+          <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">{t('BillingPage.manageYourGoAuctSubs')}</p>
         </div>
         <div className="flex items-center gap-3">
           {data.status === 'expired' && (
@@ -196,8 +196,7 @@ const BillingPage: React.FC = () => {
               onClick={() => navigate('/client/expired')}
               className="px-4 py-2 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-semibold rounded-lg text-sm transition-all"
             >
-              ← Back
-            </button>
+              {t('BillingPage.Back')}</button>
           )}
           <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold text-sm shadow-sm ${data.status === 'active'
             ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
@@ -214,8 +213,8 @@ const BillingPage: React.FC = () => {
         <div className="mb-6 flex items-start gap-4 p-5 bg-rose-50 dark:bg-rose-900/20 border-l-4 border-rose-500 rounded-lg text-rose-700 dark:text-rose-300">
           <AlertTriangle size={24} className="flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="font-semibold text-lg">Your Trial Period Has Ended</h3>
-            <p className="text-sm mt-1">Your 7-day trial period has expired. To continue using premium features, please select a plan below to upgrade your account.</p>
+            <h3 className="font-semibold text-lg">{t('BillingPage.yourTrialPeriodHasEn')}</h3>
+            <p className="text-sm mt-1">{t('BillingPage.your7DayTrialPeriodH')}</p>
           </div>
         </div>
       )}
@@ -241,8 +240,7 @@ const BillingPage: React.FC = () => {
           <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-800 dark:text-white">
               <HardDrive className="text-blue-500" size={20} />
-              Usage Meters
-            </h2>
+              {t('BillingPage.usageMeters')}</h2>
 
             <div className="space-y-6">
               <UsageBar
@@ -256,7 +254,7 @@ const BillingPage: React.FC = () => {
             </div>
 
             <div className="mt-8 border-t border-slate-100 dark:border-slate-800 pt-6">
-              <h3 className="font-semibold mb-4 text-slate-700 dark:text-slate-300">Feature Access</h3>
+              <h3 className="font-semibold mb-4 text-slate-700 dark:text-slate-300">{t('BillingPage.featureAccess')}</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <FeatureToggle label="Community & Groups" active={data.features.community} />
                 <FeatureToggle label="Due Diligence Tasks" active={data.features.tasks} />
@@ -269,7 +267,7 @@ const BillingPage: React.FC = () => {
         {/* Upgrade Cards */}
         <div id="tour-billing-plans" className="space-y-5">
           <div className="flex justify-center items-center gap-4 mb-6 mt-2">
-            <span className={`text-sm font-medium ${!annual ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>Monthly</span>
+            <span className={`text-sm font-medium ${!annual ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>{t('BillingPage.monthly')}</span>
             <button 
               onClick={() => setAnnual(!annual)}
               className="relative w-14 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center px-1 transition-colors"
@@ -279,7 +277,7 @@ const BillingPage: React.FC = () => {
               />
             </button>
             <span className={`text-sm font-medium ${annual ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>
-              Annually <span className="text-blue-600 dark:text-cyan-400 text-xs ml-1 bg-blue-100 dark:bg-cyan-400/10 px-2 py-0.5 rounded-full">Save 20%</span>
+              {t('BillingPage.annually')}<span className="text-blue-600 dark:text-cyan-400 text-xs ml-1 bg-blue-100 dark:bg-cyan-400/10 px-2 py-0.5 rounded-full">{t('BillingPage.save20')}</span>
             </span>
           </div>
 
@@ -288,16 +286,16 @@ const BillingPage: React.FC = () => {
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl flex flex-col sm:flex-row items-center gap-4 justify-between">
               <div className="flex items-center gap-4 w-full sm:w-auto">
                 <div className="size-10 shrink-0 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                  <span className="material-symbols-outlined text-[20px]">handshake</span>
+                  <span className="material-symbols-outlined text-[20px]">{t('BillingPage.handshake')}</span>
                 </div>
                 <div>
-                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">Have a Partner Code?</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Support the partner who referred you.</p>
+                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">{t('BillingPage.haveAPartnerCode')}</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t('BillingPage.supportThePartnerWho')}</p>
                 </div>
               </div>
               
               <div className="w-full sm:w-72 relative group mt-2 sm:mt-0">
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors text-[18px]">sell</span>
+                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors text-[18px]">{t('BillingPage.sell')}</span>
                 <input 
                   type="text" 
                   value={affiliateCode}
@@ -316,28 +314,26 @@ const BillingPage: React.FC = () => {
             }`}>
             {isAdvanced && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                CURRENT PLAN
-              </div>
+                {t('BillingPage.cURRENTPLAN')}</div>
             )}
             <div className="absolute -top-3 right-4 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
-              PROMO: SAVE 33%
-            </div>
+              {t('BillingPage.pROMOSAVE33')}</div>
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white">Advanced</h3>
-                <p className="text-xs text-slate-400 mt-0.5">Individual Power Plan</p>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.advanced')}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.individualPowerPlan')}</p>
               </div>
               <div className="text-right">
                 <div className="text-xs text-slate-400 line-through">{annual ? "$90" : "$110"}</div>
                 <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$60" : "$72"}</span>
-                <span className="text-sm text-slate-400">/mo</span>
+                <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 1,000 property details views</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 1 Company · 0 Managers · 0 Agents</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties (Public/Private)</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Calendar, Auctions, Tasks & Exports</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.1000PropertyDetailsV')}</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.1Company0Managers0Ag')}</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.calendarAuctionsTask')}</li>
             </ul>
             <button
               onClick={() => handleUpgrade('advanced')}
@@ -345,9 +341,9 @@ const BillingPage: React.FC = () => {
               className="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {upgradeLoading === 'advanced' ? (
-                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing...</>
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
               ) : isAdvanced ? 'Current Plan' : isPro || isEnterprise ? 'Lower Plan' : (
-                <><Lock size={14} /> Subscribe to Advanced</>
+                <><Lock size={14} /> {t('BillingPage.subscribeToAdvanced')}</>
               )}
             </button>
           </div>
@@ -359,24 +355,23 @@ const BillingPage: React.FC = () => {
             }`}>
             {isPro && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                CURRENT PLAN
-              </div>
+                {t('BillingPage.cURRENTPLAN')}</div>
             )}
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white">Pro</h3>
-                <p className="text-xs text-slate-400 mt-0.5">For growing teams</p>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.pro')}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.forGrowingTeams')}</p>
               </div>
               <div className="text-right">
                 <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$130" : "$156"}</span>
-                <span className="text-sm text-slate-400">/mo</span>
+                <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 2,000 property details views</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 2 Companies · 1 Manager · 1 Agent</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties (Public/Private)</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Community access, due diligence & exports</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.2000PropertyDetailsV')}</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.2Companies1Manager1A')}</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.communityAccessDueDi')}</li>
             </ul>
             <button
               onClick={() => handleUpgrade('pro')}
@@ -384,9 +379,9 @@ const BillingPage: React.FC = () => {
               className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {upgradeLoading === 'pro' ? (
-                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing...</>
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
               ) : isPro ? 'Current Plan' : isEnterprise ? 'Lower Plan' : (
-                <><Lock size={14} /> Subscribe to Pro</>
+                <><Lock size={14} /> {t('BillingPage.subscribeToPro')}</>
               )}
             </button>
           </div>
@@ -398,27 +393,26 @@ const BillingPage: React.FC = () => {
             }`}>
             {isEnterprise && (
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                CURRENT PLAN
-              </div>
+                {t('BillingPage.cURRENTPLAN')}</div>
             )}
             <div className="absolute top-4 right-4">
               <Star size={14} className="text-yellow-400 fill-yellow-400" />
             </div>
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white">Enterprise</h3>
-                <p className="text-xs text-slate-400 mt-0.5">For large scale operations</p>
+                <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.enterprise')}</h3>
+                <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.forLargeScaleOperati')}</p>
               </div>
               <div className="text-right">
                 <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$350" : "$420"}</span>
-                <span className="text-sm text-slate-400">/mo</span>
+                <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
               </div>
             </div>
             <ul className="space-y-2.5 mb-6 text-sm">
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 10,000 property views</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> 4 Companies · 2 Managers · 3 Agents</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Unlimited custom properties (Public/Private)</li>
-              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Priority exclusive 24/7 support</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.10000PropertyViews')}</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.4Companies2Managers3')}</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
+              <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.priorityExclusive247')}</li>
             </ul>
             <button
               onClick={() => handleUpgrade('enterprise')}
@@ -426,9 +420,9 @@ const BillingPage: React.FC = () => {
               className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {upgradeLoading === 'enterprise' ? (
-                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Processing...</>
+                <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
               ) : isEnterprise ? 'Current Plan' : (
-                <><Zap size={14} /> Subscribe to Enterprise</>
+                <><Zap size={14} /> {t('BillingPage.subscribeToEnterpris')}</>
               )}
             </button>
           </div>
@@ -436,7 +430,7 @@ const BillingPage: React.FC = () => {
           {/* Stripe Badge */}
           <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
             <Lock size={10} />
-            Secure payment by <span className="font-bold text-slate-500">Stripe</span>
+            {t('BillingPage.securePaymentBy')}<span className="font-bold text-slate-500">{t('BillingPage.stripe')}</span>
           </div>
         </div>
       </div>
@@ -445,17 +439,14 @@ const BillingPage: React.FC = () => {
       <div className="mt-8 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 rounded-2xl border border-blue-200 dark:border-blue-800/50 p-6 flex flex-col md:flex-row items-center justify-between gap-6">
         <div>
           <h2 className="text-xl font-bold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
-            <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">handshake</span>
-            Become an Affiliate Partner
-          </h2>
+            <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">{t('BillingPage.handshake')}</span>
+            {t('BillingPage.becomeAnAffiliatePar')}</h2>
           <p className="text-sm text-blue-800/80 dark:text-blue-200/80 mb-2 max-w-2xl">
-            Did you know you can earn recurring commissions by referring other investors to GoAuct? 
-            Once you have an active paid subscription, you unlock full access to our Affiliate Dashboard!
-          </p>
+            {t('BillingPage.didYouKnowYouCanEarn')}</p>
           <ul className="text-xs text-blue-800/70 dark:text-blue-200/70 list-disc pl-4 space-y-1">
-            <li>Generate custom referral codes to share with your network</li>
-            <li>Earn commissions for every paid subscriber you bring</li>
-            <li>Track leads, conversions, and request fast withdrawals directly to your account</li>
+            <li>{t('BillingPage.generateCustomReferr')}</li>
+            <li>{t('BillingPage.earnCommissionsForEv')}</li>
+            <li>{t('BillingPage.trackLeadsConversion')}</li>
           </ul>
         </div>
         
@@ -468,27 +459,24 @@ const BillingPage: React.FC = () => {
             }}
             className="w-full md:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95"
           >
-            <span className="material-symbols-outlined">dashboard</span>
-            Go to Affiliate Dashboard
-          </button>
+            <span className="material-symbols-outlined">{t('BillingPage.dashboard')}</span>
+            {t('BillingPage.goToAffiliateDashboa')}</button>
         </div>
       </div>
 
       {/* Cancel Section */}
       <div id="tour-billing-invoice" className="mt-8 bg-white dark:bg-slate-900 rounded-2xl border border-red-200 dark:border-red-900/50 p-6">
         <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
-          <span className="material-symbols-outlined text-red-500 text-[20px]">cancel</span>
-          Manage Subscription
-        </h2>
+          <span className="material-symbols-outlined text-red-500 text-[20px]">{t('BillingPage.cancel')}</span>
+          {t('BillingPage.manageSubscription')}</h2>
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-          To cancel your subscription or request a refund, please contact our support team.
-        </p>
+          {t('BillingPage.toCancelYourSubscrip')}</p>
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl mb-4 text-sm text-red-700 dark:text-red-300">
-          <p className="font-semibold mb-1">Before you cancel:</p>
+          <p className="font-semibold mb-1">{t('BillingPage.beforeYouCancel')}</p>
           <ul className="list-disc pl-4 space-y-1">
-            <li>You will lose access to all premium features at the end of the billing period.</li>
-            <li>Your saved lists and properties are kept for 30 days.</li>
-            <li>Cancellation takes effect at the end of your current billing cycle.</li>
+            <li>{t('BillingPage.youWillLoseAccessToA')}</li>
+            <li>{t('BillingPage.yourSavedListsAndPro')}</li>
+            <li>{t('BillingPage.cancellationTakesEff')}</li>
           </ul>
         </div>
         <button
@@ -496,9 +484,8 @@ const BillingPage: React.FC = () => {
           disabled={loading || data?.plan_type === 'trial'}
           className="inline-flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 disabled:bg-slate-300 text-white font-bold rounded-xl transition-all shadow-lg shadow-red-500/20 active:scale-95"
         >
-          <span className="material-symbols-outlined text-[18px]">cancel</span>
-          Cancel Subscription
-        </button>
+          <span className="material-symbols-outlined text-[18px]">{t('BillingPage.cancel')}</span>
+          {t('BillingPage.cancelSubscription')}</button>
       </div>
     </div>
   );
@@ -511,6 +498,7 @@ export default BillingPage;
 // ─────────────────────────────────────────────────────────────────────────────
 
 const UsageBar = ({ label, used, limit }: { label: string; used: number; limit: number | string }) => {
+    const { t } = useLanguage();
   const isUnlimited = limit === 'Unlimited';
   const percentage = isUnlimited ? 0 : Math.min(100, (used / (limit as number)) * 100);
 

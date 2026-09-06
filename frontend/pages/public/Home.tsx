@@ -145,11 +145,10 @@ const Home = () => {
       {/* ── 4. The GoAuct Master Plan (Roadmap) ── */}
       <section className="py-24 max-w-7xl mx-auto px-6">
         <div className="text-center mb-16">
-          <span className="text-sm font-black uppercase tracking-widest text-blue-500 mb-2 block">Our Vision</span>
-          <h2 className="text-4xl font-bold text-white mb-4">The GoAuct Master Plan</h2>
+          <span className="text-sm font-black uppercase tracking-widest text-blue-500 mb-2 block">{t('Home.ourVision')}</span>
+          <h2 className="text-4xl font-bold text-white mb-4">{t('Home.theGoAuctMasterPlan')}</h2>
           <p className="text-slate-400 max-w-3xl mx-auto">
-            We are building the first fully decentralized, end-to-end operational network for property acquisition, management, and frictionless transfer.
-          </p>
+            {t('Home.weAreBuildingTheFirs')}</p>
         </div>
 
         <div className="relative border-l-2 border-white/10 ml-4 md:ml-12 space-y-12 pb-12">
@@ -161,15 +160,14 @@ const Home = () => {
             </div>
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="flex-1">
-                <span className="text-blue-400 font-bold text-sm uppercase tracking-wider">Phase 1 (Current)</span>
-                <h3 className="text-2xl font-bold text-white mt-1 mb-3">Discovery & Intelligence</h3>
+                <span className="text-blue-400 font-bold text-sm uppercase tracking-wider">{t('Home.phase1Current')}</span>
+                <h3 className="text-2xl font-bold text-white mt-1 mb-3">{t('Home.discoveryIntelligenc')}</h3>
                 <p className="text-slate-400 leading-relaxed">
-                  Transforming chaotic county tax auction announcements into organized, queryable data. We aggregate property details, owner information, and A+ to F AI scoring to surface the best deals instantly.
-                </p>
+                  {t('Home.transformingChaoticC')}</p>
               </div>
               <div className="md:w-1/3 w-full bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center gap-4">
                 <Map className="text-blue-400 shrink-0" size={28} />
-                <span className="text-sm text-slate-300">Live property maps, Tax Records, and GPS field verification.</span>
+                <span className="text-sm text-slate-300">{t('Home.livePropertyMapsTaxR')}</span>
               </div>
             </div>
           </div>
@@ -181,15 +179,14 @@ const Home = () => {
             </div>
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="flex-1">
-                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">Phase 2 (In Development)</span>
-                <h3 className="text-2xl font-bold text-white mt-1 mb-3">Acquisition & Asset Management</h3>
+                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">{t('Home.phase2InDevelopment')}</span>
+                <h3 className="text-2xl font-bold text-white mt-1 mb-3">{t('Home.acquisitionAssetMana')}</h3>
                 <p className="text-slate-400 leading-relaxed">
-                  Users can execute property acquisitions directly through the GoAuct team. Once acquired, properties enter a private digital vault where investors can manage them, track ROI, and monitor ongoing renovations.
-                </p>
+                  {t('Home.usersCanExecutePrope')}</p>
               </div>
               <div className="md:w-1/3 w-full bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center gap-4 opacity-70 hover:opacity-100 transition-opacity">
                 <Activity className="text-slate-400 shrink-0" size={28} />
-                <span className="text-sm text-slate-300">Financial dashboards tracking costs, ROI, and property yield.</span>
+                <span className="text-sm text-slate-300">{t('Home.financialDashboardsT')}</span>
               </div>
             </div>
           </div>
@@ -201,15 +198,14 @@ const Home = () => {
             </div>
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="flex-1">
-                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">Phase 3 (Upcoming)</span>
-                <h3 className="text-2xl font-bold text-white mt-1 mb-3">The Service Marketplace</h3>
+                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">{t('Home.phase3Upcoming')}</span>
+                <h3 className="text-2xl font-bold text-white mt-1 mb-3">{t('Home.theServiceMarketplac')}</h3>
                 <p className="text-slate-400 leading-relaxed">
-                  Connecting property owners with certified, licensed maintenance businesses. Need a plumber, electrician, earthmoving, or a general contractor for your new asset? Hire and pay verified professionals straight from the app.
-                </p>
+                  {t('Home.connectingPropertyOw')}</p>
               </div>
               <div className="md:w-1/3 w-full bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center gap-4 opacity-70 hover:opacity-100 transition-opacity">
                 <Hammer className="text-slate-400 shrink-0" size={28} />
-                <span className="text-sm text-slate-300">Licensed tradesmen network: Gardeners, Carpenters, Builders, and Funds.</span>
+                <span className="text-sm text-slate-300">{t('Home.licensedTradesmenNet')}</span>
               </div>
             </div>
           </div>
@@ -221,15 +217,14 @@ const Home = () => {
             </div>
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="flex-1">
-                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">Phase 4 (Future Vision)</span>
-                <h3 className="text-2xl font-bold text-white mt-1 mb-3">Frictionless Property Transfer</h3>
+                <span className="text-slate-500 font-bold text-sm uppercase tracking-wider">{t('Home.phase4FutureVision')}</span>
+                <h3 className="text-2xl font-bold text-white mt-1 mb-3">{t('Home.frictionlessProperty')}</h3>
                 <p className="text-slate-400 leading-relaxed">
-                  We verify proof of ownership (Title/Deed) and lock documentation into a secure vault, issuing a tokenized representation. Aligned with Title & Insurance companies, investors will trade properties held under an LLC/Corp instantly with zero bureaucracy.
-                </p>
+                  {t('Home.weVerifyProofOfOwner')}</p>
               </div>
               <div className="md:w-1/3 w-full bg-white/5 border border-white/10 p-5 rounded-2xl flex items-center gap-4 opacity-70 hover:opacity-100 transition-opacity">
                 <Lock className="text-slate-400 shrink-0" size={28} />
-                <span className="text-sm text-slate-300">Secure Vault documentation, Token Generation, and Title alignment.</span>
+                <span className="text-sm text-slate-300">{t('Home.secureVaultDocumenta')}</span>
               </div>
             </div>
           </div>
@@ -241,7 +236,7 @@ const Home = () => {
       <section className="py-24 bg-[#03060A] border-y border-white/5 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-tr from-blue-900/5 to-transparent z-0" />
         <div className="max-w-7xl mx-auto px-6 relative z-10 text-center">
-          <h2 className="text-3xl font-bold text-white mb-16">Scaling across the nation</h2>
+          <h2 className="text-3xl font-bold text-white mb-16">{t('Home.scalingAcrossTheNati')}</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
               { value: "50", label: "States Covered" },
@@ -269,8 +264,8 @@ const Home = () => {
 
       {/* ── 5. Bottom CTA ── */}
       <section className="py-24 max-w-4xl mx-auto px-6 text-center">
-        <h2 className="text-4xl font-bold text-white mb-6">Join the real estate revolution.</h2>
-        <p className="text-xl text-slate-400 mb-10">Whether you're an investor, a licensed realtor, or looking to earn as a field agent, GoAuct is your command center.</p>
+        <h2 className="text-4xl font-bold text-white mb-6">{t('Home.joinTheRealEstateRev')}</h2>
+        <p className="text-xl text-slate-400 mb-10">{t('Home.whetherYouReAnInvest')}</p>
         <Link
           to="/signup"
           className="inline-flex items-center justify-center gap-2 bg-white text-[#050B14] px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-200 transition-all shadow-[0_0_30px_rgba(255,255,255,0.2)]"

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_URL, getHeaders } from '../services/httpClient';
 import { AuthService } from '../services/auth.service';
+import { useLanguage } from "../context/LanguageContext";
 
 interface AdminStats {
   total_properties: number;
@@ -53,12 +54,13 @@ const QuickAction: React.FC<{ icon: string; label: string; desc: string; path: s
         <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{label}</p>
         <p className="text-xs text-slate-400 truncate">{desc}</p>
       </div>
-      <span className="material-symbols-outlined text-slate-300 group-hover:text-blue-500 transition-colors">chevron_right</span>
+      <span className="material-symbols-outlined text-slate-300 group-hover:text-blue-500 transition-colors">{t('Dashboard.chevronright')}</span>
     </button>
   );
 };
 
 export const Dashboard: React.FC = () => {
+    const { t } = useLanguage();
   const navigate = useNavigate();
   const user = AuthService.getCurrentUser();
   const [loading, setLoading] = useState(true);
@@ -96,14 +98,13 @@ export const Dashboard: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white">
-            Welcome, <span className="text-blue-600">{firstName}</span>
+            {t('Dashboard.welcome')}<span className="text-blue-600">{firstName}</span>
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
-            Platform overview — live data updated every minute.
-          </p>
+            {t('Dashboard.platformOverviewLive')}</p>
         </div>
         <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
-          <span className="material-symbols-outlined text-[16px]">schedule</span>
+          <span className="material-symbols-outlined text-[16px]">{t('Dashboard.schedule')}</span>
           {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
         </div>
       </div>
@@ -116,7 +117,7 @@ export const Dashboard: React.FC = () => {
         </div>
       ) : error ? (
         <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-sm">
-          <span className="material-symbols-outlined text-[20px]">error</span>
+          <span className="material-symbols-outlined text-[20px]">{t('Dashboard.error')}</span>
           {error}
         </div>
       ) : stats && (
@@ -124,9 +125,8 @@ export const Dashboard: React.FC = () => {
           {/* Properties Section */}
           <div>
             <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-blue-500">home_work</span>
-              Properties
-            </h2>
+              <span className="material-symbols-outlined text-[16px] text-blue-500">{t('Dashboard.homework')}</span>
+              {t('Dashboard.properties')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard label="Total Properties" value={stats.total_properties} icon="real_estate_agent" color="text-blue-600 dark:text-blue-400" bg="bg-blue-500"
                 sub="All properties in database" />
@@ -150,9 +150,8 @@ export const Dashboard: React.FC = () => {
           {/* Auctions Section */}
           <div>
             <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-amber-500">gavel</span>
-              Auctions
-            </h2>
+              <span className="material-symbols-outlined text-[16px] text-amber-500">{t('Dashboard.gavel')}</span>
+              {t('Dashboard.auctions')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <StatCard label="Total Auctions" value={stats.total_auctions} icon="gavel" color="text-amber-600 dark:text-amber-400" bg="bg-amber-500"
                 sub="All-time in system" />
@@ -170,9 +169,8 @@ export const Dashboard: React.FC = () => {
           {/* Users Section */}
           <div>
             <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-emerald-500">group</span>
-              Active Users (Paying)
-            </h2>
+              <span className="material-symbols-outlined text-[16px] text-emerald-500">{t('Dashboard.group')}</span>
+              {t('Dashboard.activeUsersPaying')}</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <StatCard label="Total Active" value={stats.total_active_users} icon="people" color="text-slate-600 dark:text-slate-300" bg="bg-slate-400"
                 sub="All roles, active accounts" />
@@ -190,9 +188,8 @@ export const Dashboard: React.FC = () => {
           {/* Quick Actions */}
           <div>
             <h2 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
-              <span className="material-symbols-outlined text-[16px] text-slate-400">bolt</span>
-              Quick Actions
-            </h2>
+              <span className="material-symbols-outlined text-[16px] text-slate-400">{t('Dashboard.bolt')}</span>
+              {t('Dashboard.quickActions')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <QuickAction icon="gavel" label="Auctions Dashboard" desc="Monitor live auction events" path="/admin/auctions" color="bg-amber-100 dark:bg-amber-900/30 text-amber-600" />
               <QuickAction icon="real_estate_agent" label="Property Manager" desc="Browse and manage properties" path="/admin/properties" color="bg-blue-100 dark:bg-blue-900/30 text-blue-600" />

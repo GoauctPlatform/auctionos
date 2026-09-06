@@ -11,12 +11,14 @@ import { MapPropertySearchLayout } from '../../components/property/MapPropertySe
 import { ErrorBoundary } from '../../components/ErrorBoundary';
 
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface ClientPropertiesProps {
     onOpenPropertyDetails?: (propertyId: string | number, parcelId: string) => void;
 }
 
 const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetails }) => {
+    const { t } = useLanguage();
     const { user } = useAuth();
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
@@ -135,10 +137,9 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                                 variant="contained" 
                                 className="bg-white/40 text-slate-800 hover:bg-white/60 border border-slate-200/50 dark:border-slate-800/50 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:bg-slate-900/60 shadow-sm rounded-xl font-bold normal-case text-xs h-[38px] px-3 transition-all"
                                 onClick={() => setViewMode('list')}
-                                startIcon={<span className="material-symbols-outlined text-[16px]">list</span>}
+                                startIcon={<span className="material-symbols-outlined text-[16px]">{t('ClientProperties.list')}</span>}
                             >
-                                List View
-                            </Button>
+                                {t('ClientProperties.listView')}</Button>
                             <Button 
                                 variant="contained" 
                                 color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
@@ -150,10 +151,9 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                                     }
                                     setCreateModalOpen(true);
                                 }}
-                                startIcon={<span className="material-symbols-outlined text-[16px]">add</span>}
+                                startIcon={<span className="material-symbols-outlined text-[16px]">{t('ClientProperties.add')}</span>}
                             >
-                                Create Custom
-                            </Button>
+                                {t('ClientProperties.createCustom')}</Button>
                         </div>
                     </div>
 
@@ -173,16 +173,14 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                 <div className="p-6 w-full space-y-6 px-4 sm:px-8 lg:px-12">
                     <div className="flex justify-between items-center">
                         <Typography variant="h4" className="font-bold text-slate-800 dark:text-white">
-                            Property Search
-                        </Typography>
+                            {t('ClientProperties.propertySearch')}</Typography>
                         <div className="flex gap-2">
                             <Button 
                                 variant="outlined" 
                                 onClick={() => setViewMode('map')}
-                                startIcon={<span className="material-symbols-outlined text-[18px]">map</span>}
+                                startIcon={<span className="material-symbols-outlined text-[18px]">{t('ClientProperties.map')}</span>}
                             >
-                                Map View
-                            </Button>
+                                {t('ClientProperties.mapView')}</Button>
                             <Button 
                                 variant="contained" 
                                 color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
@@ -194,10 +192,9 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                                     }
                                     setCreateModalOpen(true);
                                 }}
-                                startIcon={<span className="material-symbols-outlined text-[18px]">add</span>}
+                                startIcon={<span className="material-symbols-outlined text-[18px]">{t('ClientProperties.add')}</span>}
                             >
-                                Create Custom Property
-                            </Button>
+                                {t('ClientProperties.createCustomProperty')}</Button>
                         </div>
                     </div>
                     <div id="tour-properties-filters" className="sticky top-0 z-40 pt-3 pb-2 bg-white/40 dark:bg-slate-950/35 backdrop-blur-xl border-b border-slate-200/30 dark:border-slate-800/50 -mx-4 px-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12 shadow-sm transition-all duration-300">
@@ -233,9 +230,9 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                         </div>
                     ) : (
                         <div className="w-full h-[400px] bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-dashed border-slate-200 dark:border-slate-800 flex flex-col items-center justify-center text-slate-500">
-                            <span className="material-symbols-outlined text-6xl mb-4 text-slate-300 dark:text-slate-700">search</span>
-                            <Typography variant="h6" className="font-semibold text-slate-600 dark:text-slate-400">Search Properties</Typography>
-                            <Typography variant="body2" className="mt-1">Use the filters above to find what you are looking for.</Typography>
+                            <span className="material-symbols-outlined text-6xl mb-4 text-slate-300 dark:text-slate-700">{t('ClientProperties.search')}</span>
+                            <Typography variant="h6" className="font-semibold text-slate-600 dark:text-slate-400">{t('ClientProperties.searchProperties')}</Typography>
+                            <Typography variant="body2" className="mt-1">{t('ClientProperties.useTheFiltersAboveTo')}</Typography>
                         </div>
                     )}
                 </div>
@@ -243,7 +240,7 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
 
             {/* Create Custom Property Modal */}
             <Dialog open={isCreateModalOpen} onClose={() => setCreateModalOpen(false)} maxWidth="sm" fullWidth PaperProps={{ sx: { borderRadius: 3, p: 2 } }}>
-                <Typography variant="h6" className="font-bold mb-4 text-slate-800 dark:text-white">Create Custom Property</Typography>
+                <Typography variant="h6" className="font-bold mb-4 text-slate-800 dark:text-white">{t('ClientProperties.createCustomProperty')}</Typography>
                 <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <TextField 
@@ -291,7 +288,7 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                     </div>
                 </div>
                 <div className="flex justify-end gap-2 mt-6">
-                    <Button onClick={() => setCreateModalOpen(false)} color="inherit">Cancel</Button>
+                    <Button onClick={() => setCreateModalOpen(false)} color="inherit">{t('ClientProperties.cancel')}</Button>
                     <Button 
                         variant="contained" 
                         color="primary" 

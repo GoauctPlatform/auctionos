@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, HelpCircle, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from "../../context/LanguageContext";
 
 const Pricing = () => {
+    const { t } = useLanguage();
   const [annual, setAnnual] = useState(true);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
@@ -90,16 +92,14 @@ const Pricing = () => {
           animate={{ opacity: 1, y: 0 }}
           className="text-4xl md:text-5xl font-extrabold text-white mb-6"
         >
-          Simple, transparent pricing
-        </motion.h1>
+          {t('Pricing.simpleTransparentPri')}</motion.h1>
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
           className="text-lg text-slate-400"
         >
-          No hidden fees. Choose the plan that best fits your firm's growth stage. All plans start with a 7-day free trial.
-        </motion.p>
+          {t('Pricing.noHiddenFeesChooseTh')}</motion.p>
       </div>
 
       {/* ── Toggle ── */}
@@ -109,7 +109,7 @@ const Pricing = () => {
         transition={{ delay: 0.2 }}
         className="flex justify-center items-center gap-4 mb-16"
       >
-        <span className={`text-sm font-medium ${!annual ? 'text-white' : 'text-slate-400'}`}>Monthly</span>
+        <span className={`text-sm font-medium ${!annual ? 'text-white' : 'text-slate-400'}`}>{t('Pricing.monthly')}</span>
         <button 
           onClick={() => setAnnual(!annual)}
           className="relative w-16 h-8 rounded-full bg-white/10 border border-white/20 flex items-center px-1 transition-colors hover:bg-white/20"
@@ -122,7 +122,7 @@ const Pricing = () => {
           />
         </button>
         <span className={`text-sm font-medium ${annual ? 'text-white' : 'text-slate-400'}`}>
-          Annually <span className="text-cyan-400 text-xs ml-1 bg-cyan-400/10 px-2 py-0.5 rounded-full">Save 20%</span>
+          {t('Pricing.annually')}<span className="text-cyan-400 text-xs ml-1 bg-cyan-400/10 px-2 py-0.5 rounded-full">{t('Pricing.save20')}</span>
         </span>
       </motion.div>
 
@@ -142,8 +142,7 @@ const Pricing = () => {
           >
             {plan.highlighted && (
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-500 text-white text-xs font-bold uppercase tracking-wider py-1 px-4 rounded-full">
-                Most Popular
-              </div>
+                {t('Pricing.mostPopular')}</div>
             )}
             <h3 className="text-2xl font-bold text-white mb-2">{plan.name}</h3>
             <p className="text-slate-400 text-sm h-10 mb-6">{plan.desc}</p>
@@ -158,7 +157,7 @@ const Pricing = () => {
                 <div className="flex items-end gap-1">
                   <span className="text-4xl font-extrabold text-white">{plan.displayPrice}</span>
                   {plan.displayPrice !== "Custom" && (
-                    <span className="text-slate-400 text-sm mb-1">/mo</span>
+                    <span className="text-slate-400 text-sm mb-1">{t('Pricing.Mo')}</span>
                   )}
                 </div>
               )}
@@ -191,7 +190,7 @@ const Pricing = () => {
       <div className="max-w-3xl mx-auto px-6">
         <div className="text-center mb-12">
           <HelpCircle size={40} className="mx-auto text-blue-400 mb-4" />
-          <h2 className="text-3xl font-bold text-white">Frequently Asked Questions</h2>
+          <h2 className="text-3xl font-bold text-white">{t('Pricing.frequentlyAskedQuest')}</h2>
         </div>
 
         <div className="space-y-4">

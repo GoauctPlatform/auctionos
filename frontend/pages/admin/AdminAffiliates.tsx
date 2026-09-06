@@ -70,20 +70,18 @@ export const AdminAffiliates: React.FC = () => {
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-black text-slate-800 dark:text-white">Affiliate Management</h1>
+        <h1 className="text-2xl font-black text-slate-800 dark:text-white">{t('AdminAffiliates.affiliateManagement')}</h1>
         <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
           <button 
             onClick={() => setTab('affiliates')}
             className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${tab === 'affiliates' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500'}`}
           >
-            Affiliates
-          </button>
+            {t('AdminAffiliates.affiliates')}</button>
           <button 
             onClick={() => setTab('withdrawals')}
             className={`px-4 py-2 rounded-md text-sm font-bold transition-colors ${tab === 'withdrawals' ? 'bg-white dark:bg-slate-700 text-blue-600 shadow-sm' : 'text-slate-500'}`}
           >
-            Withdrawals
-          </button>
+            {t('AdminAffiliates.withdrawals')}</button>
         </div>
       </div>
       
@@ -92,19 +90,19 @@ export const AdminAffiliates: React.FC = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-900/50 text-[10px] uppercase tracking-widest text-slate-500 font-bold border-b border-slate-100 dark:border-slate-800">
-              <th className="p-4">Partner / User</th>
-              <th className="p-4">Code</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Terms</th>
-              <th className="p-4">Earnings / Bal</th>
-              <th className="p-4">Actions</th>
+              <th className="p-4">{t('AdminAffiliates.partnerUser')}</th>
+              <th className="p-4">{t('AdminAffiliates.code')}</th>
+              <th className="p-4">{t('AdminAffiliates.status')}</th>
+              <th className="p-4">{t('AdminAffiliates.terms')}</th>
+              <th className="p-4">{t('AdminAffiliates.earningsBal')}</th>
+              <th className="p-4">{t('AdminAffiliates.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
             {loading ? (
-              <tr><td colSpan={6} className="p-8 text-center">Loading...</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center">{t('AdminAffiliates.loading')}</td></tr>
             ) : affiliates.length === 0 ? (
-              <tr><td colSpan={6} className="p-8 text-center text-slate-500">No affiliates found.</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-slate-500">{t('AdminAffiliates.noAffiliatesFound')}</td></tr>
             ) : (
               affiliates.map(aff => (
                 <tr key={aff.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
@@ -115,7 +113,7 @@ export const AdminAffiliates: React.FC = () => {
                       </div>
                       <div>
                         <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                          {aff.user ? aff.user.full_name || <span className="text-slate-400 italic">No name</span> : `User ID: ${aff.user_id}`}
+                          {aff.user ? aff.user.full_name || <span className="text-slate-400 italic">{t('AdminAffiliates.noName')}</span> : `User ID: ${aff.user_id}`}
                         </div>
                         {aff.user && <div className="text-xs text-slate-500 dark:text-slate-400">{aff.user.email}</div>}
                       </div>
@@ -145,8 +143,7 @@ export const AdminAffiliates: React.FC = () => {
                         onClick={() => handleApprove(aff.id)}
                         className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-colors"
                       >
-                        Approve
-                      </button>
+                        {t('AdminAffiliates.approve')}</button>
                     )}
                   </td>
                 </tr>
@@ -158,19 +155,19 @@ export const AdminAffiliates: React.FC = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50 dark:bg-slate-900/50 text-[10px] uppercase tracking-widest text-slate-500 font-bold border-b border-slate-100 dark:border-slate-800">
-              <th className="p-4">Date</th>
-              <th className="p-4">Affiliate ID</th>
-              <th className="p-4">Amount</th>
-              <th className="p-4">Method / Details</th>
-              <th className="p-4">Status</th>
-              <th className="p-4">Actions</th>
+              <th className="p-4">{t('AdminAffiliates.date')}</th>
+              <th className="p-4">{t('AdminAffiliates.affiliateID')}</th>
+              <th className="p-4">{t('AdminAffiliates.amount')}</th>
+              <th className="p-4">{t('AdminAffiliates.methodDetails')}</th>
+              <th className="p-4">{t('AdminAffiliates.status')}</th>
+              <th className="p-4">{t('AdminAffiliates.actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
             {loading ? (
-              <tr><td colSpan={6} className="p-8 text-center">Loading...</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center">{t('AdminAffiliates.loading')}</td></tr>
             ) : withdrawals.length === 0 ? (
-              <tr><td colSpan={6} className="p-8 text-center text-slate-500">No withdrawals found.</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-slate-500">{t('AdminAffiliates.noWithdrawalsFound')}</td></tr>
             ) : (
               withdrawals.map(w => (
                 <tr key={w.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50">
@@ -194,8 +191,7 @@ export const AdminAffiliates: React.FC = () => {
                         onClick={() => handleApproveWithdrawal(w.id)}
                         className="px-3 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold transition-colors"
                       >
-                        Mark Processed
-                      </button>
+                        {t('AdminAffiliates.markProcessed')}</button>
                     )}
                   </td>
                 </tr>

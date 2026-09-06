@@ -3,8 +3,10 @@ import { useLocation, useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
 import { CheckCircle, AlertTriangle, Mail, ArrowRight, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from "../../context/LanguageContext";
 
 const VerifyEmail: React.FC = () => {
+    const { t } = useLanguage();
     const { login: authLogin } = useAuth();
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
     const [message, setMessage] = useState('');
@@ -54,8 +56,8 @@ const VerifyEmail: React.FC = () => {
                 {status === 'loading' && (
                     <div className="flex flex-col items-center gap-4 py-8">
                         <Loader2 className="w-12 h-12 text-blue-500 animate-spin" />
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Verifying Account...</h1>
-                        <p className="text-slate-500">Please wait while we confirm your email address.</p>
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{t('VerifyEmail.verifyingAccount')}</h1>
+                        <p className="text-slate-500">{t('VerifyEmail.pleaseWaitWhileWeCon')}</p>
                     </div>
                 )}
 
@@ -64,14 +66,14 @@ const VerifyEmail: React.FC = () => {
                         <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-500 rounded-full flex items-center justify-center mb-2">
                             <CheckCircle size={32} />
                         </div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Email Verified!</h1>
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{t('VerifyEmail.emailVerified')}</h1>
                         <p className="text-slate-500">{message}</p>
-                        <p className="text-xs text-slate-400 mt-2">Redirecting you to the dashboard...</p>
+                        <p className="text-xs text-slate-400 mt-2">{t('VerifyEmail.redirectingYouToTheD')}</p>
                         <Link 
                             to="/client"
                             className="mt-6 inline-flex items-center gap-2 text-blue-500 font-bold hover:gap-3 transition-all"
                         >
-                            Go to Dashboard <ArrowRight size={18} />
+                            {t('VerifyEmail.goToDashboard')}<ArrowRight size={18} />
                         </Link>
                     </div>
                 )}
@@ -81,7 +83,7 @@ const VerifyEmail: React.FC = () => {
                         <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 text-red-500 rounded-full flex items-center justify-center mb-2">
                             <AlertTriangle size={32} />
                         </div>
-                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">Verification Failed</h1>
+                        <h1 className="text-2xl font-bold text-slate-800 dark:text-white">{t('VerifyEmail.verificationFailed')}</h1>
                         <p className="text-slate-500">{message}</p>
                         
                         <div className="flex flex-col gap-3 w-full mt-6">
@@ -89,10 +91,9 @@ const VerifyEmail: React.FC = () => {
                                 to="/login"
                                 className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg shadow-blue-600/20"
                             >
-                                Back to Login
-                            </Link>
+                                {t('VerifyEmail.backToLogin')}</Link>
                             <p className="text-xs text-slate-400">
-                                Need help? Contact <a href="mailto:support@goauct.com" className="text-blue-500">support@goauct.com</a>
+                                {t('VerifyEmail.needHelpContact')}<a href="mailto:support@goauct.com" className="text-blue-500">{t('VerifyEmail.supportGoauctCom')}</a>
                             </p>
                         </div>
                     </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { UserService } from '../../services/user.service';
 import { CompanyService, Company } from '../../services/company.service';
 import { User, UserRole } from '../../types';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface LinkedCompany { id: number; name: string; role: string; }
 
@@ -19,7 +20,7 @@ const CompanyMultiPicker: React.FC<{
     return (
         <div className="flex flex-wrap gap-2 max-h-36 overflow-y-auto pr-1">
             {allCompanies.length === 0 && (
-                <span className="text-xs text-slate-400 italic">No companies found. Create one first.</span>
+                <span className="text-xs text-slate-400 italic">{t('UserManagement.noCompaniesFoundCrea')}</span>
             )}
             {allCompanies.map(c => {
                 const selected = selectedIds.includes(c.id);
@@ -79,13 +80,12 @@ const CompanyAssignPanel: React.FC<{
                     <div className="flex items-center justify-between">
                         <div>
                             <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <span className="material-symbols-outlined text-blue-500 text-[20px]">corporate_fare</span>
-                                Assign Companies
-                            </h3>
+                                <span className="material-symbols-outlined text-blue-500 text-[20px]">{t('UserManagement.corporatefare')}</span>
+                                {t('UserManagement.assignCompanies')}</h3>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{user.email}</p>
                         </div>
                         <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800">
-                            <span className="material-symbols-outlined text-[18px]">close</span>
+                            <span className="material-symbols-outlined text-[18px]">{t('UserManagement.close')}</span>
                         </button>
                     </div>
                 </div>
@@ -93,8 +93,7 @@ const CompanyAssignPanel: React.FC<{
                 {/* Body */}
                 <div className="p-5 space-y-4">
                     <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Select all companies this user should manage. The first selected will be set as the primary company.
-                    </p>
+                        {t('UserManagement.selectAllCompaniesTh')}</p>
                     <CompanyMultiPicker
                         allCompanies={allCompanies}
                         selectedIds={selectedIds}
@@ -102,8 +101,7 @@ const CompanyAssignPanel: React.FC<{
                     />
                     {selectedIds.length > 0 && (
                         <div className="text-xs text-blue-600 dark:text-blue-400 font-bold">
-                            {selectedIds.length} {selectedIds.length === 1 ? 'company' : 'companies'} selected
-                        </div>
+                            {selectedIds.length} {selectedIds.length === 1 ? 'company' : 'companies'} {t('UserManagement.selected')}</div>
                     )}
                     {error && (
                         <p className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-900 rounded-lg px-3 py-2">
@@ -115,16 +113,14 @@ const CompanyAssignPanel: React.FC<{
                 {/* Footer */}
                 <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end">
                     <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                        Cancel
-                    </button>
+                        {t('UserManagement.cancel')}</button>
                     <button
                         onClick={handleSave}
                         disabled={saving}
                         className="px-5 py-2 text-sm font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-60 flex items-center gap-1.5"
                     >
-                        {saving && <span className="material-symbols-outlined text-[15px] animate-spin">progress_activity</span>}
-                        Save Assignments
-                    </button>
+                        {saving && <span className="material-symbols-outlined text-[15px] animate-spin">{t('UserManagement.progressactivity')}</span>}
+                        {t('UserManagement.saveAssignments')}</button>
                 </div>
             </div>
         </div>
@@ -133,6 +129,7 @@ const CompanyAssignPanel: React.FC<{
 
 /* ─── Main Component ──────────────────────────────────────────────────── */
 export const UserManagement: React.FC = () => {
+    const { t } = useLanguage();
     const [users, setUsers] = useState<User[]>([]);
     const [allCompanies, setAllCompanies] = useState<Company[]>([]);
     const [loading, setLoading] = useState(true);
@@ -265,32 +262,31 @@ export const UserManagement: React.FC = () => {
 
     if (loading) return (
         <div className="flex justify-center py-16">
-            <span className="material-symbols-outlined animate-spin text-blue-500 text-3xl">progress_activity</span>
+            <span className="material-symbols-outlined animate-spin text-blue-500 text-3xl">{t('UserManagement.progressactivity')}</span>
         </div>
     );
 
     return (
         <div className="space-y-5">
             <div className="flex justify-between items-center">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-white">Team Members</h3>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('UserManagement.teamMembers')}</h3>
                 <button
                     onClick={() => { resetForm(); setShowModal(true); }}
                     className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-sm font-bold flex items-center gap-2 transition-colors shadow-sm"
                 >
-                    <span className="material-symbols-outlined text-[18px]">person_add</span>
-                    Add Member
-                </button>
+                    <span className="material-symbols-outlined text-[18px]">{t('UserManagement.personadd')}</span>
+                    {t('UserManagement.addMember')}</button>
             </div>
 
             <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400">
                         <tr>
-                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest">User</th>
-                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest">Role</th>
-                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest">Status</th>
-                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest">Companies</th>
-                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-right">Actions</th>
+                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest">{t('UserManagement.user')}</th>
+                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest">{t('UserManagement.role')}</th>
+                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest">{t('UserManagement.status')}</th>
+                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest">{t('UserManagement.companies')}</th>
+                            <th className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-right">{t('UserManagement.actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
@@ -303,7 +299,7 @@ export const UserManagement: React.FC = () => {
                                         </div>
                                         <div>
                                             <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                                {user.full_name || <span className="text-slate-400 italic text-xs">No name</span>}
+                                                {user.full_name || <span className="text-slate-400 italic text-xs">{t('UserManagement.noName')}</span>}
                                             </div>
                                             <div className="text-xs text-slate-500 dark:text-slate-400">{user.email}</div>
                                         </div>
@@ -333,11 +329,11 @@ export const UserManagement: React.FC = () => {
                                         onClick={() => handleOpenAssign(user)}
                                         className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors font-bold border border-blue-200 dark:border-blue-800 rounded-lg px-2 py-1 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                                     >
-                                        <span className="material-symbols-outlined text-[14px]">corporate_fare</span>
+                                        <span className="material-symbols-outlined text-[14px]">{t('UserManagement.corporatefare')}</span>
                                         {(user as any).linked_company_ids?.length
                                             ? `${(user as any).linked_company_ids.length} company(s)`
                                             : user.active_company_id ? '1 company' : 'None'}
-                                        <span className="material-symbols-outlined text-[13px]">edit</span>
+                                        <span className="material-symbols-outlined text-[13px]">{t('UserManagement.edit')}</span>
                                     </button>
                                 </td>
                                 <td className="px-4 py-3 text-right">
@@ -347,17 +343,15 @@ export const UserManagement: React.FC = () => {
                                             onClick={() => handleEditUser(user)}
                                             className="px-3 py-1.5 text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-colors text-xs inline-flex items-center gap-1 font-bold"
                                         >
-                                            <span className="material-symbols-outlined text-[15px]">edit</span>
-                                            Edit
-                                        </button>
+                                            <span className="material-symbols-outlined text-[15px]">{t('UserManagement.edit')}</span>
+                                            {t('UserManagement.edit')}</button>
                                         <button
                                             id={`btn-delete-user-${user.id}`}
                                             onClick={() => handleDeleteUser(user.id)}
                                             className="px-3 py-1.5 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors text-xs inline-flex items-center gap-1 font-bold border border-red-200 dark:border-red-800"
                                         >
-                                            <span className="material-symbols-outlined text-[15px]">delete</span>
-                                            Delete
-                                        </button>
+                                            <span className="material-symbols-outlined text-[15px]">{t('UserManagement.delete')}</span>
+                                            {t('UserManagement.delete')}</button>
                                     </div>
                                 </td>
                             </tr>
@@ -366,9 +360,8 @@ export const UserManagement: React.FC = () => {
                 </table>
                 {users.length === 0 && (
                     <div className="py-16 text-center text-slate-400">
-                        <span className="material-symbols-outlined text-3xl mb-2 block opacity-40">group</span>
-                        No team members yet.
-                    </div>
+                        <span className="material-symbols-outlined text-3xl mb-2 block opacity-40">{t('UserManagement.group')}</span>
+                        {t('UserManagement.noTeamMembersYet')}</div>
                 )}
             </div>
 
@@ -382,14 +375,14 @@ export const UserManagement: React.FC = () => {
                                     {editingUser ? 'Edit Team Member' : 'Add Team Member'}
                                 </h3>
                                 <button onClick={() => { setShowModal(false); resetForm(); }} className="p-1 text-slate-400 hover:text-slate-600">
-                                    <span className="material-symbols-outlined text-[20px]">close</span>
+                                    <span className="material-symbols-outlined text-[20px]">{t('UserManagement.close')}</span>
                                 </button>
                             </div>
                         </div>
 
                         <form onSubmit={handleCreateUser} className="p-5 space-y-4">
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Full Name</label>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">{t('UserManagement.fullName')}</label>
                                 <input
                                     type="text"
                                     value={fullName}
@@ -399,7 +392,7 @@ export const UserManagement: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Email</label>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">{t('UserManagement.email')}</label>
                                 <input
                                     type="email"
                                     required
@@ -421,7 +414,7 @@ export const UserManagement: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">Role</label>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">{t('UserManagement.role')}</label>
                                 <div className="grid grid-cols-2 gap-2">
                                     {[UserRole.AGENT, UserRole.MANAGER].map(r => (
                                         <button
@@ -443,8 +436,7 @@ export const UserManagement: React.FC = () => {
                             {/* Multi-Company Picker */}
                             <div>
                                 <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1.5">
-                                    Assign Companies
-                                    <span className="ml-1.5 normal-case font-normal text-slate-400">(select one or more)</span>
+                                    {t('UserManagement.assignCompanies')}<span className="ml-1.5 normal-case font-normal text-slate-400">{t('UserManagement.SelectOneOrMore')}</span>
                                 </label>
                                 <CompanyMultiPicker
                                     allCompanies={allCompanies}
@@ -463,8 +455,7 @@ export const UserManagement: React.FC = () => {
                                         className="rounded border-slate-300 text-blue-600"
                                     />
                                     <label htmlFor="isActive" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
-                                        Account Active
-                                    </label>
+                                        {t('UserManagement.accountActive')}</label>
                                 </div>
                             )}
 
@@ -474,8 +465,7 @@ export const UserManagement: React.FC = () => {
                                     onClick={() => { setShowModal(false); resetForm(); }}
                                     className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-sm font-semibold"
                                 >
-                                    Cancel
-                                </button>
+                                    {t('UserManagement.cancel')}</button>
                                 <button
                                     type="submit"
                                     className="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-sm transition-colors"

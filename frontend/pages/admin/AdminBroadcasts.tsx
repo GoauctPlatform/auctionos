@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_URL, getHeaders } from '../../services/httpClient';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface Announcement {
   id: number;
@@ -38,6 +39,7 @@ const EMPTY_FORM = { title: '', message: '', type: 'info' as const };
 const EMPTY_COMM_FORM = { date: '', tag: 'Market Update', title: '', content: '', author: '' };
 
 const AdminBroadcasts: React.FC = () => {
+    const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState<'announcements' | 'community'>('announcements');
 
   // Announcements States
@@ -148,17 +150,15 @@ const AdminBroadcasts: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-            <span className="material-symbols-outlined text-primary text-[28px]">campaign</span>
-            Communication Center
-          </h1>
+            <span className="material-symbols-outlined text-primary text-[28px]">{t('AdminBroadcasts.campaign')}</span>
+            {t('AdminBroadcasts.communicationCenter')}</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
-            Publish announcements and share strategy news directly with GoAuct clients.
-          </p>
+            {t('AdminBroadcasts.publishAnnouncements')}</p>
         </div>
         {activeTab === 'announcements' && (
           <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-full w-fit">
-            <span className="material-symbols-outlined text-emerald-500 text-[16px]">campaign</span>
-            <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{activeCount} Active</span>
+            <span className="material-symbols-outlined text-emerald-500 text-[16px]">{t('AdminBroadcasts.campaign')}</span>
+            <span className="text-sm font-bold text-emerald-700 dark:text-emerald-300">{activeCount} {t('AdminBroadcasts.active')}</span>
           </div>
         )}
       </div>
@@ -173,9 +173,8 @@ const AdminBroadcasts: React.FC = () => {
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-750'
           }`}
         >
-          <span className="material-symbols-outlined text-[16px]">notifications</span>
-          System Announcements
-        </button>
+          <span className="material-symbols-outlined text-[16px]">{t('AdminBroadcasts.notifications')}</span>
+          {t('AdminBroadcasts.systemAnnouncements')}</button>
         <button
           onClick={() => setActiveTab('community')}
           className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-bold transition-all ${
@@ -184,9 +183,8 @@ const AdminBroadcasts: React.FC = () => {
               : 'text-slate-500 dark:text-slate-400 hover:text-slate-750'
           }`}
         >
-          <span className="material-symbols-outlined text-[16px]">forum</span>
-          Community & Strategy updates
-        </button>
+          <span className="material-symbols-outlined text-[16px]">{t('AdminBroadcasts.forum')}</span>
+          {t('AdminBroadcasts.communityStrategyUpd')}</button>
       </div>
 
       {activeTab === 'announcements' ? (
@@ -194,13 +192,12 @@ const AdminBroadcasts: React.FC = () => {
           {/* Create Announcement Form */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-850 p-6 shadow-sm">
             <h2 className="text-base font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
-              <span className="material-symbols-outlined text-blue-500 text-[20px]">add_circle</span>
-              New Announcement
-            </h2>
+              <span className="material-symbols-outlined text-blue-500 text-[20px]">{t('AdminBroadcasts.addcircle')}</span>
+              {t('AdminBroadcasts.newAnnouncement')}</h2>
             <form onSubmit={handleCreateAnnouncement} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Title</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t('AdminBroadcasts.title')}</label>
                   <input
                     type="text"
                     value={form.title}
@@ -210,7 +207,7 @@ const AdminBroadcasts: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Type</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t('AdminBroadcasts.type')}</label>
                   <select
                     value={form.type}
                     onChange={e => setForm(p => ({ ...p, type: e.target.value as any }))}
@@ -223,7 +220,7 @@ const AdminBroadcasts: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Message</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t('AdminBroadcasts.message')}</label>
                 <textarea
                   value={form.message}
                   onChange={e => setForm(p => ({ ...p, message: e.target.value }))}
@@ -234,7 +231,7 @@ const AdminBroadcasts: React.FC = () => {
               </div>
               {error && (
                 <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800 text-sm">
-                  <span className="material-symbols-outlined text-[18px]">error</span>{error}
+                  <span className="material-symbols-outlined text-[18px]">{t('AdminBroadcasts.error')}</span>{error}
                 </div>
               )}
               <div className="flex justify-end">
@@ -244,8 +241,8 @@ const AdminBroadcasts: React.FC = () => {
                   className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
                 >
                   {saving
-                    ? <><span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> Publishing...</>
-                    : <><span className="material-symbols-outlined text-[18px]">send</span> Publish Announcement</>
+                    ? <><span className="material-symbols-outlined animate-spin text-[18px]">{t('AdminBroadcasts.progressactivity')}</span> {t('AdminBroadcasts.publishing')}</>
+                    : <><span className="material-symbols-outlined text-[18px]">{t('AdminBroadcasts.send')}</span> {t('AdminBroadcasts.publishAnnouncement')}</>
                   }
                 </button>
               </div>
@@ -255,19 +252,19 @@ const AdminBroadcasts: React.FC = () => {
           {/* Announcements List */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-850 shadow-sm overflow-hidden animate-in fade-in duration-300">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-800 dark:text-white">All Announcements</h2>
-              <span className="text-xs text-slate-400 font-medium">{announcements.length} total</span>
+              <h2 className="text-base font-bold text-slate-800 dark:text-white">{t('AdminBroadcasts.allAnnouncements')}</h2>
+              <span className="text-xs text-slate-400 font-medium">{announcements.length} {t('AdminBroadcasts.total')}</span>
             </div>
 
             {loading ? (
               <div className="flex justify-center py-12">
-                <span className="material-symbols-outlined animate-spin text-slate-400 text-[32px]">progress_activity</span>
+                <span className="material-symbols-outlined animate-spin text-slate-400 text-[32px]">{t('AdminBroadcasts.progressactivity')}</span>
               </div>
             ) : announcements.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-                <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">campaign</span>
-                <p className="font-medium">No announcements yet.</p>
-                <p className="text-sm mt-1">Create one above to start communicating with your users.</p>
+                <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">{t('AdminBroadcasts.campaign')}</span>
+                <p className="font-medium">{t('AdminBroadcasts.noAnnouncementsYet')}</p>
+                <p className="text-sm mt-1">{t('AdminBroadcasts.createOneAboveToStar')}</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -297,7 +294,7 @@ const AdminBroadcasts: React.FC = () => {
                           } disabled:opacity-50`}
                         >
                           {togglingId === ann.id
-                            ? <span className="material-symbols-outlined animate-spin text-[14px]">progress_activity</span>
+                            ? <span className="material-symbols-outlined animate-spin text-[14px]">{t('AdminBroadcasts.progressactivity')}</span>
                             : <span className="material-symbols-outlined text-[14px]">{ann.is_active ? 'toggle_on' : 'toggle_off'}</span>
                           }
                           {ann.is_active ? 'Active' : 'Inactive'}
@@ -308,8 +305,8 @@ const AdminBroadcasts: React.FC = () => {
                           className="p-1.5 text-red-400 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
                         >
                           {deletingId === ann.id
-                            ? <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
-                            : <span className="material-symbols-outlined text-[18px]">delete</span>
+                            ? <span className="material-symbols-outlined animate-spin text-[18px]">{t('AdminBroadcasts.progressactivity')}</span>
+                            : <span className="material-symbols-outlined text-[18px]">{t('AdminBroadcasts.delete')}</span>
                           }
                         </button>
                       </div>
@@ -325,13 +322,12 @@ const AdminBroadcasts: React.FC = () => {
           {/* Create Community Update Form */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-850 p-6 shadow-sm">
             <h2 className="text-base font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
-              <span className="material-symbols-outlined text-blue-500 text-[20px]">post_add</span>
-              Publish Strategy Update / News
-            </h2>
+              <span className="material-symbols-outlined text-blue-500 text-[20px]">{t('AdminBroadcasts.postadd')}</span>
+              {t('AdminBroadcasts.publishStrategyUpdat')}</h2>
             <form onSubmit={handleCreateCommunityUpdate} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="md:col-span-2">
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Article Title</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t('AdminBroadcasts.articleTitle')}</label>
                   <input
                     type="text"
                     value={commForm.title}
@@ -341,22 +337,22 @@ const AdminBroadcasts: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Category Tag</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t('AdminBroadcasts.categoryTag')}</label>
                   <select
                     value={commForm.tag}
                     onChange={e => setCommForm(p => ({ ...p, tag: e.target.value }))}
                     className="w-full px-4 py-2.5 border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 rounded-lg text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
                   >
-                    <option value="Market Update">Market Update</option>
-                    <option value="System Note">System Note</option>
-                    <option value="Strategy">Strategy</option>
-                    <option value="General">General</option>
+                    <option value="Market Update">{t('AdminBroadcasts.marketUpdate')}</option>
+                    <option value="System Note">{t('AdminBroadcasts.systemNote')}</option>
+                    <option value="Strategy">{t('AdminBroadcasts.strategy')}</option>
+                    <option value="General">{t('AdminBroadcasts.general')}</option>
                   </select>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Custom Date (Optional)</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t('AdminBroadcasts.customDateOptional')}</label>
                   <input
                     type="text"
                     value={commForm.date}
@@ -366,7 +362,7 @@ const AdminBroadcasts: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Author (Optional)</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t('AdminBroadcasts.authorOptional')}</label>
                   <input
                     type="text"
                     value={commForm.author}
@@ -377,7 +373,7 @@ const AdminBroadcasts: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Content Body</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">{t('AdminBroadcasts.contentBody')}</label>
                 <textarea
                   value={commForm.content}
                   onChange={e => setCommForm(p => ({ ...p, content: e.target.value }))}
@@ -388,7 +384,7 @@ const AdminBroadcasts: React.FC = () => {
               </div>
               {commError && (
                 <div className="flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg border border-red-200 dark:border-red-800 text-sm">
-                  <span className="material-symbols-outlined text-[18px]">error</span>{commError}
+                  <span className="material-symbols-outlined text-[18px]">{t('AdminBroadcasts.error')}</span>{commError}
                 </div>
               )}
               <div className="flex justify-end">
@@ -398,8 +394,8 @@ const AdminBroadcasts: React.FC = () => {
                   className="flex items-center gap-2 px-5 py-2.5 bg-indigo-650 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm shadow-sm transition-colors disabled:opacity-50"
                 >
                   {commSaving
-                    ? <><span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span> Publishing...</>
-                    : <><span className="material-symbols-outlined text-[18px]">campaign</span> Post Article</>
+                    ? <><span className="material-symbols-outlined animate-spin text-[18px]">{t('AdminBroadcasts.progressactivity')}</span> {t('AdminBroadcasts.publishing')}</>
+                    : <><span className="material-symbols-outlined text-[18px]">{t('AdminBroadcasts.campaign')}</span> {t('AdminBroadcasts.postArticle')}</>
                   }
                 </button>
               </div>
@@ -409,19 +405,19 @@ const AdminBroadcasts: React.FC = () => {
           {/* Community Updates Feed List */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-850 shadow-sm overflow-hidden animate-in fade-in duration-300">
             <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <h2 className="text-base font-bold text-slate-800 dark:text-white">Strategy Feed Articles</h2>
-              <span className="text-xs text-slate-400 font-medium">{communityUpdates.length} articles</span>
+              <h2 className="text-base font-bold text-slate-800 dark:text-white">{t('AdminBroadcasts.strategyFeedArticles')}</h2>
+              <span className="text-xs text-slate-400 font-medium">{communityUpdates.length} {t('AdminBroadcasts.articles')}</span>
             </div>
 
             {commLoading ? (
               <div className="flex justify-center py-12">
-                <span className="material-symbols-outlined animate-spin text-slate-400 text-[32px]">progress_activity</span>
+                <span className="material-symbols-outlined animate-spin text-slate-400 text-[32px]">{t('AdminBroadcasts.progressactivity')}</span>
               </div>
             ) : communityUpdates.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-                <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">forum</span>
-                <p className="font-medium">No community articles posted yet.</p>
-                <p className="text-sm mt-1">Submit your first analysis article above.</p>
+                <span className="material-symbols-outlined text-[48px] mb-3 opacity-40">{t('AdminBroadcasts.forum')}</span>
+                <p className="font-medium">{t('AdminBroadcasts.noCommunityArticlesP')}</p>
+                <p className="text-sm mt-1">{t('AdminBroadcasts.submitYourFirstAnaly')}</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -437,7 +433,7 @@ const AdminBroadcasts: React.FC = () => {
                         <h3 className="font-bold text-sm text-slate-800 dark:text-white mb-1.5">{comm.title}</h3>
                         <p className="text-xs text-slate-550 dark:text-slate-400 leading-relaxed line-clamp-3">{comm.content}</p>
                         <div className="flex items-center gap-1.5 mt-3 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                          <span className="material-symbols-outlined text-[12px]">person</span>
+                          <span className="material-symbols-outlined text-[12px]">{t('AdminBroadcasts.person')}</span>
                           {comm.author}
                         </div>
                       </div>
@@ -447,8 +443,8 @@ const AdminBroadcasts: React.FC = () => {
                         className="p-1.5 text-slate-400 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50 shrink-0 self-center"
                       >
                         {commDeletingId === comm.id
-                          ? <span className="material-symbols-outlined animate-spin text-[18px]">progress_activity</span>
-                          : <span className="material-symbols-outlined text-[18px]">delete</span>
+                          ? <span className="material-symbols-outlined animate-spin text-[18px]">{t('AdminBroadcasts.progressactivity')}</span>
+                          : <span className="material-symbols-outlined text-[18px]">{t('AdminBroadcasts.delete')}</span>
                         }
                       </button>
                     </div>

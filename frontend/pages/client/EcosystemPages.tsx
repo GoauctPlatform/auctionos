@@ -1,6 +1,7 @@
 import React from 'react';
 import { API_BASE_URL } from '../../services/httpClient';
 import api from '../../services/api';
+import { useLanguage } from "../../context/LanguageContext";
 
 const PlaceholderPage: React.FC<{
   icon: string;
@@ -40,8 +41,8 @@ export const TrainingPage: React.FC = () => {
         return (
             <div className="max-w-5xl mx-auto py-12 px-4">
                 <div className="text-center mb-12">
-                    <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4">Training Center</h1>
-                    <p className="text-lg text-slate-600 dark:text-slate-400">Select a learning path to master distress property investing.</p>
+                    <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-4">{t('EcosystemPages.trainingCenter')}</h1>
+                    <p className="text-lg text-slate-600 dark:text-slate-400">{t('EcosystemPages.selectALearningPathT')}</p>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-8">
@@ -51,12 +52,11 @@ export const TrainingPage: React.FC = () => {
                         className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-blue-500/50 transition-all cursor-pointer group"
                     >
                         <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <span className="material-symbols-outlined text-3xl text-blue-600 dark:text-blue-400">menu_book</span>
+                            <span className="material-symbols-outlined text-3xl text-blue-600 dark:text-blue-400">{t('EcosystemPages.menubook')}</span>
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Tax Systems Mastery</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{t('EcosystemPages.taxSystemsMastery')}</h2>
                         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Everything you need to know about how tax liens, tax deeds, and redeemable deeds work across all 50 states. Read the complete manual.
-                        </p>
+                            {t('EcosystemPages.everythingYouNeedToK')}</p>
                     </div>
 
                     {/* System Training Folder */}
@@ -65,23 +65,21 @@ export const TrainingPage: React.FC = () => {
                         className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-xl hover:-translate-y-1 hover:border-amber-500/50 transition-all cursor-pointer group relative overflow-hidden"
                     >
                         <div className="absolute top-4 right-4 bg-amber-500/10 text-amber-500 border border-amber-500/20 text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1">
-                            <span className="material-symbols-outlined text-[12px] animate-spin-slow">construction</span> Under Construction
-                        </div>
+                            <span className="material-symbols-outlined text-[12px] animate-spin-slow">{t('EcosystemPages.construction')}</span> {t('EcosystemPages.underConstruction')}</div>
                         <div className="w-16 h-16 bg-amber-50 dark:bg-amber-900/30 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                            <span className="material-symbols-outlined text-3xl text-amber-600 dark:text-amber-400">construction</span>
+                            <span className="material-symbols-outlined text-3xl text-amber-600 dark:text-amber-400">{t('EcosystemPages.construction')}</span>
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">Platform Tutorials</h2>
+                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">{t('EcosystemPages.platformTutorials')}</h2>
                         <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Step-by-step video guides on navigating the dashboard, running property searches, managing watchlists, and utilizing our partner consulting services.
-                        </p>
+                            {t('EcosystemPages.stepByStepVideoGuide')}</p>
                     </div>
                 </div>
 
                 <div className="mt-12 bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 text-center">
-                    <span className="material-symbols-outlined text-slate-400 mb-2">support_agent</span>
-                    <h3 className="font-bold text-slate-800 dark:text-white mb-1">Need help? Email us.</h3>
-                    <p className="text-sm text-slate-500 mb-4">Any questions about accessing the platform or due diligence consulting, just send us a message.</p>
-                    <a href="mailto:support@goauct.com" className="inline-block px-6 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90">Contact Support</a>
+                    <span className="material-symbols-outlined text-slate-400 mb-2">{t('EcosystemPages.supportagent')}</span>
+                    <h3 className="font-bold text-slate-800 dark:text-white mb-1">{t('EcosystemPages.needHelpEmailUs')}</h3>
+                    <p className="text-sm text-slate-500 mb-4">{t('EcosystemPages.anyQuestionsAboutAcc')}</p>
+                    <a href="mailto:support@goauct.com" className="inline-block px-6 py-2 bg-slate-800 dark:bg-white text-white dark:text-slate-900 rounded-xl font-bold text-sm hover:opacity-90">{t('EcosystemPages.contactSupport')}</a>
                 </div>
 
                 {showConstructionModal && (
@@ -93,29 +91,24 @@ export const TrainingPage: React.FC = () => {
 
                             <div className="flex flex-col items-center text-center">
                                 <div className="size-20 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center mb-6">
-                                    <span className="material-symbols-outlined text-4xl text-amber-500 animate-bounce">construction</span>
+                                    <span className="material-symbols-outlined text-4xl text-amber-500 animate-bounce">{t('EcosystemPages.construction')}</span>
                                 </div>
                                 
                                 <span className="inline-block px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-extrabold uppercase tracking-widest mb-3 border border-amber-500/20">
-                                    Under Construction
-                                </span>
+                                    {t('EcosystemPages.underConstruction')}</span>
 
                                 <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-3">
-                                    Platform Tutorials
-                                </h3>
+                                    {t('EcosystemPages.platformTutorials')}</h3>
                                 
                                 <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-6">
-                                    Our media and engineering teams are currently producing high-fidelity corporate tutorials mapping out the new Enterprise workflows. 
-                                    <br/><br/>
-                                    These modules will cover advanced search engines, GPS runner telemetry, and multi-tenant portfolio switching.
-                                </p>
+                                    {t('EcosystemPages.ourMediaAndEngineeri')}<br/><br/>
+                                    {t('EcosystemPages.theseModulesWillCove')}</p>
 
                                 <button 
                                     onClick={() => setShowConstructionModal(false)}
                                     className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/20 transition-all active:scale-[0.98]"
                                 >
-                                    Back to Resources
-                                </button>
+                                    {t('EcosystemPages.backToResources')}</button>
                             </div>
                         </div>
                     </div>
@@ -128,9 +121,8 @@ export const TrainingPage: React.FC = () => {
         return (
             <div className="relative w-full h-[calc(100vh-120px)] overflow-y-auto">
                 <button onClick={() => setView('folders')} className="absolute top-4 left-4 z-10 flex items-center gap-2 bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 font-bold text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50">
-                    <span className="material-symbols-outlined text-[18px]">arrow_back</span>
-                    Back to Folders
-                </button>
+                    <span className="material-symbols-outlined text-[18px]">{t('EcosystemPages.arrowback')}</span>
+                    {t('EcosystemPages.backToFolders')}</button>
                 <div className="pt-20">
                     <TaxSystemsView />
                 </div>
@@ -142,8 +134,7 @@ export const TrainingPage: React.FC = () => {
         <div className="w-full h-[calc(100vh-120px)] overflow-hidden flex flex-col">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center">
                 <button onClick={() => setView('folders')} className="flex items-center gap-2 font-bold text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
-                    <span className="material-symbols-outlined text-[18px]">arrow_back</span> Back to Folders
-                </button>
+                    <span className="material-symbols-outlined text-[18px]">{t('EcosystemPages.arrowback')}</span> {t('EcosystemPages.backToFolders')}</button>
             </div>
             <div className="flex-1 flex flex-col md:flex-row gap-6 p-6 overflow-hidden">
                 {/* Main Video Area */}
@@ -157,8 +148,7 @@ export const TrainingPage: React.FC = () => {
                             poster="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=1200"
                         />
                         <div className="absolute top-4 right-4 bg-slate-950/80 backdrop-blur text-[10px] text-slate-300 font-mono px-3 py-1 rounded-full border border-white/10 pointer-events-none">
-                            Local Path: backend/data/videos/{activeVideo.id}.mp4
-                        </div>
+                            {t('EcosystemPages.localPathBackendData')}{activeVideo.id}{t('EcosystemPages.Mp4')}</div>
                     </div>
                     <div className="mt-6 px-2">
                         <h2 className="text-2xl font-bold text-slate-800 dark:text-white mb-2">{activeVideo.title}</h2>
@@ -168,7 +158,7 @@ export const TrainingPage: React.FC = () => {
 
                 {/* Video List */}
                 <div className="w-full md:w-80 flex flex-col gap-3 font-sans overflow-y-auto pr-2 pb-12">
-                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 pl-2">Platform Tutorials</h3>
+                    <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2 pl-2">{t('EcosystemPages.platformTutorials')}</h3>
                     {VIDEOS.map((v, i) => (
                         <button
                             key={v.id}
@@ -237,9 +227,9 @@ export const TaxSystemsView: React.FC = () => {
     return (
         <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-sm p-6 md:p-10 max-w-4xl mx-auto mb-16">
             <div className="mb-10 text-center">
-               <span className="material-symbols-outlined text-4xl text-blue-500 mb-3 block">menu_book</span>
-               <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">U.S. Tax Sale Systems Matrix</h1>
-               <p className="text-slate-500 max-w-xl mx-auto">Compiled insights from the GoAuct internal knowledge base on state regulations, differences between liens and deeds, and basic methodology.</p>
+               <span className="material-symbols-outlined text-4xl text-blue-500 mb-3 block">{t('EcosystemPages.menubook')}</span>
+               <h1 className="text-3xl font-black text-slate-900 dark:text-white mb-2">{t('EcosystemPages.uSTaxSaleSystemsMatr')}</h1>
+               <p className="text-slate-500 max-w-xl mx-auto">{t('EcosystemPages.compiledInsightsFrom')}</p>
             </div>
             
             <div className="space-y-4">
@@ -252,7 +242,7 @@ export const TaxSystemsView: React.FC = () => {
                                 className={`w-full flex items-center justify-between p-5 text-left transition-colors ${isOpen ? 'bg-primary/5 dark:bg-blue-900/20' : 'bg-transparent'}`}
                             >
                                 <span className="font-bold text-slate-800 dark:text-slate-100">{chap.title}</span>
-                                <span className={`material-symbols-outlined text-slate-400 transition-transform ${isOpen ? 'rotate-180 text-blue-500' : ''}`}>expand_more</span>
+                                <span className={`material-symbols-outlined text-slate-400 transition-transform ${isOpen ? 'rotate-180 text-blue-500' : ''}`}>{t('EcosystemPages.expandmore')}</span>
                             </button>
                             {isOpen && (
                                 <div className="p-5 pt-2 border-t border-slate-100 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/30">
@@ -276,6 +266,7 @@ export const TaxSystemsPage: React.FC = () => {
 };
 
 export const CommunityPage: React.FC = () => {
+    const { t } = useLanguage();
     const [newsUpdates, setNewsUpdates] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState('');
@@ -299,29 +290,29 @@ export const CommunityPage: React.FC = () => {
         <div className="max-w-4xl mx-auto py-8 px-4 h-[calc(100vh-120px)] overflow-y-auto">
             <div className="flex items-center gap-4 mb-8">
                 <div className="w-14 h-14 bg-blue-50 dark:bg-blue-900/30 rounded-2xl flex items-center justify-center">
-                    <span className="material-symbols-outlined text-3xl text-blue-600 dark:text-blue-400">forum</span>
+                    <span className="material-symbols-outlined text-3xl text-blue-600 dark:text-blue-400">{t('EcosystemPages.forum')}</span>
                 </div>
                 <div>
-                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Community & Updates</h1>
-                    <p className="text-sm text-slate-500 font-medium">Real-estate news, system updates, and strategies directly from the GoAuct team.</p>
+                    <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">{t('EcosystemPages.communityUpdates')}</h1>
+                    <p className="text-sm text-slate-500 font-medium">{t('EcosystemPages.realEstateNewsSystem')}</p>
                 </div>
             </div>
 
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
-                    <p className="text-slate-500 dark:text-slate-400 font-medium">Loading community updates...</p>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium">{t('EcosystemPages.loadingCommunityUpda')}</p>
                 </div>
             ) : error ? (
                 <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-2xl p-6 text-center text-red-650 dark:text-red-400 font-semibold mb-6">
-                    <span className="material-symbols-outlined text-4xl mb-2 block">warning</span>
+                    <span className="material-symbols-outlined text-4xl mb-2 block">{t('EcosystemPages.warning')}</span>
                     {error}
                 </div>
             ) : newsUpdates.length === 0 ? (
                 <div className="bg-white dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700 p-12 text-center text-slate-500 dark:text-slate-400 shadow-sm">
-                    <span className="material-symbols-outlined text-5xl mb-4 text-slate-350 dark:text-slate-650">campaign</span>
-                    <p className="text-lg font-bold mb-2">No community posts yet</p>
-                    <p className="text-sm">Check back later for news, strategies, and system notes.</p>
+                    <span className="material-symbols-outlined text-5xl mb-4 text-slate-350 dark:text-slate-650">{t('EcosystemPages.campaign')}</span>
+                    <p className="text-lg font-bold mb-2">{t('EcosystemPages.noCommunityPostsYet')}</p>
+                    <p className="text-sm">{t('EcosystemPages.checkBackLaterForNew')}</p>
                 </div>
             ) : (
                 <div className="space-y-6 pb-12">
@@ -342,7 +333,7 @@ export const CommunityPage: React.FC = () => {
                             </p>
                             <div className="flex items-center gap-2 border-t border-slate-100 dark:border-slate-700 pt-4 mt-2">
                                 <div className="w-6 h-6 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center">
-                                    <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[14px]">admin_panel_settings</span>
+                                    <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-[14px]">{t('EcosystemPages.adminpanelsettings')}</span>
                                 </div>
                                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{news.author}</span>
                             </div>
@@ -381,26 +372,23 @@ export const GroupsPage: React.FC = () => (
         {/* Header section with Social Links */}
         <div className="flex flex-col md:flex-row gap-8 items-start md:items-center justify-between mb-12 bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-8 sm:p-12 text-white shadow-lg">
             <div>
-                <h1 className="text-3xl sm:text-4xl font-black mb-3 text-white tracking-tight">Join the Inner Circle</h1>
+                <h1 className="text-3xl sm:text-4xl font-black mb-3 text-white tracking-tight">{t('EcosystemPages.joinTheInnerCircle')}</h1>
                 <p className="text-blue-200 max-w-lg mb-6 leading-relaxed">
-                    Connect with over 2,500 active distress property investors. Get access to exclusive mastermind groups, daily deal breakdowns, and direct support from the GoAuct team.
-                </p>
+                    {t('EcosystemPages.connectWithOver2500A')}</p>
                 <div className="flex gap-4">
                     <a href="#" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-4 py-2 rounded-xl text-sm font-bold backdrop-blur-sm border border-white/10">
-                        <span className="material-symbols-outlined text-lg">public</span> Facebook Group
-                    </a>
+                        <span className="material-symbols-outlined text-lg">{t('EcosystemPages.public')}</span> {t('EcosystemPages.facebookGroup')}</a>
                     <a href="#" className="flex items-center gap-2 bg-white/10 hover:bg-white/20 transition-colors px-4 py-2 rounded-xl text-sm font-bold backdrop-blur-sm border border-white/10">
-                        <span className="material-symbols-outlined text-lg">chat</span> Discord Matrix
-                    </a>
+                        <span className="material-symbols-outlined text-lg">{t('EcosystemPages.chat')}</span> {t('EcosystemPages.discordMatrix')}</a>
                 </div>
             </div>
             {/* Visual Decorative */}
             <div className="hidden md:flex gap-4 opacity-50 pointer-events-none">
                 <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center -rotate-6">
-                    <span className="material-symbols-outlined text-3xl font-bold">trending_up</span>
+                    <span className="material-symbols-outlined text-3xl font-bold">{t('EcosystemPages.trendingup')}</span>
                 </div>
                 <div className="w-16 h-16 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center rotate-12 mt-8">
-                    <span className="material-symbols-outlined text-3xl font-bold">handshake</span>
+                    <span className="material-symbols-outlined text-3xl font-bold">{t('EcosystemPages.handshake')}</span>
                 </div>
             </div>
         </div>
@@ -408,8 +396,8 @@ export const GroupsPage: React.FC = () => (
         {/* Member Approved Section */}
         <div className="mb-12">
             <div className="flex items-center gap-3 mb-6">
-                <span className="material-symbols-outlined text-emerald-500">verified</span>
-                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Investor Approved</h2>
+                <span className="material-symbols-outlined text-emerald-500">{t('EcosystemPages.verified')}</span>
+                <h2 className="text-2xl font-bold text-slate-800 dark:text-white">{t('EcosystemPages.investorApproved')}</h2>
             </div>
             
             <div className="grid md:grid-cols-3 gap-6">
@@ -434,12 +422,11 @@ export const GroupsPage: React.FC = () => (
 
         {/* Pro Mastermind Teaser */}
         <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 text-center max-w-2xl mx-auto">
-            <span className="material-symbols-outlined text-4xl text-amber-500 mb-3 block">workspace_premium</span>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">GoAuct Platinum Mastermind</h3>
-            <p className="text-slate-500 text-sm mb-6">Applications for our Q4 Mastermind cohort will open soon. This is reserved for enterprise and high-volume independent investors.</p>
+            <span className="material-symbols-outlined text-4xl text-amber-500 mb-3 block">{t('EcosystemPages.workspacepremium')}</span>
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{t('EcosystemPages.goAuctPlatinumMaster')}</h3>
+            <p className="text-slate-500 text-sm mb-6">{t('EcosystemPages.applicationsForOurQ4')}</p>
             <button disabled className="px-6 py-2 bg-slate-200 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-xl text-sm font-bold opacity-50 cursor-not-allowed">
-                Applications Closed
-            </button>
+                {t('EcosystemPages.applicationsClosed')}</button>
         </div>
     </div>
 );

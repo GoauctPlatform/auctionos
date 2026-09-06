@@ -11,6 +11,7 @@ import { RealtorTaskService, InvestorTaskService, Task } from '../../services/re
 import { AuthService } from '../../services/auth.service';
 import { AuctionEvent, Property } from '../../types';
 import { useCompany } from '../../context/CompanyContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
 import { InvestmentHeatmap } from '../../components/property/InvestmentHeatmap';
 import { MapDashboard } from '../../components/widgets/MapDashboard';
@@ -80,6 +81,7 @@ const STATE_CODE_MAP: Record<string, string> = {
 };
 
 function resolveStateCode(stateRaw: string): string {
+    const { t } = useLanguage();
   if (!stateRaw) return '';
   const trimmed = stateRaw.trim();
   if (trimmed.length === 2) return trimmed.toUpperCase();
@@ -165,6 +167,7 @@ const LAYOUT_KEY = 'goauct_workbench_v65';
 
 export const ClientWorkbench: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const { activeCompany, companies, selectCompany } = useCompany();
   const { startTour } = useTour();
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -2677,14 +2680,14 @@ export const ClientWorkbench: React.FC = () => {
         <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400 dark:text-slate-600 bg-white dark:bg-slate-900 select-none">
           <Sparkles size={48} className="opacity-20" />
           <div className="text-center">
-            <p className="text-sm font-bold text-slate-500 dark:text-slate-500">No active view</p>
-            <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">Select a view to render here</p>
+            <p className="text-sm font-bold text-slate-500 dark:text-slate-500">{t('ClientWorkbench.noActiveView')}</p>
+            <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">{t('ClientWorkbench.selectAViewToRenderH')}</p>
           </div>
         </div>
       );
     }
     const w = widgets.find(x => x.id === id);
-    if (!w) return <p className="text-xs text-slate-400 italic p-4 bg-white dark:bg-slate-900">Widget not found</p>;
+    if (!w) return <p className="text-xs text-slate-400 italic p-4 bg-white dark:bg-slate-900">{t('ClientWorkbench.widgetNotFound')}</p>;
 
     return (
       <div className="size-full overflow-auto p-4 select-text flex flex-col min-h-0 bg-white dark:bg-slate-900 text-slate-900 dark:text-white">
@@ -2707,13 +2710,11 @@ export const ClientWorkbench: React.FC = () => {
           <div className="flex flex-col">
             <div className="flex items-center gap-1.5 leading-none">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-800 dark:text-slate-105">
-                GoAuct Mission Control
-              </span>
+                {t('ClientWorkbench.goAuctMissionControl')}</span>
               <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
             </div>
             <span className="text-[7.5px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-0.5">
-              Workspace v4.0 · Client Node
-            </span>
+              {t('ClientWorkbench.workspaceV40ClientNo')}</span>
           </div>
         </div>
 
@@ -2763,7 +2764,7 @@ export const ClientWorkbench: React.FC = () => {
             title="Notifications"
             onClick={() => setNotificationsOpen(!notificationsOpen)}
           >
-            <span className="material-symbols-outlined text-[20px]">notifications</span>
+            <span className="material-symbols-outlined text-[20px]">{t('ClientWorkbench.notifications')}</span>
             {upcomingAuctionsCount > 0 && (
               <span className="absolute top-1.5 right-1.5 flex size-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
@@ -2775,9 +2776,9 @@ export const ClientWorkbench: React.FC = () => {
             {notificationsOpen && (
               <div className="absolute top-full right-0 mt-2 w-72 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 z-50 overflow-hidden cursor-default" onClick={e => e.stopPropagation()}>
                 <div className="p-4 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex justify-between items-center">
-                  <span className="font-bold text-sm text-slate-800 dark:text-white">Alerts</span>
+                  <span className="font-bold text-sm text-slate-800 dark:text-white">{t('ClientWorkbench.alerts')}</span>
                   {upcomingAuctionsCount > 0 && (
-                    <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-black px-2 py-0.5 rounded-full">{upcomingAuctionsCount} New</span>
+                    <span className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-black px-2 py-0.5 rounded-full">{upcomingAuctionsCount} {t('ClientWorkbench.new')}</span>
                   )}
                 </div>
                 <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
@@ -2787,11 +2788,11 @@ export const ClientWorkbench: React.FC = () => {
                       onClick={() => { setNotificationsOpen(false); openOverlayWindow('my_lists', 'Saved Lists & Folders'); }}
                     >
                       <div className="mt-0.5 size-8 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-[16px]">gavel</span>
+                        <span className="material-symbols-outlined text-[16px]">{t('ClientWorkbench.gavel')}</span>
                       </div>
                       <div>
-                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">Upcoming Auctions Detected</p>
-                        <p className="text-[10px] text-slate-500">You have {upcomingAuctionsCount} properties in your My List that are going to auction within the next 7 days.</p>
+                        <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">{t('ClientWorkbench.upcomingAuctionsDete')}</p>
+                        <p className="text-[10px] text-slate-500">{t('ClientWorkbench.youHave')}{upcomingAuctionsCount} {t('ClientWorkbench.propertiesInYourMyLi')}</p>
                       </div>
                     </div>
                   )}
@@ -2800,7 +2801,7 @@ export const ClientWorkbench: React.FC = () => {
                   {announcements.map((ann) => (
                     <div key={ann.id} className="p-4 border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer flex gap-3">
                       <div className="mt-0.5 size-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 flex items-center justify-center shrink-0">
-                        <span className="material-symbols-outlined text-[16px]">campaign</span>
+                        <span className="material-symbols-outlined text-[16px]">{t('ClientWorkbench.campaign')}</span>
                       </div>
                       <div>
                         <p className="text-xs font-bold text-slate-800 dark:text-slate-200 mb-1 leading-tight">{ann.title}</p>
@@ -2811,8 +2812,8 @@ export const ClientWorkbench: React.FC = () => {
 
                   {upcomingAuctionsCount === 0 && announcements.length === 0 && (
                     <div className="p-8 text-center text-slate-400">
-                      <span className="material-symbols-outlined text-3xl mb-2 opacity-50">notifications_paused</span>
-                      <p className="text-xs">No new notifications</p>
+                      <span className="material-symbols-outlined text-3xl mb-2 opacity-50">{t('ClientWorkbench.notificationspaused')}</span>
+                      <p className="text-xs">{t('ClientWorkbench.noNewNotifications')}</p>
                     </div>
                   )}
                 </div>
@@ -2820,19 +2821,17 @@ export const ClientWorkbench: React.FC = () => {
                   className="bg-slate-50 dark:bg-slate-900/30 p-2 text-center text-[10px] font-bold text-blue-500 uppercase tracking-widest cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900/50 transition-colors"
                   onClick={() => { setNotificationsOpen(false); openOverlayWindow('my_lists', 'Saved Lists & Folders'); }}
                 >
-                  Manage Watchlists
-                </div>
+                  {t('ClientWorkbench.manageWatchlists')}</div>
               </div>
             )}
           </div>
 
           <span className="h-4 w-[1px] bg-slate-200 dark:bg-slate-800" />
           <div className="flex items-center gap-1.5 text-[8.5px] font-bold text-slate-400 dark:text-slate-550 uppercase">
-            <span>Status:</span>
+            <span>{t('ClientWorkbench.status')}</span>
             <span className="text-emerald-500 dark:text-emerald-400 font-extrabold flex items-center gap-1">
               <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Connected
-            </span>
+              {t('ClientWorkbench.connected')}</span>
           </div>
         </div>
       </div>
@@ -2975,8 +2974,8 @@ export const ClientWorkbench: React.FC = () => {
               {activePane === 'notifications' && (
                 <>
                   <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">System Alerts</h3>
-                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Live Watchlists Updates</p>
+                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">{t('ClientWorkbench.systemAlerts')}</h3>
+                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">{t('ClientWorkbench.liveWatchlistsUpdate')}</p>
                   </div>
 
                   <div className="flex flex-col space-y-2.5 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
@@ -2986,17 +2985,17 @@ export const ClientWorkbench: React.FC = () => {
                         className="p-3 rounded-xl bg-orange-50/50 dark:bg-orange-955/10 border border-orange-500/20 text-left transition-all cursor-pointer flex gap-2.5 hover:border-orange-500/40"
                       >
                         <div className="size-6 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg flex items-center justify-center shrink-0">
-                          <span className="material-symbols-outlined text-[14px]">gavel</span>
+                          <span className="material-symbols-outlined text-[14px]">{t('ClientWorkbench.gavel')}</span>
                         </div>
                         <div>
-                          <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">Upcoming Auctions</p>
-                          <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">You have {upcomingAuctionsCount} watchlisted properties going to auction within the next 7 days.</p>
+                          <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">{t('ClientWorkbench.upcomingAuctions')}</p>
+                          <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">{t('ClientWorkbench.youHave')}{upcomingAuctionsCount} {t('ClientWorkbench.watchlistedPropertie')}</p>
                         </div>
                       </div>
                     ) : (
                       <div className="p-8 text-center text-slate-400 dark:text-slate-500 font-bold text-[9px] uppercase tracking-wider">
                         <Bell size={24} className="mx-auto mb-2 opacity-30 text-indigo-400" />
-                        <span>All caught up!</span>
+                        <span>{t('ClientWorkbench.allCaughtUp')}</span>
                       </div>
                     )}
                   </div>
@@ -3006,8 +3005,8 @@ export const ClientWorkbench: React.FC = () => {
               {activePane === 'connect' && (
                 <>
                   <div>
-                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Connect Hub</h3>
-                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">Networking & Training Modules</p>
+                    <h3 className="text-[10px] font-black uppercase tracking-wider text-slate-900 dark:text-white">{t('ClientWorkbench.connectHub')}</h3>
+                    <p className="text-[8px] font-bold text-slate-450 uppercase tracking-widest mt-0.5">{t('ClientWorkbench.networkingTrainingMo')}</p>
                   </div>
 
                   <div className="flex flex-col space-y-2.5 max-h-[480px] overflow-y-auto pr-1 custom-scrollbar">
@@ -3016,11 +3015,11 @@ export const ClientWorkbench: React.FC = () => {
                       className="p-3 rounded-xl bg-blue-50/50 dark:bg-blue-955/10 border border-blue-500/20 text-left transition-all hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-slate-900/40 flex gap-2.5 group w-full"
                     >
                       <div className="size-6 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <span className="material-symbols-outlined text-[14px]">school</span>
+                        <span className="material-symbols-outlined text-[14px]">{t('ClientWorkbench.school')}</span>
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">Training Center</p>
-                        <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">Investor learning paths, state manuals, and platform tutorials.</p>
+                        <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">{t('ClientWorkbench.trainingCenter')}</p>
+                        <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">{t('ClientWorkbench.investorLearningPath')}</p>
                       </div>
                     </button>
 
@@ -3029,11 +3028,11 @@ export const ClientWorkbench: React.FC = () => {
                       className="p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-955/10 border border-emerald-500/20 text-left transition-all hover:border-emerald-500/40 hover:bg-slate-50 dark:hover:bg-slate-900/40 flex gap-2.5 group w-full"
                     >
                       <div className="size-6 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <span className="material-symbols-outlined text-[14px]">forum</span>
+                        <span className="material-symbols-outlined text-[14px]">{t('ClientWorkbench.forum')}</span>
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">Community & News</p>
-                        <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">Real-estate updates, market reviews, and Florida/Texas analytics.</p>
+                        <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">{t('ClientWorkbench.communityNews')}</p>
+                        <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">{t('ClientWorkbench.realEstateUpdatesMar')}</p>
                       </div>
                     </button>
 
@@ -3042,11 +3041,11 @@ export const ClientWorkbench: React.FC = () => {
                       className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-955/10 border border-purple-500/20 text-left transition-all hover:border-purple-500/40 hover:bg-slate-50 dark:hover:bg-slate-900/40 flex gap-2.5 group w-full"
                     >
                       <div className="size-6 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <span className="material-symbols-outlined text-[14px]">hub</span>
+                        <span className="material-symbols-outlined text-[14px]">{t('ClientWorkbench.hub')}</span>
                       </div>
                       <div>
-                        <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">Mastermind Groups</p>
-                        <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">Facebook & Discord Matrix inner circles of enterprise members.</p>
+                        <p className="text-[10px] font-black text-slate-900 dark:text-white leading-tight">{t('ClientWorkbench.mastermindGroups')}</p>
+                        <p className="text-[9px] text-slate-500 mt-1 leading-normal font-semibold">{t('ClientWorkbench.facebookDiscordMatri')}</p>
                       </div>
                     </button>
                   </div>
@@ -3064,9 +3063,9 @@ export const ClientWorkbench: React.FC = () => {
 
             {/* IDE Top Breadcrumb Bar */}
             <div className="h-7 bg-slate-100/80 dark:bg-slate-900/80 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center gap-2 shrink-0 select-none">
-              <span className="text-[8px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">GoAuct OS</span>
+              <span className="text-[8px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('ClientWorkbench.goAuctOS')}</span>
               <span className="text-slate-300 dark:text-slate-700 text-[9px]">/</span>
-              <span className="text-[8px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">pages</span>
+              <span className="text-[8px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{t('ClientWorkbench.pages')}</span>
               <span className="text-slate-300 dark:text-slate-700 text-[9px]">/</span>
               <span className="text-[8px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-widest">
                 {activeIdeTabId ? (widgets.find(w => w.id === activeIdeTabId)?.title?.replace(/^[^\w]+/, '') || activeIdeTabId) : 'workspace'}
@@ -3074,10 +3073,9 @@ export const ClientWorkbench: React.FC = () => {
               <div className="ml-auto flex items-center gap-3">
                 <span className="text-[7.5px] font-bold text-emerald-500 flex items-center gap-1">
                   <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  feature/newinterface
-                </span>
-                <span className="text-[7.5px] font-bold text-slate-400 dark:text-slate-600 uppercase">TSX</span>
-                <span className="text-[7.5px] font-bold text-slate-400 dark:text-slate-600 uppercase">UTF-8</span>
+                  {t('ClientWorkbench.featureNewinterface')}</span>
+                <span className="text-[7.5px] font-bold text-slate-400 dark:text-slate-600 uppercase">{t('ClientWorkbench.tSX')}</span>
+                <span className="text-[7.5px] font-bold text-slate-400 dark:text-slate-600 uppercase">{t('ClientWorkbench.uTF8')}</span>
               </div>
             </div>
 
@@ -3151,16 +3149,14 @@ export const ClientWorkbench: React.FC = () => {
               })}
               {widgets.filter(w => w.visible).length === 0 && (
                 <div className="flex items-center px-4 h-full text-[9px] text-slate-400 dark:text-slate-600 italic">
-                  No open tabs — click a shortcut icon to open a page
-                </div>
+                  {t('ClientWorkbench.noOpenTabsClickAShor')}</div>
               )}
               {/* Split mode indicator pill */}
               {ideSplitMode && (
                 <div className="ml-auto flex items-center gap-1.5 px-3 shrink-0">
                   <span className="text-[7.5px] font-bold text-emerald-500 flex items-center gap-1">
                     <LayoutGrid size={9} />
-                    Split
-                  </span>
+                    {t('ClientWorkbench.split')}</span>
                   <button
                     onClick={() => { setIdeSplitMode(false); setSplitIdeTabId(null); setSplitLeftWidthPct(50); }}
                     className="text-[7.5px] text-slate-400 hover:text-red-500 font-bold px-1 transition-colors"
@@ -3192,7 +3188,7 @@ export const ClientWorkbench: React.FC = () => {
                         <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate">
                           {activeIdeTabId ? widgets.find(x => x.id === activeIdeTabId)?.title.replace(/^[^\w]+/, '') || activeIdeTabId : 'No Tab'}
                         </span>
-                        <span className="ml-auto text-[7px] text-slate-400 dark:text-slate-600 font-bold uppercase">LEFT</span>
+                        <span className="ml-auto text-[7px] text-slate-400 dark:text-slate-600 font-bold uppercase">{t('ClientWorkbench.lEFT')}</span>
                       </div>
                     )}
                     {/* Left panel content */}
@@ -3209,8 +3205,8 @@ export const ClientWorkbench: React.FC = () => {
                         <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400 dark:text-slate-600">
                           <Sparkles size={48} className="opacity-20" />
                           <div className="text-center">
-                            <p className="text-sm font-bold text-slate-500 dark:text-slate-500">No active tab</p>
-                            <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">Click any shortcut icon or widget toggle to open a page here</p>
+                            <p className="text-sm font-bold text-slate-500 dark:text-slate-500">{t('ClientWorkbench.noActiveTab')}</p>
+                            <p className="text-xs text-slate-400 dark:text-slate-600 mt-1">{t('ClientWorkbench.clickAnyShortcutIcon')}</p>
                           </div>
                         </div>
                       )}
@@ -3240,7 +3236,7 @@ export const ClientWorkbench: React.FC = () => {
                         <span className="text-[8px] font-bold text-slate-500 dark:text-slate-400 truncate">
                           {widgets.find(x => x.id === splitIdeTabId)?.title.replace(/^[^\w]+/, '') || splitIdeTabId}
                         </span>
-                        <span className="ml-auto text-[7px] text-emerald-500 font-bold uppercase">RIGHT</span>
+                        <span className="ml-auto text-[7px] text-emerald-500 font-bold uppercase">{t('ClientWorkbench.rIGHT')}</span>
                         <button onClick={() => { setIdeSplitMode(false); setSplitIdeTabId(null); }} className="text-slate-400 hover:text-red-500 transition-colors">
                           <X size={9} />
                         </button>
@@ -3272,14 +3268,12 @@ export const ClientWorkbench: React.FC = () => {
                     <div className="ml-auto flex items-center gap-2">
                       <span className="text-[7.5px] font-bold text-emerald-500 flex items-center gap-1">
                         <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                        LIVE
-                      </span>
+                        {t('ClientWorkbench.lIVE')}</span>
                       <button
                         onClick={() => logConsoleActivity('Terminal cleared by user.')}
                         className="text-[7.5px] text-slate-600 hover:text-slate-300 uppercase font-bold px-1.5"
                       >
-                        Clear
-                      </button>
+                        {t('ClientWorkbench.clear')}</button>
                     </div>
                   </div>
                   <div className="flex-1 overflow-y-auto px-4 py-2 font-mono text-[9px] space-y-1 no-scrollbar">
@@ -3290,7 +3284,7 @@ export const ClientWorkbench: React.FC = () => {
                       </div>
                     ))}
                     {terminalLogs.length === 0 && (
-                      <div className="text-slate-600 italic">GoAuct OS terminal ready.</div>
+                      <div className="text-slate-600 italic">{t('ClientWorkbench.goAuctOSTerminalRead')}</div>
                     )}
                   </div>
                 </div>
@@ -3303,25 +3297,25 @@ export const ClientWorkbench: React.FC = () => {
                     <div className="size-6 rounded-lg bg-gradient-to-br from-indigo-500 to-cyan-500 flex items-center justify-center shadow-sm">
                       <Sparkles size={11} className="text-white" />
                     </div>
-                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-900 dark:text-white">Agent Panel</span>
+                    <span className="text-[9.5px] font-black uppercase tracking-wider text-slate-900 dark:text-white">{t('ClientWorkbench.agentPanel')}</span>
                   </div>
-                  <p className="text-[7.5px] text-slate-400 dark:text-slate-500 mt-1 font-medium uppercase tracking-wider">Antigravity AI</p>
+                  <p className="text-[7.5px] text-slate-400 dark:text-slate-500 mt-1 font-medium uppercase tracking-wider">{t('ClientWorkbench.antigravityAI')}</p>
                 </div>
 
                 <div className="p-3 space-y-3 flex-1">
                   <div className="p-2.5 rounded-xl bg-indigo-50/60 dark:bg-indigo-950/10 border border-indigo-500/15">
-                    <p className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1.5">Workspace</p>
+                    <p className="text-[8px] font-black text-indigo-600 dark:text-indigo-400 uppercase tracking-widest mb-1.5">{t('ClientWorkbench.workspace')}</p>
                     <div className="space-y-1">
                       <div className="flex justify-between text-[8px]">
-                        <span className="text-slate-500 font-semibold">Open Tabs</span>
+                        <span className="text-slate-500 font-semibold">{t('ClientWorkbench.openTabs')}</span>
                         <span className="font-black text-slate-900 dark:text-white">{widgets.filter(w => w.visible).length + (tickerTapeVisible ? 1 : 0)}</span>
                       </div>
                       <div className="flex justify-between text-[8px]">
-                        <span className="text-slate-500 font-semibold">Active</span>
+                        <span className="text-slate-500 font-semibold">{t('ClientWorkbench.active')}</span>
                         <span className="font-black text-indigo-600 dark:text-indigo-400 truncate max-w-[60px] text-right">{activeIdeTabId || '—'}</span>
                       </div>
                       <div className="flex justify-between text-[8px]">
-                        <span className="text-slate-500 font-semibold">Split</span>
+                        <span className="text-slate-500 font-semibold">{t('ClientWorkbench.split')}</span>
                         <span className={`font-black ${ideSplitMode ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}`}>{ideSplitMode ? 'ON' : 'OFF'}</span>
                       </div>
                     </div>
@@ -3352,7 +3346,7 @@ export const ClientWorkbench: React.FC = () => {
                   </button>
 
                   <div>
-                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Quick Open</p>
+                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">{t('ClientWorkbench.quickOpen')}</p>
                     <div className="space-y-1">
                       {[
                         { label: 'Live Auctions', id: 'live_auctions', icon: Calendar },
@@ -3381,7 +3375,7 @@ export const ClientWorkbench: React.FC = () => {
                   </div>
 
                   <div>
-                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Activity</p>
+                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">{t('ClientWorkbench.activity')}</p>
                     <div className="space-y-1">
                       {terminalLogs.slice(-5).reverse().map((entry, i) => (
                         <div key={i} className="text-[7.5px] text-slate-500 dark:text-slate-500 leading-tight border-l-2 border-indigo-500/30 pl-2 py-0.5 truncate" title={entry}>
@@ -3389,7 +3383,7 @@ export const ClientWorkbench: React.FC = () => {
                         </div>
                       ))}
                       {terminalLogs.length === 0 && (
-                        <p className="text-[7.5px] text-slate-400 dark:text-slate-600 italic">No activity yet.</p>
+                        <p className="text-[7.5px] text-slate-400 dark:text-slate-600 italic">{t('ClientWorkbench.noActivityYet')}</p>
                       )}
                     </div>
                   </div>
@@ -3650,10 +3644,10 @@ export const ClientWorkbench: React.FC = () => {
             {/* Core Shortcuts to open windows */}
             <div className="flex items-center gap-3 shrink-0">
               {[
-                { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
-                { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
-                { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
-                { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'hover:text-blue-400 text-blue-500' }
+                { id: 'workbench_home', label: t('nav.workbench'), icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
+                { id: 'live_auctions', label: t('nav.liveAuctions'), icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
+                { id: 'property_search', label: t('nav.propertySearch'), icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
+                { id: 'my_lists', label: t('nav.myLists'), icon: Folder, color: 'hover:text-blue-400 text-blue-500' }
               ].map(item => {
                 const Icon = item.icon;
                 const isOpen = item.id === 'workbench_home' ? false : overlayWindows.some(w => w.type === item.id || (w.type === 'auction_details' && item.id === 'live_auctions'));
@@ -3679,7 +3673,7 @@ export const ClientWorkbench: React.FC = () => {
                           focusOverlayWindow(match.id);
                         }
                       } else {
-                        openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : item.id === 'map' ? '🗺️ US Heatmap & Activity' : item.id === 'smart_ai_finder' ? '🧠 Smart AI Deal Finder' : '⚔️ Field Task Missions');
+                        openOverlayWindow(item.id as any, item.id === 'my_lists' ? `📂 ${t('workbench.savedLists')}` : item.id === 'live_auctions' ? `📅 ${t('workbench.liveAuctions')}` : item.id === 'property_search' ? `🔍 ${t('workbench.propertySearch')}` : item.id === 'map' ? `🗺️ ${t('workbench.map') || 'US Heatmap & Activity'}` : item.id === 'smart_ai_finder' ? `🧠 ${t('workbench.smartAi') || 'Smart AI Deal Finder'}` : `⚔️ ${t('workbench.fieldMissions')}`);
                       }
                     }}
                     className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 ${item.color} ${isOpen ? 'bg-slate-800 border border-slate-700' : 'bg-transparent'} ${isMin ? 'opacity-50' : ''}`}
@@ -3764,7 +3758,7 @@ export const ClientWorkbench: React.FC = () => {
             <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
           </span>
           <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
-            Synced · Last Refresh: <span className="text-slate-700 dark:text-slate-300 font-extrabold">{syncTime || '—'}</span>
+            {t('ClientWorkbench.syncedLastRefresh')}<span className="text-slate-700 dark:text-slate-300 font-extrabold">{syncTime || '—'}</span>
           </span>
         </div>
 
@@ -3776,41 +3770,36 @@ export const ClientWorkbench: React.FC = () => {
               title="Launch Onboarding Tour"
             >
               <Play size={8} fill="currentColor" />
-              <span>Page Tour</span>
+              <span>{t('ClientWorkbench.pageTour')}</span>
             </button>
             <span className="w-[1px] h-3 bg-slate-200 dark:bg-slate-800/80 mr-2.5" />
             <button
               onClick={() => openOverlayWindow('about', 'About GoAuct OS')}
               className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
             >
-              About
-            </button>
+              {t('ClientWorkbench.about')}</button>
             <button
               onClick={() => openOverlayWindow('disclaimer', 'Corporate Disclaimer')}
               className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
             >
-              Disclaimer
-            </button>
+              {t('ClientWorkbench.disclaimer')}</button>
             <button
               onClick={() => openOverlayWindow('terms', 'Terms of Service')}
               className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
             >
-              Terms
-            </button>
+              {t('ClientWorkbench.terms')}</button>
             <button
               onClick={() => openOverlayWindow('privacy', 'Privacy Policy')}
               className="text-[8.5px] font-bold text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors uppercase tracking-wider"
             >
-              Privacy
-            </button>
+              {t('ClientWorkbench.privacy')}</button>
           </div>
           <div className="flex items-center gap-1 text-[8.5px] font-semibold text-slate-455 dark:text-slate-500">
             <Layers size={10} />
-            <span>Active Windows: {widgets.filter(w => w.visible).length + (tickerTapeVisible ? 1 : 0)}</span>
+            <span>{t('ClientWorkbench.activeWindows')}{widgets.filter(w => w.visible).length + (tickerTapeVisible ? 1 : 0)}</span>
           </div>
           <span className="text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20">
-            Canvas Mode
-          </span>
+            {t('ClientWorkbench.canvasMode')}</span>
         </div>
       </div>
 

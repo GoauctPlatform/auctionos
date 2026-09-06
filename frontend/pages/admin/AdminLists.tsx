@@ -11,6 +11,7 @@ import { PropertyPreviewDrawer } from '../../components/PropertyPreviewDrawer';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { useLanguage } from "../../context/LanguageContext";
 
 // Fix for default marker icons in Leaflet with webpack/vite
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -44,6 +45,7 @@ interface CustomList {
 }
 
 const AdminLists: React.FC = () => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [lists, setLists] = useState<CustomList[]>([]);
     const [selectedListId, setSelectedListId] = useState<number | null>(null);
@@ -350,7 +352,7 @@ const AdminLists: React.FC = () => {
             {/* Left Sidebar */}
             <div className="w-64 border-r border-slate-200 dark:border-sol-base01/20 flex flex-col bg-slate-100/50 dark:bg-sol-base02/50 backdrop-blur-xl">
                 <div className="p-4 flex justify-between items-center">
-                    <Typography variant="h6" className="font-bold text-slate-800 dark:text-white tracking-tight">Folders</Typography>
+                    <Typography variant="h6" className="font-bold text-slate-800 dark:text-white tracking-tight">{t('AdminLists.folders')}</Typography>
                     <IconButton size="small" onClick={() => setOpenModal(true)} className="hover:bg-slate-200 dark:hover:bg-slate-800">
                         <FolderPlusIcon size={18} className="text-blue-600" />
                     </IconButton>
@@ -365,8 +367,8 @@ const AdminLists: React.FC = () => {
                                     className="flex items-center justify-between px-3 cursor-pointer group"
                                     onClick={() => setCollapsedSections(prev => ({ ...prev, smart: !prev.smart }))}
                                 >
-                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">Smart Lists</Typography>
-                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.smart ? '-rotate-90' : ''}`}>expand_more</span>
+                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">{t('AdminLists.smartLists')}</Typography>
+                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.smart ? '-rotate-90' : ''}`}>{t('AdminLists.expandmore')}</span>
                                 </div>
                                 {!collapsedSections.smart && (
                                     <div className="mt-1 space-y-0.5">
@@ -381,11 +383,11 @@ const AdminLists: React.FC = () => {
                                                     ${selectedListId === list.id ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}
                                                     ${dragOverListId === list.id ? 'ring-2 ring-blue-400 ring-inset scale-[1.02]' : ''}`}
                                             >
-                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-red-500'}`}>favorite</span>
+                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-red-500'}`}>{t('AdminLists.favorite')}</span>
                                                 <span className="flex-1 text-sm font-medium truncate">{list.name}</span>
                                                 {list.has_upcoming_auction && (
                                                     <div className="flex items-center gap-0.5 bg-orange-500 text-white px-1.5 py-0.5 rounded-full animate-pulse">
-                                                        <span className="material-symbols-outlined text-[10px]">gavel</span>
+                                                        <span className="material-symbols-outlined text-[10px]">{t('AdminLists.gavel')}</span>
                                                         <span className="text-[9px] font-black">{list.upcoming_auctions_count}</span>
                                                     </div>
                                                 )}
@@ -404,8 +406,8 @@ const AdminLists: React.FC = () => {
                                     className="flex items-center justify-between px-3 cursor-pointer group"
                                     onClick={() => setCollapsedSections(prev => ({ ...prev, standard: !prev.standard }))}
                                 >
-                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">Standard Folders</Typography>
-                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.standard ? '-rotate-90' : ''}`}>expand_more</span>
+                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">{t('AdminLists.standardFolders')}</Typography>
+                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.standard ? '-rotate-90' : ''}`}>{t('AdminLists.expandmore')}</span>
                                 </div>
                                 {!collapsedSections.standard && (
                                     <div className="mt-1 space-y-1">
@@ -440,12 +442,11 @@ const AdminLists: React.FC = () => {
                                                     >
                                                         <div className="flex items-center gap-2">
                                                             <span className={`material-symbols-outlined text-[16px] transition-transform duration-200 ${expandedStates[list.name] ? 'rotate-90 text-blue-500' : 'text-slate-400'}`}>
-                                                                chevron_right
-                                                            </span>
+                                                                {t('AdminLists.chevronright')}</span>
                                                             <span className="text-sm font-bold truncate tracking-tight">{list.name}</span>
                                                             {list.has_upcoming_auction && (
                                                                 <div className="flex items-center gap-0.5 bg-orange-500 text-white px-1.5 py-0.5 rounded-full">
-                                                                    <span className="material-symbols-outlined text-[10px]">gavel</span>
+                                                                    <span className="material-symbols-outlined text-[10px]">{t('AdminLists.gavel')}</span>
                                                                     <span className="text-[9px] font-black">{list.upcoming_auctions_count}</span>
                                                                 </div>
                                                             )}
@@ -462,8 +463,7 @@ const AdminLists: React.FC = () => {
                                                                 </IconButton>
                                                             </div>
                                                             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${selectedStateName === list.name ? 'text-blue-600 bg-blue-200/50 dark:bg-blue-800/50 dark:text-blue-300' : 'text-slate-400 bg-slate-200 dark:bg-slate-800'}`}>
-                                                                {list.property_count} Props
-                                                            </span>
+                                                                {list.property_count} {t('AdminLists.props')}</span>
                                                         </div>
                                                     </div>
 
@@ -486,7 +486,7 @@ const AdminLists: React.FC = () => {
                                                                     className={`group flex items-center gap-3 px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200 
                                                                         ${selectedCountyName === county ? 'bg-emerald-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
                                                                 >
-                                                                    <span className={`material-symbols-outlined text-[16px] ${selectedCountyName === county ? 'text-white' : 'text-emerald-500'}`}>map</span>
+                                                                    <span className={`material-symbols-outlined text-[16px] ${selectedCountyName === county ? 'text-white' : 'text-emerald-500'}`}>{t('AdminLists.map')}</span>
                                                                     <span className="flex-1 text-sm font-medium truncate">{county}</span>
                                                                     <span className={`text-xs ${selectedCountyName === county ? 'text-emerald-100' : 'text-slate-400'}`}>{count}</span>
                                                                 </div>
@@ -506,8 +506,8 @@ const AdminLists: React.FC = () => {
                                 className="flex items-center justify-between px-3 cursor-pointer group"
                                 onClick={() => setCollapsedSections(prev => ({ ...prev, custom: !prev.custom }))}
                             >
-                                <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">Custom Folders</Typography>
-                                <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.custom ? '-rotate-90' : ''}`}>expand_more</span>
+                                <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">{t('AdminLists.customFolders')}</Typography>
+                                <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.custom ? '-rotate-90' : ''}`}>{t('AdminLists.expandmore')}</span>
                             </div>
                             {!collapsedSections.custom && (
                                 <div className="mt-1 space-y-0.5">
@@ -522,10 +522,10 @@ const AdminLists: React.FC = () => {
                                                 ${selectedListId === list.id ? 'bg-blue-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}
                                                 ${dragOverListId === list.id ? 'ring-2 ring-blue-400 ring-inset scale-[1.02]' : ''}`}
                                         >
-                                            <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-blue-500'}`}>folder</span>
+                                            <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-blue-500'}`}>{t('AdminLists.folder')}</span>
                                             {list.has_upcoming_auction && !editingListId && (
                                                 <div className="absolute -top-1 -right-1 bg-orange-500 text-white rounded-full p-0.5 shadow-sm z-10">
-                                                    <span className="material-symbols-outlined text-[12px]">gavel</span>
+                                                    <span className="material-symbols-outlined text-[12px]">{t('AdminLists.gavel')}</span>
                                                 </div>
                                             )}
                                             {editingListId === list.id ? (
@@ -543,8 +543,7 @@ const AdminLists: React.FC = () => {
                                                     <span className="flex-1 text-sm font-medium truncate">{list.name}</span>
                                                     {list.has_upcoming_auction && (
                                                         <span className="text-[10px] bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-1.5 py-0.5 rounded-md font-black">
-                                                            AUCTION
-                                                        </span>
+                                                            {t('AdminLists.aUCTION')}</span>
                                                     )}
                                                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <IconButton
@@ -578,8 +577,8 @@ const AdminLists: React.FC = () => {
                                     className="flex items-center justify-between px-3 cursor-pointer group"
                                     onClick={() => setCollapsedSections(prev => ({ ...prev, broadcasted: !prev.broadcasted }))}
                                 >
-                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">From Admin</Typography>
-                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.broadcasted ? '-rotate-90' : ''}`}>expand_more</span>
+                                    <Typography variant="overline" className="text-slate-400 font-bold text-[10px]">{t('AdminLists.fromAdmin')}</Typography>
+                                    <span className={`material-symbols-outlined text-[14px] text-slate-400 transition-transform ${collapsedSections.broadcasted ? '-rotate-90' : ''}`}>{t('AdminLists.expandmore')}</span>
                                 </div>
                                 {!collapsedSections.broadcasted && (
                                     <div className="mt-1 space-y-0.5">
@@ -590,7 +589,7 @@ const AdminLists: React.FC = () => {
                                                 className={`group flex items-center gap-3 px-3 py-2 rounded-lg cursor-pointer transition-all duration-200 
                                                     ${selectedListId === list.id ? 'bg-green-600 text-white shadow-md' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/50 dark:hover:bg-slate-800/50'}`}
                                             >
-                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-green-500'}`}>campaign</span>
+                                                <span className={`material-symbols-outlined text-[18px] ${selectedListId === list.id ? 'text-white' : 'text-green-500'}`}>{t('AdminLists.campaign')}</span>
                                                 <span className="flex-1 text-sm font-medium truncate">{list.name}</span>
 
                                                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -612,9 +611,9 @@ const AdminLists: React.FC = () => {
 
                 <div className="p-3 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2">
                     <IconButton size="small" onClick={() => setOpenModal(true)} className="text-blue-600">
-                        <span className="material-symbols-outlined text-[20px]">add_circle</span>
+                        <span className="material-symbols-outlined text-[20px]">{t('AdminLists.addcircle')}</span>
                     </IconButton>
-                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-tighter">New Admin List</span>
+                    <span className="text-xs font-semibold text-slate-500 uppercase tracking-tighter">{t('AdminLists.newAdminList')}</span>
                 </div>
             </div>
 
@@ -634,10 +633,9 @@ const AdminLists: React.FC = () => {
                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">
                                     {selectedStateName && selectedCountyName
                                         ? selectedListProperties.filter(p => p.county === selectedCountyName).length
-                                        : selectedListProperties.length} Properties
-                                </span>
+                                        : selectedListProperties.length} {t('AdminLists.properties')}</span>
                                 <div className="h-1 w-1 bg-slate-300 rounded-full"></div>
-                                <span className="text-xs text-slate-400">Synced to iCloud</span>
+                                <span className="text-xs text-slate-400">{t('AdminLists.syncedToICloud')}</span>
                             </div>
                         </div>
                     </div>
@@ -658,10 +656,9 @@ const AdminLists: React.FC = () => {
                             {!selectedCountyName ? (
                                 <div className="p-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 mt-0 flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">public</span>
+                                        <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">{t('AdminLists.public')}</span>
                                         <Typography className="text-sm font-bold text-slate-700 dark:text-slate-200">
-                                            {selectedStateName} State Government
-                                        </Typography>
+                                            {selectedStateName} {t('AdminLists.stateGovernment')}</Typography>
                                     </div>
                                     {contactInfo?.url && (
                                         <Button
@@ -672,13 +669,12 @@ const AdminLists: React.FC = () => {
                                             className="text-[11px] h-7 rounded-sm border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 normal-case"
                                             startIcon={<ExternalLinkIcon size={12} />}
                                         >
-                                            Official Portal
-                                        </Button>
+                                            {t('AdminLists.officialPortal')}</Button>
                                     )}
                                 </div>
                             ) : (
                                 <div className="p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 mt-0">
-                                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{selectedCountyName} County Links</h3>
+                                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">{selectedCountyName} {t('AdminLists.countyLinks')}</h3>
                                     <div className="space-y-3">
                                         {countyContacts.length > 0 ? (
                                             countyContacts.map((contact, idx) => (
@@ -701,7 +697,7 @@ const AdminLists: React.FC = () => {
                                             ))
                                         ) : (
                                             <div className="text-center p-4 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-100 dark:border-slate-700">
-                                                <span className="text-sm text-slate-500">No research links available for this county yet.</span>
+                                                <span className="text-sm text-slate-500">{t('AdminLists.noResearchLinksAvail')}</span>
                                             </div>
                                         )}
                                     </div>
@@ -740,7 +736,7 @@ const AdminLists: React.FC = () => {
                                                                 <div className="text-xs flex flex-col gap-1">
                                                                     <strong className="block mb-1 text-blue-600">{prop.parcel_id}</strong>
                                                                     <span className="truncate max-w-[150px]">{prop.address || 'Address Unavailable'}</span>
-                                                                    <strong>Opening Bid:</strong> ${prop.amount_due?.toLocaleString()}
+                                                                    <strong>{t('AdminLists.openingBid')}</strong> ${prop.amount_due?.toLocaleString()}
                                                                     <Button
                                                                         size="small"
                                                                         variant="contained"
@@ -750,8 +746,7 @@ const AdminLists: React.FC = () => {
                                                                             setPreviewPropertyId(prop.parcel_id || prop.id);
                                                                         }}
                                                                     >
-                                                                        View Details
-                                                                    </Button>
+                                                                        {t('AdminLists.viewDetails')}</Button>
                                                                 </div>
                                                             </Popup>
                                                         </Marker>
@@ -773,14 +768,14 @@ const AdminLists: React.FC = () => {
                         </div>
                     ) : selectedListProperties.length === 0 ? (
                         <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
-                            <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">folder_open</span>
-                            <Typography className="text-slate-500 text-sm font-medium">No Properties in this folder</Typography>
-                            <Typography className="text-slate-400 text-xs mt-1">Drag and drop properties here from search or other lists.</Typography>
+                            <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">{t('AdminLists.folderopen')}</span>
+                            <Typography className="text-slate-500 text-sm font-medium">{t('AdminLists.noPropertiesInThisFo')}</Typography>
+                            <Typography className="text-slate-400 text-xs mt-1">{t('AdminLists.dragAndDropPropertie')}</Typography>
                         </div>
                     ) : (selectedStateName && selectedCountyName && selectedListProperties.filter(p => p.county === selectedCountyName).length === 0) ? (
                         <div className="h-full flex flex-col items-center justify-center text-center opacity-40">
-                            <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">folder_open</span>
-                            <Typography className="text-slate-500 text-sm font-medium">No properties found in this specific county.</Typography>
+                            <span className="material-symbols-outlined text-[64px] text-slate-300 mb-4">{t('AdminLists.folderopen')}</span>
+                            <Typography className="text-slate-500 text-sm font-medium">{t('AdminLists.noPropertiesFoundInT')}</Typography>
                         </div>
                     ) : (
                         <div className="space-y-3">
@@ -809,7 +804,7 @@ const AdminLists: React.FC = () => {
                                                 <span className="font-mono font-bold text-blue-600 dark:text-blue-400">{prop.parcel_id}</span>
                                                 <span className="opacity-30">|</span>
                                                 <div className="flex items-center gap-1">
-                                                    <span className="material-symbols-outlined text-[14px] text-red-500">location_on</span>
+                                                    <span className="material-symbols-outlined text-[14px] text-red-500">{t('AdminLists.locationon')}</span>
                                                     <span className="truncate">{prop.address || 'No Address Listed'}</span>
                                                 </div>
                                             </div>
@@ -823,15 +818,15 @@ const AdminLists: React.FC = () => {
 
                                             <div className="mt-3 flex items-center gap-4">
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Opening Bid</span>
+                                                    <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">{t('AdminLists.openingBid')}</span>
                                                     <span className="text-xs font-bold text-slate-700 dark:text-white">${prop.amount_due?.toLocaleString() || '0'}</span>
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Acres</span>
+                                                    <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">{t('AdminLists.acres')}</span>
                                                     <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">{prop.lot_acres || 'N/A'}</span>
                                                 </div>
                                                 <div className="flex flex-col">
-                                                    <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">Improvements</span>
+                                                    <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tighter">{t('AdminLists.improvements')}</span>
                                                     <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">${prop.improvement_value?.toLocaleString() || '0'}</span>
                                                 </div>
                                             </div>
@@ -847,7 +842,7 @@ const AdminLists: React.FC = () => {
                                                 draggable
                                                 onDragStart={(e) => handleDragStart(e, prop.id)}
                                             >
-                                                <span className="material-symbols-outlined text-[18px]">drag_indicator</span>
+                                                <span className="material-symbols-outlined text-[18px]">{t('AdminLists.dragindicator')}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -861,7 +856,7 @@ const AdminLists: React.FC = () => {
             {/* Create Folder Modal */}
             <Dialog open={openModal} onClose={() => setOpenModal(false)} PaperProps={{ className: "rounded-2xl dark:bg-slate-900", sx: { overflow: 'visible' } }}>
                 <div className="p-6 min-w-[320px] max-w-[400px]">
-                    <Typography variant="h6" className="font-bold mb-4 dark:text-white">New Admin List</Typography>
+                    <Typography variant="h6" className="font-bold mb-4 dark:text-white">{t('AdminLists.newAdminList')}</Typography>
 
                     <Tabs
                         value={creationMode}
@@ -903,15 +898,14 @@ const AdminLists: React.FC = () => {
                     )}
 
                     <div className="flex justify-end gap-3 mt-6">
-                        <Button color="inherit" onClick={() => setOpenModal(false)}>Cancel</Button>
+                        <Button color="inherit" onClick={() => setOpenModal(false)}>{t('AdminLists.cancel')}</Button>
                         <Button
                             variant="contained"
                             onClick={handleCreateList}
                             disabled={creationMode === 'custom' ? !newListName : !selectedState}
                             className="bg-blue-600 rounded-lg shadow-none"
                         >
-                            Create
-                        </Button>
+                            {t('AdminLists.create')}</Button>
                     </div>
                 </div>
             </Dialog>

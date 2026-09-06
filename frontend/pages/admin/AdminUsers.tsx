@@ -2,6 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { UserService } from '../../services/user.service';
 import { CircularProgress } from '@mui/material';
 import { API_URL, getHeaders } from '../../services/httpClient';
+import { useLanguage } from "../../context/LanguageContext";
 
 type UserRole = 'client' | 'admin' | 'superuser' | 'agent' | 'realtor';
 
@@ -82,11 +83,11 @@ const UserEditModal: React.FC<{
                 <div className="p-6 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-slate-50 to-blue-50/50 dark:from-slate-900 dark:to-blue-950/20">
                     <div className="flex items-center justify-between">
                         <div>
-                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Edit User Access</h3>
+                            <h3 className="text-lg font-bold text-slate-900 dark:text-white">{t('AdminUsers.editUserAccess')}</h3>
                             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{user.email}</p>
                         </div>
                         <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                            <span className="material-symbols-outlined text-[20px]">close</span>
+                            <span className="material-symbols-outlined text-[20px]">{t('AdminUsers.close')}</span>
                         </button>
                     </div>
                 </div>
@@ -96,8 +97,7 @@ const UserEditModal: React.FC<{
                     {/* Role */}
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                            Role / Permission Level
-                        </label>
+                            {t('AdminUsers.rolePermissionLevel')}</label>
                         <div className="grid grid-cols-2 gap-2">
                             {ROLE_OPTIONS.map(r => (
                                 <button
@@ -118,8 +118,7 @@ const UserEditModal: React.FC<{
                     {/* Status */}
                     <div>
                         <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">
-                            Account Status
-                        </label>
+                            {t('AdminUsers.accountStatus')}</label>
                         <button
                             onClick={() => setIsActive(!isActive)}
                             className={`w-full flex items-center justify-between p-3 rounded-xl border-2 transition-all ${
@@ -150,16 +149,14 @@ const UserEditModal: React.FC<{
                 {/* Footer */}
                 <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex gap-3 justify-end">
                     <button onClick={onClose} className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                        Cancel
-                    </button>
+                        {t('AdminUsers.cancel')}</button>
                     <button
                         onClick={handleSave}
                         disabled={saving}
                         className="px-5 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-60 flex items-center gap-1.5"
                     >
-                        {saving && <span className="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>}
-                        Save Changes
-                    </button>
+                        {saving && <span className="material-symbols-outlined text-[16px] animate-spin">{t('AdminUsers.progressactivity')}</span>}
+                        {t('AdminUsers.saveChanges')}</button>
                 </div>
             </div>
         </div>
@@ -167,6 +164,7 @@ const UserEditModal: React.FC<{
 };
 
 const AdminUsers: React.FC = () => {
+    const { t } = useLanguage();
     const [users, setUsers] = useState<AdminUser[]>([]);
     const [logs, setLogs] = useState<ActivityLog[]>([]);
     const [realtors, setConsultants] = useState<ConsultantApplication[]>([]);
@@ -354,19 +352,17 @@ const AdminUsers: React.FC = () => {
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                     <h1 className="text-2xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
-                        <span className="material-symbols-outlined text-primary text-[28px]">admin_panel_settings</span>
-                        Access Control Center
-                    </h1>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Manage user roles, permissions, and activity across the platform.</p>
+                        <span className="material-symbols-outlined text-primary text-[28px]">{t('AdminUsers.adminpanelsettings')}</span>
+                        {t('AdminUsers.accessControlCenter')}</h1>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('AdminUsers.manageUserRolesPermi')}</p>
                 </div>
                 {tab === 'users' && (
                     <button
                         onClick={handleBulkDeleteInactiveTrials}
                         className="px-4 py-2 bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 border border-red-200 dark:border-red-800"
                     >
-                        <span className="material-symbols-outlined text-[18px]">person_remove</span>
-                        Cleanup Inactive Trials
-                    </button>
+                        <span className="material-symbols-outlined text-[18px]">{t('AdminUsers.personremove')}</span>
+                        {t('AdminUsers.cleanupInactiveTrial')}</button>
                 )}
             </div>
 
@@ -445,12 +441,12 @@ const AdminUsers: React.FC = () => {
                             <table className="min-w-full">
                                 <thead>
                                     <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80">
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Name / Partner</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Email</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Phone</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Applied</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Actions</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.namePartner')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.email')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.phone')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.status')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.applied')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
@@ -474,7 +470,7 @@ const AdminUsers: React.FC = () => {
                                                                         {tab === 'realtors' ? 'Realtor' : tab === 'contractors' ? 'Contractor' : 'Due Diligence'}
                                                                     </span>
                                                                 </div>
-                                                                {c.user_email && <div className="text-[10px] text-slate-400">Account: {c.user_email}</div>}
+                                                                {c.user_email && <div className="text-[10px] text-slate-400">{t('AdminUsers.account')}{c.user_email}</div>}
                                                             </div>
                                                         </div>
                                                     </td>
@@ -500,8 +496,7 @@ const AdminUsers: React.FC = () => {
                                                                     disabled={actionLoading === c.id}
                                                                     className="px-3 py-1 text-[10px] font-bold rounded-lg bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 transition-colors disabled:opacity-60"
                                                                 >
-                                                                    ✓ Approve
-                                                                </button>
+                                                                    {t('AdminUsers.Approve')}</button>
                                                             )}
                                                             {c.verification_status !== 'rejected' && (
                                                                 <button
@@ -514,15 +509,14 @@ const AdminUsers: React.FC = () => {
                                                                     disabled={actionLoading === c.id}
                                                                     className="px-3 py-1 text-[10px] font-bold rounded-lg bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 transition-colors disabled:opacity-60"
                                                                 >
-                                                                    ✗ Reject
-                                                                </button>
+                                                                    {t('AdminUsers.Reject')}</button>
                                                             )}
                                                             <button
                                                                 onClick={() => handleDeleteConsultant(c.id, tab === 'realtors' ? 'realtor' : 'agent')}
                                                                 disabled={actionLoading === c.id}
                                                                 className="p-1 text-slate-400 hover:text-red-500 transition-colors disabled:opacity-60"
                                                             >
-                                                                <span className="material-symbols-outlined text-[16px]">delete</span>
+                                                                <span className="material-symbols-outlined text-[16px]">{t('AdminUsers.delete')}</span>
                                                             </button>
                                                         </div>
                                                     </td>
@@ -532,49 +526,49 @@ const AdminUsers: React.FC = () => {
                                                         <td colSpan={6} className="px-8 py-4 border-t border-slate-100 dark:border-slate-800">
                                                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                                                 <div>
-                                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Social Security Number (SSN)</div>
+                                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{t('AdminUsers.socialSecurityNumber')}</div>
                                                                     <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.social_security || '—'}</div>
                                                                 </div>
                                                                 {tab === 'realtors' ? (
                                                                     <>
                                                                         <div>
-                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">CRECI / State License Number</div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{t('AdminUsers.cRECIStateLicenseNum')}</div>
                                                                             <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.license_number || '—'}</div>
                                                                         </div>
                                                                         <div>
-                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">MLS ID</div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{t('AdminUsers.mLSID')}</div>
                                                                             <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.mls_id || '—'}</div>
                                                                         </div>
                                                                     </>
                                                                 ) : tab === 'contractors' ? (
                                                                     <>
                                                                         <div>
-                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Profession</div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{t('AdminUsers.profession')}</div>
                                                                             <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.profession || '—'}</div>
                                                                         </div>
                                                                         <div>
-                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">License / Document</div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{t('AdminUsers.licenseDocument')}</div>
                                                                             <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                                                                {c.license_number ? <a href={c.license_number} target="_blank" rel="noreferrer" className="text-primary underline">View Document</a> : '—'}
+                                                                                {c.license_number ? <a href={c.license_number} target="_blank" rel="noreferrer" className="text-primary underline">{t('AdminUsers.viewDocument')}</a> : '—'}
                                                                             </div>
                                                                         </div>
                                                                     </>
                                                                 ) : (
                                                                     <>
                                                                         <div>
-                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Coverage Area (ZIPs)</div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{t('AdminUsers.coverageAreaZIPs')}</div>
                                                                             <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.coverage_area || '—'}</div>
                                                                         </div>
                                                                         <div>
-                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Work Permit</div>
+                                                                            <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{t('AdminUsers.workPermit')}</div>
                                                                             <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                                                                {c.vehicle_type ? <a href={c.vehicle_type} target="_blank" rel="noreferrer" className="text-primary underline">View Document</a> : '—'}
+                                                                                {c.vehicle_type ? <a href={c.vehicle_type} target="_blank" rel="noreferrer" className="text-primary underline">{t('AdminUsers.viewDocument')}</a> : '—'}
                                                                             </div>
                                                                         </div>
                                                                     </>
                                                                 )}
                                                                 <div>
-                                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Payment Method / Account</div>
+                                                                    <div className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">{t('AdminUsers.paymentMethodAccount')}</div>
                                                                     <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{c.payment_account || '—'}</div>
                                                                 </div>
                                                             </div>
@@ -590,8 +584,7 @@ const AdminUsers: React.FC = () => {
                                                 <span className="material-symbols-outlined text-3xl mb-2 block opacity-50">
                                                     {tab === 'realtors' ? 'handshake' : tab === 'contractors' ? 'construction' : 'directions_car'}
                                                 </span>
-                                                No {tab === 'realtors' ? 'realtor' : tab === 'contractors' ? 'contractor' : 'field agent'} applications found.
-                                            </td>
+                                                No {tab === 'realtors' ? 'realtor' : tab === 'contractors' ? 'contractor' : 'field agent'} {t('AdminUsers.applicationsFound')}</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -604,7 +597,7 @@ const AdminUsers: React.FC = () => {
                     {/* Filters */}
                     <div className="flex flex-wrap gap-3">
                         <div className="relative flex-1 min-w-[200px]">
-                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">{t('AdminUsers.search')}</span>
                             <input
                                 type="text"
                                 value={search}
@@ -618,7 +611,7 @@ const AdminUsers: React.FC = () => {
                             onChange={e => setRoleFilter(e.target.value)}
                             className="px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary min-w-[130px]"
                         >
-                            <option value="">All Roles</option>
+                            <option value="">{t('AdminUsers.allRoles')}</option>
                             {ROLE_OPTIONS.map(r => <option key={r} value={r}>{r}</option>)}
                         </select>
                         <select
@@ -626,13 +619,12 @@ const AdminUsers: React.FC = () => {
                             onChange={e => setStatusFilter(e.target.value)}
                             className="px-3 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-primary min-w-[130px]"
                         >
-                            <option value="">All Status</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
+                            <option value="">{t('AdminUsers.allStatus')}</option>
+                            <option value="active">{t('AdminUsers.active')}</option>
+                            <option value="inactive">{t('AdminUsers.inactive')}</option>
                         </select>
                         <div className="text-xs font-bold text-slate-400 self-center">
-                            {filteredUsers.length} of {users.length} users
-                        </div>
+                            {filteredUsers.length} of {users.length} {t('AdminUsers.users')}</div>
                     </div>
 
                     {/* Users Table */}
@@ -641,13 +633,13 @@ const AdminUsers: React.FC = () => {
                             <table className="min-w-full">
                                 <thead>
                                     <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80">
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">User</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Role</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Terms</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Newsletter</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Joined</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Actions</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.user')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.role')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.status')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.terms')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.newsletter')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.joined')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
@@ -660,7 +652,7 @@ const AdminUsers: React.FC = () => {
                                                     </div>
                                                     <div>
                                                         <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                                            {u.full_name || <span className="text-slate-400 italic">No name</span>}
+                                                            {u.full_name || <span className="text-slate-400 italic">{t('AdminUsers.noName')}</span>}
                                                         </div>
                                                         <div className="text-xs text-slate-500 dark:text-slate-400">{u.email}</div>
                                                     </div>
@@ -698,9 +690,8 @@ const AdminUsers: React.FC = () => {
                                                         onClick={() => setEditingUser(u)}
                                                         className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-primary border border-primary/30 rounded-lg hover:bg-primary/5 transition-colors opacity-0 group-hover:opacity-100 animate-in fade-in duration-200"
                                                     >
-                                                        <span className="material-symbols-outlined text-[14px]">edit</span>
-                                                        Edit
-                                                    </button>
+                                                        <span className="material-symbols-outlined text-[14px]">{t('AdminUsers.edit')}</span>
+                                                        {t('AdminUsers.edit')}</button>
                                                     {u.role !== 'superuser' && (
                                                         <button
                                                             onClick={async () => {
@@ -724,9 +715,8 @@ const AdminUsers: React.FC = () => {
                                                             }}
                                                             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-red-600 border border-red-200 hover:bg-red-50 dark:border-red-900/50 dark:hover:bg-red-955/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100 animate-in fade-in duration-200"
                                                         >
-                                                            <span className="material-symbols-outlined text-[14px]">delete</span>
-                                                            Delete
-                                                        </button>
+                                                            <span className="material-symbols-outlined text-[14px]">{t('AdminUsers.delete')}</span>
+                                                            {t('AdminUsers.delete')}</button>
                                                     )}
                                                 </div>
                                             </td>
@@ -735,9 +725,8 @@ const AdminUsers: React.FC = () => {
                                     {filteredUsers.length === 0 && (
                                         <tr>
                                             <td colSpan={7} className="py-16 text-center text-slate-400">
-                                                <span className="material-symbols-outlined text-3xl mb-2 block opacity-50">manage_search</span>
-                                                No users match your filters.
-                                            </td>
+                                                <span className="material-symbols-outlined text-3xl mb-2 block opacity-50">{t('AdminUsers.managesearch')}</span>
+                                                {t('AdminUsers.noUsersMatchYourFilt')}</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -749,7 +738,7 @@ const AdminUsers: React.FC = () => {
                 <>
                     {/* Log Search */}
                     <div className="relative max-w-sm">
-                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">search</span>
+                        <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-[18px]">{t('AdminUsers.search')}</span>
                         <input
                             type="text"
                             value={logSearch}
@@ -765,11 +754,11 @@ const AdminUsers: React.FC = () => {
                             <table className="min-w-full">
                                 <thead>
                                     <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/80">
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Timestamp</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">User</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Action</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">Resource</th>
-                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">IP Addr</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.timestamp')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.user')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.action')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.resource')}</th>
+                                        <th className="px-5 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{t('AdminUsers.iPAddr')}</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-50 dark:divide-slate-800">
@@ -780,7 +769,7 @@ const AdminUsers: React.FC = () => {
                                             </td>
                                             <td className="px-5 py-3">
                                                 <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                                    {log.user?.full_name || log.user?.email || <span className="text-slate-400 italic">System</span>}
+                                                    {log.user?.full_name || log.user?.email || <span className="text-slate-400 italic">{t('AdminUsers.system')}</span>}
                                                 </div>
                                                 {log.user?.full_name && (
                                                     <div className="text-[10px] text-slate-400">{log.user.email}</div>
@@ -802,9 +791,8 @@ const AdminUsers: React.FC = () => {
                                     {filteredLogs.length === 0 && (
                                         <tr>
                                             <td colSpan={5} className="py-16 text-center text-slate-400">
-                                                <span className="material-symbols-outlined text-3xl mb-2 block opacity-50">history_toggle_off</span>
-                                                No activity logs found.
-                                            </td>
+                                                <span className="material-symbols-outlined text-3xl mb-2 block opacity-50">{t('AdminUsers.historytoggleoff')}</span>
+                                                {t('AdminUsers.noActivityLogsFound')}</td>
                                         </tr>
                                     )}
                                 </tbody>
@@ -829,23 +817,21 @@ const AdminUsers: React.FC = () => {
                     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 w-full max-w-md rounded-2xl p-6 shadow-2xl flex flex-col gap-4">
                         <div className="flex items-center justify-between">
                             <h3 className="text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
-                                <span className="material-symbols-outlined text-red-500">warning</span>
-                                Reject Partner Application
-                            </h3>
+                                <span className="material-symbols-outlined text-red-500">{t('AdminUsers.warning')}</span>
+                                {t('AdminUsers.rejectPartnerApplica')}</h3>
                             <button 
                                 onClick={() => setRejectingApplication(null)}
                                 className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
                             >
-                                <span className="material-symbols-outlined text-[20px]">close</span>
+                                <span className="material-symbols-outlined text-[20px]">{t('AdminUsers.close')}</span>
                             </button>
                         </div>
                         
                         <p className="text-xs text-slate-500 dark:text-slate-400">
-                            Please select or write a reason for rejection. This feedback will be sent directly to the applicant via email to help them correct their information.
-                        </p>
+                            {t('AdminUsers.pleaseSelectOrWriteA')}</p>
 
                         <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Preset Reasons</label>
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('AdminUsers.presetReasons')}</label>
                             <div className="flex flex-col gap-1.5">
                                 {(rejectingApplication.role === 'realtor' 
                                     ? [
@@ -887,14 +873,13 @@ const AdminUsers: React.FC = () => {
                                             : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/40'
                                     }`}
                                 >
-                                    Custom Reason...
-                                </button>
+                                    {t('AdminUsers.customReason')}</button>
                             </div>
                         </div>
 
                         {selectedPresetReason === 'custom' && (
                             <div className="flex flex-col gap-1.5">
-                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Custom Feedback</label>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('AdminUsers.customFeedback')}</label>
                                 <textarea
                                     value={rejectReason}
                                     onChange={(e) => setRejectReason(e.target.value)}
@@ -917,8 +902,7 @@ const AdminUsers: React.FC = () => {
                                 onClick={() => setRejectingApplication(null)}
                                 className="px-4 py-2 text-xs font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 rounded-xl transition-colors"
                             >
-                                Cancel
-                            </button>
+                                {t('AdminUsers.cancel')}</button>
                             <button
                                 type="button"
                                 onClick={async () => {

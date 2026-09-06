@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { API_URL } from '../services/httpClient';
+import { useLanguage } from "../context/LanguageContext";
 
 interface SupportPageProps {
     standalone?: boolean;
 }
 
 const SupportPage: React.FC<SupportPageProps> = ({ standalone = true }) => {
+    const { t } = useLanguage();
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [phone, setPhone] = useState('');
@@ -41,21 +43,17 @@ const SupportPage: React.FC<SupportPageProps> = ({ standalone = true }) => {
         <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-12">
             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 sm:p-12">
                 <span className="text-xs font-semibold uppercase tracking-widest text-primary">
-                    Support
-                </span>
+                    {t('SupportPage.support')}</span>
                 <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mt-2 mb-3">
-                    Contact Us
-                </h1>
+                    {t('SupportPage.contactUs')}</h1>
                 <p className="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed">
-                    Have a question or need help with GoAuct? Fill out the form below and
-                    our team will get back to you as soon as possible.
-                </p>
+                    {t('SupportPage.haveAQuestionOrNeedH')}</p>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                                Name <span className="text-red-500">*</span>
+                                {t('SupportPage.name')}<span className="text-red-500">*</span>
                             </label>
                             <input
                                 type="text"
@@ -69,8 +67,7 @@ const SupportPage: React.FC<SupportPageProps> = ({ standalone = true }) => {
                         </div>
                         <div>
                             <label htmlFor="phone" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                                Phone
-                            </label>
+                                {t('SupportPage.phone')}</label>
                             <input
                                 type="tel"
                                 id="phone"
@@ -84,7 +81,7 @@ const SupportPage: React.FC<SupportPageProps> = ({ standalone = true }) => {
 
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            Email Address <span className="text-red-500">*</span>
+                            {t('SupportPage.emailAddress')}<span className="text-red-500">*</span>
                         </label>
                         <input
                             type="email"
@@ -99,7 +96,7 @@ const SupportPage: React.FC<SupportPageProps> = ({ standalone = true }) => {
 
                     <div>
                         <label htmlFor="message" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                            Message <span className="text-red-500">*</span>
+                            {t('SupportPage.message')}<span className="text-red-500">*</span>
                         </label>
                         <textarea
                             id="message"
@@ -119,46 +116,42 @@ const SupportPage: React.FC<SupportPageProps> = ({ standalone = true }) => {
                     >
                         {status === 'submitting' ? (
                             <>
-                                <span className="material-symbols-outlined animate-spin text-[18px]">refresh</span>
-                                Sending...
-                            </>
+                                <span className="material-symbols-outlined animate-spin text-[18px]">{t('SupportPage.refresh')}</span>
+                                {t('SupportPage.sending')}</>
                         ) : (
                             <>
-                                <span className="material-symbols-outlined text-[18px]">send</span>
-                                Send Message
-                            </>
+                                <span className="material-symbols-outlined text-[18px]">{t('SupportPage.send')}</span>
+                                {t('SupportPage.sendMessage')}</>
                         )}
                     </button>
 
                     {status === 'success' && (
                         <div className="flex items-center gap-3 p-4 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded-xl border border-green-200 dark:border-green-800">
-                            <span className="material-symbols-outlined">check_circle</span>
-                            <span>Thank you! We'll be in touch within 1–2 business days.</span>
+                            <span className="material-symbols-outlined">{t('SupportPage.checkcircle')}</span>
+                            <span>{t('SupportPage.thankYouWeLlBeInTouc')}</span>
                         </div>
                     )}
 
                     {status === 'error' && (
                         <div className="flex items-center gap-3 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-800">
-                            <span className="material-symbols-outlined">error</span>
-                            <span>Failed to send message. Please try again.</span>
+                            <span className="material-symbols-outlined">{t('SupportPage.error')}</span>
+                            <span>{t('SupportPage.failedToSendMessageP')}</span>
                         </div>
                     )}
                 </form>
 
                 <div className="mt-10 pt-8 border-t border-slate-200 dark:border-slate-700">
                     <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">
-                        Other ways to reach us
-                    </h2>
+                        {t('SupportPage.otherWaysToReachUs')}</h2>
                     <ul className="space-y-3 text-slate-600 dark:text-slate-300">
                         <li className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-primary">email</span>
+                            <span className="material-symbols-outlined text-primary">{t('SupportPage.email')}</span>
                             <a href="mailto:support@goauct.com" className="hover:text-primary transition-colors">
-                                support@goauct.com
-                            </a>
+                                {t('SupportPage.supportGoauctCom')}</a>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="material-symbols-outlined text-primary">language</span>
-                            <span>goauct.com</span>
+                            <span className="material-symbols-outlined text-primary">{t('SupportPage.language')}</span>
+                            <span>{t('SupportPage.goauctCom')}</span>
                         </li>
                     </ul>
                 </div>
