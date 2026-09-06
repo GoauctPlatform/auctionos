@@ -113,6 +113,17 @@ const RootRoute: React.FC = () => {
 };
 
 function App() {
+  // Affiliate Tracking
+  React.useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hashSplit = window.location.hash.split('?');
+    const hashParams = new URLSearchParams(hashSplit.length > 1 ? hashSplit[1] : '');
+    const ref = urlParams.get('ref') || hashParams.get('ref');
+    if (ref) {
+      localStorage.setItem('goauct_affiliate_code', ref);
+    }
+  }, []);
+
   // Theme Persistence
   React.useEffect(() => {
     const savedTheme = localStorage.getItem('goauct_theme') || 'system';

@@ -162,10 +162,11 @@ async def register_user(
     db.commit()
     db.refresh(user)
 
-    # Handle Referral Logic
-    if getattr(user_in, 'referral_code', None):
+    # Handle Referral / Affiliate Logic
+    provided_code = getattr(user_in, 'affiliate_code', None) or getattr(user_in, 'referral_code', None)
+    if provided_code:
         from app.models.affiliate import AffiliateProfile, AffiliateReferral, ReferralStatus
-        affiliate_profile = db.query(AffiliateProfile).filter(AffiliateProfile.affiliate_code == user_in.referral_code).first()
+        affiliate_profile = db.query(AffiliateProfile).filter(AffiliateProfile.affiliate_code == provided_code).first()
         if affiliate_profile:
             # Create the referral link
             referral = AffiliateReferral(
@@ -175,17 +176,7 @@ async def register_user(
             )
             db.add(referral)
             
-            # The referrer gets a free month per registration
-            # Find the referrer user and extend their subscription end_date or give a free month
-            # For this simplified model, we could just log it or handle it in a separate job
-            # but as requested, let's auto-extend if they have a subscription
-            from app.models.monetization import UserSubscription
-            referrer_sub = db.query(UserSubscription).filter(UserSubscription.user_id == affiliate_profile.user_id).first()
-            if referrer_sub and referrer_sub.end_date:
-                from datetime import timedelta
-                # Grant 1 free month (30 days)
-                referrer_sub.end_date = referrer_sub.end_date + timedelta(days=30)
-                db.add(referrer_sub)
+            # Affiliate commission logic is handled securely in billing.py upon successful payment
                 
             db.commit()
 

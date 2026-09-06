@@ -13,8 +13,8 @@ const Pricing = () => {
     {
       name: "Advanced",
       desc: "Ideal for individual investors and small operations.",
-      price: annual ? 60 : 72,
-      displayPrice: annual ? "$60" : "$72",
+      price: annual ? 49.90 : 69.90,
+      displayPrice: annual ? "$49.90" : "$69.90",
       features: [
         "Up to 1000 property views/month",
         "Unlimited saved lists",
@@ -30,8 +30,8 @@ const Pricing = () => {
     {
       name: "Pro",
       desc: "For active investors and small teams needing scale.",
-      price: annual ? 130 : 156,
-      displayPrice: annual ? "$130" : "$156",
+      price: annual ? 89.90 : 129.90,
+      displayPrice: annual ? "$89.90" : "$129.90",
       features: [
         "Up to 2000 property views/month",
         "Unlimited lists + folders",
@@ -48,8 +48,8 @@ const Pricing = () => {
     {
       name: "Enterprise",
       desc: "Institutional investors and hedge funds.",
-      displayPrice: "Custom",
-      priceLabel: "Starts at $420/mo",
+      price: annual ? 259.00 : 349.90,
+      displayPrice: annual ? "$259.00" : "$349.90",
       features: [
         "Everything in Pro",
         "Unlimited team members",

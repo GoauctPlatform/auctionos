@@ -34,7 +34,7 @@ const BillingPage: React.FC = () => {
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [annual, setAnnual] = useState(true);
-  const [affiliateCode, setAffiliateCode] = useState('');
+  const [affiliateCode, setAffiliateCode] = useState(() => localStorage.getItem('goauct_affiliate_code') || '');
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -103,7 +103,7 @@ const BillingPage: React.FC = () => {
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [data]);
 
-  const handleUpgrade = async (plan: 'advanced' | 'pro' | 'enterprise') => {
+  const handleUpgrade = async (plan: 'advanced' | 'pro' | 'enterprise' | 'founder') => {
     setUpgradeLoading(plan);
     setError(null);
     try {
@@ -181,6 +181,7 @@ const BillingPage: React.FC = () => {
   const isAdvanced = data.plan_type === 'advanced';
   const isPro = data.plan_type === 'pro';
   const isEnterprise = data.plan_type === 'enterprise';
+  const isFounder = data.plan_type === 'founder';
 
   return (
     <div className="p-6 max-w-6xl mx-auto">
@@ -326,7 +327,7 @@ const BillingPage: React.FC = () => {
               </div>
               <div className="text-right">
                 <div className="text-xs text-slate-400 line-through">{annual ? "$90" : "$110"}</div>
-                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$60" : "$72"}</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$49.90" : "$69.90"}</span>
                 <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
               </div>
             </div>
@@ -364,7 +365,7 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.forGrowingTeams')}</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$130" : "$156"}</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$89.90" : "$129.90"}</span>
                 <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
               </div>
             </div>
@@ -405,7 +406,7 @@ const BillingPage: React.FC = () => {
                 <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.forLargeScaleOperati')}</p>
               </div>
               <div className="text-right">
-                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$350" : "$420"}</span>
+                <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$259.00" : "$349.90"}</span>
                 <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
               </div>
             </div>
@@ -427,6 +428,43 @@ const BillingPage: React.FC = () => {
               )}
             </button>
           </div>
+          {/* Founder Plan (Only visible via affiliate code) */}
+          {affiliateCode.trim() !== '' && (
+            <div className={`relative p-6 rounded-2xl border-2 transition-all ${isFounder
+              ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 shadow-lg shadow-yellow-100 dark:shadow-none'
+              : 'border-yellow-400/50 bg-white dark:bg-slate-900'
+              }`}>
+              {isFounder && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                  CURRENT PLAN</div>
+              )}
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <h3 className="text-xl font-bold text-yellow-600 dark:text-yellow-500">Founder Exclusive</h3>
+                  <p className="text-xs text-slate-400 mt-0.5">Special partner rate for first 200 users</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$35.90" : "$49.90"}</span>
+                  <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
+                </div>
+              </div>
+              <ul className="space-y-2.5 mb-6 text-sm">
+                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Full platform access</li>
+                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Locked-in lifetime rate</li>
+              </ul>
+              <button
+                onClick={() => handleUpgrade('founder')}
+                disabled={isFounder || upgradeLoading !== null}
+                className="w-full py-2.5 bg-yellow-500 text-white rounded-xl font-semibold hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              >
+                {upgradeLoading === 'founder' ? (
+                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
+                ) : isFounder ? 'Current Plan' : (
+                  <><Star size={14} /> Subscribe to Founder Plan</>
+                )}
+              </button>
+            </div>
+          )}
 
           {/* Stripe Badge */}
           <div className="flex items-center justify-center gap-2 text-xs text-slate-400">

@@ -41,15 +41,17 @@ def get_stripe():
 # and STRIPE_ENTERPRISE_PRICE_ID environment variables.
 # ─────────────────────────────────────────────────────────────────────────────
 PLAN_PRICES_USD_CENTS_ANNUAL = {
-    "advanced": 72000,    # $60/mo * 12 = $720
-    "pro": 156000,        # $130/mo * 12 = $1560
-    "enterprise": 420000, # $350/mo * 12 = $4200
+    "advanced": 59880,    # 49.90 * 12
+    "pro": 107880,        # 89.90 * 12
+    "enterprise": 310800, # 259.00 * 12
+    "founder": 43080,     # 35.90 * 12
 }
 
 PLAN_PRICES_USD_CENTS_MONTHLY = {
-    "advanced": 7200,     # $60 * 1.2 = $72/mo
-    "pro": 15600,         # $130 * 1.2 = $156/mo
-    "enterprise": 42000,  # $350 * 1.2 = $420/mo
+    "advanced": 6990,     # 69.90
+    "pro": 12990,         # 129.90
+    "enterprise": 34990,  # 349.90
+    "founder": 4990,      # 49.90
 }
 
 PLAN_DISPLAY_PRICES = {
@@ -68,7 +70,8 @@ def _activate_subscription(
     plan: str, 
     background_tasks: Optional[BackgroundTasks] = None,
     stripe_customer_id: Optional[str] = None,
-    stripe_subscription_id: Optional[str] = None
+    stripe_subscription_id: Optional[str] = None,
+    amount_paid_cents: int = 0
 ):
     """
     Activates or upgrades a user's subscription.
@@ -117,13 +120,18 @@ def _activate_subscription(
             referral.status = ReferralStatus.CONVERTED
             referral.converted_at = datetime.now(timezone.utc)
             
-            # Simple commission logic: 20% of the plan
-            plan_prices = {
-                "advanced": 60.0,
-                "pro": 130.0,
-                "enterprise": 350.0
-            }
-            base_price = plan_prices.get(plan, 0.0)
+            # Use exact paid amount or fallback to base price
+            if amount_paid_cents > 0:
+                base_price = amount_paid_cents / 100.0
+            else:
+                plan_prices = {
+                    "advanced": 69.90,
+                    "pro": 129.90,
+                    "enterprise": 349.90,
+                    "founder": 49.90
+                }
+                base_price = plan_prices.get(plan, 0.0)
+                
             commission = base_price * 0.20 # 20% commission
 
             referral.commission_amount = commission
@@ -136,7 +144,33 @@ def _activate_subscription(
                 db.add(affiliate)
 
             db.add(referral)
+            
+            # Log Commission Audit
+            from app.models.activity_log import ActivityLog
+            audit = ActivityLog(
+                user_id=affiliate.user_id if affiliate else None,
+                action="affiliate_commission_paid",
+                entity_type="AffiliateReferral",
+                entity_id=str(referral.id),
+                details=f"Paid 20% commission (${commission:.2f}) for user {user.id} upgrading to {plan}"
+            )
+            db.add(audit)
+            
             db.commit()
+            
+        # Log Founder plan if applicable
+        if plan == "founder":
+            from app.models.activity_log import ActivityLog
+            audit_founder = ActivityLog(
+                user_id=user.id,
+                action="founder_plan_issued",
+                entity_type="UserSubscription",
+                entity_id=str(sub.id),
+                details=f"User {user.id} activated Founder Plan"
+            )
+            db.add(audit_founder)
+            db.commit()
+            
     except Exception as e:
         # Ignore affiliate errors so it doesn't break subscription
         print(f"Error handling affiliate commission: {e}")
@@ -193,8 +227,16 @@ def create_checkout_session(
     Returns the hosted checkout URL to redirect the user.
     Falls back to mock flow if Stripe is not configured.
     """
-    if plan not in ["advanced", "pro", "enterprise"]:
+    if plan not in ["advanced", "pro", "enterprise", "founder"]:
         raise HTTPException(status_code=400, detail="Invalid plan selected.")
+
+    if plan == "founder":
+        if not affiliate_code:
+            raise HTTPException(status_code=403, detail="Founder plan requires a valid affiliate code.")
+        
+        founder_count = db.query(UserSubscription).filter(UserSubscription.plan_type == "founder").count()
+        if founder_count >= 200:
+            raise HTTPException(status_code=403, detail="Founder plan limit (200 users) has been reached.")
 
     if current_user.role != "client":
         raise HTTPException(status_code=403, detail="Only account owners can manage subscriptions.")
@@ -351,11 +393,13 @@ async def stripe_webhook(
 
         customer_id = session_data.get("customer")
         subscription_id = session_data.get("subscription")
+        amount_total = session_data.get("amount_total", 0) if isinstance(session_data, dict) else getattr(session_data, "amount_total", 0)
 
         _activate_subscription(
             db, user, plan, background_tasks, 
             stripe_customer_id=customer_id, 
-            stripe_subscription_id=subscription_id
+            stripe_subscription_id=subscription_id,
+            amount_paid_cents=amount_total
         )
         logger.info(f"✅ Stripe webhook: Activated {plan} for user {user.email}")
         return {"status": "success"}

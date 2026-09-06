@@ -24,6 +24,7 @@ class UserCreate(BaseModel):
     company_ids: Optional[List[int]] = None   # Multi-company: primary + additional companies
     newsletter: Optional[bool] = False
     referral_code: Optional[str] = None
+    affiliate_code: Optional[str] = None
 
 
 class UserUpdate(BaseModel):

@@ -57,6 +57,7 @@ export const Signup: React.FC = () => {
                     role: selectedRole,
                     newsletter: newsletter,
                     referral_code: formData.referralCode || undefined,
+                    affiliate_code: localStorage.getItem('goauct_affiliate_code') || undefined,
                 }),
             });
 
