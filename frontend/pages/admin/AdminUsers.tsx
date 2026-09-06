@@ -54,6 +54,7 @@ const UserEditModal: React.FC<{
     onClose: () => void;
     onSave: () => void;
 }> = ({ user, onClose, onSave }) => {
+    const { t } = useLanguage();
     const [role, setRole] = useState<UserRole>(user.role);
     const [isActive, setIsActive] = useState(user.is_active);
     const [saving, setSaving] = useState(false);

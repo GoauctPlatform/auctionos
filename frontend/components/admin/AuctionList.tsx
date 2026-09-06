@@ -5,8 +5,7 @@ import { AuctionEvent } from '../../types';
 import { Box, Typography, Button } from '@mui/material';
 import { AuctionForm } from './AuctionForm';
 import { AuctionWorkspaceModal } from './AuctionWorkspaceModal';
-
-
+import { useLanguage } from "../../context/LanguageContext";
 
 interface AuctionListProps {
     filters: any;
@@ -16,6 +15,7 @@ interface AuctionListProps {
 }
 
 const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hideFilterSelector = false, onSelectAuction }) => {
+    const { t } = useLanguage();
     const [rows, setRows] = useState<AuctionEvent[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
 

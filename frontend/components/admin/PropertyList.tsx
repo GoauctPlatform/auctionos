@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import PropertyForm from './PropertyForm';
 import AvailabilityHistoryDashboard from './AvailabilityHistoryDashboard';
 import { calculateDealScore } from '../../intelligence/scoringEngine';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface PropertyListProps {
     filters?: any;
@@ -15,6 +16,7 @@ interface PropertyListProps {
 }
 
 const PropertyList: React.FC<PropertyListProps> = ({ filters, readOnly = false, onCreateCustom, onOpenPropertyDetails }) => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);

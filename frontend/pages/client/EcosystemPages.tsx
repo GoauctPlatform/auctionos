@@ -33,6 +33,7 @@ const VIDEOS = [
 ];
 
 export const TrainingPage: React.FC = () => {
+    const { t } = useLanguage();
     const [view, setView] = React.useState<'folders' | 'tax' | 'system'>('folders');
     const [activeVideo, setActiveVideo] = React.useState(VIDEOS[0]);
     const [showConstructionModal, setShowConstructionModal] = React.useState(false);
@@ -222,6 +223,7 @@ const TAX_CHAPTERS = [
 ];
 
 export const TaxSystemsView: React.FC = () => {
+    const { t } = useLanguage();
     const [openChapter, setOpenChapter] = React.useState<number | null>(0);
 
     return (

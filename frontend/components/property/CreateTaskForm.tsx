@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, CheckSquare, Image as ImageIcon, Navigation } from 'lucide-react';
 import { API_BASE_URL } from '../../services/httpClient';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface CreateTaskFormProps {
     propertyId: number;
@@ -74,6 +75,7 @@ const CHECKLIST_CATEGORIES = [
 ];
 
 export const CreateTaskForm: React.FC<CreateTaskFormProps> = ({ propertyId, propertyAddress, onClose }) => {
+    const { t } = useLanguage();
     const [title, setTitle] = useState(`Due Diligence BPO - ${propertyAddress}`);
     const [description, setDescription] = useState('');
     const [taskType, setTaskType] = useState('bpo');

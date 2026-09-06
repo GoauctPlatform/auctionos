@@ -49,6 +49,7 @@ interface CustomList {
 
 // ── Investor My Exports View ────────────────────────────────────────────────
 const InvestorMyExportsView: React.FC<{ onBack: () => void }> = ({ onBack }) => {
+    const { t } = useLanguage();
     const [exports, setExports] = React.useState<any[]>([]);
     const [loading, setLoading] = React.useState(true);
     const [editingExport, setEditingExport] = React.useState<any | null>(null);

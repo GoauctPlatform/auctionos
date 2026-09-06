@@ -41,6 +41,7 @@ const StatCard: React.FC<{
 );
 
 const QuickAction: React.FC<{ icon: string; label: string; desc: string; path: string; color: string }> = ({ icon, label, desc, path, color }) => {
+    const { t } = useLanguage();
   const navigate = useNavigate();
   return (
     <button

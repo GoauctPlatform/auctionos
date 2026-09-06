@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Download, RefreshCw } from 'lucide-react';
+import { useLanguage } from "../context/LanguageContext";
 
 interface PhotoViewerLightboxProps {
     isOpen: boolean;
@@ -14,6 +15,7 @@ export const PhotoViewerLightbox: React.FC<PhotoViewerLightboxProps> = ({
     images,
     initialIndex = 0
 }) => {
+    const { t } = useLanguage();
     const [currentIndex, setCurrentIndex] = useState(initialIndex);
     const [rotation, setRotation] = useState(0);
     const [isDownloading, setIsDownloading] = useState(false);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Property } from '../../types';
 import { PropertyStructureCard } from './PropertyStructureCard';
 import { API_BASE_URL } from '../../services/httpClient';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface Props {
     property: Property;
@@ -41,6 +42,7 @@ const fmtDate = (d: string | null | undefined) => {
 type Tab = 'structure' | 'parcel' | 'sales' | 'taxes' | 'permits' | 'owner';
 
 export const PropertyExtendedTabs: React.FC<Props> = ({ property, onUpdate }) => {
+    const { t } = useLanguage();
     const activeTabKey = `active_tab_${property.property_id}`;
     const extTriggeredKey = `ext_triggered_${property.property_id}`;
 

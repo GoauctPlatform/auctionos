@@ -13,6 +13,7 @@ interface Props {
 }
 
 import api from '../../services/api';
+import { useLanguage } from "../../context/LanguageContext";
 
 export const PropertyUserActions: React.FC<Props> = ({ 
     property,
@@ -22,6 +23,7 @@ export const PropertyUserActions: React.FC<Props> = ({
     onUpdateNotes,
     onUploadAttachment
 }) => {
+    const { t } = useLanguage();
     const [isSaving, setIsSaving] = useState(false);
     const [isAddingToList, setIsAddingToList] = useState(false);
     const [isBuyingPhotos, setIsBuyingPhotos] = useState(false);

@@ -12,6 +12,7 @@ const CompanyMultiPicker: React.FC<{
     selectedIds: number[];
     onChange: (ids: number[]) => void;
 }> = ({ allCompanies, selectedIds, onChange }) => {
+    const { t } = useLanguage();
     const toggle = (id: number) => {
         onChange(selectedIds.includes(id)
             ? selectedIds.filter(c => c !== id)
@@ -52,6 +53,7 @@ const CompanyAssignPanel: React.FC<{
     onSave: (ids: number[]) => Promise<void>;
     onClose: () => void;
 }> = ({ user, allCompanies, currentLinks, onSave, onClose }) => {
+    const { t } = useLanguage();
     const [selectedIds, setSelectedIds] = useState<number[]>(currentLinks.map(c => c.id));
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');

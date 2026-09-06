@@ -23,6 +23,7 @@ interface AuctionFiltersProps {
 }
 
 import { useSearchParams } from 'react-router-dom';
+import { useLanguage } from "../../context/LanguageContext";
 
 const AUCTION_TYPES = [
     { label: 'Tax Deed', value: 'Deed' },
@@ -34,6 +35,7 @@ const AUCTION_TYPES = [
 ];
 
 const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {
+    const { t } = useLanguage();
     const [searchParams, setSearchParams] = useSearchParams();
 
     // Initialize state from URL

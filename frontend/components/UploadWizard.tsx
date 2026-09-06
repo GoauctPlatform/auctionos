@@ -14,6 +14,7 @@ import {
 import { CloudUpload as UploadIcon, InsertDriveFile as FileIcon } from '@mui/icons-material';
 import axios from 'axios';
 import { API_URL, getHeaders } from '../services/httpClient';
+import { useLanguage } from "../context/LanguageContext";
 
 interface UploadWizardProps {
     endpoint: string; // e.g., '/admin/import-properties'
@@ -24,6 +25,7 @@ interface UploadWizardProps {
 const steps = ['Select File', 'Upload & Process', 'Complete'];
 
 export const UploadWizard: React.FC<UploadWizardProps> = ({ endpoint, onComplete, title = "Upload CSV" }) => {
+    const { t } = useLanguage();
     const [activeStep, setActiveStep] = useState(0);
     const [file, setFile] = useState<File | null>(null);
     const [uploading, setUploading] = useState(false);

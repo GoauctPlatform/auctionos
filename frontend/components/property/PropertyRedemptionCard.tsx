@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { Clock, Info, Shield, CircleAlert as AlertIcon } from 'lucide-react';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface RedemptionData {
     state: string;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export const PropertyRedemptionCard: React.FC<Props> = ({ stateCode, auctionType }) => {
+    const { t } = useLanguage();
     const [data, setData] = useState<RedemptionData[]>([]);
     const [loading, setLoading] = useState(true);
 

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { TrendingUp } from 'lucide-react';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface RecommendedProperty {
     id: number;
@@ -12,6 +13,7 @@ interface RecommendedProperty {
 }
 
 export const TopRecommendedWidget: React.FC = () => {
+    const { t } = useLanguage();
     const [deals, setDeals] = useState<RecommendedProperty[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');

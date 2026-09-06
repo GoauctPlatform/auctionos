@@ -5,6 +5,7 @@ import { PropertyService } from '../services/property.service';
 import { useNavigate } from 'react-router-dom';
 import { getStreetViewUrl } from '../utils/maps';
 import { calculateDealScore } from '../intelligence/scoringEngine';
+import { useLanguage } from "../context/LanguageContext";
 
 interface PropertyPreviewDrawerProps {
     open: boolean;
@@ -15,6 +16,7 @@ interface PropertyPreviewDrawerProps {
 }
 
 export const PropertyPreviewDrawer: React.FC<PropertyPreviewDrawerProps> = ({ open, propertyId, onClose, basePath = '/client', onOpenPropertyDetails }) => {
+    const { t } = useLanguage();
     const [property, setProperty] = useState<any>(null);
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();

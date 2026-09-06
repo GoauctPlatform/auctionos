@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar } from 'lucide-react';
 import { AuctionService } from '../../services/auction.service';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface TickerAuction {
     id: number;
@@ -54,6 +55,7 @@ const StateSilhouetteBadge: React.FC<{ stateCode: string; size?: number }> = ({ 
 };
 
 export const TickerTapeWidget: React.FC = () => {
+    const { t } = useLanguage();
     // 1. Initialize favorites state as a blank Set
     const [favorites, setFavorites] = useState<Set<number>>(new Set());
 

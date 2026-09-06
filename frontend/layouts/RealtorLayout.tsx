@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
 import { Footer } from '../components/Footer';
+import { useLanguage } from "../context/LanguageContext";
 
 const ConsultantLayout: React.FC = () => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [mobileOpen, setMobileOpen] = useState(false);
     const user = AuthService.getCurrentUser();

@@ -30,6 +30,7 @@ function useDirtyFormWarning(isDirty: boolean) {
 }
 
 const PropertyManualEntry: React.FC = () => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     // You would typically manage the 'isDirty' state within your form component
     // For this example, we'll assume a state variable `isFormDirty` exists and is updated by PropertyForm

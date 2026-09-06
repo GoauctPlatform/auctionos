@@ -327,7 +327,8 @@ class ImportService:
 
         except Exception as e:
             logger.error(f"Import Job Failed: {e}")
-            redis.set(f"import_status:{job_id}", f"Critical Error: {str(e)}", ex=3600)
+            if redis:
+                redis.set(f"import_status:{job_id}", f"Critical Error: {str(e)}", ex=3600)
             if os.path.exists(file_path) and "temp_imports" in file_path:
                 os.remove(file_path)
             raise e
@@ -457,17 +458,17 @@ class ImportService:
                         errors.append(f"Chunk DB Error rows {i+2}: {str(ge)}")
                         break
 
-            if errors:
-                status_msg = f"Completed with errors. Success: {success_count}/{total_rows}. Errors: {len(errors)}"
-                redis.set(f"import_errors:{job_id}", str(errors), ex=3600)
-            else:
-                status_msg = f"Success: {success_count} auctions processed"
-            
-            redis.set(f"import_auctions_status:{job_id}", status_msg, ex=3600)
-            
+            if redis:
+                if errors:
+                    status_msg = f"Completed with errors. Success: {success_count}/{total_rows}. Errors: {len(errors)}"
+                    redis.set(f"import_errors:{job_id}", str(errors), ex=3600)
+                else:
+                    status_msg = f"Success: {success_count} auctions processed"
+                redis.set(f"import_auctions_status:{job_id}", status_msg, ex=3600)
         except Exception as e:
             logger.error(f"Auctions Import Job Failed: {e}")
-            redis.set(f"import_auctions_status:{job_id}", f"Critical Error: {str(e)}", ex=3600)
+            if redis:
+                redis.set(f"import_auctions_status:{job_id}", f"Critical Error: {str(e)}", ex=3600)
 
     @staticmethod
     async def process_history_mapping_csv(file_content: bytes, job_id: str):
@@ -477,46 +478,46 @@ class ImportService:
             success_count = 0
             errors = []
 
-            chunk_size = 50
+            chunk_size = 500
+            query = text("""
+                INSERT INTO property_auction_history (property_id, auction_id, auction_name, auction_date, created_at)
+                SELECT :prop_id, a.id, a.name, a.auction_date, :created_at
+                FROM auction_events a
+                WHERE a.id = :auction_id
+                ON CONFLICT (property_id, auction_name) DO UPDATE SET
+                    auction_id = EXCLUDED.auction_id,
+                    auction_date = EXCLUDED.auction_date,
+                    created_at = EXCLUDED.created_at
+            """)
             for i in range(0, len(df), chunk_size):
                 chunk = df.iloc[i:i+chunk_size]
+                batch_params = []
+                now = datetime.utcnow()
+                for index, row in chunk.iterrows():
+                    row_dict = row.where(pd.notnull(row), None).to_dict()
+                    prop_id = row_dict.get("property_id")
+                    legacy_auction_id = row_dict.get("auction_eventId") or row_dict.get("auction_id")
+                    if not prop_id or not legacy_auction_id:
+                        continue
+                    try:
+                        batch_params.append({
+                            "prop_id": prop_id,
+                            "auction_id": int(legacy_auction_id),
+                            "created_at": now
+                        })
+                    except Exception as e:
+                        errors.append(f"Row {i + index + 2}: {str(e)}")
+                if not batch_params:
+                    success_count += len(chunk)
+                    continue
                 max_retries = 3
                 for attempt in range(max_retries):
                     try:
                         with engine.begin() as conn:
-                            for index, row in chunk.iterrows():
-                                try:
-                                    row_dict = row.where(pd.notnull(row), None).to_dict()
-                                    prop_id = row_dict.get('property_id')
-                                    legacy_auction_id = row_dict.get('auction_eventId') or row_dict.get('auction_id')
-                                    
-                                    if not prop_id or not legacy_auction_id:
-                                        continue
-
-                                    # Link history to auction by the legacy ID (which we now preserve)
-                                    # Also copy auction details for historical consistency
-                                    query = text("""
-                                        INSERT INTO property_auction_history (property_id, auction_id, auction_name, auction_date, created_at)
-                                        SELECT :prop_id, a.id, a.name, a.auction_date, :created_at
-                                        FROM auction_events a
-                                        WHERE a.id = :auction_id
-                                        ON CONFLICT (property_id, auction_name) DO UPDATE SET
-                                            auction_id = EXCLUDED.auction_id,
-                                            auction_date = EXCLUDED.auction_date,
-                                            created_at = EXCLUDED.created_at
-                                    """)
-                                    conn.execute(query, {
-                                        "prop_id": prop_id,
-                                        "auction_id": int(legacy_auction_id),
-                                        "created_at": datetime.utcnow()
-                                    })
-                                    
-                                except Exception as e:
-                                    errors.append(f"Row {i + index + 2}: {str(e)}")
-                        
+                            conn.execute(query, batch_params)
                         success_count += len(chunk)
-                        if success_count % 500 == 0 or success_count == total_rows:
-                            logger.info(f"Job {job_id}: Processed {success_count} / {total_rows} history mappings...")
+                        if success_count % 2500 == 0 or (i + chunk_size) >= total_rows:
+                            logger.info(f"Job {job_id}: Processed {min(i + chunk_size, total_rows)} / {total_rows} history mappings...")
                         break
                     except OperationalError:
                         if attempt == max_retries - 1: raise
@@ -524,16 +525,15 @@ class ImportService:
                     except Exception as ge:
                         errors.append(f"Chunk error: {str(ge)}")
                         break
-            
             status_msg = f"History Linkage Success: {success_count} mappings processed"
-            if errors:
-                status_msg = f"Completed with {len(errors)} errors. Success: {success_count}/{total_rows}"
-                redis.set(f"import_errors:{job_id}", str(errors[:200]), ex=3600)
-            
-            redis.set(f"import_history_status:{job_id}", status_msg, ex=3600)
-            
+            if redis:
+                if errors:
+                    status_msg = f"Completed with {len(errors)} errors. Success: {success_count}/{total_rows}"
+                    redis.set(f"import_errors:{job_id}", str(errors[:200]), ex=3600)
+                redis.set(f"import_history_status:{job_id}", status_msg, ex=3600)
         except Exception as e:
             logger.error(f"History Mapping Failed: {e}")
-            redis.set(f"import_history_status:{job_id}", f"Critical Error: {str(e)}", ex=3600)
+            if redis:
+                redis.set(f"import_history_status:{job_id}", f"Critical Error: {str(e)}", ex=3600)
 
 import_service = ImportService()

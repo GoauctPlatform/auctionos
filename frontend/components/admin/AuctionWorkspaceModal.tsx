@@ -27,6 +27,7 @@ import { AdminService } from '../../services/admin.service';
 import { AuctionService } from '../../services/auction.service';
 import { PropertyRedemptionCard } from '../property/PropertyRedemptionCard';
 import { useAuth } from '../../context/AuthContext';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface AuctionWorkspaceModalProps {
     eventData: any;
@@ -35,6 +36,7 @@ interface AuctionWorkspaceModalProps {
 }
 
 export const AuctionWorkspaceModal: React.FC<AuctionWorkspaceModalProps> = ({ eventData, onClose, isOpen }) => {
+    const { t } = useLanguage();
     const { user } = useAuth();
     const [reconciling, setReconciling] = useState(false);
     const [reconcileCount, setReconcileCount] = useState<number | null>(null);

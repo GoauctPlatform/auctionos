@@ -16,6 +16,7 @@ import { PropertyFinancialsModal } from './property/PropertyFinancialsModal';
 import { PropertyMetadataModal } from './property/PropertyMetadataModal';
 import { PropertyMap } from './property/PropertyMap';
 import { GISMap } from './property/GISMap';
+import { useLanguage } from "../context/LanguageContext";
 
 interface Props {
     property: Property | null;
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export const PropertyDetailsModal: React.FC<Props> = ({ property: initialProperty, isOpen, onClose, onUpdate }) => {
+    const { t } = useLanguage();
     const { activeCompany } = useCompany();
     const [property, setProperty] = useState<Property | null>(initialProperty);
     const [isRefreshing, setIsRefreshing] = useState(false);

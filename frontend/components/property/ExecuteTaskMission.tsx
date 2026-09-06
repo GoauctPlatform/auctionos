@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Camera, MapPin, CheckSquare, UploadCloud, X, Save, AlertTriangle, FileText, Info, Navigation, ExternalLink } from 'lucide-react';
 import { RealtorTaskService, Task } from '../../services/realtor_task.service';
 import { getStreetViewUrl } from '../../utils/maps';
+import { useLanguage } from "../../context/LanguageContext";
 
 const CHECKLIST_DESCRIPTIONS: Record<string, string> = {
     'roof_sagging': 'Does the roof have visible sagging or dipping?',
@@ -39,6 +40,7 @@ interface ExecuteTaskMissionProps {
 }
 
 export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, onClose, onSuccess }) => {
+    const { t } = useLanguage();
     // Determine checklist requirements
     const requiredChecklist: Record<string, string[]> = task.checklist_requirements 
         ? (typeof task.checklist_requirements === 'string' ? JSON.parse(task.checklist_requirements) : task.checklist_requirements)

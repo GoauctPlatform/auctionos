@@ -77,6 +77,7 @@ const TechnicalBlueprint: React.FC = () => (
 
 // ─── Embedded Client View (Logged In inside Dashboard) ───────────────────────
 const ClientAboutView: React.FC = () => {
+    const { t } = useLanguage();
     return (
         <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto w-full space-y-8 animate-in fade-in duration-700">
             {/* Main Title Card */}
@@ -116,6 +117,7 @@ const ClientAboutView: React.FC = () => {
 
 // ─── Standalone Public View (Logged Out) ──────────────────────────────────────
 const PublicAboutView: React.FC = () => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
 
     return (

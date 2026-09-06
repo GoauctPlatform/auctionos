@@ -6,6 +6,7 @@ import { PropertyService } from '../../services/property.service';
 import { calculateDealScore } from '../../intelligence/scoringEngine';
 import { getStreetViewUrl } from '../../utils/maps';
 import { Brain, Filter, Sparkles, MapPin, ArrowRight, Coins, RefreshCw, Eye, Image } from 'lucide-react';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface SmartAIDealFinderProps {
     onOpenPropertyDetails: (propertyId: string | number, parcelId: string) => void;
@@ -48,6 +49,7 @@ const AIDealCard: React.FC<AIDealCardProps> = ({
     getRatingStyle,
     renderAuctionTypeBadge,
 }) => {
+    const { t } = useLanguage();
     const [streetViewError, setStreetViewError] = useState(false);
     const streetViewUrl = getStreetViewUrl(prop, undefined, undefined, undefined, '240x180');
     

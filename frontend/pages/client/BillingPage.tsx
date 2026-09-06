@@ -27,6 +27,7 @@ interface BillingUsage {
 }
 
 const BillingPage: React.FC = () => {
+    const { t } = useLanguage();
   const [data, setData] = useState<BillingUsage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

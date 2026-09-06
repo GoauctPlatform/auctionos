@@ -9,6 +9,7 @@ import { PropertyCard } from '../PropertyCard';
 import { CircularProgress, Button, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { geocodeAddress, reverseGeocode } from '../../services/geocoding.service';
+import { useLanguage } from "../../context/LanguageContext";
 
 // Fix Leaflet's default icon path issues in React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -191,6 +192,7 @@ const selectedMarkerIcon = L.divIcon({
 });
 
 export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = ({ filters, hasActiveFilters, onOpenPropertyDetails, onFilterChange }) => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [properties, setProperties] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);

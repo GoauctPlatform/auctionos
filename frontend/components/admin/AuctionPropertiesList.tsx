@@ -5,6 +5,7 @@ import { PropertyPreviewDrawer } from '../PropertyPreviewDrawer';
 import { AuthService } from '../../services/auth.service';
 import { Box, Typography, Button, IconButton } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface AuctionPropertiesListProps {
     auctionName: string;
@@ -15,6 +16,7 @@ interface AuctionPropertiesListProps {
 }
 
 const AuctionPropertiesList: React.FC<AuctionPropertiesListProps> = ({ auctionName, auctionDate, auctionId, onClose, embedded = false }) => {
+    const { t } = useLanguage();
     const [rows, setRows] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [rowCount, setRowCount] = useState(0);

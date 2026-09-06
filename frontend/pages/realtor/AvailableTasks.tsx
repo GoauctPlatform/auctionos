@@ -15,6 +15,7 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const TaskCard: React.FC<{ task: Task; onClaim?: () => void; onSubmit?: () => void }> = ({ task, onClaim, onSubmit }) => {
+    const { t } = useLanguage();
   const usd = (task.reward_points / 100).toFixed(2);
   return (
     <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 flex flex-col gap-3 hover:shadow-md transition-all">
@@ -78,6 +79,7 @@ function saveOffline(item: OfflineItem) {
 }
 
 const AvailableTasks: React.FC = () => {
+    const { t } = useLanguage();
   const [searchParams, setSearchParams] = useSearchParams();
   const [availableTasks, setAvailableTasks] = useState<Task[]>([]);
   const [myTasks, setMyTasks] = useState<Task[]>([]);

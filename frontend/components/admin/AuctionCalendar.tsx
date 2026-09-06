@@ -10,6 +10,7 @@ import AuctionList from './AuctionList';
 import { Box, Dialog, DialogTitle, DialogContent, Typography, IconButton } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface AuctionCalendarProps {
     filters?: {
@@ -24,6 +25,7 @@ interface AuctionCalendarProps {
 }
 
 const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate: undefined }, onDateTypeSelect, onGroupSelect, onSelectAuction }) => {
+    const { t } = useLanguage();
     const [rawEvents, setRawEvents] = useState<any[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
     const [groupedDialogOpen, setGroupedDialogOpen] = useState(false);

@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { API_BASE_URL } from '../../services/httpClient';
+import { useLanguage } from "../../context/LanguageContext";
 
 // Fix Leaflet's default icon path issues in React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -19,6 +20,7 @@ interface GISMapProps {
 
 // Component to handle dynamic recentering, geocoding, and resize bugs
 const MapController = ({ property }: { property: any }) => {
+    const { t } = useLanguage();
     const map = useMap();
 
     useEffect(() => {

@@ -37,6 +37,7 @@ interface ExportedProperty {
 
 // ── Detail Drawer ──────────────────────────────────────────────────────────────
 const PropertyDetailDrawer: React.FC<{ p: ExportedProperty | null; onClose: () => void }> = ({ p, onClose }) => {
+    const { t } = useLanguage();
   if (!p) return null;
 
   const DetailRow: React.FC<{ label: string; value?: string | number | null }> = ({ label, value }) => {
@@ -148,6 +149,7 @@ const PropertyDetailDrawer: React.FC<{ p: ExportedProperty | null; onClose: () =
 
 // ── Property Card ──────────────────────────────────────────────────────────────
 const PropertyCard: React.FC<{ p: ExportedProperty; onClick: () => void }> = ({ p, onClick }) => {
+    const { t } = useLanguage();
   const currency = (v?: number | null) => v != null ? `$${Number(v).toLocaleString()}` : null;
 
   return (

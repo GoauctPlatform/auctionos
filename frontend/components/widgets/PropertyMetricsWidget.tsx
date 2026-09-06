@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../../services/api';
 import { Activity } from 'lucide-react';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface MetricsData {
     foreclosure: number;
@@ -9,6 +10,7 @@ interface MetricsData {
 }
 
 export const PropertyMetricsWidget: React.FC = () => {
+    const { t } = useLanguage();
     const [data, setData] = useState<MetricsData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');

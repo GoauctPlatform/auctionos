@@ -4,6 +4,7 @@ import { calculateDealScore, DealScoreResult } from '../../intelligence/scoringE
 import { PropertyScoreModal } from './PropertyScoreModal';
 import { CircleHelp as HelpCircle, Plus, Minus } from 'lucide-react';
 import { API_BASE_URL } from '../../services/httpClient';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface Props {
     property: Property;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 export const PropertyBasicInfo: React.FC<Props> = ({ property, onOpenFinancials, onOpenMetadata, dealScore: passedScore, onRefresh }) => {
+    const { t } = useLanguage();
     const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
     const expandedKey = `expanded_info_${property.property_id}`;
     const isUnlocked = !!(property.is_processed || sessionStorage.getItem(expandedKey) === 'true');

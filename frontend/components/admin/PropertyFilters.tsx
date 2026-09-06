@@ -6,6 +6,7 @@ import { PropertyService } from '../../services/property.service';
 import { useNavigate } from 'react-router-dom';
 import { StatesService } from '../../services/states.service';
 import { countyService } from '../../services/county.service';
+import { useLanguage } from "../../context/LanguageContext";
 
 export interface PropertyFilterParams {
     county?: string;
@@ -48,6 +49,7 @@ interface PropertyFiltersProps {
 }
 
 const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readOnly = false, initialFilters, onOpenPropertyDetails, variant = 'standard' }) => {
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [filters, setFilters] = useState<PropertyFilterParams>(initialFilters || {});
     const [showFilters, setShowFilters] = useState(false);

@@ -13,6 +13,7 @@
 import React, { useState, useEffect } from 'react';
 import { PropertyService } from '../../services/property.service';
 import { RotateCcw, Save, X, PencilLine, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface OverridePanelProps {
     property: any;
@@ -47,6 +48,7 @@ const EDITABLE_FIELDS: { key: string; label: string; type: 'text' | 'number' | '
 ];
 
 export const PropertyOverridePanel: React.FC<OverridePanelProps> = ({ property, onClose, onSaved }) => {
+    const { t } = useLanguage();
     // Local draft: starts from the current property values (already merged with existing overrides)
     const [draft, setDraft] = useState<Record<string, any>>(() => {
         const initial: Record<string, any> = {};

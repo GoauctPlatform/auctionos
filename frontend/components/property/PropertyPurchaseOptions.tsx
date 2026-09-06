@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Property } from '../../types';
 import { Modal } from '../Modal';
 import { PropertyService } from '../../services/property.service';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface Props {
     property: Property;
@@ -16,6 +17,7 @@ export const PropertyPurchaseOptions: React.FC<Props> = ({
     actionLoading, 
     onSimulatePurchase 
 }) => {
+    const { t } = useLanguage();
     const [isApplyOpen, setIsApplyOpen] = useState(false);
 
     const formatDate = (dateString?: string) => {

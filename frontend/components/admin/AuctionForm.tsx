@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AuctionEvent } from '../../types';
 import { AuctionService } from '../../services/auction.service';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface AuctionFormProps {
     open: boolean;
@@ -27,6 +28,7 @@ const defaultFormData: Partial<AuctionEvent> = {
 };
 
 export const AuctionForm: React.FC<AuctionFormProps> = ({ open, onClose, onSuccess, editingEvent }) => {
+    const { t } = useLanguage();
     const [formData, setFormData] = useState<Partial<AuctionEvent>>(defaultFormData);
     const [loading, setLoading] = useState(false);
 

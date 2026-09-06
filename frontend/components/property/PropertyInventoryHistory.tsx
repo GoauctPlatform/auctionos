@@ -1,11 +1,13 @@
 import React from 'react';
 import { Property } from '../../types';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface PropertyInventoryHistoryProps {
     property: Property;
 }
 
 export const PropertyInventoryHistory: React.FC<PropertyInventoryHistoryProps> = ({ property }) => {
+    const { t } = useLanguage();
     // Note: This would typically fetch from property.availability_history if it were pre-populated.
     // For now, we'll use a data-driven structure based on property.availability_status
     

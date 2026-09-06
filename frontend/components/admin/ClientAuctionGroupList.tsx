@@ -13,6 +13,7 @@ import PlaceIcon from '@mui/icons-material/Place';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
+import { useLanguage } from "../../context/LanguageContext";
 
 const STATE_CODE_MAP: Record<string, string> = {
     'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
@@ -41,6 +42,7 @@ interface ClientAuctionGroupListProps {
 }
 
 export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ date, type, filters, onClose }) => {
+    const { t } = useLanguage();
     const [auctions, setAuctions] = useState<AuctionEvent[]>([]);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState<'list' | 'cards'>('list');

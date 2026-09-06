@@ -24,6 +24,7 @@ import {
     Info as InfoIcon
 } from '@mui/icons-material';
 import api from '../../services/api';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface RedemptionEntry {
     state: string;
@@ -35,6 +36,7 @@ interface RedemptionEntry {
 }
 
 export const RedemptionIntelligenceBoard: React.FC = () => {
+    const { t } = useLanguage();
     const [data, setData] = useState<RedemptionEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedState, setSelectedState] = useState<string>('');

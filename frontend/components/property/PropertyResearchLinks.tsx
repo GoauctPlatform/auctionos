@@ -1,11 +1,13 @@
 import React from 'react';
 import { Property } from '../../types';
+import { useLanguage } from "../../context/LanguageContext";
 
 interface Props {
     property: Property;
 }
 
 export const PropertyResearchLinks: React.FC<Props> = ({ property }) => {
+    const { t } = useLanguage();
     // Safely construct search queries
     const addressQuery = encodeURIComponent(property.address || property.parcel_address || '');
     const locationQuery = encodeURIComponent(`${property.city || ''} ${property.state || ''} ${property.zip_code || ''}`);
