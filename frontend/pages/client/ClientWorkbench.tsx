@@ -3651,9 +3651,11 @@ export const ClientWorkbench: React.FC = () => {
             <div className="flex items-center gap-3 shrink-0">
               {[
                 { id: 'workbench_home', label: 'Workbench Home', icon: LayoutGrid, color: 'hover:text-blue-400 text-blue-500' },
+                { id: 'map', label: 'US Heatmap', icon: MapIcon, color: 'hover:text-indigo-400 text-indigo-500' },
+                { id: 'smart_ai_finder', label: 'Smart AI Finder', icon: Brain, color: 'hover:text-purple-400 text-purple-500' },
                 { id: 'live_auctions', label: 'Auctions', icon: Calendar, color: 'hover:text-amber-400 text-amber-500' },
                 { id: 'property_search', label: 'Search', icon: Search, color: 'hover:text-cyan-400 text-cyan-500' },
-                { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'text-purple-400 text-purple-500' }
+                { id: 'my_lists', label: 'My Lists', icon: Folder, color: 'hover:text-blue-400 text-blue-500' }
               ].map(item => {
                 const Icon = item.icon;
                 const isOpen = item.id === 'workbench_home' ? false : overlayWindows.some(w => w.type === item.id || (w.type === 'auction_details' && item.id === 'live_auctions'));
@@ -3679,7 +3681,7 @@ export const ClientWorkbench: React.FC = () => {
                           focusOverlayWindow(match.id);
                         }
                       } else {
-                        openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : '⚔️ Field Task Missions');
+                        openOverlayWindow(item.id as any, item.id === 'my_lists' ? '📂 Saved Lists & Folders' : item.id === 'live_auctions' ? '📅 Live Auctions Finder' : item.id === 'property_search' ? '🔍 Property Search & Listing' : item.id === 'map' ? '🗺️ US Heatmap & Activity' : item.id === 'smart_ai_finder' ? '🧠 Smart AI Deal Finder' : '⚔️ Field Task Missions');
                       }
                     }}
                     className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 ${item.color} ${isOpen ? 'bg-slate-800 border border-slate-700' : 'bg-transparent'} ${isMin ? 'opacity-50' : ''}`}
