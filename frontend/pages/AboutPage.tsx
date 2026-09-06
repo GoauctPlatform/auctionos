@@ -45,7 +45,9 @@ const TeamGrid: React.FC = () => (
 );
 
 // ─── Platform Defensibility / Architecture Blueprint ──────────────────────────
-const TechnicalBlueprint: React.FC = () => (
+const TechnicalBlueprint: React.FC = () => {
+    const { t } = useLanguage();
+    return (
     <div className="grid md:grid-cols-2 gap-8 items-stretch">
         <div className="p-8 bg-white dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/50 rounded-3xl space-y-4">
             <h3 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -73,7 +75,8 @@ const TechnicalBlueprint: React.FC = () => (
             </div>
         </div>
     </div>
-);
+    );
+};
 
 // ─── Embedded Client View (Logged In inside Dashboard) ───────────────────────
 const ClientAboutView: React.FC = () => {

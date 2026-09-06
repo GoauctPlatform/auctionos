@@ -369,7 +369,9 @@ const GROUPS_TESTIMONIALS = [
     }
 ];
 
-export const GroupsPage: React.FC = () => (
+export const GroupsPage: React.FC = () => {
+    const { t } = useLanguage();
+    return (
     <div className="max-w-5xl mx-auto py-8 px-4 h-[calc(100vh-120px)] overflow-y-auto">
         {/* Header section with Social Links */}
         <div className="flex flex-col md:flex-row gap-8 items-start md:items-center justify-between mb-12 bg-gradient-to-r from-blue-900 to-indigo-900 rounded-3xl p-8 sm:p-12 text-white shadow-lg">
@@ -403,18 +405,18 @@ export const GroupsPage: React.FC = () => (
             </div>
             
             <div className="grid md:grid-cols-3 gap-6">
-                {GROUPS_TESTIMONIALS.map((t, idx) => (
+                {GROUPS_TESTIMONIALS.map((tItem, idx) => (
                     <div key={idx} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm hover:shadow-md transition-shadow">
                         <p className="text-slate-600 dark:text-slate-300 italic mb-6 leading-relaxed text-sm">
-                            "{t.content}"
+                            "{tItem.content}"
                         </p>
                         <div className="flex items-center gap-3 border-t border-slate-100 dark:border-slate-700 pt-4">
                             <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center text-blue-700 dark:text-blue-400 font-bold">
-                                {t.name.charAt(0)}
+                                {tItem.name.charAt(0)}
                             </div>
                             <div>
-                                <div className="font-bold text-slate-900 dark:text-white text-sm">{t.name}</div>
-                                <div className="text-xs text-slate-500">{t.role}</div>
+                                <div className="font-bold text-slate-900 dark:text-white text-sm">{tItem.name}</div>
+                                <div className="text-xs text-slate-500">{tItem.role}</div>
                             </div>
                         </div>
                     </div>
@@ -431,4 +433,5 @@ export const GroupsPage: React.FC = () => (
                 {t('EcosystemPages.applicationsClosed')}</button>
         </div>
     </div>
-);
+    );
+};

@@ -11,7 +11,7 @@ type Tab = 'profile' | 'general' | 'users' | 'companies';
 
 export const Settings: React.FC = () => {
     const { user } = useAuth();
-    const { language, setLanguage } = useLanguage();
+    const { language, setLanguage, t } = useLanguage();
     const [activeTab, setActiveTab] = useState<Tab>('profile');
     const [theme, setTheme] = useState(() => localStorage.getItem('goauct_theme') || 'system');
     // displayName: prefer backend value, fallback to locally persisted value
@@ -219,13 +219,13 @@ export const Settings: React.FC = () => {
                                             previewAccent: 'bg-[#007ACC]',
                                             previewText: 'text-[#D4D4D4]'
                                         }
-                                    ].map((t) => {
-                                        const isSelected = theme === t.key;
+                                    ].map((themeObj) => {
+                                        const isSelected = theme === themeObj.key;
                                         return (
                                             <button
-                                                key={t.key}
+                                                key={themeObj.key}
                                                 type="button"
-                                                onClick={() => handleThemeChange(t.key)}
+                                                onClick={() => handleThemeChange(themeObj.key)}
                                                 className={`flex flex-col text-left p-3.5 rounded-xl border transition-all duration-300 relative group overflow-hidden ${
                                                     isSelected
                                                         ? 'border-blue-500 bg-blue-50/40 dark:bg-blue-900/10 shadow-md shadow-blue-500/5 ring-1 ring-blue-500/20'
@@ -237,13 +237,13 @@ export const Settings: React.FC = () => {
                                                 )}
                                                 
                                                 {/* Mini Mock Dashboard UI Preview inside Card */}
-                                                <div className={`w-full h-14 rounded-lg ${t.previewClass} mb-3 p-1.5 flex flex-col justify-between overflow-hidden relative shadow-inner select-none pointer-events-none`}>
+                                                <div className={`w-full h-14 rounded-lg ${themeObj.previewClass} mb-3 p-1.5 flex flex-col justify-between overflow-hidden relative shadow-inner select-none pointer-events-none`}>
                                                     <div className="flex justify-between items-center">
                                                         <div className="flex gap-0.5 items-center">
-                                                            <div className={`w-1 h-1 rounded-full ${t.previewAccent}`} />
+                                                            <div className={`w-1 h-1 rounded-full ${themeObj.previewAccent}`} />
                                                             <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-700/80" />
                                                         </div>
-                                                        <div className={`w-2 h-1 rounded-full ${t.previewAccent} opacity-80`} />
+                                                        <div className={`w-2 h-1 rounded-full ${themeObj.previewAccent} opacity-80`} />
                                                     </div>
                                                     <div className="flex gap-1 items-end">
                                                         <div className="flex-1 space-y-0.5">
@@ -251,9 +251,9 @@ export const Settings: React.FC = () => {
                                                             <div className="w-6 h-1 rounded bg-slate-200 dark:bg-slate-800" />
                                                         </div>
                                                         <div className="flex gap-0.5 items-end h-6">
-                                                            <div className={`w-0.5 h-2 rounded-full ${t.previewAccent} opacity-60`} />
-                                                            <div className={`w-0.5 h-4 rounded-full ${t.previewAccent}`} />
-                                                            <div className={`w-0.5 h-3 rounded-full ${t.previewAccent} opacity-80`} />
+                                                            <div className={`w-0.5 h-2 rounded-full ${themeObj.previewAccent} opacity-60`} />
+                                                            <div className={`w-0.5 h-4 rounded-full ${themeObj.previewAccent}`} />
+                                                            <div className={`w-0.5 h-3 rounded-full ${themeObj.previewAccent} opacity-80`} />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -262,12 +262,12 @@ export const Settings: React.FC = () => {
                                                     <span className={`material-symbols-outlined text-[16px] ${
                                                         isSelected ? 'text-blue-500 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
                                                     }`}>
-                                                        {t.icon}
+                                                        {themeObj.icon}
                                                     </span>
                                                     <span className={`text-xs font-bold transition-colors ${
                                                         isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
                                                     }`}>
-                                                        {t.label}
+                                                        {themeObj.label}
                                                     </span>
                                                     {isSelected && (
                                                         <span className="ml-auto material-symbols-outlined text-blue-500 dark:text-blue-400 text-sm font-bold">
@@ -275,7 +275,7 @@ export const Settings: React.FC = () => {
                                                     )}
                                                 </div>
                                                 <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-normal font-normal">
-                                                    {t.desc}
+                                                    {themeObj.desc}
                                                 </p>
                                             </button>
                                         );
@@ -332,13 +332,13 @@ export const Settings: React.FC = () => {
                                         previewClass: 'bg-[#1E1E1E] border border-[#3E3E42]',
                                         previewAccent: 'bg-[#007ACC]'
                                     }
-                                ].map((t) => {
-                                    const isSelected = theme === t.key;
+                                ].map((themeObj) => {
+                                    const isSelected = theme === themeObj.key;
                                     return (
                                         <button
-                                            key={t.key}
+                                            key={themeObj.key}
                                             type="button"
-                                            onClick={() => handleThemeChange(t.key)}
+                                            onClick={() => handleThemeChange(themeObj.key)}
                                             className={`flex flex-col text-left p-3.5 rounded-xl border transition-all duration-300 relative group overflow-hidden ${
                                                 isSelected
                                                     ? 'border-blue-500 bg-blue-50/40 dark:bg-blue-900/10 shadow-md shadow-blue-500/5 ring-1 ring-blue-500/20'
@@ -350,13 +350,13 @@ export const Settings: React.FC = () => {
                                             )}
                                             
                                             {/* Mini Mock Dashboard UI Preview inside Card */}
-                                            <div className={`w-full h-14 rounded-lg ${t.previewClass} mb-3 p-1.5 flex flex-col justify-between overflow-hidden relative shadow-inner select-none pointer-events-none`}>
+                                            <div className={`w-full h-14 rounded-lg ${themeObj.previewClass} mb-3 p-1.5 flex flex-col justify-between overflow-hidden relative shadow-inner select-none pointer-events-none`}>
                                                 <div className="flex justify-between items-center">
                                                     <div className="flex gap-0.5 items-center">
-                                                        <div className={`w-1 h-1 rounded-full ${t.previewAccent}`} />
+                                                        <div className={`w-1 h-1 rounded-full ${themeObj.previewAccent}`} />
                                                         <div className="w-4 h-1 rounded bg-slate-200 dark:bg-slate-700/80" />
                                                     </div>
-                                                    <div className={`w-2 h-1 rounded-full ${t.previewAccent} opacity-80`} />
+                                                    <div className={`w-2 h-1 rounded-full ${themeObj.previewAccent} opacity-80`} />
                                                 </div>
                                                 <div className="flex gap-1 items-end">
                                                     <div className="flex-1 space-y-0.5">
@@ -364,9 +364,9 @@ export const Settings: React.FC = () => {
                                                         <div className="w-6 h-1 rounded bg-slate-200 dark:bg-slate-800" />
                                                     </div>
                                                     <div className="flex gap-0.5 items-end h-6">
-                                                        <div className={`w-0.5 h-2 rounded-full ${t.previewAccent} opacity-60`} />
-                                                        <div className={`w-0.5 h-4 rounded-full ${t.previewAccent}`} />
-                                                        <div className={`w-0.5 h-3 rounded-full ${t.previewAccent} opacity-80`} />
+                                                        <div className={`w-0.5 h-2 rounded-full ${themeObj.previewAccent} opacity-60`} />
+                                                        <div className={`w-0.5 h-4 rounded-full ${themeObj.previewAccent}`} />
+                                                        <div className={`w-0.5 h-3 rounded-full ${themeObj.previewAccent} opacity-80`} />
                                                     </div>
                                                 </div>
                                             </div>
@@ -375,12 +375,12 @@ export const Settings: React.FC = () => {
                                                 <span className={`material-symbols-outlined text-[16px] ${
                                                     isSelected ? 'text-blue-500 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'
                                                 }`}>
-                                                    {t.icon}
+                                                    {themeObj.icon}
                                                 </span>
                                                 <span className={`text-xs font-bold transition-colors ${
                                                     isSelected ? 'text-slate-900 dark:text-white' : 'text-slate-700 dark:text-slate-300'
                                                 }`}>
-                                                    {t.label}
+                                                    {themeObj.label}
                                                 </span>
                                                 {isSelected && (
                                                     <span className="ml-auto material-symbols-outlined text-blue-500 dark:text-blue-400 text-sm font-bold">
@@ -388,7 +388,7 @@ export const Settings: React.FC = () => {
                                                 )}
                                             </div>
                                             <p className="text-[9px] text-slate-500 dark:text-slate-400 leading-normal font-normal">
-                                                {t.desc}
+                                                {themeObj.desc}
                                             </p>
                                         </button>
                                     );
