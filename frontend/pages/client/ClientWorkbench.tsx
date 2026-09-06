@@ -3641,9 +3641,68 @@ export const ClientWorkbench: React.FC = () => {
         {/* ─── DOCK / BARRA DE TAREFAS HÍBRIDA (Estilo macOS / Chatbot Toggle) ─── */}
         <div className={`absolute bottom-4 left-1/2 -translate-x-1/2 z-[99999] flex flex-col items-center gap-2 transition-all duration-300 ease-spring ${isDockExpanded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0 pointer-events-none'}`}>
           <div className="h-14 px-4 bg-slate-900/80 dark:bg-sol-base02/85 backdrop-blur-md rounded-2xl border border-slate-700/50 dark:border-sol-base01/30 flex items-center gap-3 shadow-2xl transition-all select-none max-w-[95vw] lg:max-w-[85vw]">
-            {/* Core Shortcuts to open windows */}
+            {/* Dock Items */}
             <div className="flex items-center gap-3 shrink-0">
-            )}
+              <button
+                onClick={() => {
+                  setOverlayWindows(prev => prev.map(w => ({ ...w, isMinimized: true })));
+                  setActiveOverlayWindowId(null);
+                  logConsoleActivity('Minimizing all active workspace windows.');
+                  navigate('/client');
+                }}
+                className={`relative size-10 rounded-xl flex items-center justify-center transition-all transform hover:scale-115 active:scale-95 hover:text-blue-400 text-blue-500 bg-transparent`}
+                title={t('nav.workbench')}
+              >
+                <LayoutGrid size={18} />
+              </button>
+
+              {overlayWindows.length > 0 && <div className="w-[1px] h-8 bg-slate-700/50 shrink-0" />}
+
+              {overlayWindows.length > 0 && (
+                <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scroll-smooth flex-1 min-w-0 pr-2">
+                  {overlayWindows.map(w => {
+                    const isActive = activeOverlayWindowId === w.id;
+                    const isMin = w.isMinimized;
+                    
+                    let Icon = FileText;
+                    let color = "text-indigo-400";
+                    let label = w.title;
+
+                    if (w.type === 'map') { Icon = MapIcon; color = "text-indigo-400"; label = t('workbench.map') || 'US Heatmap'; }
+                    else if (w.type === 'smart_ai_finder') { Icon = Brain; color = "text-purple-400"; label = t('workbench.smartAi') || 'Smart AI'; }
+                    else if (w.type === 'field_missions') { Icon = Gavel; color = "text-emerald-400"; label = t('workbench.fieldMissions') || 'Field Missions'; }
+                    else if (w.type === 'settings') { Icon = Settings; color = "text-slate-400"; }
+                    else if (w.type === 'live_auctions') { Icon = Calendar; color = "text-amber-400"; label = t('nav.liveAuctions'); }
+                    else if (w.type === 'property_search') { Icon = Search; color = "text-cyan-400"; label = t('nav.propertySearch'); }
+                    else if (w.type === 'my_lists') { Icon = Folder; color = "text-blue-400"; label = t('nav.myLists'); }
+                    else if (w.type === 'auction_details') { color = "text-amber-400"; label = 'Auction'; }
+                    else if (w.type === 'auction_group') { color = "text-emerald-400"; label = 'Auctions'; }
+                    else if (w.type === 'property_details') { label = w.data?.parcelId || 'Property'; }
+
+                    return (
+                      <button
+                        key={w.id}
+                        onClick={() => {
+                          if (isMin) toggleMinimizeOverlayWindow(w.id);
+                          else if (isActive) toggleMinimizeOverlayWindow(w.id);
+                          else focusOverlayWindow(w.id);
+                        }}
+                        className={`relative shrink-0 h-10 px-3 rounded-xl flex items-center gap-2.5 transition-all text-left bg-slate-800/60 border border-slate-700/50 hover:bg-slate-700/60 animate-slide-up-bounce ${isMin ? 'opacity-50' : ''} ${isActive && !isMin ? 'ring-1 ring-indigo-500/50 shadow-lg shadow-indigo-500/20' : ''}`}
+                        title={w.title}
+                      >
+                        <Icon size={16} className={color} />
+                        <span className="text-[10px] font-black text-slate-200 max-w-[90px] truncate uppercase tracking-wider">
+                          {label}
+                        </span>
+                        {isActive && !isMin && (
+                          <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4 h-0.5 bg-indigo-500 rounded-t-md" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
