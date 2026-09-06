@@ -131,5 +131,23 @@
     "clearanceDate": "Fecha de Autorización",
     "shareLink": "Compartir Tu Enlace",
     "minWithdraw50": "El monto mínimo de retiro es $50."
+  },
+  "public": {
+    "home": {
+      "heroTag": "Inteligencia de Propiedades Fiscales de Extremo a Extremo",
+      "heroTitle1": "Conectando Datos con",
+      "heroTitle2": "Ejecución en el Mundo Real",
+      "heroDesc": "GoAuct es un ecosistema PropTech vertical diseñado para resolver la brecha crítica entre registros fragmentados de subastas públicas e inversiones reales accionables.",
+      "seePricing": "Ver Precios",
+      "globalInvestors": "Inversores Globales",
+      "noExperienceRequired": "Sin Experiencia Previa",
+      "globalInvestorsDesc": "Identifique las mejores oportunidades con nuestro Smart AI Deal Finder. GoAuct organiza anuncios caóticos de condados en inteligencia limpia y accionable. Adquiera propiedades fiscales de EE. UU. desde cualquier parte del mundo.",
+      "licensedRealtors": "Agentes Licenciados",
+      "usLicenseRequired": "Licencia de EE. UU. Requerida",
+      "licensedRealtorsDesc": "Actúe como consultores y corredores premium dentro de nuestro ecosistema. Ofrezca sus servicios directamente a inversores, coordine anuncios de propiedades post-subasta y facilite transacciones inmobiliarias seguras.",
+      "fieldAgents": "Agentes de Campo",
+      "usWorkPermitRequired": "Permiso de Trabajo de EE. UU. Requerido",
+      "fieldAgentsDesc": "Gane ingresos extra realizando tareas locales de Due Diligence. Acepte micro-tareas para fotografiar propiedades y evaluar condiciones estructurales. Todos los datos están mediados con seguridad y validados por GPS."
+    }
   }
 }

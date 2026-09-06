@@ -131,5 +131,23 @@
     "clearanceDate": "Clearance Date",
     "shareLink": "Share Your Link",
     "minWithdraw50": "Minimum withdrawal amount is $50."
+  },
+  "public": {
+    "home": {
+      "heroTag": "End-to-End Tax Property Intelligence",
+      "heroTitle1": "Bridging Data with",
+      "heroTitle2": "Real-World Execution",
+      "heroDesc": "GoAuct is a vertical PropTech ecosystem designed to solve the critical gap between fragmented public auction records and actionable real-world investments.",
+      "seePricing": "See Pricing",
+      "globalInvestors": "Global Investors",
+      "noExperienceRequired": "No Experience Required",
+      "globalInvestorsDesc": "Identify top-tier deals with our Smart AI Deal Finder. GoAuct organizes chaotic county announcements into clean, actionable intelligence. Acquire US tax properties from anywhere in the world.",
+      "licensedRealtors": "Licensed Realtors",
+      "usLicenseRequired": "US License Required",
+      "licensedRealtorsDesc": "Act as premium consultants and brokers within our ecosystem. Offer your services directly to investors, coordinate post-auction property listings, and facilitate secure real estate transactions.",
+      "fieldAgents": "Field Agents",
+      "usWorkPermitRequired": "US Work Permit Required",
+      "fieldAgentsDesc": "Earn extra income performing localized Due Diligence tasks. Accept micro-tasks to photograph properties and assess structural conditions. All data is securely mediated and GPS geo-validated."
+    }
   }
 }

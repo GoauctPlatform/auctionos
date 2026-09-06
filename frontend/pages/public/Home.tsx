@@ -29,7 +29,7 @@ const Home = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-8 backdrop-blur-sm"
           >
             <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
-            End-to-End Tax Property Intelligence
+            {t('public.home.heroTag')}
           </motion.div>
           
           <motion.h1 
@@ -38,9 +38,9 @@ const Home = () => {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-5xl md:text-7xl font-extrabold text-white tracking-tight leading-[1.1]"
           >
-            Bridging Data with <br />
+            {t('public.home.heroTitle1')} <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
-              Real-World Execution
+              {t('public.home.heroTitle2')}
             </span>
           </motion.h1>
           
@@ -50,7 +50,7 @@ const Home = () => {
             transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
             className="mt-6 text-lg md:text-xl text-slate-300 max-w-2xl mx-auto font-light"
           >
-            GoAuct is a vertical PropTech ecosystem designed to solve the critical gap between fragmented public auction records and actionable real-world investments.
+            {t('public.home.heroDesc')}
           </motion.p>
 
           <motion.div
@@ -70,7 +70,7 @@ const Home = () => {
               to="/pricing"
               className="flex items-center justify-center bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/10 text-white px-8 py-4 rounded-full font-semibold text-lg transition-all w-full sm:w-auto"
             >
-              See Pricing
+              {t('public.home.seePricing')}
             </Link>
           </motion.div>
         </div>
@@ -92,10 +92,10 @@ const Home = () => {
             <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Globe2 className="text-blue-400" size={32} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Global Investors</h3>
-            <p className="text-sm font-semibold text-blue-400 mb-4 uppercase tracking-wider">No Experience Required</p>
+            <h3 className="text-xl font-bold text-white mb-2">{t('public.home.globalInvestors')}</h3>
+            <p className="text-sm font-semibold text-blue-400 mb-4 uppercase tracking-wider">{t('public.home.noExperienceRequired')}</p>
             <p className="text-slate-400 leading-relaxed">
-              Identify top-tier deals with our Smart AI Deal Finder. GoAuct organizes chaotic county announcements into clean, actionable intelligence. Acquire US tax properties from anywhere in the world.
+              {t('public.home.globalInvestorsDesc')}
             </p>
           </motion.div>
 
@@ -111,10 +111,10 @@ const Home = () => {
             <div className="w-14 h-14 rounded-xl bg-cyan-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Briefcase className="text-cyan-400" size={32} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Licensed Realtors</h3>
-            <p className="text-sm font-semibold text-cyan-400 mb-4 uppercase tracking-wider">US License Required</p>
+            <h3 className="text-xl font-bold text-white mb-2">{t('public.home.licensedRealtors')}</h3>
+            <p className="text-sm font-semibold text-cyan-400 mb-4 uppercase tracking-wider">{t('public.home.usLicenseRequired')}</p>
             <p className="text-slate-400 leading-relaxed">
-              Act as premium consultants and brokers within our ecosystem. Offer your services directly to investors, coordinate post-auction property listings, and facilitate secure real estate transactions.
+              {t('public.home.licensedRealtorsDesc')}
             </p>
           </motion.div>
 
@@ -130,10 +130,10 @@ const Home = () => {
             <div className="w-14 h-14 rounded-xl bg-emerald-500/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
               <Camera className="text-emerald-400" size={32} />
             </div>
-            <h3 className="text-xl font-bold text-white mb-2">Field Agents</h3>
-            <p className="text-sm font-semibold text-emerald-400 mb-4 uppercase tracking-wider">US Work Permit Required</p>
+            <h3 className="text-xl font-bold text-white mb-2">{t('public.home.fieldAgents')}</h3>
+            <p className="text-sm font-semibold text-emerald-400 mb-4 uppercase tracking-wider">{t('public.home.usWorkPermitRequired')}</p>
             <p className="text-slate-400 leading-relaxed">
-              Earn extra income performing localized Due Diligence tasks. Accept micro-tasks to photograph properties and assess structural conditions. All data is securely mediated and GPS geo-validated.
+              {t('public.home.fieldAgentsDesc')}
             </p>
           </motion.div>
 
