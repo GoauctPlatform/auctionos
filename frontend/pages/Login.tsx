@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { AuthService } from '../services/auth.service';
+import api from '../services/api';
 import { API_BASE_URL } from '../services/httpClient';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -45,14 +46,7 @@ export const Login: React.FC = () => {
         if (isNew === 'true') {
           navigate('/onboarding');
         } else {
-          // routeAfterLogin is defined below — call inline to avoid hoisting issues
-          if (user.role === 'realtor') {
-            navigate('/realtor');
-          } else if (['client', 'manager', 'agent'].includes(user.role)) {
-            navigate('/client');
-          } else {
-            navigate('/dashboard');
-          }
+          await routeAfterLogin(user);
         }
       } catch {
         setError('Falha ao autenticar com Google. Tente novamente.');
@@ -64,11 +58,28 @@ export const Login: React.FC = () => {
     handleOAuth();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const routeAfterLogin = (user: any) => {
-    if (user.role === 'realtor') {
-      navigate('/realtor');
-    } else if (['client', 'manager', 'agent'].includes(user.role)) {
+  const routeAfterLogin = async (user: any) => {
+    // Immediate 100% block check for client roles if 7-day trial has expired
+    if (['client', 'manager', 'agent'].includes(user.role)) {
+      try {
+        const usageRes = await api.get('/billing/usage');
+        if (usageRes.data?.status === 'expired') {
+          localStorage.setItem('trial_expired', 'true');
+          navigate('/client/expired', { replace: true });
+          return;
+        } else {
+          localStorage.removeItem('trial_expired');
+        }
+      } catch (err: any) {
+        if (err.response?.status === 402) {
+          localStorage.setItem('trial_expired', 'true');
+          navigate('/client/expired', { replace: true });
+          return;
+        }
+      }
       navigate('/client');
+    } else if (user.role === 'realtor') {
+      navigate('/realtor');
     } else {
       navigate('/dashboard');
     }
@@ -84,7 +95,7 @@ export const Login: React.FC = () => {
       localStorage.setItem('token', access_token);
       const user = await AuthService.getMe();
       authLogin(access_token, user);
-      routeAfterLogin(user);
+      await routeAfterLogin(user);
     } catch (err: any) {
       setError(err.message || 'Invalid credentials. Please check your email and password.');
     } finally {

@@ -131,6 +131,18 @@ class PermissionService:
             db.add(sub)
             db.commit()
             db.refresh(sub)
+
+        # Check if trial is expired (7 days from start_date)
+        if sub.plan_type == 'trial' and sub.start_date and sub.status == 'active':
+            start_date = sub.start_date
+            if start_date.tzinfo is None:
+                start_date = start_date.replace(tzinfo=timezone.utc)
+            days_active = (datetime.now(timezone.utc) - start_date).days
+            if days_active >= 7:
+                sub.status = 'expired'
+                db.add(sub)
+                db.commit()
+                db.refresh(sub)
             
         return sub
 

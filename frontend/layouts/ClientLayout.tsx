@@ -288,6 +288,11 @@ const ClientLayout: React.FC = () => {
                                location.pathname === '/client/';
   const hideHeader = true; // Globally hide the outdated classic header and footer
 
+  // 100% full screen block for expired trial users - no menus, no sidebar, no headers
+  if (location.pathname.includes('/client/expired')) {
+    return <Outlet />;
+  }
+
   return (
     <div className={`w-full bg-slate-50 dark:bg-slate-900 font-display flex flex-col relative ${isWorkbenchWorkspace ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
       {/* Dynamic Background Layer */}

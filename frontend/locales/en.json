@@ -1335,10 +1335,11 @@
     "trialExpired": "Trial Expired",
     "your7DayTrialPeriodH": "Your 7-day trial period has ended. To continue accessing Live Auctions, property data, and all premium features, please upgrade to a paid plan.",
     "youLlMaintainAccessT": "You'll maintain access to view and manage your account settings even without an active subscription.",
-    "viewUpgradePlans": "View Upgrade Plans",
+    "viewUpgradePlans": "Upgrade Plan Now",
     "logOut": "Log Out",
     "questionsContactOur": "Questions? Contact our",
-    "supportTeam": "support team"
+    "supportTeam": "support team",
+    "upgradePlanNow": "Upgrade Plan Now"
   },
   "TrialLimitPage": {
     "unlockPremiumFeature": "Unlock Premium Features",
