@@ -14,7 +14,6 @@ export const Layout: React.FC = () => {
 
   const navItems = [
     { icon: 'dashboard', label: 'Overview', path: '/dashboard' },
-    { icon: 'group', label: 'Users & Roles', path: '/users' },
     {
       icon: 'build',
       label: 'Tools',
@@ -28,7 +27,8 @@ export const Layout: React.FC = () => {
       icon: 'admin_panel_settings',
       label: 'Admin & CRM',
       dropdown: [
-        { label: 'User Management', path: '/admin/users' },
+        { label: 'Users & Roles', path: '/admin/users' },
+        { label: 'Log & Audit', path: '/admin/users?tab=logs' },
         { label: 'Affiliate Management', path: '/admin/affiliates' },
         { label: 'Realtor Withdrawals', path: '/admin/withdrawals' },
         { label: 'Conflict Mediation', path: '/admin/mediation' },

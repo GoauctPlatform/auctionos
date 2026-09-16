@@ -60,7 +60,7 @@ export const TrialExpiredPage: React.FC = () => {
                         onClick={handleUpgrade}
                         className="w-full px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold rounded-lg shadow-md transition-all active:scale-95 text-lg flex items-center justify-center gap-2 group"
                     >
-                        {t('TrialExpiredPage.upgradePlanNow', 'Upgrade Plan Now')}<ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        {t('TrialExpiredPage.upgradePlanNow')}<ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>
 

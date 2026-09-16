@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { UserService } from '../../services/user.service';
 import { CircularProgress } from '@mui/material';
 import { API_URL, getHeaders } from '../../services/httpClient';
@@ -171,7 +172,14 @@ const AdminUsers: React.FC = () => {
     const [realtors, setConsultants] = useState<ConsultantApplication[]>([]);
     const [agents, setAgents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
-    const [tab, setTab] = useState<'users' | 'logs' | 'realtors' | 'agents' | 'contractors'>('users');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const initialTab = (searchParams.get('tab') as 'users' | 'logs' | 'realtors' | 'agents' | 'contractors') || 'users';
+    const [tab, setTab] = useState<'users' | 'logs' | 'realtors' | 'agents' | 'contractors'>(initialTab);
+
+    // Update URL when tab changes
+    useEffect(() => {
+        setSearchParams({ tab });
+    }, [tab, setSearchParams]);
     const [search, setSearch] = useState('');
     const [roleFilter, setRoleFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
