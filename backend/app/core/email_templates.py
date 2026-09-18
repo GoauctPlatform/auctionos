@@ -329,3 +329,89 @@ def get_task_mediation_resolved_template(user_name: str, task_title: str, decisi
         </p>
     """
     return get_base_template(content)
+
+
+def get_affiliate_commission_earned_template(
+    affiliate_name: str,
+    referred_user_name: str,
+    plan_name: str,
+    commission_amount: float
+) -> str:
+    """
+    Email sent to the AFFILIATE (referrer) when their referral successfully subscribes.
+    """
+    content = f"""
+        <div style="background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: center; border: 1px solid #bbf7d0;">
+            <span style="color: #15803d; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">🎉 Commission Earned!</span>
+        </div>
+        <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">You just earned a commission, {affiliate_name}!</h2>
+        <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 32px 0;">
+            Great news! Your referral <strong>{referred_user_name}</strong> has just upgraded to the
+            <strong>{plan_name}</strong> plan on GoAuct. Your 20% commission has been credited to your affiliate balance.
+        </p>
+        <div style="background-color: #f8fafc; border-radius: 16px; padding: 24px; margin-bottom: 32px; border: 1px solid #e2e8f0;">
+            <table width="100%" border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                    <td style="padding: 8px 0; color: #64748b; font-size: 14px;">Referred User</td>
+                    <td style="padding: 8px 0; text-align: right; color: #0f172a; font-weight: 700; font-size: 14px;">{referred_user_name}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0;">Plan Subscribed</td>
+                    <td style="padding: 8px 0; text-align: right; color: #0f172a; font-weight: 700; font-size: 14px; border-top: 1px solid #e2e8f0;">{plan_name}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 12px 0 8px 0; color: #64748b; font-size: 14px; border-top: 1px solid #e2e8f0;">Commission (20%)</td>
+                    <td style="padding: 12px 0 8px 0; text-align: right; color: #16a34a; font-weight: 800; font-size: 20px; border-top: 1px solid #e2e8f0;">${commission_amount:.2f}</td>
+                </tr>
+            </table>
+        </div>
+        <p style="color: #64748b; font-size: 14px; line-height: 20px; margin: 0 0 32px 0;">
+            Your commission will be available for withdrawal in your Affiliate Dashboard. Keep sharing your referral link to earn more!
+        </p>
+        <div style="text-align: center;">
+            <a href="{settings.FRONTEND_URL}/#/client/affiliate" style="display: inline-block; background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); color: #ffffff; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(22, 163, 74, 0.3);">
+                View Affiliate Dashboard
+            </a>
+        </div>
+    """
+    return get_base_template(content)
+
+
+def get_referral_welcome_template(
+    user_name: str,
+    affiliate_name: str,
+    plan_name: str
+) -> str:
+    """
+    Email sent to the NEW USER (referred person) confirming their subscription
+    and thanking them for using an affiliate code.
+    """
+    content = f"""
+        <div style="background: linear-gradient(135deg, #eff6ff, #f0fdfa); border-radius: 16px; padding: 20px; margin-bottom: 24px; text-align: center; border: 1px solid #bfdbfe;">
+            <span style="color: #1d4ed8; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">🚀 Subscription Activated</span>
+        </div>
+        <h2 style="color: #0f172a; margin: 0 0 16px 0; font-size: 24px; font-weight: 700;">Welcome to GoAuct {plan_name}, {user_name}!</h2>
+        <p style="color: #64748b; font-size: 16px; line-height: 24px; margin: 0 0 24px 0;">
+            Your <strong>{plan_name}</strong> plan is now active and all features have been unlocked. You're all set to start discovering the best real estate auction opportunities.
+        </p>
+        <div style="background-color: #f0fdf4; border-left: 4px solid #16a34a; padding: 16px 20px; border-radius: 8px; margin-bottom: 32px;">
+            <p style="color: #15803d; font-size: 14px; margin: 0; line-height: 20px;">
+                ✅ You were referred by <strong>{affiliate_name}</strong>. By using their code, you helped support a fellow member of the GoAuct community!
+            </p>
+        </div>
+        <div style="background-color: #f8fafc; border-radius: 16px; padding: 24px; margin-bottom: 32px; border: 1px solid #e2e8f0;">
+            <h3 style="color: #0f172a; margin: 0 0 12px 0; font-size: 16px; font-weight: 700;">What's now unlocked for you:</h3>
+            <ul style="color: #64748b; font-size: 14px; line-height: 24px; margin: 0; padding-left: 20px;">
+                <li style="margin-bottom: 6px;">Full access to auction intelligence tools</li>
+                <li style="margin-bottom: 6px;">Unlimited property detail views (per your plan)</li>
+                <li style="margin-bottom: 6px;">Due diligence task management</li>
+                <li>Community groups and collaboration features</li>
+            </ul>
+        </div>
+        <div style="text-align: center;">
+            <a href="{settings.FRONTEND_URL}/#/dashboard" style="display: inline-block; background-color: #0A84FF; color: #ffffff; padding: 16px 32px; border-radius: 12px; font-weight: 700; text-decoration: none; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(10, 132, 255, 0.2);">
+                Go to My Dashboard
+            </a>
+        </div>
+    """
+    return get_base_template(content)

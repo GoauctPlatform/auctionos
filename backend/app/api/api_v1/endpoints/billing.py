@@ -10,7 +10,11 @@ from app.models.monetization import UserSubscription
 from app.services.permission_service import PermissionService, PLAN_LIMITS
 from app.core.config import settings
 from app.core.email import send_email
-from app.core.email_templates import get_plan_upgrade_template
+from app.core.email_templates import (
+    get_plan_upgrade_template,
+    get_affiliate_commission_earned_template,
+    get_referral_welcome_template,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -157,6 +161,37 @@ def _activate_subscription(
             db.add(audit)
             
             db.commit()
+
+            # ── Notify both parties via email ────────────────────────────────
+            if background_tasks and affiliate:
+                affiliate_user = db.query(User).filter(User.id == affiliate.user_id).first()
+                if affiliate_user:
+                    # 1. Email to the AFFILIATE — "You earned a commission!"
+                    affiliate_email_body = get_affiliate_commission_earned_template(
+                        affiliate_name=affiliate_user.full_name or affiliate_user.email,
+                        referred_user_name=user.full_name or user.email,
+                        plan_name=plan.capitalize(),
+                        commission_amount=commission
+                    )
+                    background_tasks.add_task(
+                        send_email,
+                        subject=f"🎉 Commission Earned: ${commission:.2f} from a new {plan.capitalize()} subscriber!",
+                        recipients=[affiliate_user.email],
+                        body=affiliate_email_body
+                    )
+
+                # 2. Email to the REFERRED USER — "Welcome, activated via referral"
+                referral_email_body = get_referral_welcome_template(
+                    user_name=user.full_name or user.email,
+                    affiliate_name=affiliate_user.full_name if affiliate_user else "a GoAuct member",
+                    plan_name=plan.capitalize()
+                )
+                background_tasks.add_task(
+                    send_email,
+                    subject=f"🚀 Your GoAuct {plan.capitalize()} plan is now active!",
+                    recipients=[user.email],
+                    body=referral_email_body
+                )
             
         # Log Founder plan if applicable
         if plan == "founder":
