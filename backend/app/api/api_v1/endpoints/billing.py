@@ -48,14 +48,14 @@ PLAN_PRICES_USD_CENTS_ANNUAL = {
     "advanced": 59880,    # 49.90 * 12
     "pro": 107880,        # 89.90 * 12
     "enterprise": 310800, # 259.00 * 12
-    "founder": 43080,     # 35.90 * 12
+    "founder": 47880,     # 39.90 * 12
 }
 
 PLAN_PRICES_USD_CENTS_MONTHLY = {
     "advanced": 6990,     # 69.90
     "pro": 12990,         # 129.90
     "enterprise": 34990,  # 349.90
-    "founder": 4990,      # 49.90
+    "founder": 3990,      # 39.90
 }
 
 PLAN_DISPLAY_PRICES = {
@@ -132,7 +132,7 @@ def _activate_subscription(
                     "advanced": 69.90,
                     "pro": 129.90,
                     "enterprise": 349.90,
-                    "founder": 49.90
+                    "founder": 39.90
                 }
                 base_price = plan_prices.get(plan, 0.0)
                 
