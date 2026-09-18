@@ -267,7 +267,7 @@ const BillingPage: React.FC = () => {
         </div>
 
         {/* Upgrade Cards */}
-        <div id="tour-billing-plans" className="space-y-5">
+        <div id="tour-billing-plans" className="space-y-4">
           <div className="flex justify-center items-center gap-4 mb-6 mt-2">
             <span className={`text-sm font-medium ${!annual ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>{t('BillingPage.monthly')}</span>
             <button 
@@ -284,8 +284,8 @@ const BillingPage: React.FC = () => {
           </div>
 
           {/* Affiliate Code Input */}
-          <div className="mb-8 p-[1px] bg-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-500/20 dark:to-purple-500/20 rounded-2xl shadow-sm">
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl flex flex-col sm:flex-row items-center gap-4 justify-between">
+          <div className="mb-5 p-[1px] bg-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-500/20 dark:to-purple-500/20 rounded-2xl shadow-sm">
+            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl flex flex-col sm:flex-row items-center gap-4 justify-between">
               <div className="flex items-center gap-4 w-full sm:w-auto">
                 <div className="size-10 shrink-0 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
                   <span className="material-symbols-outlined text-[20px]">{t('BillingPage.handshake')}</span>
@@ -303,14 +303,52 @@ const BillingPage: React.FC = () => {
                   value={affiliateCode}
                   onChange={e => setAffiliateCode(e.target.value)}
                   placeholder="Enter code"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-900 focus:border-transparent outline-none transition-all uppercase tracking-wide placeholder:font-normal placeholder:tracking-normal"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-900 focus:border-transparent outline-none transition-all uppercase tracking-wide placeholder:font-normal placeholder:tracking-normal"
                 />
               </div>
             </div>
           </div>
 
+          {/* Founder Plan (Only visible via affiliate code) */}
+          {affiliateCode.trim() !== '' && (
+            <div className={`relative p-5 rounded-2xl border-2 transition-all ${isFounder
+              ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 shadow-lg shadow-yellow-100 dark:shadow-none'
+              : 'border-yellow-400/50 bg-white dark:bg-slate-900 shadow-sm'
+              }`}>
+              {isFounder && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                  CURRENT PLAN</div>
+              )}
+              <div className="flex justify-between items-start mb-3">
+                <div>
+                  <h3 className="text-lg font-bold text-yellow-600 dark:text-yellow-500 flex items-center gap-1.5"><Star size={16} className="fill-yellow-500 text-yellow-500" /> Founder Exclusive</h3>
+                  <p className="text-[11px] text-slate-400 mt-0.5">Special partner rate for first 200 users</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$29.90" : "$39.90"}</span>
+                  <span className="text-xs text-slate-400">{t('BillingPage.Mo')}</span>
+                </div>
+              </div>
+              <ul className="space-y-2 mb-4 text-sm">
+                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Full platform access</li>
+                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Locked-in lifetime rate</li>
+              </ul>
+              <button
+                onClick={() => handleUpgrade('founder')}
+                disabled={isFounder || upgradeLoading !== null}
+                className="w-full py-2 bg-yellow-500 text-white rounded-xl font-bold text-sm hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5"
+              >
+                {upgradeLoading === 'founder' ? (
+                  <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
+                ) : isFounder ? 'Current Plan' : (
+                  <>Subscribe to Founder Plan</>
+                )}
+              </button>
+            </div>
+          )}
+
           {/* Advanced Plan */}
-          <div className={`relative p-6 rounded-2xl border-2 transition-all ${isAdvanced
+          <div className={`relative p-5 rounded-2xl border-2 transition-all ${isAdvanced
             ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 shadow-lg shadow-emerald-100 dark:shadow-none'
             : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
             }`}>
@@ -320,7 +358,7 @@ const BillingPage: React.FC = () => {
             )}
             <div className="absolute -top-3 right-4 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
               {t('BillingPage.pROMOSAVE33')}</div>
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex justify-between items-start mb-3">
               <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.advanced')}</h3>
                 <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.individualPowerPlan')}</p>
@@ -331,7 +369,7 @@ const BillingPage: React.FC = () => {
                 <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
               </div>
             </div>
-            <ul className="space-y-2.5 mb-6 text-sm">
+            <ul className="space-y-2 mb-4 text-sm">
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.1000PropertyDetailsV')}</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.1Company0Managers0Ag')}</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
@@ -340,7 +378,7 @@ const BillingPage: React.FC = () => {
             <button
               onClick={() => handleUpgrade('advanced')}
               disabled={isAdvanced || isPro || isEnterprise || upgradeLoading !== null}
-              className="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full py-2 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {upgradeLoading === 'advanced' ? (
                 <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
@@ -351,7 +389,7 @@ const BillingPage: React.FC = () => {
           </div>
 
           {/* Pro Plan */}
-          <div className={`relative p-6 rounded-2xl border-2 transition-all ${isPro
+          <div className={`relative p-5 rounded-2xl border-2 transition-all ${isPro
             ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20 shadow-lg shadow-blue-100 dark:shadow-none'
             : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
             }`}>
@@ -359,7 +397,7 @@ const BillingPage: React.FC = () => {
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
                 {t('BillingPage.cURRENTPLAN')}</div>
             )}
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex justify-between items-start mb-3">
               <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.pro')}</h3>
                 <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.forGrowingTeams')}</p>
@@ -369,7 +407,7 @@ const BillingPage: React.FC = () => {
                 <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
               </div>
             </div>
-            <ul className="space-y-2.5 mb-6 text-sm">
+            <ul className="space-y-2 mb-4 text-sm">
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.2000PropertyDetailsV')}</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.2Companies1Manager1A')}</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
@@ -378,7 +416,7 @@ const BillingPage: React.FC = () => {
             <button
               onClick={() => handleUpgrade('pro')}
               disabled={isPro || isEnterprise || upgradeLoading !== null}
-              className="w-full py-2.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {upgradeLoading === 'pro' ? (
                 <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
@@ -389,7 +427,7 @@ const BillingPage: React.FC = () => {
           </div>
 
           {/* Enterprise Plan */}
-          <div className={`relative p-6 rounded-2xl border-2 transition-all ${isEnterprise
+          <div className={`relative p-5 rounded-2xl border-2 transition-all ${isEnterprise
             ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20 shadow-lg shadow-purple-100 dark:shadow-none'
             : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
             }`}>
@@ -400,7 +438,7 @@ const BillingPage: React.FC = () => {
             <div className="absolute top-4 right-4">
               <Star size={14} className="text-yellow-400 fill-yellow-400" />
             </div>
-            <div className="flex justify-between items-start mb-4">
+            <div className="flex justify-between items-start mb-3">
               <div>
                 <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.enterprise')}</h3>
                 <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.forLargeScaleOperati')}</p>
@@ -410,7 +448,7 @@ const BillingPage: React.FC = () => {
                 <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
               </div>
             </div>
-            <ul className="space-y-2.5 mb-6 text-sm">
+            <ul className="space-y-2 mb-4 text-sm">
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.10000PropertyViews')}</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.4Companies2Managers3')}</li>
               <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
@@ -419,7 +457,7 @@ const BillingPage: React.FC = () => {
             <button
               onClick={() => handleUpgrade('enterprise')}
               disabled={isEnterprise || upgradeLoading !== null}
-              className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+              className="w-full py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
             >
               {upgradeLoading === 'enterprise' ? (
                 <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
@@ -428,43 +466,7 @@ const BillingPage: React.FC = () => {
               )}
             </button>
           </div>
-          {/* Founder Plan (Only visible via affiliate code) */}
-          {affiliateCode.trim() !== '' && (
-            <div className={`relative p-6 rounded-2xl border-2 transition-all ${isFounder
-              ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 shadow-lg shadow-yellow-100 dark:shadow-none'
-              : 'border-yellow-400/50 bg-white dark:bg-slate-900'
-              }`}>
-              {isFounder && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                  CURRENT PLAN</div>
-              )}
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <h3 className="text-xl font-bold text-yellow-600 dark:text-yellow-500">Founder Exclusive</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Special partner rate for first 200 users</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$35.90" : "$49.90"}</span>
-                  <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
-                </div>
-              </div>
-              <ul className="space-y-2.5 mb-6 text-sm">
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Full platform access</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Locked-in lifetime rate</li>
-              </ul>
-              <button
-                onClick={() => handleUpgrade('founder')}
-                disabled={isFounder || upgradeLoading !== null}
-                className="w-full py-2.5 bg-yellow-500 text-white rounded-xl font-semibold hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-              >
-                {upgradeLoading === 'founder' ? (
-                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
-                ) : isFounder ? 'Current Plan' : (
-                  <><Star size={14} /> Subscribe to Founder Plan</>
-                )}
-              </button>
-            </div>
-          )}
+
 
           {/* Stripe Badge */}
           <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
