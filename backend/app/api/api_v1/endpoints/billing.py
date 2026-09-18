@@ -48,7 +48,7 @@ PLAN_PRICES_USD_CENTS_ANNUAL = {
     "advanced": 59880,    # 49.90 * 12
     "pro": 107880,        # 89.90 * 12
     "enterprise": 310800, # 259.00 * 12
-    "founder": 47880,     # 39.90 * 12
+    "founder": 35880,     # 29.90 * 12
 }
 
 PLAN_PRICES_USD_CENTS_MONTHLY = {
@@ -217,6 +217,25 @@ def _activate_subscription(
 # Endpoints
 # ─────────────────────────────────────────────────────────────────────────────
 
+@router.get("/validate-affiliate/{code}")
+def validate_affiliate(
+    code: str,
+    db: Session = Depends(deps.get_db)
+) -> Any:
+    """Validate if an affiliate code exists and is active."""
+    from app.models.affiliate import AffiliateProfile, AffiliateStatus
+    from app.models.user import User
+    affiliate = db.query(AffiliateProfile).filter(
+        AffiliateProfile.affiliate_code == code,
+        AffiliateProfile.status == AffiliateStatus.APPROVED
+    ).first()
+    
+    if not affiliate:
+        return {"valid": False, "message": "Invalid or inactive affiliate code."}
+    
+    user = db.query(User).filter(User.id == affiliate.user_id).first()
+    return {"valid": True, "affiliate_name": user.full_name if user and user.full_name else "Partner"}
+
 @router.get("/usage")
 def get_current_usage(
     db: Session = Depends(deps.get_db),
@@ -265,9 +284,17 @@ def create_checkout_session(
     if plan not in ["advanced", "pro", "enterprise", "founder"]:
         raise HTTPException(status_code=400, detail="Invalid plan selected.")
 
+    affiliate = None
+    if affiliate_code:
+        from app.models.affiliate import AffiliateProfile, AffiliateReferral, AffiliateStatus, ReferralStatus
+        affiliate = db.query(AffiliateProfile).filter(
+            AffiliateProfile.affiliate_code == affiliate_code,
+            AffiliateProfile.status == AffiliateStatus.APPROVED
+        ).first()
+
     if plan == "founder":
-        if not affiliate_code:
-            raise HTTPException(status_code=403, detail="Founder plan requires a valid affiliate code.")
+        if not affiliate_code or not affiliate:
+            raise HTTPException(status_code=403, detail="Founder plan requires a valid active affiliate code.")
         
         founder_count = db.query(UserSubscription).filter(UserSubscription.plan_type == "founder").count()
         if founder_count >= 200:
@@ -276,23 +303,18 @@ def create_checkout_session(
     if current_user.role != "client":
         raise HTTPException(status_code=403, detail="Only account owners can manage subscriptions.")
 
-    if affiliate_code:
-        from app.models.affiliate import AffiliateProfile, AffiliateReferral, AffiliateStatus, ReferralStatus
-        affiliate = db.query(AffiliateProfile).filter(
-            AffiliateProfile.affiliate_code == affiliate_code,
-            AffiliateProfile.status == AffiliateStatus.APPROVED
-        ).first()
-        if affiliate and affiliate.user_id != current_user.id:
-            # Check if referral already exists
-            existing_ref = db.query(AffiliateReferral).filter(AffiliateReferral.referred_user_id == current_user.id).first()
-            if not existing_ref:
-                new_ref = AffiliateReferral(
-                    affiliate_id=affiliate.id,
-                    referred_user_id=current_user.id,
-                    status=ReferralStatus.REGISTERED
-                )
-                db.add(new_ref)
-                db.commit()
+    if affiliate and affiliate.user_id != current_user.id:
+        from app.models.affiliate import AffiliateReferral, ReferralStatus
+        # Check if referral already exists
+        existing_ref = db.query(AffiliateReferral).filter(AffiliateReferral.referred_user_id == current_user.id).first()
+        if not existing_ref:
+            new_ref = AffiliateReferral(
+                affiliate_id=affiliate.id,
+                referred_user_id=current_user.id,
+                status=ReferralStatus.REGISTERED
+            )
+            db.add(new_ref)
+            db.commit()
 
     # ── REAL STRIPE FLOW ──────────────────────────────────────────────────────
     if settings.STRIPE_SECRET_KEY:
@@ -510,7 +532,7 @@ async def mock_stripe_webhook_success(
     DEVELOPMENT ONLY – Simulates a successful Stripe payment without going through checkout.
     Used for local testing. Safe to keep in production (only activates authenticated user's plan).
     """
-    if plan not in ["advanced", "pro", "enterprise"]:
+    if plan not in ["advanced", "pro", "enterprise", "founder"]:
         raise HTTPException(status_code=400, detail="Invalid plan selected.")
     _activate_subscription(db, current_user, plan, background_tasks)
     return {"status": "success", "message": f"✅ Upgraded to {plan.upper()} (mock)!"}

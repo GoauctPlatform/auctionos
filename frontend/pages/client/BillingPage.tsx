@@ -35,6 +35,9 @@ const BillingPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [annual, setAnnual] = useState(true);
   const [affiliateCode, setAffiliateCode] = useState(() => localStorage.getItem('goauct_affiliate_code') || '');
+  const [affiliateValid, setAffiliateValid] = useState<boolean | null>(null);
+  const [affiliateName, setAffiliateName] = useState<string | null>(null);
+  const [validatingCode, setValidatingCode] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -88,6 +91,37 @@ const BillingPage: React.FC = () => {
   useEffect(() => {
     fetchUsage();
   }, [fetchUsage]);
+
+  // Validate affiliate code debounce
+  useEffect(() => {
+    const code = affiliateCode.trim();
+    if (!code) {
+      setAffiliateValid(null);
+      setAffiliateName(null);
+      return;
+    }
+
+    setValidatingCode(true);
+    const timeoutId = setTimeout(async () => {
+      try {
+        const res = await api.get(`/billing/validate-affiliate/${code}`);
+        if (res.data.valid) {
+          setAffiliateValid(true);
+          setAffiliateName(res.data.affiliate_name);
+        } else {
+          setAffiliateValid(false);
+          setAffiliateName(null);
+        }
+      } catch (err) {
+        setAffiliateValid(false);
+        setAffiliateName(null);
+      } finally {
+        setValidatingCode(false);
+      }
+    }, 600);
+
+    return () => clearTimeout(timeoutId);
+  }, [affiliateCode]);
 
   // Handle back button/navigation away from billing page while expired
   useEffect(() => {
@@ -304,10 +338,28 @@ const BillingPage: React.FC = () => {
                     value={affiliateCode}
                     onChange={e => setAffiliateCode(e.target.value)}
                     placeholder="Enter code"
-                    className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-900 focus:border-transparent outline-none transition-all uppercase tracking-wide placeholder:font-normal placeholder:tracking-normal"
+                    className={`w-full pl-10 pr-10 py-2 bg-slate-50 dark:bg-slate-800/50 border rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:ring-2 focus:bg-white dark:focus:bg-slate-900 outline-none transition-all uppercase tracking-wide placeholder:font-normal placeholder:tracking-normal ${affiliateValid === false ? 'border-red-400 focus:ring-red-500 focus:border-transparent' : affiliateValid === true ? 'border-green-400 focus:ring-green-500 focus:border-transparent' : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-transparent'}`}
                   />
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center">
+                    {validatingCode && <div className="w-4 h-4 border-2 border-slate-300 border-t-blue-500 rounded-full animate-spin" />}
+                    {!validatingCode && affiliateValid === true && <span className="material-symbols-outlined text-green-500 text-[18px]">check_circle</span>}
+                    {!validatingCode && affiliateValid === false && <span className="material-symbols-outlined text-red-500 text-[18px]">cancel</span>}
+                  </div>
                 </div>
               </div>
+              
+              {/* Validation Messages under input box */}
+              {affiliateValid === false && !validatingCode && (
+                <div className="mt-2 text-xs text-red-500 text-right w-full font-medium">
+                  Invalid or expired partner code.
+                </div>
+              )}
+              {affiliateValid === true && !validatingCode && affiliateName && (
+                <div className="mt-2 text-xs text-green-600 dark:text-green-400 text-right w-full font-medium flex items-center justify-end gap-1">
+                  <span className="material-symbols-outlined text-[14px]">volunteer_activism</span>
+                  Supporting {affiliateName}
+                </div>
+              )}
             </div>
           )}
 
@@ -322,9 +374,9 @@ const BillingPage: React.FC = () => {
             </div>
           )}
 
-          <div className={`grid grid-cols-1 md:grid-cols-2 ${annual && affiliateCode.trim() !== '' ? 'xl:grid-cols-4 lg:grid-cols-2' : 'lg:grid-cols-3'} gap-6 w-full`}>
+          <div className={`grid grid-cols-1 md:grid-cols-2 ${annual && affiliateValid === true ? 'xl:grid-cols-4 lg:grid-cols-2' : 'lg:grid-cols-3'} gap-6 w-full`}>
             {/* Founder Plan */}
-            {affiliateCode.trim() !== '' && annual && (
+            {affiliateValid === true && annual && (
               <div className={`relative h-full flex flex-col p-5 rounded-2xl border-2 transition-all ${isFounder
                 ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 shadow-lg shadow-yellow-100 dark:shadow-none'
                 : 'border-yellow-400/50 bg-white dark:bg-slate-900 shadow-sm'
