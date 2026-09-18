@@ -336,8 +336,23 @@ const BillingPage: React.FC = () => {
                   <input 
                     type="text" 
                     value={affiliateCode}
-                    onChange={e => setAffiliateCode(e.target.value)}
-                    placeholder="Enter code"
+                    onChange={e => {
+                      let val = e.target.value;
+                      if (val.includes('ref=')) {
+                        try {
+                          if (val.includes('http')) {
+                            const url = new URL(val);
+                            val = url.searchParams.get('ref') || val;
+                          } else {
+                            val = val.split('ref=')[1].split('&')[0];
+                          }
+                        } catch(err) {}
+                      }
+                      // Remove any spaces or trailing slashes that might get pasted
+                      val = val.replace(/[^a-zA-Z0-9-]/g, '').toUpperCase();
+                      setAffiliateCode(val);
+                    }}
+                    placeholder="Enter code or paste link"
                     className={`w-full pl-10 pr-10 py-2 bg-slate-50 dark:bg-slate-800/50 border rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:ring-2 focus:bg-white dark:focus:bg-slate-900 outline-none transition-all uppercase tracking-wide placeholder:font-normal placeholder:tracking-normal ${affiliateValid === false ? 'border-red-400 focus:ring-red-500 focus:border-transparent' : affiliateValid === true ? 'border-green-400 focus:ring-green-500 focus:border-transparent' : 'border-slate-200 dark:border-slate-700 focus:ring-blue-500 focus:border-transparent'}`}
                   />
                   <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center">
