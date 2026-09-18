@@ -48,7 +48,7 @@ PLAN_PRICES_USD_CENTS_ANNUAL = {
     "advanced": 59880,    # 49.90 * 12
     "pro": 107880,        # 89.90 * 12
     "enterprise": 310800, # 259.00 * 12
-    "founder": 35880,     # 29.90 * 12
+    "founder": 47880,     # 39.90 * 12
 }
 
 PLAN_PRICES_USD_CENTS_MONTHLY = {
