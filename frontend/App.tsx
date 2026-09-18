@@ -82,7 +82,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles?: strin
   // Trial Expiration Check:
   // If trial_expired flag is set, only allow access to expired and billing pages.
   // This prevents users from accessing the workbench and other protected features.
-  if (AuthService.isTrialExpired()) {
+  if (AuthService.isTrialExpired() && ['client', 'manager', 'agent'].includes(user.role)) {
     const allowedExpiredPaths = ['/client/expired', '/client/billing'];
     const isAllowedPath = allowedExpiredPaths.some(p => location.pathname.includes(p));
     

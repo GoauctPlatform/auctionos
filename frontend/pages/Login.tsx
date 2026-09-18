@@ -79,8 +79,10 @@ export const Login: React.FC = () => {
       }
       navigate('/client');
     } else if (user.role === 'realtor') {
+      localStorage.removeItem('trial_expired');
       navigate('/realtor');
     } else {
+      localStorage.removeItem('trial_expired');
       navigate('/dashboard');
     }
   };
