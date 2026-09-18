@@ -340,12 +340,7 @@ const BillingPage: React.FC = () => {
                       let val = e.target.value;
                       if (val.includes('ref=')) {
                         try {
-                          if (val.includes('http')) {
-                            const url = new URL(val);
-                            val = url.searchParams.get('ref') || val;
-                          } else {
-                            val = val.split('ref=')[1].split('&')[0];
-                          }
+                          val = val.split('ref=')[1].split('&')[0].split('#')[0];
                         } catch(err) {}
                       }
                       // Remove any spaces or trailing slashes that might get pasted
