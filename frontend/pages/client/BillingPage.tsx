@@ -235,10 +235,10 @@ const BillingPage: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div>
 
         {/* Usage Section */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="mb-12 max-w-5xl mx-auto space-y-6">
           <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
             <h2 className="text-xl font-bold mb-6 flex items-center gap-2 text-slate-800 dark:text-white">
               <HardDrive className="text-blue-500" size={20} />
@@ -267,7 +267,7 @@ const BillingPage: React.FC = () => {
         </div>
 
         {/* Upgrade Cards */}
-        <div id="tour-billing-plans" className="space-y-4">
+        <div id="tour-billing-plans" className="max-w-6xl mx-auto">
           <div className="flex justify-center items-center gap-4 mb-6 mt-2">
             <span className={`text-sm font-medium ${!annual ? 'text-slate-800 dark:text-white' : 'text-slate-400'}`}>{t('BillingPage.monthly')}</span>
             <button 
@@ -284,204 +284,211 @@ const BillingPage: React.FC = () => {
           </div>
 
           {/* Affiliate Code Input */}
-          <div className="mb-5 p-[1px] bg-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-500/20 dark:to-purple-500/20 rounded-2xl shadow-sm">
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl flex flex-col sm:flex-row items-center gap-4 justify-between">
-              <div className="flex items-center gap-4 w-full sm:w-auto">
-                <div className="size-10 shrink-0 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
-                  <span className="material-symbols-outlined text-[20px]">{t('BillingPage.handshake')}</span>
+          {annual && (
+            <div className="mb-8 max-w-2xl mx-auto p-[1px] bg-gradient-to-r from-blue-200 to-purple-200 dark:from-blue-500/20 dark:to-purple-500/20 rounded-2xl shadow-sm">
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl flex flex-col sm:flex-row items-center gap-4 justify-between">
+                <div className="flex items-center gap-4 w-full sm:w-auto">
+                  <div className="size-10 shrink-0 rounded-full bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-100 dark:border-blue-800/30 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                    <span className="material-symbols-outlined text-[20px]">{t('BillingPage.handshake')}</span>
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white text-sm">{t('BillingPage.haveAPartnerCode')}</h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t('BillingPage.supportThePartnerWho')}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 dark:text-white text-sm">{t('BillingPage.haveAPartnerCode')}</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{t('BillingPage.supportThePartnerWho')}</p>
+                
+                <div className="w-full sm:w-72 relative group mt-2 sm:mt-0">
+                  <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors text-[18px]">{t('BillingPage.sell')}</span>
+                  <input 
+                    type="text" 
+                    value={affiliateCode}
+                    onChange={e => setAffiliateCode(e.target.value)}
+                    placeholder="Enter code"
+                    className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-900 focus:border-transparent outline-none transition-all uppercase tracking-wide placeholder:font-normal placeholder:tracking-normal"
+                  />
                 </div>
-              </div>
-              
-              <div className="w-full sm:w-72 relative group mt-2 sm:mt-0">
-                <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors text-[18px]">{t('BillingPage.sell')}</span>
-                <input 
-                  type="text" 
-                  value={affiliateCode}
-                  onChange={e => setAffiliateCode(e.target.value)}
-                  placeholder="Enter code"
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-blue-500 focus:bg-white dark:focus:bg-slate-900 focus:border-transparent outline-none transition-all uppercase tracking-wide placeholder:font-normal placeholder:tracking-normal"
-                />
               </div>
             </div>
-          </div>
-
-          {/* Founder Plan (Only visible via affiliate code) */}
-          {affiliateCode.trim() !== '' && !annual && (
-            <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 text-blue-700 dark:text-blue-300 text-sm flex items-start gap-3">
-              <span className="material-symbols-outlined mt-0.5">info</span>
-              <div>
-                <strong className="block mb-1">Partner code detected</strong>
-                Partner codes and exclusive plans are only valid for Annual billing. Please toggle to 'Annually' above to unlock them.
-              </div>
-            </div>
-          )}
-
-          {/* Founder Plan (Only visible via affiliate code AND annual) */}
-          {affiliateCode.trim() !== '' && annual && (
-            <div className={`relative p-5 rounded-2xl border-2 transition-all ${isFounder
-              ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 shadow-lg shadow-yellow-100 dark:shadow-none'
-              : 'border-yellow-400/50 bg-white dark:bg-slate-900 shadow-sm'
-              }`}>
-              {isFounder && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
-                  CURRENT PLAN</div>
-              )}
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="text-lg font-bold text-yellow-600 dark:text-yellow-500 flex items-center gap-1.5"><Star size={16} className="fill-yellow-500 text-yellow-500" /> Founder Exclusive</h3>
-                  <p className="text-[11px] text-slate-400 mt-0.5">Special partner rate for first 200 users</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-2xl font-black text-slate-800 dark:text-white">"$39.90"</span>
-                  <span className="text-xs text-slate-400">{t('BillingPage.Mo')}</span>
-                </div>
-              </div>
-              <ul className="space-y-2 mb-4 text-sm">
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Full platform access</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Locked-in lifetime rate</li>
-              </ul>
-              <button
-                onClick={() => handleUpgrade('founder')}
-                disabled={isFounder || upgradeLoading !== null}
-                className="w-full py-2 bg-yellow-500 text-white rounded-xl font-bold text-sm hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5"
-              >
-                {upgradeLoading === 'founder' ? (
-                  <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
-                ) : isFounder ? 'Current Plan' : (
-                  <>Subscribe to Founder Plan</>
-                )}
-              </button>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-          {/* Advanced Plan */}
-            <div className={`relative p-5 rounded-2xl border-2 transition-all ${isAdvanced
-              ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 shadow-lg shadow-emerald-100 dark:shadow-none'
-              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
-              }`}>
-              {isAdvanced && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                  {t('BillingPage.cURRENTPLAN')}</div>
-              )}
-              <div className="absolute -top-3 right-4 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
-                {t('BillingPage.pROMOSAVE33')}</div>
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.advanced')}</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.individualPowerPlan')}</p>
-                </div>
-                <div className="text-right">
-                  <div className="text-xs text-slate-400 line-through">{annual ? "$90" : "$110"}</div>
-                  <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$49.90" : "$69.90"}</span>
-                  <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
-                </div>
-              </div>
-              <ul className="space-y-2 mb-4 text-sm">
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.1000PropertyDetailsV')}</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.1Company0Managers0Ag')}</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.calendarAuctionsTask')}</li>
-              </ul>
-              <button
-                onClick={() => handleUpgrade('advanced')}
-                disabled={isAdvanced || isPro || isEnterprise || upgradeLoading !== null}
-                className="w-full py-2 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-              >
-                {upgradeLoading === 'advanced' ? (
-                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
-                ) : isAdvanced ? 'Current Plan' : isPro || isEnterprise ? 'Lower Plan' : (
-                  <><Lock size={14} /> {t('BillingPage.subscribeToAdvanced')}</>
-                )}
-              </button>
-            </div>
-  
-            {/* Pro Plan */}
-            <div className={`relative p-5 rounded-2xl border-2 transition-all ${isPro
-              ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20 shadow-lg shadow-blue-100 dark:shadow-none'
-              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
-              }`}>
-              {isPro && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                  {t('BillingPage.cURRENTPLAN')}</div>
-              )}
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.pro')}</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.forGrowingTeams')}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$89.90" : "$129.90"}</span>
-                  <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
-                </div>
-              </div>
-              <ul className="space-y-2 mb-4 text-sm">
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.2000PropertyDetailsV')}</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.2Companies1Manager1A')}</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.communityAccessDueDi')}</li>
-              </ul>
-              <button
-                onClick={() => handleUpgrade('pro')}
-                disabled={isPro || isEnterprise || upgradeLoading !== null}
-                className="w-full py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-              >
-                {upgradeLoading === 'pro' ? (
-                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
-                ) : isPro ? 'Current Plan' : isEnterprise ? 'Lower Plan' : (
-                  <><Lock size={14} /> {t('BillingPage.subscribeToPro')}</>
-                )}
-              </button>
-            </div>
-  
-            {/* Enterprise Plan */}
-            <div className={`relative p-5 rounded-2xl border-2 transition-all ${isEnterprise
-              ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20 shadow-lg shadow-purple-100 dark:shadow-none'
-              : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
-              }`}>
-              {isEnterprise && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
-                  {t('BillingPage.cURRENTPLAN')}</div>
-              )}
-              <div className="absolute top-4 right-4">
-                <Star size={14} className="text-yellow-400 fill-yellow-400" />
-              </div>
-              <div className="flex justify-between items-start mb-3">
-                <div>
-                  <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.enterprise')}</h3>
-                  <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.forLargeScaleOperati')}</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$259.00" : "$349.90"}</span>
-                  <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
-                </div>
-              </div>
-              <ul className="space-y-2 mb-4 text-sm">
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.10000PropertyViews')}</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.4Companies2Managers3')}</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
-                <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.priorityExclusive247')}</li>
-              </ul>
-              <button
-                onClick={() => handleUpgrade('enterprise')}
-                disabled={isEnterprise || upgradeLoading !== null}
-                className="w-full py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
-              >
-                {upgradeLoading === 'enterprise' ? (
-                  <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
-                ) : isEnterprise ? 'Current Plan' : (
-                  <><Zap size={14} /> {t('BillingPage.subscribeToEnterpris')}</>
-                )}
-              </button>
-            </div>
-  
   
             
-          </div>
+          )}
+
+                    <div className={`grid grid-cols-1 md:grid-cols-2 ${annual && affiliateCode.trim() !== '' ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-6`}>
+  {/* Founder Plan (Only visible via affiliate code) */}
+            {affiliateCode.trim() !== '' && !annual && (
+              <div className="p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800/50 text-blue-700 dark:text-blue-300 text-sm flex items-start gap-3">
+                <span className="material-symbols-outlined mt-0.5">info</span>
+                <div>
+                  <strong className="block mb-1">Partner code detected</strong>
+                  Partner codes and exclusive plans are only valid for Annual billing. Please toggle to 'Annually' above to unlock them.
+                </div>
+              </div>
+            )}
+  
+            {/* Founder Plan (Only visible via affiliate code AND annual) */}
+            {affiliateCode.trim() !== '' && annual && (
+              <div className={`relative h-full flex flex-col p-5 rounded-2xl border-2 transition-all ${isFounder
+                ? 'border-yellow-500 bg-yellow-50 dark:bg-yellow-950/20 shadow-lg shadow-yellow-100 dark:shadow-none'
+                : 'border-yellow-400/50 bg-white dark:bg-slate-900 shadow-sm'
+                }`}>
+                {isFounder && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-yellow-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full">
+                    CURRENT PLAN</div>
+                )}
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="text-lg font-bold text-yellow-600 dark:text-yellow-500 flex items-center gap-1.5"><Star size={16} className="fill-yellow-500 text-yellow-500" /> Founder Exclusive</h3>
+                    <p className="text-[11px] text-slate-400 mt-0.5">Special partner rate for first 200 users</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-black text-slate-800 dark:text-white">"$39.90"</span>
+                    <span className="text-xs text-slate-400">{t('BillingPage.Mo')}</span>
+                  </div>
+                </div>
+                <ul className="space-y-2.5 mb-6 text-sm flex-grow">
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Full platform access</li>
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> Locked-in lifetime rate</li>
+                </ul>
+                <button
+                  onClick={() => handleUpgrade('founder')}
+                  disabled={isFounder || upgradeLoading !== null}
+                  className="w-full py-2 bg-yellow-500 text-white rounded-xl font-bold text-sm hover:bg-yellow-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-1.5"
+                >
+                  {upgradeLoading === 'founder' ? (
+                    <><div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
+                  ) : isFounder ? 'Current Plan' : (
+                    <>Subscribe to Founder Plan</>
+                  )}
+                </button>
+              </div>
+            )}
+  
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            {/* Advanced Plan */}
+              <div className={`relative h-full flex flex-col p-5 rounded-2xl border-2 transition-all ${isAdvanced
+                ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/20 shadow-lg shadow-emerald-100 dark:shadow-none'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                }`}>
+                {isAdvanced && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                    {t('BillingPage.cURRENTPLAN')}</div>
+                )}
+                <div className="absolute -top-3 right-4 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full shadow-sm">
+                  {t('BillingPage.pROMOSAVE33')}</div>
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.advanced')}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.individualPowerPlan')}</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xs text-slate-400 line-through">{annual ? "$90" : "$110"}</div>
+                    <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$49.90" : "$69.90"}</span>
+                    <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
+                  </div>
+                </div>
+                <ul className="space-y-2.5 mb-6 text-sm flex-grow">
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.1000PropertyDetailsV')}</li>
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.1Company0Managers0Ag')}</li>
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.calendarAuctionsTask')}</li>
+                </ul>
+                <button
+                  onClick={() => handleUpgrade('advanced')}
+                  disabled={isAdvanced || isPro || isEnterprise || upgradeLoading !== null}
+                  className="w-full py-2 bg-emerald-600 text-white rounded-xl font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                >
+                  {upgradeLoading === 'advanced' ? (
+                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
+                  ) : isAdvanced ? 'Current Plan' : isPro || isEnterprise ? 'Lower Plan' : (
+                    <><Lock size={14} /> {t('BillingPage.subscribeToAdvanced')}</>
+                  )}
+                </button>
+              </div>
+    
+              {/* Pro Plan */}
+              <div className={`relative h-full flex flex-col p-5 rounded-2xl border-2 transition-all ${isPro
+                ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/20 shadow-lg shadow-blue-100 dark:shadow-none'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                }`}>
+                {isPro && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                    {t('BillingPage.cURRENTPLAN')}</div>
+                )}
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.pro')}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.forGrowingTeams')}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$89.90" : "$129.90"}</span>
+                    <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
+                  </div>
+                </div>
+                <ul className="space-y-2.5 mb-6 text-sm flex-grow">
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.2000PropertyDetailsV')}</li>
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.2Companies1Manager1A')}</li>
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.communityAccessDueDi')}</li>
+                </ul>
+                <button
+                  onClick={() => handleUpgrade('pro')}
+                  disabled={isPro || isEnterprise || upgradeLoading !== null}
+                  className="w-full py-2 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                >
+                  {upgradeLoading === 'pro' ? (
+                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
+                  ) : isPro ? 'Current Plan' : isEnterprise ? 'Lower Plan' : (
+                    <><Lock size={14} /> {t('BillingPage.subscribeToPro')}</>
+                  )}
+                </button>
+              </div>
+    
+              {/* Enterprise Plan */}
+              <div className={`relative h-full flex flex-col p-5 rounded-2xl border-2 transition-all ${isEnterprise
+                ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20 shadow-lg shadow-purple-100 dark:shadow-none'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                }`}>
+                {isEnterprise && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
+                    {t('BillingPage.cURRENTPLAN')}</div>
+                )}
+                <div className="absolute top-4 right-4">
+                  <Star size={14} className="text-yellow-400 fill-yellow-400" />
+                </div>
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800 dark:text-white">{t('BillingPage.enterprise')}</h3>
+                    <p className="text-xs text-slate-400 mt-0.5">{t('BillingPage.forLargeScaleOperati')}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-2xl font-black text-slate-800 dark:text-white">{annual ? "$259.00" : "$349.90"}</span>
+                    <span className="text-sm text-slate-400">{t('BillingPage.Mo')}</span>
+                  </div>
+                </div>
+                <ul className="space-y-2.5 mb-6 text-sm flex-grow">
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.10000PropertyViews')}</li>
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.4Companies2Managers3')}</li>
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.unlimitedCustomPrope')}</li>
+                  <li className="flex items-center gap-2 text-slate-600 dark:text-slate-300"><CheckCircle size={14} className="text-green-500 flex-shrink-0" /> {t('BillingPage.priorityExclusive247')}</li>
+                </ul>
+                <button
+                  onClick={() => handleUpgrade('enterprise')}
+                  disabled={isEnterprise || upgradeLoading !== null}
+                  className="w-full py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2"
+                >
+                  {upgradeLoading === 'enterprise' ? (
+                    <><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> {t('BillingPage.processing')}</>
+                  ) : isEnterprise ? 'Current Plan' : (
+                    <><Zap size={14} /> {t('BillingPage.subscribeToEnterpris')}</>
+                  )}
+                </button>
+              </div>
+    
+    
+              
+            </div>
+  
+                      </div>
 
           {/* Stripe Badge */}
           <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
