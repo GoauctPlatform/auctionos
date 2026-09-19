@@ -10,7 +10,7 @@ export const PropertyMap: React.FC<PropertyMapProps> = ({ property }) => {
     const encodedAddress = encodeURIComponent(address);
     // Note: In a production environment, you should use the real Google Maps Embed API key
     // For now, we use the public search embed which works without a key for simple views
-    const mapSyncUrl = `https://www.google.com/maps?q=${encodedAddress}&output=embed`;
+    const mapSyncUrl = `https://maps.google.com/maps?q=${encodedAddress}&t=&z=13&ie=UTF8&iwloc=&output=embed`;
 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 p-4 shadow-sm overflow-hidden h-[300px] flex flex-col">
