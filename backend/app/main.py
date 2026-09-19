@@ -294,7 +294,7 @@ async def log_requests(request: Request, call_next):
         "font-src 'self' fonts.gstatic.com fonts.googleapis.com data:; "
         "img-src 'self' data: blob: https: maps.googleapis.com maps.gstatic.com raw.githubusercontent.com; "
         "connect-src 'self' https: wss:; "
-        "frame-src 'none'; "
+        "frame-src 'self' https://www.google.com https://maps.google.com; "
         "object-src 'none'; "
         "base-uri 'self';"
     )
