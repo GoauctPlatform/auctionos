@@ -220,16 +220,25 @@ export const ExecuteTaskMission: React.FC<ExecuteTaskMissionProps> = ({ task, on
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Maps Iframe */}
                             <div className="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 h-48 bg-slate-100 dark:bg-slate-900 relative">
-                                <iframe
-                                    title="Property Map"
-                                    width="100%"
-                                    height="100%"
-                                    src={`https://maps.google.com/maps?q=${encodeURIComponent(task.address || '')}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
-                                    frameBorder="0"
-                                    scrolling="no"
-                                    marginHeight={0}
-                                    marginWidth={0}
-                                />
+                                {(() => {
+                                    const apiKey = import.meta.env.VITE_GOOGLE_STREET_VIEW_KEY;
+                                    const mapUrl = apiKey 
+                                        ? `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${encodeURIComponent(task.address || '')}`
+                                        : `https://maps.google.com/maps?q=${encodeURIComponent(task.address || '')}&t=&z=16&ie=UTF8&iwloc=&output=embed`;
+                                    
+                                    return (
+                                        <iframe
+                                            title="Property Map"
+                                            width="100%"
+                                            height="100%"
+                                            src={mapUrl}
+                                            frameBorder="0"
+                                            scrolling="no"
+                                            marginHeight={0}
+                                            marginWidth={0}
+                                        />
+                                    );
+                                })()}
                             </div>
 
                             {/* Street View Picture */}
