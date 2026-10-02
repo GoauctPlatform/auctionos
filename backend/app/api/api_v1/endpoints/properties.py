@@ -428,32 +428,31 @@ def read_properties(
                 attom_data: dict = {}
 
                 # Strategy 1: Use explicit address if provided (from the "Not Found" modal)
-                # The user typed the real street address separately from the Parcel ID keyword.
+                # address2 must be state abbreviation ONLY - putting county there causes 400 errors
                 if address and address.strip():
                     addr_params: dict = {"address1": address.strip()}
-                    if county and normalized_state_val:
-                        addr_params["address2"] = f"{county}, {normalized_state_val}"
-                    elif normalized_state_val:
+                    if normalized_state_val:
                         addr_params["address2"] = normalized_state_val
-                    elif county:
-                        addr_params["address2"] = county
                     print(f"[Attom] Strategy 1 - explicit address: {addr_params}")
                     try:
                         attom_data = fetch_attom_data_sync(addr_params)
                     except Exception:
                         attom_data = {}
+                    # If state-specific search fails, try without address2 (Attom resolves automatically)
+                    if not attom_data or "property" not in attom_data or not attom_data.get("property"):
+                        fallback: dict = {"address1": address.strip()}
+                        print(f"[Attom] Strategy 1 fallback - no address2: {fallback}")
+                        try:
+                            attom_data = fetch_attom_data_sync(fallback)
+                        except Exception:
+                            attom_data = {}
 
-                # Strategy 2: If we have state/county context AND keyword looks like an address (has spaces)
-                # (most reliable for addresses — Attom APN lookup requires FIPS code)
-                if (not attom_data or "property" not in attom_data or not attom_data.get("property")) and (state or county) and ' ' in k:
+                # Strategy 2: keyword looks like an address (has spaces) + we have state context
+                if (not attom_data or "property" not in attom_data or not attom_data.get("property")) and ' ' in k:
                     addr_params2: dict = {"address1": k}
-                    if county and normalized_state_val:
-                        addr_params2["address2"] = f"{county}, {normalized_state_val}"
-                    elif normalized_state_val:
+                    if normalized_state_val:
                         addr_params2["address2"] = normalized_state_val
-                    elif county:
-                        addr_params2["address2"] = county
-                    print(f"[Attom] Strategy 2 - keyword-as-address+context: {addr_params2}")
+                    print(f"[Attom] Strategy 2 - keyword-as-address: {addr_params2}")
                     try:
                         attom_data = fetch_attom_data_sync(addr_params2)
                     except Exception:
