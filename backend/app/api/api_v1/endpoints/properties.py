@@ -54,6 +54,7 @@ def read_properties(
     max_acreage: Optional[float] = None,
     owner_location: Optional[str] = None,
     keyword: Optional[str] = None,
+    parcel_id: Optional[str] = None,
     # Explicit street address for Attom lookup (used by "Not Found" modal to supply address separately from Parcel ID)
     address: Optional[str] = None,
     # Advanced Filters
@@ -152,6 +153,21 @@ def read_properties(
     if owner_location:
         where_clauses.append("p.owner_address ILIKE :owner_location")
         params["owner_location"] = f"%{owner_location}%"
+
+    if parcel_id:
+        # Explicit parcel ID search from new separated input
+        clean_p = parcel_id.replace('-', '').strip()
+        where_clauses.append('''
+            (
+                REPLACE(p.parcel_id, '-', '') ILIKE :clean_p OR 
+                REPLACE(p.pin_ppin, '-', '') ILIKE :clean_p OR
+                REPLACE(p.raw_parcel_number, '-', '') ILIKE :clean_p OR
+                p.parcel_id ILIKE :parcel_id_raw OR
+                p.pin_ppin ILIKE :parcel_id_raw
+            )
+        ''')
+        params["clean_p"] = f"%{clean_p}%"
+        params["parcel_id_raw"] = f"%{parcel_id.strip()}%"
     
     # Phase 36: Intelligent Search & Fuzzy Matching
     if keyword:
@@ -416,9 +432,10 @@ def read_properties(
     # ── Auto-create property via Attom API if search yields 0 results ──
     # This fires when:
     #   1. The DB has 0 results for the keyword search, AND
-    #   2. A keyword of 5+ chars was provided (Parcel ID, Attom ID, or address).
-    if total == 0 and keyword:
-        k = keyword.strip()
+    #   2. A keyword or parcel_id of 5+ chars was provided (Parcel ID, Attom ID, or address).
+    attom_lookup_val = parcel_id if parcel_id else keyword
+    if total == 0 and attom_lookup_val:
+        k = attom_lookup_val.strip()
         if len(k) >= 5:
             try:
                 is_pure_numeric = bool(re.match(r'^\d+$', k))

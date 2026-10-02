@@ -12,6 +12,7 @@ export interface PropertyFilterParams {
     county?: string;
     state?: string;
     keyword?: string;
+    parcel_id?: string;
     min_score?: number;
     is_custom?: boolean;
 
@@ -279,10 +280,10 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                     renderInput={(params) => (
                         <TextField
                             {...params}
-                            label="Keyword Search"
+                            label="Address Search"
                             variant="outlined"
                             size="small"
-                            placeholder="Parcel ID, Zip, Address..."
+                            placeholder="Street Address, Zip..."
                             sx={inputSx}
                             InputProps={{
                                 ...params.InputProps,
@@ -301,6 +302,17 @@ const PropertyFilters: React.FC<PropertyFiltersProps> = ({ onFilterChange, readO
                             }}
                         />
                     )}
+                />
+                
+                {/* Parcel ID Explicit Search */}
+                <TextField
+                    label="Parcel ID"
+                    variant="outlined"
+                    size="small"
+                    placeholder="Exact Parcel ID..."
+                    value={filters.parcel_id || ''}
+                    onChange={(e) => handleChange('parcel_id', e.target.value)}
+                    sx={{ ...inputSx, minWidth: 160 }}
                 />
                 
                 {/* State Autocomplete */}
