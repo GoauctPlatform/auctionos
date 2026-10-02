@@ -6,7 +6,9 @@ import { useNavigate } from 'react-router-dom';
 import { PropertyFilterParams } from '../admin/PropertyFilters';
 import { PropertyService, ClientDataService } from '../../services/property.service';
 import { PropertyCard } from '../PropertyCard';
-import { CircularProgress, Button, Typography, IconButton } from '@mui/material';
+import { CircularProgress, Button, Typography, IconButton, Autocomplete, TextField } from '@mui/material';
+import { StatesService } from '../../services/states.service';
+import { countyService } from '../../services/county.service';
 import CloseIcon from '@mui/icons-material/Close';
 import { geocodeAddress, reverseGeocode } from '../../services/geocoding.service';
 import { useLanguage } from "../../context/LanguageContext";
@@ -207,8 +209,29 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
     const [pinLocationDetails, setPinLocationDetails] = useState<any | null>(null);
     const [isResolvingPin, setIsResolvingPin] = useState(false);
     
-    const [manualState, setManualState] = useState('');
-    const [manualCounty, setManualCounty] = useState('');
+    const [manualState, setManualState] = useState<string>('');
+    const [manualCounty, setManualCounty] = useState<string>('');
+    const [manualStateOptions, setManualStateOptions] = useState<any[]>([]);
+    const [manualCountyOptions, setManualCountyOptions] = useState<string[]>([]);
+
+    // Load states for the "Not Found" modal
+    useEffect(() => {
+        StatesService.getContacts()
+            .then(res => setManualStateOptions(res || []))
+            .catch(() => {});
+    }, []);
+
+    // Load counties when state changes in modal
+    useEffect(() => {
+        if (manualState) {
+            countyService.getCounties(manualState)
+                .then(res => setManualCountyOptions(res || []))
+                .catch(() => setManualCountyOptions([]));
+        } else {
+            setManualCountyOptions([]);
+            setManualCounty('');
+        }
+    }, [manualState]);
 
     const handleManualCreate = () => {
         if (!onFilterChange) return;
@@ -583,20 +606,53 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                             </Typography>
                             
                             <div className="w-full space-y-3 mt-2 text-left">
-                                <input 
-                                    type="text"
-                                    placeholder="State (e.g. FL, TX)"
-                                    className="w-full px-4 py-2 border rounded-lg text-sm bg-slate-50 focus:bg-white dark:bg-slate-900 dark:border-slate-700 outline-none focus:border-indigo-500"
-                                    value={manualState}
-                                    onChange={(e) => setManualState(e.target.value)}
+                                {/* State Dropdown */}
+                                <Autocomplete
+                                    id="modal-state-autocomplete"
+                                    options={manualStateOptions}
+                                    getOptionLabel={(option) => typeof option === 'string' ? option : option.state}
+                                    value={manualStateOptions.find(s => s.state?.toLowerCase() === manualState?.toLowerCase()) || (manualState ? { state: manualState, url: '' } : null)}
+                                    onChange={(_e, newVal) => {
+                                        const val = newVal ? (typeof newVal === 'string' ? newVal : newVal.state) : '';
+                                        setManualState(val);
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="State"
+                                            size="small"
+                                            variant="outlined"
+                                            fullWidth
+                                        />
+                                    )}
+                                    disablePortal
+                                    fullWidth
                                 />
-                                <input 
-                                    type="text"
-                                    placeholder="County (e.g. Miami-Dade)"
-                                    className="w-full px-4 py-2 border rounded-lg text-sm bg-slate-50 focus:bg-white dark:bg-slate-900 dark:border-slate-700 outline-none focus:border-indigo-500"
-                                    value={manualCounty}
-                                    onChange={(e) => setManualCounty(e.target.value)}
+
+                                {/* County Dropdown */}
+                                <Autocomplete
+                                    id="modal-county-autocomplete"
+                                    options={manualCountyOptions}
+                                    getOptionLabel={(option) => option}
+                                    disabled={!manualState}
+                                    value={manualCountyOptions.find(c => c?.toLowerCase() === manualCounty?.toLowerCase()) || manualCounty || null}
+                                    onChange={(_e, newVal) => {
+                                        setManualCounty(newVal || '');
+                                    }}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="County"
+                                            size="small"
+                                            variant="outlined"
+                                            fullWidth
+                                            placeholder={!manualState ? 'Select State first' : 'Select County'}
+                                        />
+                                    )}
+                                    disablePortal
+                                    fullWidth
                                 />
+
                                 <Button 
                                     variant="contained" 
                                     fullWidth 
