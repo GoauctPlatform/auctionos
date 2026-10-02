@@ -14,6 +14,10 @@ from app.services.reconciliation_service import reconciliation_service
 from app.utils.state_mapper import normalize_state
 from app.services.intelligence_service import intelligence_service
 from app.core.config import settings
+from app.models.property import PropertyDetails
+from app.models.company import Company
+from app.services.attom_enrichment import fetch_attom_data_sync
+import app.db.base  # Force complete SQLAlchemy mapper initialization
 import uuid
 import json as _json
 
@@ -417,10 +421,6 @@ def read_properties(
         k = keyword.strip()
         if len(k) >= 5:
             try:
-                from app.services.attom_enrichment import fetch_attom_data_sync
-                from app.models.property import PropertyDetails
-                from app.utils.state_mapper import normalize_state
-
                 is_pure_numeric = bool(re.match(r'^\d+$', k))
                 is_apn_like = bool(re.match(r'^[\d\-A-Z]+$', k.upper())) and len(k) > 4
                 normalized_state_val = normalize_state(state) if state else None
@@ -494,6 +494,7 @@ def read_properties(
                         prop_id = existing[0]
                     else:
                         new_prop = PropertyDetails(
+                            property_id=str(uuid.uuid4()),
                             parcel_id=parcel_id,
                             attom_id=str(identifier.get("attomId")) if identifier.get("attomId") else None,
                             address=addr.get("oneLine") or addr.get("line1"),
