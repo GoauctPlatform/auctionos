@@ -211,6 +211,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
     
     const [manualState, setManualState] = useState<string>('');
     const [manualCounty, setManualCounty] = useState<string>('');
+    const [manualAddress, setManualAddress] = useState<string>('');
     const [manualStateOptions, setManualStateOptions] = useState<any[]>([]);
     const [manualCountyOptions, setManualCountyOptions] = useState<string[]>([]);
 
@@ -247,7 +248,9 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
             const newFilters = {
                 ...filters,
                 state: manualState,
-                county: manualCounty
+                county: manualCounty,
+                // Pass the address as keyword so backend can search Attom by address
+                keyword: manualAddress || filters.keyword
             };
 
             // Notify parent to persist the new filter state
@@ -258,6 +261,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
             // Also directly call fetch so UI responds immediately (avoids React render cycle delay)
             const params: any = {
                 ...newFilters,
+                keyword: manualAddress || filters.keyword,
                 limit: 50,
                 skip: 0
             };
@@ -638,6 +642,18 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                             </Typography>
                             
                             <div className="w-full space-y-3 mt-2 text-left">
+                                {/* Address field - helps Attom find properties when Parcel ID alone isn't enough */}
+                                <TextField
+                                    fullWidth
+                                    size="small"
+                                    label="Street Address (Optional)"
+                                    placeholder="e.g. 3029 S Fort Hood St"
+                                    variant="outlined"
+                                    value={manualAddress}
+                                    onChange={(e) => setManualAddress(e.target.value)}
+                                    helperText="Providing the address improves search accuracy"
+                                />
+
                                 {/* State Dropdown */}
                                 <Autocomplete
                                     id="modal-state-autocomplete"
@@ -690,7 +706,7 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                                     fullWidth 
                                     className="bg-indigo-600 normal-case font-bold mt-2 hover:bg-indigo-700"
                                     onClick={handleManualCreate}
-                                    disabled={!manualState || !manualCounty || isLocating}
+                                    disabled={(!manualState && !manualAddress) || isLocating}
                                     startIcon={isLocating ? <CircularProgress size={14} color="inherit" /> : undefined}
                                 >
                                     {isLocating ? 'Searching national database...' : 'Locate & Generate Report'}

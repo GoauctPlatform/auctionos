@@ -410,7 +410,7 @@ def read_properties(
     # ── Auto-create property via Attom API if search yields 0 results ──
     # This fires when:
     #   1. The DB has 0 results for the keyword search, AND
-    #   2. The user (optionally) provides state + county in the filters to help Attom locate the property.
+    #   2. A keyword of 5+ chars was provided (Parcel ID, Attom ID, or address).
     if total == 0 and keyword:
         k = keyword.strip()
         if len(k) >= 5:
@@ -419,30 +419,44 @@ def read_properties(
                 from app.models.property import PropertyDetails
                 from app.utils.state_mapper import normalize_state
 
-                # Build Attom query params — APN or address, enriched with state/county when available
-                params_for_attom: dict = {}
+                is_pure_numeric = bool(re.match(r'^\d+$', k))
+                is_apn_like = bool(re.match(r'^[\d\-A-Z]+$', k.upper())) and len(k) > 4
+                normalized_state_val = normalize_state(state) if state else None
 
-                is_apn = bool(re.match(r'^[\d\-A-Z]+$', k.upper())) and len(k) > 4
-                if is_apn:
-                    params_for_attom["apn"] = k.replace('-', '')
-                else:
-                    params_for_attom["address1"] = k
+                attom_data: dict = {}
 
-                # Pass state as address2 (Attom convention: city, state OR just state abbreviation)
-                if state:
-                    normalized_state = normalize_state(state)
-                    params_for_attom["address2"] = normalized_state
-                if county:
-                    params_for_attom["county"] = county
+                # Strategy 1: If we have state/county context, try address search first
+                # (most reliable — Attom APN lookup requires FIPS code which we often don't have)
+                if state or county:
+                    addr_params: dict = {"address1": k}
+                    if county and normalized_state_val:
+                        addr_params["address2"] = f"{county}, {normalized_state_val}"
+                    elif normalized_state_val:
+                        addr_params["address2"] = normalized_state_val
+                    elif county:
+                        addr_params["address2"] = county
+                    print(f"[Attom] Strategy 1 - address+context: {addr_params}")
+                    try:
+                        attom_data = fetch_attom_data_sync(addr_params)
+                    except Exception:
+                        attom_data = {}
 
-                attom_data = fetch_attom_data_sync(params_for_attom)
+                # Strategy 2: Pure address search (no context needed — Attom tries to resolve)
+                if not attom_data or "property" not in attom_data or not attom_data.get("property"):
+                    pure_addr_params: dict = {"address1": k}
+                    print(f"[Attom] Strategy 2 - pure address: {pure_addr_params}")
+                    try:
+                        attom_data = fetch_attom_data_sync(pure_addr_params)
+                    except Exception:
+                        attom_data = {}
 
-                # If first attempt fails and we have state/county, try address-based lookup as fallback
-                if (not attom_data or "property" not in attom_data or not attom_data["property"]) and state and is_apn:
-                    fallback_params: dict = {"apn": k.replace('-', '')}
-                    if state:
-                        fallback_params["address2"] = normalize_state(state)
-                    attom_data = fetch_attom_data_sync(fallback_params)
+                # Strategy 3: Short pure numeric (≤9 digits) → try as attomId
+                if (not attom_data or "property" not in attom_data or not attom_data.get("property")) and is_pure_numeric and len(k) <= 9:
+                    print(f"[Attom] Strategy 3 - attomId: {k}")
+                    try:
+                        attom_data = fetch_attom_data_sync({"attomId": k})
+                    except Exception:
+                        attom_data = {}
 
                 if attom_data and "property" in attom_data and attom_data["property"]:
                     p_data = attom_data["property"][0]
