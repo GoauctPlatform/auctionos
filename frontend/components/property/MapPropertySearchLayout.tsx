@@ -588,7 +588,15 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
 
                     {loading && (
                         <div className="flex justify-center py-4">
-                            <CircularProgress size={24} />
+                            <CircularProgress size={28} />
+                            {(filters as any).keyword && (filters as any).keyword.length >= 5 ? (
+                                <div className="text-xs text-slate-500 font-medium text-center px-4 animate-pulse mt-3">
+                                    Buscando na base de dados...<br/>
+                                    <span className="text-[10px] text-slate-400">Se não for encontrado, tentaremos importar da base nacional...</span>
+                                </div>
+                            ) : (
+                                <div className="text-xs text-slate-500 font-medium animate-pulse mt-3">Carregando propriedades...</div>
+                            )}
                         </div>
                     )}
 
