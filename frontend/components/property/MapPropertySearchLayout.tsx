@@ -249,11 +249,10 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                 ...filters,
                 state: manualState,
                 county: manualCounty,
-                // Pass the address as keyword so backend can search Attom by address
-                keyword: manualAddress || filters.keyword
+                // Keep original keyword (Parcel ID) intact; address goes as separate param
             };
 
-            // Notify parent to persist the new filter state
+            // Notify parent to persist state+county into the global filter state
             if (onFilterChange) {
                 onFilterChange(newFilters);
             }
@@ -261,7 +260,8 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
             // Also directly call fetch so UI responds immediately (avoids React render cycle delay)
             const params: any = {
                 ...newFilters,
-                keyword: manualAddress || filters.keyword,
+                // Send address as separate param so backend uses it as Attom address1 (not mixed with Parcel ID)
+                ...(manualAddress ? { address: manualAddress } : {}),
                 limit: 50,
                 skip: 0
             };
