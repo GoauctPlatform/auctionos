@@ -133,27 +133,14 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
 
                         {/* Top Action Buttons */}
                         <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
-                            <Button 
-                                variant="contained" 
-                                className="bg-white/40 text-slate-800 hover:bg-white/60 border border-slate-200/50 dark:border-slate-800/50 dark:bg-slate-900/40 dark:text-slate-200 dark:hover:bg-slate-900/60 shadow-sm rounded-xl font-bold normal-case text-xs h-[38px] px-3 transition-all"
+                            <button 
+                                type="button"
+                                className="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-205 border cursor-pointer bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 dark:bg-slate-900/40 dark:text-slate-400 dark:border-slate-800 dark:hover:bg-slate-900/80 flex items-center gap-1.5 h-[32px]"
                                 onClick={() => setViewMode('list')}
-                                startIcon={<span className="material-symbols-outlined text-[16px]">{t('ClientProperties.list')}</span>}
                             >
-                                {t('ClientProperties.listView')}</Button>
-                            <Button 
-                                variant="contained" 
-                                color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
-                                className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-indigo-600 hover:bg-indigo-500'} rounded-xl shadow-sm font-bold normal-case text-xs h-[38px] px-3 transition-all`}
-                                onClick={() => {
-                                    if (user?.subscription_tier === 'trial') {
-                                        alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
-                                        return;
-                                    }
-                                    setCreateModalOpen(true);
-                                }}
-                                startIcon={<span className="material-symbols-outlined text-[16px]">{t('ClientProperties.add')}</span>}
-                            >
-                                {t('ClientProperties.createCustom')}</Button>
+                                <span className="material-symbols-outlined text-[16px]">{t('ClientProperties.list')}</span>
+                                {t('ClientProperties.listView')}
+                            </button>
                         </div>
                     </div>
 
@@ -175,26 +162,14 @@ const ClientProperties: React.FC<ClientPropertiesProps> = ({ onOpenPropertyDetai
                         <Typography variant="h4" className="font-bold text-slate-800 dark:text-white">
                             {t('ClientProperties.propertySearch')}</Typography>
                         <div className="flex gap-2">
-                            <Button 
-                                variant="outlined" 
+                            <button 
+                                type="button"
+                                className="px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-205 border cursor-pointer bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100 dark:bg-slate-900/40 dark:text-slate-400 dark:border-slate-800 dark:hover:bg-slate-900/80 flex items-center gap-1.5 h-[32px]"
                                 onClick={() => setViewMode('map')}
-                                startIcon={<span className="material-symbols-outlined text-[18px]">{t('ClientProperties.map')}</span>}
                             >
-                                {t('ClientProperties.mapView')}</Button>
-                            <Button 
-                                variant="contained" 
-                                color={user?.subscription_tier === 'trial' ? 'inherit' : 'primary'}
-                                className={`${user?.subscription_tier === 'trial' ? 'bg-slate-300 text-slate-500 cursor-not-allowed' : 'bg-blue-600'} rounded-lg shadow-none`}
-                                onClick={() => {
-                                    if (user?.subscription_tier === 'trial') {
-                                        alert('Manual creation of properties is not allowed in the Trial plan. Please upgrade to a paid plan.');
-                                        return;
-                                    }
-                                    setCreateModalOpen(true);
-                                }}
-                                startIcon={<span className="material-symbols-outlined text-[18px]">{t('ClientProperties.add')}</span>}
-                            >
-                                {t('ClientProperties.createCustomProperty')}</Button>
+                                <span className="material-symbols-outlined text-[16px]">{t('ClientProperties.map')}</span>
+                                {t('ClientProperties.mapView')}
+                            </button>
                         </div>
                     </div>
                     <div id="tour-properties-filters" className="sticky top-0 z-40 pt-3 pb-2 bg-white/40 dark:bg-slate-950/35 backdrop-blur-xl border-b border-slate-200/30 dark:border-slate-800/50 -mx-4 px-4 sm:-mx-8 sm:px-8 lg:-mx-12 lg:px-12 shadow-sm transition-all duration-300">
