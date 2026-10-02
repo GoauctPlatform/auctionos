@@ -432,8 +432,8 @@ def read_properties(
     # ── Auto-create property via Attom API if search yields 0 results ──
     # This fires when:
     #   1. The DB has 0 results for the keyword search, AND
-    #   2. A keyword or parcel_id of 5+ chars was provided (Parcel ID, Attom ID, or address).
-    attom_lookup_val = parcel_id if parcel_id else keyword
+    #   2. A keyword, parcel_id, or address of 5+ chars was provided.
+    attom_lookup_val = address if address else (parcel_id if parcel_id else keyword)
     if total == 0 and attom_lookup_val:
         k = attom_lookup_val.strip()
         if len(k) >= 5:
@@ -447,7 +447,8 @@ def read_properties(
                 # Strategy 1: Use explicit address if provided (from the "Not Found" modal)
                 # address2 must be state abbreviation ONLY - putting county there causes 400 errors
                 if address and address.strip():
-                    addr_params: dict = {"address1": address.strip()}
+                    clean_addr = address.split(',')[0].strip()
+                    addr_params: dict = {"address1": clean_addr}
                     if normalized_state_val:
                         addr_params["address2"] = normalized_state_val
                     print(f"[Attom] Strategy 1 - explicit address: {addr_params}")
@@ -457,7 +458,7 @@ def read_properties(
                         attom_data = {}
                     # If state-specific search fails, try without address2 (Attom resolves automatically)
                     if not attom_data or "property" not in attom_data or not attom_data.get("property"):
-                        fallback: dict = {"address1": address.strip()}
+                        fallback: dict = {"address1": clean_addr}
                         print(f"[Attom] Strategy 1 fallback - no address2: {fallback}")
                         try:
                             attom_data = fetch_attom_data_sync(fallback)
@@ -466,7 +467,8 @@ def read_properties(
 
                 # Strategy 2: keyword looks like an address (has spaces) + we have state context
                 if (not attom_data or "property" not in attom_data or not attom_data.get("property")) and ' ' in k:
-                    addr_params2: dict = {"address1": k}
+                    clean_k = k.split(',')[0].strip()
+                    addr_params2: dict = {"address1": clean_k}
                     if normalized_state_val:
                         addr_params2["address2"] = normalized_state_val
                     print(f"[Attom] Strategy 2 - keyword-as-address: {addr_params2}")
