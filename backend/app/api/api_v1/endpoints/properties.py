@@ -408,74 +408,130 @@ def read_properties(
                 item["gsi_url"] = f"{settings.API_V1_STR}/properties/{pid}/streetview"
 
     # ── Auto-create property via Attom API if search yields 0 results ──
+    # This fires when:
+    #   1. The DB has 0 results for the keyword search, AND
+    #   2. The user (optionally) provides state + county in the filters to help Attom locate the property.
     if total == 0 and keyword:
         k = keyword.strip()
         if len(k) >= 5:
             try:
                 from app.services.attom_enrichment import fetch_attom_data_sync
                 from app.models.property import PropertyDetails
-                
-                params_for_attom = {}
-                if re.match(r'^[\d\-A-Z]+$', k.upper()):
+                from app.utils.state_mapper import normalize_state
+
+                # Build Attom query params — APN or address, enriched with state/county when available
+                params_for_attom: dict = {}
+
+                is_apn = bool(re.match(r'^[\d\-A-Z]+$', k.upper())) and len(k) > 4
+                if is_apn:
                     params_for_attom["apn"] = k.replace('-', '')
                 else:
                     params_for_attom["address1"] = k
-                
+
+                # Pass state as address2 (Attom convention: city, state OR just state abbreviation)
+                if state:
+                    normalized_state = normalize_state(state)
+                    params_for_attom["address2"] = normalized_state
+                if county:
+                    params_for_attom["county"] = county
+
                 attom_data = fetch_attom_data_sync(params_for_attom)
+
+                # If first attempt fails and we have state/county, try address-based lookup as fallback
+                if (not attom_data or "property" not in attom_data or not attom_data["property"]) and state and is_apn:
+                    fallback_params: dict = {"apn": k.replace('-', '')}
+                    if state:
+                        fallback_params["address2"] = normalize_state(state)
+                    attom_data = fetch_attom_data_sync(fallback_params)
+
                 if attom_data and "property" in attom_data and attom_data["property"]:
                     p_data = attom_data["property"][0]
                     addr = p_data.get("address", {})
                     loc = p_data.get("location", {})
                     summary = p_data.get("summary", {})
-                    assessed = p_data.get("assessment", {}).get("assessed", {})
+                    assessment = p_data.get("assessment", {})
+                    assessed = assessment.get("assessed", {})
+                    market = assessment.get("market", {})
                     identifier = p_data.get("identifier", {})
-                    
+                    building = p_data.get("building", {})
+                    b_rooms = building.get("rooms", {})
+                    b_size = building.get("size", {})
+                    utilities = p_data.get("utilities", {})
+                    lot = p_data.get("lot", {})
+
                     parcel_id = identifier.get("apn") or k
-                    
-                    new_prop = PropertyDetails(
-                        parcel_id=parcel_id,
-                        attom_id=str(identifier.get("attomId")) if identifier.get("attomId") else None,
-                        address=addr.get("oneLine") or addr.get("line1"),
-                        county=addr.get("county"),
-                        state=addr.get("countrySubd"),
-                        property_type=summary.get("propclass"),
-                        lot_acres=summary.get("lotsize1"),
-                        assessed_value=assessed.get("assdttlvalue"),
-                        land_value=assessed.get("assdlandvalue"),
-                        improvement_value=assessed.get("assdimprvalue"),
-                        latitude=str(loc.get("latitude", "")),
-                        longitude=str(loc.get("longitude", "")),
-                        created_by_user_id=current_user.id if current_user else None,
-                        company_id=(current_user.company_id or current_user.active_company_id) if current_user else None,
-                        visibility="public",
-                        availability_status="available"
-                    )
-                    db.add(new_prop)
-                    db.commit()
-                    db.refresh(new_prop)
-                    
-                    item = {
-                        "id": new_prop.id,
-                        "parcel_id": new_prop.parcel_id,
-                        "county": new_prop.county,
-                        "state_code": new_prop.state,
-                        "address": new_prop.address,
-                        "property_type": new_prop.property_type,
-                        "lot_acres": new_prop.lot_acres,
-                        "assessed_value": new_prop.assessed_value,
-                        "land_value": new_prop.land_value,
-                        "improvement_value": new_prop.improvement_value,
-                        "latitude": new_prop.latitude,
-                        "longitude": new_prop.longitude,
-                        "availability_status": new_prop.availability_status,
-                        "deal_score": None,
-                        "deal_rating": None,
-                        "gsi_url": f"{settings.API_V1_STR}/properties/{new_prop.id}/streetview"
-                    }
-                    return {"items": [item], "total": 1}
+
+                    # Prevent duplicate insertion if property already exists
+                    existing = db.execute(
+                        text("SELECT id FROM property_details WHERE parcel_id = :pid LIMIT 1"),
+                        {"pid": parcel_id}
+                    ).fetchone()
+
+                    if existing:
+                        # Property was already created (race condition) — just re-fetch and return it
+                        prop_id = existing[0]
+                    else:
+                        new_prop = PropertyDetails(
+                            parcel_id=parcel_id,
+                            attom_id=str(identifier.get("attomId")) if identifier.get("attomId") else None,
+                            address=addr.get("oneLine") or addr.get("line1"),
+                            county=addr.get("county") or county,
+                            state=addr.get("countrySubd") or (normalize_state(state) if state else None),
+                            property_type=summary.get("propclass"),
+                            lot_acres=lot.get("lotsize2") or summary.get("lotsize1"),
+                            lot_sqft=lot.get("lotsize1"),
+                            assessed_value=assessed.get("assdttlvalue"),
+                            land_value=assessed.get("assdlandvalue"),
+                            improvement_value=assessed.get("assdimprvalue"),
+                            estimated_value=market.get("mktttlvalue"),
+                            latitude=str(loc.get("latitude", "")) if loc.get("latitude") else None,
+                            longitude=str(loc.get("longitude", "")) if loc.get("longitude") else None,
+                            created_by_user_id=current_user.id if current_user else None,
+                            company_id=(current_user.company_id or current_user.active_company_id) if current_user else None,
+                            visibility="public",
+                            availability_status="available",
+                            owner_occupied=str(summary.get("absenteeInd", "")).lower() != "absentee owner",
+                            county_fips=str(loc.get("countyfips", "")) or None,
+                            sewer_type=utilities.get("sewerType"),
+                            water_type=utilities.get("waterType"),
+                            property_type_detail=summary.get("propsubtype"),
+                        )
+                        db.add(new_prop)
+                        db.commit()
+                        db.refresh(new_prop)
+                        prop_id = new_prop.id
+
+                    # Re-fetch the property to build a full response row
+                    row = db.execute(
+                        text("SELECT id, parcel_id, county, state, address, property_type, lot_acres, assessed_value, land_value, improvement_value, latitude, longitude, availability_status, estimated_value FROM property_details WHERE id = :pid"),
+                        {"pid": prop_id}
+                    ).fetchone()
+
+                    if row:
+                        item = {
+                            "id": row[0],
+                            "parcel_id": row[1] or "",
+                            "county": row[2],
+                            "state_code": row[3],
+                            "address": row[4],
+                            "property_type": row[5],
+                            "lot_acres": row[6],
+                            "assessed_value": row[7],
+                            "land_value": row[8],
+                            "improvement_value": row[9],
+                            "latitude": row[10],
+                            "longitude": row[11],
+                            "availability_status": row[12],
+                            "estimated_value": row[13],
+                            "deal_score": None,
+                            "deal_rating": None,
+                            "gsi_url": f"{settings.API_V1_STR}/properties/{row[0]}/streetview"
+                        }
+                        return {"items": [item], "total": 1}
+
             except Exception as e:
                 db.rollback()
-                print(f"Auto-create via Attom API failed for {k}: {e}")
+                print(f"Auto-create via Attom API failed for '{keyword}' (state={state}, county={county}): {e}")
 
     return {"items": items, "total": total}
 

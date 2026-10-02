@@ -233,13 +233,45 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
         }
     }, [manualState]);
 
-    const handleManualCreate = () => {
-        if (!onFilterChange) return;
-        onFilterChange({
-            ...filters,
-            state: manualState,
-            county: manualCounty
-        });
+    const [isLocating, setIsLocating] = useState(false);
+
+    const handleManualCreate = async () => {
+        if (!manualState || !manualCounty) return;
+        setIsLocating(true);
+        setProperties([]);
+        setLoading(true);
+        setIsSidebarOpen(true);
+
+        try {
+            // Build the combined filters with state + county to pass to backend Attom lookup
+            const newFilters = {
+                ...filters,
+                state: manualState,
+                county: manualCounty
+            };
+
+            // Notify parent to persist the new filter state
+            if (onFilterChange) {
+                onFilterChange(newFilters);
+            }
+
+            // Also directly call fetch so UI responds immediately (avoids React render cycle delay)
+            const params: any = {
+                ...newFilters,
+                limit: 50,
+                skip: 0
+            };
+            const response = await PropertyService.getProperties(params);
+            const newItems = Array.isArray(response) ? response : ((response as any).items || []);
+            setProperties(newItems);
+            setHasMore(false);
+            setPage(1);
+        } catch (err) {
+            console.error('Error in handleManualCreate fetch', err);
+        } finally {
+            setLoading(false);
+            setIsLocating(false);
+        }
     };
 
     const handleMapClick = async (e: any) => {
@@ -658,9 +690,10 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                                     fullWidth 
                                     className="bg-indigo-600 normal-case font-bold mt-2 hover:bg-indigo-700"
                                     onClick={handleManualCreate}
-                                    disabled={!manualState || !manualCounty}
+                                    disabled={!manualState || !manualCounty || isLocating}
+                                    startIcon={isLocating ? <CircularProgress size={14} color="inherit" /> : undefined}
                                 >
-                                    Locate & Generate Report
+                                    {isLocating ? 'Searching national database...' : 'Locate & Generate Report'}
                                 </Button>
                             </div>
                         </div>
