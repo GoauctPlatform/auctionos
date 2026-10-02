@@ -407,6 +407,76 @@ def read_properties(
             if pid:
                 item["gsi_url"] = f"{settings.API_V1_STR}/properties/{pid}/streetview"
 
+    # ── Auto-create property via Attom API if search yields 0 results ──
+    if total == 0 and keyword:
+        k = keyword.strip()
+        if len(k) >= 5:
+            try:
+                from app.services.attom_enrichment import fetch_attom_data_sync
+                from app.models.property import PropertyDetails
+                
+                params_for_attom = {}
+                if re.match(r'^[\d\-A-Z]+$', k.upper()):
+                    params_for_attom["apn"] = k.replace('-', '')
+                else:
+                    params_for_attom["address1"] = k
+                
+                attom_data = fetch_attom_data_sync(params_for_attom)
+                if attom_data and "property" in attom_data and attom_data["property"]:
+                    p_data = attom_data["property"][0]
+                    addr = p_data.get("address", {})
+                    loc = p_data.get("location", {})
+                    summary = p_data.get("summary", {})
+                    assessed = p_data.get("assessment", {}).get("assessed", {})
+                    identifier = p_data.get("identifier", {})
+                    
+                    parcel_id = identifier.get("apn") or k
+                    
+                    new_prop = PropertyDetails(
+                        parcel_id=parcel_id,
+                        attom_id=str(identifier.get("attomId")) if identifier.get("attomId") else None,
+                        address=addr.get("oneLine") or addr.get("line1"),
+                        county=addr.get("county"),
+                        state=addr.get("countrySubd"),
+                        property_type=summary.get("propclass"),
+                        lot_acres=summary.get("lotsize1"),
+                        assessed_value=assessed.get("assdttlvalue"),
+                        land_value=assessed.get("assdlandvalue"),
+                        improvement_value=assessed.get("assdimprvalue"),
+                        latitude=str(loc.get("latitude", "")),
+                        longitude=str(loc.get("longitude", "")),
+                        created_by_user_id=current_user.id if current_user else None,
+                        company_id=(current_user.company_id or current_user.active_company_id) if current_user else None,
+                        visibility="public",
+                        availability_status="available"
+                    )
+                    db.add(new_prop)
+                    db.commit()
+                    db.refresh(new_prop)
+                    
+                    item = {
+                        "id": new_prop.id,
+                        "parcel_id": new_prop.parcel_id,
+                        "county": new_prop.county,
+                        "state_code": new_prop.state,
+                        "address": new_prop.address,
+                        "property_type": new_prop.property_type,
+                        "lot_acres": new_prop.lot_acres,
+                        "assessed_value": new_prop.assessed_value,
+                        "land_value": new_prop.land_value,
+                        "improvement_value": new_prop.improvement_value,
+                        "latitude": new_prop.latitude,
+                        "longitude": new_prop.longitude,
+                        "availability_status": new_prop.availability_status,
+                        "deal_score": None,
+                        "deal_rating": None,
+                        "gsi_url": f"{settings.API_V1_STR}/properties/{new_prop.id}/streetview"
+                    }
+                    return {"items": [item], "total": 1}
+            except Exception as e:
+                db.rollback()
+                print(f"Auto-create via Attom API failed for {k}: {e}")
+
     return {"items": items, "total": total}
 
 from fastapi import HTTPException
