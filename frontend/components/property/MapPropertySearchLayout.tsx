@@ -206,6 +206,18 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
     const [droppedPin, setDroppedPin] = useState<{ lat: number, lng: number } | null>(null);
     const [pinLocationDetails, setPinLocationDetails] = useState<any | null>(null);
     const [isResolvingPin, setIsResolvingPin] = useState(false);
+    
+    const [manualState, setManualState] = useState('');
+    const [manualCounty, setManualCounty] = useState('');
+
+    const handleManualCreate = () => {
+        if (!onFilterChange) return;
+        onFilterChange({
+            ...filters,
+            state: manualState,
+            county: manualCounty
+        });
+    };
 
     const handleMapClick = async (e: any) => {
         const lat = e.latlng.lat;
@@ -561,8 +573,40 @@ export const MapPropertySearchLayout: React.FC<MapPropertySearchLayoutProps> = (
                 
                 <div className="flex-1 overflow-y-auto p-4 space-y-4">
                     {properties.length === 0 && !loading && (
-                        <div className="text-center text-slate-500 mt-10">
-                            No properties found matching your criteria.
+                        <div className="flex flex-col items-center text-center p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 mt-4 mx-4">
+                            <span className="material-symbols-outlined text-[48px] text-slate-300 mb-4">search_off</span>
+                            <Typography variant="h6" className="font-bold text-slate-700 dark:text-slate-200 mb-2">
+                                Property Not Found
+                            </Typography>
+                            <Typography variant="body2" className="text-slate-500 mb-4 text-xs">
+                                We couldn't find this property in our database or external records. Please provide the State and County to help us locate and generate the report.
+                            </Typography>
+                            
+                            <div className="w-full space-y-3 mt-2 text-left">
+                                <input 
+                                    type="text"
+                                    placeholder="State (e.g. FL, TX)"
+                                    className="w-full px-4 py-2 border rounded-lg text-sm bg-slate-50 focus:bg-white dark:bg-slate-900 dark:border-slate-700 outline-none focus:border-indigo-500"
+                                    value={manualState}
+                                    onChange={(e) => setManualState(e.target.value)}
+                                />
+                                <input 
+                                    type="text"
+                                    placeholder="County (e.g. Miami-Dade)"
+                                    className="w-full px-4 py-2 border rounded-lg text-sm bg-slate-50 focus:bg-white dark:bg-slate-900 dark:border-slate-700 outline-none focus:border-indigo-500"
+                                    value={manualCounty}
+                                    onChange={(e) => setManualCounty(e.target.value)}
+                                />
+                                <Button 
+                                    variant="contained" 
+                                    fullWidth 
+                                    className="bg-indigo-600 normal-case font-bold mt-2 hover:bg-indigo-700"
+                                    onClick={handleManualCreate}
+                                    disabled={!manualState || !manualCounty}
+                                >
+                                    Locate & Generate Report
+                                </Button>
+                            </div>
                         </div>
                     )}
                     
