@@ -477,13 +477,6 @@ def read_properties(
                     except Exception:
                         attom_data = {}
 
-                # Strategy 3: Short pure numeric (≤9 digits) → try as attomId
-                if (not attom_data or "property" not in attom_data or not attom_data.get("property")) and is_pure_numeric and len(k) <= 9:
-                    print(f"[Attom] Strategy 3 - attomId: {k}")
-                    try:
-                        attom_data = fetch_attom_data_sync({"attomId": k})
-                    except Exception:
-                        attom_data = {}
 
                 if attom_data and "property" in attom_data and attom_data["property"]:
                     p_data = attom_data["property"][0]
