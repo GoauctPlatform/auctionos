@@ -56,7 +56,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                     ...filters,
                     startDate: date,
                     endDate: date,
-                    tax_status: type
+                    tax_status: (type && type !== 'Other') ? type : undefined
                 });
                 setAuctions(response.items || []);
                 

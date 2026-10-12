@@ -207,6 +207,7 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
                     month: 'Month',
                     listWeek: 'Week'
                 }}
+                dayMaxEvents={3}
                 events={processedEvents}
                 eventClick={handleEventClick}
                 dateClick={handleDateClick}

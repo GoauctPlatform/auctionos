@@ -397,25 +397,22 @@ class ImportService:
                                     }
                                     
                                     # Check exist by name and date
+                                    # Check existing by business key (name, date, state)
                                     check_query = """
                                         SELECT id FROM auction_events 
-                                        WHERE (name = :name OR short_name = :name OR name = :short_name OR short_name = :short_name) 
-                                        AND auction_date = :auction_date
+                                        WHERE (LOWER(TRIM(name)) = LOWER(TRIM(:name)) 
+                                               OR (short_name IS NOT NULL AND LOWER(TRIM(short_name)) = LOWER(TRIM(:name)))
+                                               OR (:short_name IS NOT NULL AND LOWER(TRIM(name)) = LOWER(TRIM(:short_name)))) 
+                                          AND auction_date = :auction_date
                                     """
                                     check_params = {
                                         "name": auction_data["name"], 
                                         "short_name": auction_data["short_name"],
                                         "auction_date": auction_data["auction_date"]
                                     }
-                                    
-                                    if validated_data.id:
-                                        check_query = """
-                                            SELECT id FROM auction_events 
-                                            WHERE id = :id 
-                                            OR ((name = :name OR short_name = :name OR name = :short_name OR short_name = :short_name) 
-                                                AND auction_date = :auction_date)
-                                        """
-                                        check_params["id"] = int(validated_data.id)
+                                    if auction_data.get("state"):
+                                        check_query += " AND (state ILIKE :state OR state IS NULL)"
+                                        check_params["state"] = f"%{auction_data['state'].strip()}%"
                                     
                                     existing = conn.execute(text(check_query), check_params).fetchone()
                                     
@@ -425,10 +422,8 @@ class ImportService:
                                         update_params = {**auction_data, "id": existing[0]}
                                         conn.execute(query, update_params)
                                     else:
-                                        # Use original ID if provided
-                                        if validated_data.id:
-                                            auction_data["id"] = int(validated_data.id)
-                                        
+                                        # When creating a new auction, allow PostgreSQL sequence to assign the unique ID
+                                        # to prevent collisions with existing IDs from other data sources
                                         auction_data["created_at"] = datetime.utcnow()
                                         fields = ", ".join(auction_data.keys())
                                         placeholders = ", ".join([f":{k}" for k in auction_data.keys()])

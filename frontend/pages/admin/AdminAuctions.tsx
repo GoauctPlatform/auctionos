@@ -100,7 +100,7 @@ export const AdminAuctions: React.FC<AdminAuctionsProps> = ({ defaultTab = 'auct
                         </Box>
 
                         <Box className="w-full">
-                            <AuctionCalendar filters={filters} onDateTypeSelect={handleDateTypeSelect} />
+                            <AuctionCalendar filters={{ ...filters, startDate: undefined, endDate: undefined }} onDateTypeSelect={handleDateTypeSelect} />
                         </Box>
                     </div>
                 </div>
