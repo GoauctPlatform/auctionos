@@ -27,8 +27,31 @@ def run_bulk_import():
     # 1. IMPORT AUCTIONS
     # CSV: id,name,short_name,auction_date,time,location,county,county_code,state,tax_status,parcels_count,notes,search_link,register_date,register_link,list_link,purchase_info_link,created_at,updated_at
     # DB Mapping: id, name, short_name, auction_date, time, location, county, county_code, state, tax_status, parcels_count, notes, search_link, register_date, register_link, list_link, purchase_info_link, created_at, updated_at
+    print("Pre-processando auction_events (Garantindo tax_status canônico)...")
+    import pandas as pd
+    sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    try:
+        from app.utils.auction_classifier import infer_canonical_tax_status
+        df_auc = pd.read_csv(AUCTIONS_CSV, dtype=str)
+        df_auc['tax_status'] = df_auc.apply(
+            lambda r: infer_canonical_tax_status(
+                tax_status=r.get('tax_status'),
+                name=r.get('name'),
+                short_name=r.get('short_name'),
+                notes=r.get('notes')
+            ),
+            axis=1
+        )
+        CLEANED_AUCTIONS_CSV = AUCTIONS_CSV.replace(".csv", "_cleaned.csv")
+        df_auc.to_csv(CLEANED_AUCTIONS_CSV, index=False)
+        TARGET_AUCTIONS_CSV = CLEANED_AUCTIONS_CSV
+        print(f"Leilões padronizados salvos em {CLEANED_AUCTIONS_CSV}")
+    except Exception as e:
+        print(f"Aviso ao padronizar tax_status: {e}")
+        TARGET_AUCTIONS_CSV = AUCTIONS_CSV
+
     print("Importando auction_events...")
-    auc_copy = f"\\copy auction_events(id, name, short_name, auction_date, time, location, county, county_code, state, tax_status, parcels_count, notes, search_link, register_date, register_link, list_link, purchase_info_link, created_at, updated_at) FROM '{AUCTIONS_CSV}' WITH (FORMAT csv, HEADER true, QUOTE '\"', DELIMITER ',');"
+    auc_copy = f"\\copy auction_events(id, name, short_name, auction_date, time, location, county, county_code, state, tax_status, parcels_count, notes, search_link, register_date, register_link, list_link, purchase_info_link, created_at, updated_at) FROM '{TARGET_AUCTIONS_CSV}' WITH (FORMAT csv, HEADER true, QUOTE '\"', DELIMITER ',');"
     subprocess.run(["psql", DATABASE_URL, "-c", auc_copy], check=True)
 
     # 2. IMPORT PROPERTIES

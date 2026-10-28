@@ -101,7 +101,14 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
 
         rawEvents.forEach((item: any) => {
             const itemId = item.id ?? item.auction_id;
-            const taxStatus = item.tax_status || 'Other';
+            const rawStatus = (item.tax_status || '').trim();
+            const taxStatus = ['Foreclosure', 'Deed', 'Lien'].includes(rawStatus)
+                ? rawStatus
+                : ((rawStatus.toLowerCase().includes('foreclosure') || (item.event_title || item.name || '').toLowerCase().includes('foreclosure'))
+                    ? 'Foreclosure'
+                    : ((rawStatus.toLowerCase().includes('lien') || (item.event_title || item.name || '').toLowerCase().includes('lien'))
+                        ? 'Lien'
+                        : 'Deed'));
             const cleanDate = item.event_date ? item.event_date.split('T')[0] : '';
             if (!cleanDate) return;
 

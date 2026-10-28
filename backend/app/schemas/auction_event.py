@@ -1,6 +1,6 @@
 from typing import Optional
 from datetime import date, datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator
 
 class AuctionEventBase(BaseModel):
     name: str
@@ -11,7 +11,7 @@ class AuctionEventBase(BaseModel):
     county: Optional[str] = None
     county_code: Optional[str] = None
     state: Optional[str] = None
-    tax_status: Optional[str] = None
+    tax_status: str = "Deed"
     parcels_count: Optional[int] = 0
     available_count: Optional[int] = 0
     notes: Optional[str] = None
@@ -24,6 +24,22 @@ class AuctionEventBase(BaseModel):
     register_link: Optional[str] = None
     list_link: Optional[str] = None
     purchase_info_link: Optional[str] = None
+
+    @root_validator(pre=True)
+    def validate_and_infer_tax_status(cls, values):
+        if isinstance(values, dict):
+            from app.utils.auction_classifier import infer_canonical_tax_status
+            status = values.get('tax_status')
+            name = values.get('name')
+            short_name = values.get('short_name')
+            notes = values.get('notes')
+            values['tax_status'] = infer_canonical_tax_status(
+                tax_status=status,
+                name=name,
+                short_name=short_name,
+                notes=notes
+            )
+        return values
 
 class AuctionEventCreate(AuctionEventBase):
     pass

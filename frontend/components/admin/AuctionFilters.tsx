@@ -26,12 +26,9 @@ import { useSearchParams } from 'react-router-dom';
 import { useLanguage } from "../../context/LanguageContext";
 
 const AUCTION_TYPES = [
-    { label: 'Tax Deed', value: 'Deed' },
-    { label: 'Tax Lien', value: 'Lien' },
     { label: 'Foreclosure', value: 'Foreclosure' },
-    { label: 'Tax Sale', value: 'Sale' },
-    { label: 'Over the Counter', value: 'OTC' },
-    { label: 'Sealed Bid', value: 'Sealed' }
+    { label: 'Tax Deed', value: 'Deed' },
+    { label: 'Tax Lien', value: 'Lien' }
 ];
 
 const AuctionFilters: React.FC<AuctionFiltersProps> = ({ onFilterChange }) => {

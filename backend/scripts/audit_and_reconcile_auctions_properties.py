@@ -484,6 +484,69 @@ def reconcile_availability(conn, dry_run: bool = True):
 
 
 # ==============================================================================
+# ETAPA 5: RECONCILIAÇÃO DE TAX_STATUS (CANÔNICO: Foreclosure, Deed, Lien)
+# ==============================================================================
+def reconcile_tax_status(conn, dry_run: bool = True):
+    log("=" * 70)
+    log("🏷️  ETAPA: Reconciliação de Tax Status de Leilões...")
+    log("=" * 70)
+
+    from app.utils.auction_classifier import infer_canonical_tax_status, CANONICAL_TAX_STATUSES
+
+    # 1. Obter leilões com tax_status nulo, vazio ou fora dos 3 valores canônicos
+    query = text("""
+        SELECT id, name, short_name, notes, tax_status
+        FROM auction_events
+        WHERE tax_status IS NULL 
+           OR TRIM(tax_status) = ''
+           OR tax_status NOT IN ('Foreclosure', 'Deed', 'Lien')
+    """)
+    rows = conn.execute(query).fetchall()
+
+    if not rows:
+        log("✅ Todos os leilões já possuem tax_status canônico ('Foreclosure', 'Deed', 'Lien').")
+        return {"total_checked": 0, "total_updated": 0}
+
+    log(f"⚠️  Encontrados {len(rows)} leilões com tax_status nulo ou não-canônico.")
+    
+    counts = {"Foreclosure": 0, "Deed": 0, "Lien": 0}
+    updates = []
+    for r in rows:
+        auc_id = r[0]
+        name = r[1]
+        short_name = r[2]
+        notes = r[3]
+        old_status = r[4]
+        
+        canonical_status = infer_canonical_tax_status(
+            tax_status=old_status,
+            name=name,
+            short_name=short_name,
+            notes=notes
+        )
+        counts[canonical_status] += 1
+        updates.append({"id": auc_id, "tax_status": canonical_status})
+
+    log(f"  • Distribuição calculada: {counts}")
+
+    if dry_run:
+        log(f"ℹ️  [Dry Run] {len(updates)} leilões seriam atualizados.")
+        return {"total_checked": len(rows), "total_updated": 0, "distribution": counts}
+
+    log(f"🚀 Atualizando {len(updates)} leilões para status canônico...")
+    update_stmt = text("""
+        UPDATE auction_events
+        SET tax_status = :tax_status,
+            updated_at = NOW()
+        WHERE id = :id
+    """)
+    conn.execute(update_stmt, updates)
+    log(f"✅ {len(updates)} leilões atualizados com sucesso no banco de dados.")
+
+    return {"total_checked": len(rows), "total_updated": len(updates), "distribution": counts}
+
+
+# ==============================================================================
 # AUDITORIA FINAL DE INTEGRIDADE
 # ==============================================================================
 def run_final_audit(conn):
@@ -508,6 +571,16 @@ def run_final_audit(conn):
     log(f"  • Propriedades Órfãs (sem leilão): {orphans}")
     log(f"  • Propriedades Disponíveis ('available'): {avail_props}")
     log(f"  • Propriedades Indisponíveis ('unavailable'): {unavail_props}")
+
+    status_distribution = conn.execute(text("""
+        SELECT COALESCE(tax_status, 'NULL/Empty') as status, count(*) 
+        FROM auction_events 
+        GROUP BY tax_status 
+        ORDER BY count(*) DESC
+    """)).fetchall()
+    log("  • Distribuição de Tax Status em Leilões:")
+    for stat, cnt in status_distribution:
+        log(f"    - {stat}: {cnt}")
     log("=" * 70)
 
 
@@ -515,7 +588,7 @@ def main():
     parser = argparse.ArgumentParser(description="Auditoria e Reconciliação de Leilões e Propriedades")
     parser.add_argument("--apply", action="store_true", help="Aplica as correções no banco de dados (padrão é dry-run)")
     parser.add_argument("--dry-run", action="store_true", help="Executa simulação sem alterações")
-    parser.add_argument("--mode", choices=["all", "dedup-auctions", "dedup-properties", "link-orphans", "reconcile-availability"],
+    parser.add_argument("--mode", choices=["all", "dedup-auctions", "dedup-properties", "link-orphans", "reconcile-availability", "reconcile-tax-status"],
                         default="all", help="Etapa a ser executada")
     args = parser.parse_args()
 
@@ -537,6 +610,9 @@ def main():
 
         if args.mode in ["all", "reconcile-availability"]:
             reconcile_availability(conn, dry_run=is_dry_run)
+
+        if args.mode in ["all", "reconcile-tax-status"]:
+            reconcile_tax_status(conn, dry_run=is_dry_run)
 
         run_final_audit(conn)
 

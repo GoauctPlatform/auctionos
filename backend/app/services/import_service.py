@@ -376,6 +376,8 @@ class ImportService:
                                         except ValueError:
                                             return 0
 
+                                    from app.utils.auction_classifier import infer_canonical_tax_status
+
                                     auction_data = {
                                         "name": validated_data.name,
                                         "short_name": validated_data.short_name,
@@ -385,7 +387,12 @@ class ImportService:
                                         "county": validated_data.county_name,
                                         "county_code": validated_data.county_code,
                                         "state": validated_data.state,
-                                        "tax_status": validated_data.tax_status,
+                                        "tax_status": infer_canonical_tax_status(
+                                            tax_status=validated_data.tax_status,
+                                            name=validated_data.name,
+                                            short_name=validated_data.short_name,
+                                            notes=validated_data.notes
+                                        ),
                                         "parcels_count": parse_parcels(validated_data.parcels),
                                         "notes": validated_data.notes,
                                         "search_link": validated_data.search_link,
@@ -464,6 +471,23 @@ class ImportService:
             logger.error(f"Auctions Import Job Failed: {e}")
             if redis:
                 redis.set(f"import_auctions_status:{job_id}", f"Critical Error: {str(e)}", ex=3600)
+
+    @staticmethod
+    def import_auction_events_csv(db: Session, file_content: bytes):
+        job_id = f"sync-auc-{str(uuid.uuid4())[:8]}"
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+        
+        if loop.is_running():
+            import nest_asyncio
+            nest_asyncio.apply()
+            loop.run_until_complete(ImportService.process_auctions_csv(file_content, job_id))
+        else:
+            loop.run_until_complete(ImportService.process_auctions_csv(file_content, job_id))
+        return {"status": "completed", "job_id": job_id, "created": "processed", "updated": "processed", "properties_linked": "processed"}
 
     @staticmethod
     async def process_history_mapping_csv(file_content: bytes, job_id: str):

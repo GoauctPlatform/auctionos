@@ -219,7 +219,7 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
         { field: 'state', headerName: 'State', width: 90 },
         { field: 'county', headerName: 'County', width: 130 },
         { field: 'location', headerName: 'Location', width: 150 },
-        { field: 'tax_status', headerName: 'Tax Status', width: 150, type: 'singleSelect', valueOptions: ['Tax Sale', 'Over the Counter', 'Sealed Bid', 'Public Outcry', 'Tax Deed', 'Tax Lien', 'Foreclosure'] },
+        { field: 'tax_status', headerName: 'Tax Status', width: 150, type: 'singleSelect', valueOptions: ['Foreclosure', 'Deed', 'Lien'] },
         { field: 'parcels_count', headerName: 'Parcels', type: 'number', width: 90 },
         { 
             field: 'live_available_count', 

@@ -41,6 +41,22 @@ def import_master_data():
         if not levy_row.empty:
             print(f"ID 597 in logic will be: {levy_row.iloc[0]['name']}")
 
+        # Ensure canonical tax_status ('Foreclosure', 'Deed', 'Lien')
+        try:
+            sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            from app.utils.auction_classifier import infer_canonical_tax_status
+            df_auc['tax_status'] = df_auc.apply(
+                lambda r: infer_canonical_tax_status(
+                    tax_status=r.get('tax_status'),
+                    name=r.get('name'),
+                    short_name=r.get('short_name'),
+                    notes=r.get('notes')
+                ),
+                axis=1
+            )
+        except Exception as e:
+            print(f"Aviso ao padronizar tax_status: {e}")
+
         df_auc.to_sql('auction_events', conn, if_exists='append', index=False, method='multi', chunksize=500)
         conn.execute(text("SELECT setval(pg_get_serial_sequence('auction_events', 'id'), (SELECT MAX(id) FROM auction_events))"))
         print(f"Done: {len(df_auc):,} auctions imported.")

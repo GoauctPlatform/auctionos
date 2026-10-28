@@ -1,6 +1,8 @@
 from datetime import date, datetime
 from sqlalchemy import Column, Integer, String, Date, Text, DateTime, Float
+from sqlalchemy.orm import validates
 from app.db.base_class import Base
+
 class AuctionEvent(Base):
     __tablename__ = "auction_events"
 
@@ -13,7 +15,7 @@ class AuctionEvent(Base):
     county = Column(String(100), nullable=True)
     county_code = Column(String(50), nullable=True)
     state = Column(String(100), nullable=True)
-    tax_status = Column(String(100), nullable=True)
+    tax_status = Column(String(100), nullable=False, default="Deed")
     parcels_count = Column(Integer, nullable=True, default=0)
     available_count = Column(Integer, nullable=True, default=0)
     notes = Column(Text, nullable=True)
@@ -32,3 +34,14 @@ class AuctionEvent(Base):
     # Metadata
     created_at = Column(DateTime, nullable=True)
     updated_at = Column(DateTime, nullable=True)
+
+    @validates("tax_status")
+    def validate_canonical_tax_status(self, key, value):
+        from app.utils.auction_classifier import infer_canonical_tax_status
+        return infer_canonical_tax_status(
+            tax_status=value,
+            name=getattr(self, "name", None),
+            short_name=getattr(self, "short_name", None),
+            notes=getattr(self, "notes", None)
+        )
+

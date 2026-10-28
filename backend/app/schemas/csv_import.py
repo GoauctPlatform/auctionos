@@ -140,6 +140,21 @@ class AuctionCSVRow(BaseModel):
             values['List Link'] = values['list_link']
         if 'Purchase Info Link' not in values and 'purchase_info_link' in values:
             values['Purchase Info Link'] = values['purchase_info_link']
+
+        # Ensure canonical tax_status ('Foreclosure', 'Deed', 'Lien')
+        from app.utils.auction_classifier import infer_canonical_tax_status
+        raw_status = values.get('Tax Status') or values.get('tax_status')
+        name_val = values.get('Name') or values.get('name')
+        short_val = values.get('Short Name') or values.get('short_name')
+        notes_val = values.get('Notes') or values.get('notes')
+        canonical_status = infer_canonical_tax_status(
+            tax_status=raw_status,
+            name=name_val,
+            short_name=short_val,
+            notes=notes_val
+        )
+        values['Tax Status'] = canonical_status
+        values['tax_status'] = canonical_status
         return values
 
     @validator('name')
