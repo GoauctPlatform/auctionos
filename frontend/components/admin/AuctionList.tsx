@@ -6,6 +6,7 @@ import { Box, Typography, Button } from '@mui/material';
 import { AuctionForm } from './AuctionForm';
 import { AuctionWorkspaceModal } from './AuctionWorkspaceModal';
 import { useLanguage } from "../../context/LanguageContext";
+import { formatDateUS, formatTimeUS } from '../../utils/dateUtils';
 
 interface AuctionListProps {
     filters: any;
@@ -207,15 +208,16 @@ const AuctionList: React.FC<AuctionListProps> = ({ filters, readOnly = false, hi
             valueFormatter: (params: any) => {
                 const val = (params && typeof params === 'object' && 'value' in params) ? params.value : params;
                 if (!val) return '';
-                let dateStr = val;
-                if (typeof val === 'string' && !val.includes('T')) {
-                    dateStr = val + 'T00:00:00';
-                }
-                const date = new Date(dateStr);
-                return date.toLocaleDateString();
+                return formatDateUS(val);
             }
         },
-        { field: 'time', headerName: 'Time', width: 100 },
+        { 
+            field: 'time', headerName: 'Time', width: 110,
+            valueFormatter: (params: any) => {
+                const val = (params && typeof params === 'object' && 'value' in params) ? params.value : params;
+                return formatTimeUS(val);
+            }
+        },
         { field: 'state', headerName: 'State', width: 90 },
         { field: 'county', headerName: 'County', width: 130 },
         { field: 'location', headerName: 'Location', width: 150 },

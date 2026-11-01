@@ -1722,7 +1722,7 @@ export const ClientWorkbench: React.FC = () => {
         lien: metrics?.lien ?? lienRes?.total ?? 0
       });
 
-      setSyncTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }));
+      setSyncTime(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }));
     } catch (err) {
       console.error('ClientWorkbench: failed to retrieve endpoints', err);
     } finally {

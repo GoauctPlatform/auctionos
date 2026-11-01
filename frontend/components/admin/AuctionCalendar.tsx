@@ -11,6 +11,7 @@ import { Box, Dialog, DialogTitle, DialogContent, Typography, IconButton } from 
 import CloseIcon from '@mui/icons-material/Close';
 import { useNavigate } from 'react-router-dom';
 import { useLanguage } from "../../context/LanguageContext";
+import { formatDateUS } from '../../utils/dateUtils';
 
 interface AuctionCalendarProps {
     filters?: {
@@ -266,7 +267,7 @@ const AuctionCalendar: React.FC<AuctionCalendarProps> = ({ filters = { startDate
             >
                 <DialogTitle sx={{ m: 0, p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc' }}>
                     <Typography variant="h6" className="font-bold text-slate-800">
-                        {groupedDateType ? `${groupedDateType.type} Auctions on ${new Date(groupedDateType.date + 'T00:00:00').toLocaleDateString()}` : 'Auctions'}
+                        {groupedDateType ? `${groupedDateType.type} Auctions on ${formatDateUS(groupedDateType.date)}` : 'Auctions'}
                     </Typography>
                     <IconButton onClick={() => setGroupedDialogOpen(false)}>
                         <CloseIcon />

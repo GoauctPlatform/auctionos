@@ -5,6 +5,7 @@ import { AuctionEvent } from '../types';
 import { AuctionFormModal } from '../components/AuctionFormModal';
 import AuctionFilters, { AuctionFilterParams } from '../components/admin/AuctionFilters';
 import { useLanguage } from "../context/LanguageContext";
+import { formatDateUS, formatTimeUS } from "../utils/dateUtils";
 
 export const AuctionList: React.FC = () => {
     const { t } = useLanguage();
@@ -197,8 +198,8 @@ export const AuctionList: React.FC = () => {
                                 {sortedAuctions.map((auction) => (
                                     <tr key={auction.id} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50">
                                         <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
-                                            {new Date(auction.auction_date + 'T00:00:00').toLocaleDateString()}
-                                            {auction.time && <span className="text-xs text-slate-500 block">{auction.time}</span>}
+                                            {formatDateUS(auction.auction_date)}
+                                            {auction.time && <span className="text-xs text-slate-500 block">{formatTimeUS(auction.time)}</span>}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="font-medium text-slate-900 dark:text-white">{auction.name}</div>
@@ -286,7 +287,7 @@ export const AuctionList: React.FC = () => {
                                                             }}
                                                             title={event.name}
                                                         >
-                                                            {event.time ? <span className="opacity-75 mr-1">{event.time.slice(0, 5)}</span> : ''}
+                                                            {event.time ? <span className="opacity-75 mr-1">{formatTimeUS(event.time)}</span> : ''}
                                                             {event.short_name || event.name}
                                                         </div>
                                                     ))}

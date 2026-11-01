@@ -2,6 +2,9 @@ import sys
 import os
 from sqlalchemy import text, create_engine
 
+from dotenv import load_dotenv
+load_dotenv("backend/.env")
+
 # Database setup
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
@@ -15,13 +18,16 @@ def sync_counts():
     print("SYNCING AUCTION PROPERTY COUNTS (TOTAL & AVAILABLE)")
     print("-" * 50)
     
-    # 1. Update TOTAL parcels_count (regardless of status)
+    # 1. Update TOTAL parcels_count (regardless of status, preserving declared count if higher)
     sync_total_query = text("""
         UPDATE auction_events ae
-        SET parcels_count = (
-            SELECT count(*)
-            FROM property_auction_history pah
-            WHERE pah.auction_id = ae.id
+        SET parcels_count = GREATEST(
+            COALESCE(ae.parcels_count, 0),
+            COALESCE((
+                SELECT count(*)
+                FROM property_auction_history pah
+                WHERE pah.auction_id = ae.id
+            ), 0)
         )
     """)
     

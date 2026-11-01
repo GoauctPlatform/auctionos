@@ -10,6 +10,7 @@ from datetime import datetime
 from redis import Redis
 import os
 import time
+import random
 import asyncio
 from sqlalchemy.exc import OperationalError
 
@@ -34,6 +35,44 @@ try:
 except:
     logger.warning("Redis not available. Progress tracking will be limited to console output.")
     redis = None
+
+import re
+
+def parse_flexible_date(d_str):
+    if not d_str or pd.isna(d_str):
+        return None
+    s = str(d_str).strip()
+    if s == "" or s.upper() in ("N/A", "NONE", "NULL"):
+        return None
+    # Strip time part if present (e.g. 2026-11-03T00:00:00)
+    s = s.split("T")[0].split(" ")[0].strip()
+    for fmt in ("%m/%d/%Y", "%Y-%m-%d", "%m-%d-%Y", "%Y/%m/%d", "%m/%d/%y"):
+        try:
+            return datetime.strptime(s, fmt).date()
+        except (ValueError, TypeError):
+            continue
+    return None
+
+def normalize_us_time(t_str):
+    if not t_str or pd.isna(t_str):
+        return None
+    s = str(t_str).strip()
+    if s == "" or s.upper() in ("N/A", "NONE", "NULL", "TBA", "TBD"):
+        return None
+    upper_s = s.upper()
+    if "AM" in upper_s or "PM" in upper_s:
+        m = re.match(r"^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)$", upper_s)
+        if m:
+            hr, mn, ap = m.groups()
+            return f"{int(hr):02d}:{mn} {ap}"
+        return s
+    for fmt in ("%H:%M:%S", "%H:%M"):
+        try:
+            parsed = datetime.strptime(s, fmt)
+            return parsed.strftime("%I:%M %p")
+        except (ValueError, TypeError):
+            continue
+    return s
 
 class ImportService:
     @staticmethod
@@ -62,12 +101,7 @@ class ImportService:
             errors = []
 
             # Headers and types mapping
-            def parse_auction_date(d_str):
-                if not d_str: return None
-                try: return datetime.strptime(d_str.strip(), "%m/%d/%Y").date()
-                except: pass
-                try: return datetime.strptime(d_str.strip(), "%Y-%m-%d").date()
-                except: return None
+            parse_auction_date = parse_flexible_date
 
             # Iterate in chunks
             skip_range = range(1, skip_rows + 1) if skip_rows > 0 else None
@@ -202,6 +236,33 @@ class ImportService:
                     except Exception as e:
                         errors.append(f"Row {total_rows - chunk_size + _ + 2}: {str(e)}")
 
+                # 1. Deduplicate & sort details_batch deterministically by parcel_id
+                # In concurrent multi-process imports, acquiring locks in the exact same order
+                # prevents circular wait conditions (PostgreSQL Deadlocks).
+                if details_batch:
+                    dedup_details = {}
+                    for d in details_batch:
+                        pid = d.get("parcel_id")
+                        if pid:
+                            dedup_details[pid] = d
+                        else:
+                            dedup_details[d.get("property_id")] = d
+                    details_batch = sorted(
+                        dedup_details.values(),
+                        key=lambda x: str(x.get("parcel_id") or x.get("property_id") or "")
+                    )
+
+                # Deduplicate & sort history_batch
+                if history_batch:
+                    dedup_history = {}
+                    for h in history_batch:
+                        k = (h.get("parcel_id"), h.get("auction_name"))
+                        dedup_history[k] = h
+                    history_batch = sorted(
+                        dedup_history.values(),
+                        key=lambda x: (str(x.get("parcel_id") or ""), str(x.get("auction_name") or ""))
+                    )
+
                 # Commit each chunk as a separate transaction with connection drop retry logic
                 max_retries = 3
                 for attempt in range(max_retries):
@@ -293,8 +354,10 @@ class ImportService:
                             errors.append(f"Chunk rows {total_rows - chunk_size + 1} to {total_rows} completely failed: {str(oe)}")
                             raise oe # We must raise it to stop the script, or we can choose to continue. Since partial imports are okay, let's catch it!
                         
-                        logger.warning(f"Job {job_id}: DB OperationalError (Drop), retrying {attempt+1}/{max_retries} in 3s... ({str(oe)})")
-                        time.sleep(3)
+                        # Exponential backoff with random jitter to desynchronize concurrent workers
+                        backoff = random.uniform(0.5, 1.5) * (2 ** attempt)
+                        logger.warning(f"Job {job_id}: DB OperationalError (Deadlock/Drop), retrying {attempt+1}/{max_retries} in {backoff:.2f}s... ({str(oe)})")
+                        time.sleep(backoff)
                         
                     except Exception as ge:
                         logger.error(f"Job {job_id}: Unhandled error in DB save chunk: {str(ge)}")
@@ -357,17 +420,13 @@ class ImportService:
                                     row_dict = row.where(pd.notnull(row), None).to_dict()
                                     validated_data = AuctionCSVRow(**row_dict)
                                     
-                                    # Parse dates
-                                    def parse_dt(d_str):
-                                        if not d_str or d_str.strip() == "" or d_str == "N/A": return None
-                                        try: return datetime.strptime(d_str.strip(), "%Y-%m-%d").date()
-                                        except: return None
-                                        
-                                    a_date = parse_dt(validated_data.auction_date)
+                                    # Parse dates with resilient US and ISO parser
+                                    a_date = parse_flexible_date(validated_data.auction_date)
                                     if not a_date:
                                         raise ValueError(f"Invalid or missing auction date: {validated_data.auction_date}")
                                         
-                                    r_date = parse_dt(validated_data.register_date)
+                                    r_date = parse_flexible_date(validated_data.register_date)
+                                    formatted_time = normalize_us_time(validated_data.time)
 
                                     def parse_parcels(p_str):
                                         if not p_str or str(p_str).strip() == "": return 0
@@ -376,13 +435,14 @@ class ImportService:
                                         except ValueError:
                                             return 0
 
+                                    incoming_parcels = parse_parcels(validated_data.parcels)
                                     from app.utils.auction_classifier import infer_canonical_tax_status
 
                                     auction_data = {
                                         "name": validated_data.name,
                                         "short_name": validated_data.short_name,
                                         "auction_date": a_date,
-                                        "time": validated_data.time,
+                                        "time": formatted_time,
                                         "location": validated_data.location,
                                         "county": validated_data.county_name,
                                         "county_code": validated_data.county_code,
@@ -393,7 +453,7 @@ class ImportService:
                                             short_name=validated_data.short_name,
                                             notes=validated_data.notes
                                         ),
-                                        "parcels_count": parse_parcels(validated_data.parcels),
+                                        "parcels_count": incoming_parcels,
                                         "notes": validated_data.notes,
                                         "search_link": validated_data.search_link,
                                         "register_date": r_date,
@@ -406,7 +466,7 @@ class ImportService:
                                     # Check exist by name and date
                                     # Check existing by business key (name, date, state)
                                     check_query = """
-                                        SELECT id FROM auction_events 
+                                        SELECT id, parcels_count FROM auction_events 
                                         WHERE (LOWER(TRIM(name)) = LOWER(TRIM(:name)) 
                                                OR (short_name IS NOT NULL AND LOWER(TRIM(short_name)) = LOWER(TRIM(:name)))
                                                OR (:short_name IS NOT NULL AND LOWER(TRIM(name)) = LOWER(TRIM(:short_name)))) 
@@ -424,10 +484,23 @@ class ImportService:
                                     existing = conn.execute(text(check_query), check_params).fetchone()
                                     
                                     if existing:
-                                        updates = ", ".join([f"{k} = :{k}" for k in auction_data.keys() if k not in ["name", "auction_date"]])
-                                        query = text(f"UPDATE auction_events SET {updates} WHERE id = :id")
-                                        update_params = {**auction_data, "id": existing[0]}
-                                        conn.execute(query, update_params)
+                                        existing_id = existing[0]
+                                        existing_parcels = existing[1] or 0
+                                        # Protect existing parcels_count: do NOT overwrite with 0 if DB already has a positive count
+                                        update_data = {k: v for k, v in auction_data.items() if k not in ["name", "auction_date", "parcels_count"]}
+                                        update_clauses = [f"{k} = :{k}" for k in update_data.keys()]
+                                        
+                                        if incoming_parcels > 0:
+                                            update_clauses.append("parcels_count = :parcels_count")
+                                            update_data["parcels_count"] = incoming_parcels
+                                        elif existing_parcels > 0:
+                                            # Preserve existing count
+                                            pass
+                                        else:
+                                            update_clauses.append("parcels_count = 0")
+
+                                        query = text(f"UPDATE auction_events SET {', '.join(update_clauses)} WHERE id = :id")
+                                        conn.execute(query, {**update_data, "id": existing_id})
                                     else:
                                         # When creating a new auction, allow PostgreSQL sequence to assign the unique ID
                                         # to prevent collisions with existing IDs from other data sources
@@ -459,6 +532,27 @@ class ImportService:
                         logger.error(f"Job {job_id}: Unhandled error in DB save chunk: {str(ge)}")
                         errors.append(f"Chunk DB Error rows {i+2}: {str(ge)}")
                         break
+
+            # Automatic Synchronization of parcels_count and available_count from property_auction_history
+            try:
+                with engine.begin() as sync_conn:
+                    sync_conn.execute(text("""
+                        UPDATE auction_events ae
+                        SET parcels_count = GREATEST(
+                            COALESCE(ae.parcels_count, 0),
+                            COALESCE((SELECT count(*) FROM property_auction_history pah WHERE pah.auction_id = ae.id), 0)
+                        ),
+                        available_count = COALESCE((
+                            SELECT count(*)
+                            FROM property_auction_history pah
+                            JOIN property_details p ON p.property_id = pah.property_id
+                            WHERE pah.auction_id = ae.id AND LOWER(TRIM(p.availability_status)) = 'available'
+                        ), 0)
+                        WHERE ae.auction_date >= CURRENT_DATE - INTERVAL '15 days';
+                    """))
+                    logger.info("Successfully synced auction counts after import.")
+            except Exception as se:
+                logger.warning(f"Could not auto-sync auction counts after import: {se}")
 
             if redis:
                 if errors:

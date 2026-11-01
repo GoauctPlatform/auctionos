@@ -6,6 +6,7 @@ import { calculateDealScore } from '../../intelligence/scoringEngine';
 import { AuctionService } from '../../services/auction.service';
 import { AuctionEvent } from '../../types';
 import { Map, Star, Award, Layers, X, RefreshCw, ArrowLeft, Eye, ArrowRight, BarChart2 } from 'lucide-react';
+import { formatDateUS } from '../../utils/dateUtils';
 
 interface MapDashboardProps {
     selectedState?: string;
@@ -475,7 +476,7 @@ export const MapDashboard: React.FC<MapDashboardProps> = ({
                                                 <div key={auc.id} className="bg-[#002b36]/60 border border-[#1a4554]/30 rounded p-2 text-[10px]">
                                                     <div className="flex justify-between font-bold text-white mb-1">
                                                         <span className="truncate pr-2">{auc.name || `Auction #${auc.id}`}</span>
-                                                        <span className="text-amber-400 shrink-0">{auc.auction_date ? new Date(auc.auction_date).toLocaleDateString() : 'TBA'}</span>
+                                                        <span className="text-amber-400 shrink-0">{auc.auction_date ? formatDateUS(auc.auction_date) : 'TBA'}</span>
                                                     </div>
                                                     <div className="flex justify-between text-slate-400">
                                                         <span>{auc.county} County</span>

@@ -25,6 +25,7 @@ import { AuctionService } from '../../services/auction.service';
 import { PropertyRedemptionCard } from '../property/PropertyRedemptionCard';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from "../../context/LanguageContext";
+import { formatDateUS, formatTimeUS } from '../../utils/dateUtils';
 
 interface ClientAuctionDetailsProps {
     eventData: any;
@@ -47,13 +48,13 @@ export const ClientAuctionDetails: React.FC<ClientAuctionDetailsProps> = ({ even
     let timeStr = '';
     
     if (isCalendarEvent) {
-        dateStr = eventData?.start ? new Date(eventData.start).toLocaleDateString(undefined, { timeZone: 'UTC' }) : '';
+        dateStr = eventData?.start ? formatDateUS(eventData.start) : '';
         rawDate = eventData?.startStr ? eventData.startStr.split('T')[0] : (eventData?.start ? new Date(eventData.start).toISOString().split('T')[0] : undefined);
-        timeStr = eventData?.start ? new Date(eventData.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+        timeStr = formatTimeUS(props.time || eventData?.time || eventData?.extendedProps?.time || (eventData?.startStr?.includes('T') ? eventData.startStr : ''));
     } else {
         rawDate = props.auction_date || '';
-        dateStr = rawDate ? new Date(rawDate + 'T00:00:00Z').toLocaleDateString(undefined, { timeZone: 'UTC' }) : '';
-        timeStr = props.time || '';
+        dateStr = rawDate ? formatDateUS(rawDate) : '';
+        timeStr = formatTimeUS(props.time) || '';
     }
     
     const cleanAuctionName = (eventData?.title || props.name || '').replace(/\(\d+\)$/, '').trim();
@@ -148,7 +149,7 @@ export const ClientAuctionDetails: React.FC<ClientAuctionDetailsProps> = ({ even
                     <div className="p-5 space-y-6">
                         {/* Meta Tags */}
                         <div className="flex flex-wrap gap-2">
-                            <Chip icon={<EventIcon />} label={`${dateStr} at ${timeStr}`} color="primary" variant="outlined" size="small" />
+                            <Chip icon={<EventIcon />} label={timeStr ? `${dateStr} at ${timeStr}` : dateStr} color="primary" variant="outlined" size="small" />
                             {props.property_count > 0 && (
                                 <Chip icon={<ListIcon />} label={`${props.property_count} Total`} color="secondary" variant="outlined" size="small" />
                             )}

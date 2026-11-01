@@ -14,6 +14,7 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import StarIcon from '@mui/icons-material/Star';
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import { useLanguage } from "../../context/LanguageContext";
+import { formatDateUS, formatTimeUS, formatDateTimeUS, formatDateLongUS } from '../../utils/dateUtils';
 
 const STATE_CODE_MAP: Record<string, string> = {
     'Alabama': 'AL', 'Alaska': 'AK', 'Arizona': 'AZ', 'Arkansas': 'AR', 'California': 'CA',
@@ -130,7 +131,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                     <div className="flex flex-col">
                         <Typography variant="h6" className="font-black text-slate-800 dark:text-white leading-tight flex items-center gap-2">
                             <TodayIcon className="text-blue-500" />
-                            {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                            {formatDateLongUS(date)}
                         </Typography>
                         <div className="flex items-center gap-2 mt-1">
                             <Chip label={type} size="small" className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400 font-bold text-xs" />
@@ -245,7 +246,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                         
                                         <Typography variant="caption" className="relative z-10 text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1">
                                             <TodayIcon fontSize="inherit" />
-                                            {new Date(auction.auction_date || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • {auction.tax_status || 'Live Auction'}
+                                            {formatDateTimeUS(auction.auction_date, auction.time)} • {auction.tax_status || 'Live Auction'}
                                         </Typography>
 
                                         {auction.location && (
@@ -310,7 +311,7 @@ export const ClientAuctionGroupList: React.FC<ClientAuctionGroupListProps> = ({ 
                                                     {auction.county ? `${auction.county} County, ` : ''} {getStateCode(auction.state || '')}
                                                     <span className="mx-1">•</span>
                                                     <TodayIcon fontSize="inherit" />
-                                                    {new Date(auction.auction_date || '').toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {formatDateTimeUS(auction.auction_date, auction.time)}
                                                     {auction.tax_status && <><span className="mx-1">•</span>{auction.tax_status}</>}
                                                 </Typography>
                                                 {(auction.location || auction.notes) && (

@@ -28,6 +28,7 @@ import { AuctionService } from '../../services/auction.service';
 import { PropertyRedemptionCard } from '../property/PropertyRedemptionCard';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from "../../context/LanguageContext";
+import { formatDateUS, formatTimeUS } from '../../utils/dateUtils';
 
 interface AuctionWorkspaceModalProps {
     eventData: any;
@@ -44,9 +45,9 @@ export const AuctionWorkspaceModal: React.FC<AuctionWorkspaceModalProps> = ({ ev
 
     const props = eventData?.extendedProps || {};
     const auctionId = eventData?.id || props.id || props.auction_id;
-    const dateStr = eventData?.start ? new Date(eventData.start).toLocaleDateString(undefined, { timeZone: 'UTC' }) : '';
+    const dateStr = eventData?.start ? formatDateUS(eventData.start) : '';
     const rawDate = eventData?.startStr ? eventData.startStr.split('T')[0] : (eventData?.start ? new Date(eventData.start).toISOString().split('T')[0] : undefined);
-    const timeStr = eventData?.start ? new Date(eventData.start).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+    const timeStr = formatTimeUS(props.time || eventData?.time || eventData?.extendedProps?.time || (eventData?.startStr?.includes('T') ? eventData.startStr : ''));
     const cleanAuctionName = (eventData?.title || '').replace(/\(\d+\)$/, '').trim();
 
     React.useEffect(() => {
@@ -144,7 +145,7 @@ export const AuctionWorkspaceModal: React.FC<AuctionWorkspaceModalProps> = ({ ev
                     <div className="p-5 space-y-6">
                         {/* Meta Tags */}
                         <div className="flex flex-wrap gap-2">
-                            <Chip icon={<EventIcon />} label={`${dateStr} at ${timeStr}`} color="primary" variant="outlined" size="small" />
+                            <Chip icon={<EventIcon />} label={timeStr ? `${dateStr} at ${timeStr}` : dateStr} color="primary" variant="outlined" size="small" />
                             {props.property_count > 0 && (
                                 <Chip icon={<ListIcon />} label={`${props.property_count} Total`} color="secondary" variant="outlined" size="small" />
                             )}

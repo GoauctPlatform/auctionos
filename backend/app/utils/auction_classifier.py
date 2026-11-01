@@ -3,13 +3,13 @@ from typing import Optional
 CANONICAL_TAX_STATUSES = ("Foreclosure", "Deed", "Lien")
 
 FORECLOSURE_TERMS = [
-    "foreclosure", "mortgage", "sheriff"
+    "foreclosure", "mortgage"
 ]
 
 DEED_TERMS = [
     "tax deed", "deed", "quit claim", "resale", "struck-off", "upset",
     "repository", "commissioner", "mayors sale", "mayor sale",
-    "land bank", "building detroit", "sealed bid"
+    "land bank", "building detroit", "sealed bid", "sheriff"
 ]
 
 LIEN_TERMS = [
@@ -30,10 +30,10 @@ def infer_canonical_tax_status(
     - 'Lien'
 
     Inference priority:
-    1. Foreclosure: contains 'foreclosure', 'mortgage', 'sheriff'
+    1. Foreclosure: contains 'foreclosure', 'mortgage'
     2. Deed: contains 'tax deed', 'deed', 'quit claim', 'resale', 'struck-off', 'upset',
              'repository', 'commissioner', 'mayors sale', 'mayor sale', 'land bank',
-             'building detroit', 'sealed bid'
+             'building detroit', 'sealed bid', 'sheriff'
     3. Lien: contains 'lien', 'tax sale', 'cert', 'tax defaulted', 'tax auction', 'treasurer'
     4. Controlled Fallback: 'Deed'
     """
